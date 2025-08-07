@@ -11,7 +11,7 @@ export default function OTPStep({
   onResend,
   lexend,
   lexendSmall,
-  resendLoading = false, // Add this prop
+  resendLoading = false, 
 }: {
   email: string;
   otp: string;

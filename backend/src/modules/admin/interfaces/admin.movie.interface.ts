@@ -35,3 +35,39 @@ export interface IAdminMovieRepository {
   delete(id: string): Promise<boolean>;
   toggleStatus(id: string): Promise<IMovie | null>;
 }
+
+
+// Keep the AdminMovieFilters interface in admin module
+export interface AdminMovieFilters {
+  search?: string;
+  isActive?: boolean;
+  rating?: string;
+  minDuration?: number;
+  maxDuration?: number;
+  releaseYearStart?: number;
+  releaseYearEnd?: number;
+  genre?: string;
+  language?: string;
+  sortBy?: 'title' | 'releaseDate' | 'rating' | 'duration';
+  sortOrder?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
+}
+
+// Remove IAdminMovieRepository - use IMovieRepository from movies module instead
+// Keep admin-specific interfaces in admin module
+export interface AdminMovieFilters {
+  search?: string;
+  isActive?: boolean;
+  rating?: string;
+  minDuration?: number;
+  maxDuration?: number;
+  releaseYearStart?: number;
+  releaseYearEnd?: number;
+  language?: string;
+  genre?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
+}

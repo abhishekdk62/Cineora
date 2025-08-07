@@ -26,3 +26,35 @@ export interface IAdminOwnerRequestRepository {
   create(data: any): Promise<any>;
   updateStatus(id: string, status: string, reviewedBy?: string, rejectionReason?: string): Promise<any>;
 }
+
+// Keep admin-specific interfaces in admin module
+// Remove IAdminOwnerRepository - use IOwnerRepository from owner module instead
+
+// If you have admin-specific owner filters, keep them here:
+export interface AdminOwnerFilters {
+  search?: string;
+  isActive?: boolean;
+  kycStatus?: string;
+  registrationDateStart?: Date;
+  registrationDateEnd?: Date;
+  sortBy?: 'ownerName' | 'email' | 'createdAt' | 'lastLogin';
+  sortOrder?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
+}
+
+// Keep admin-specific interfaces in admin module
+// Remove IAdminOwnerRequestRepository - use IOwnerRequestRepository from owner module instead
+
+// If you have admin-specific owner request filters, keep them here:
+export interface AdminOwnerRequestFilters {
+  status?: 'pending' | 'approved' | 'rejected';
+  search?: string;
+  submittedDateStart?: Date;
+  submittedDateEnd?: Date;
+  reviewedBy?: string;
+  sortBy?: 'submittedAt' | 'reviewedAt' | 'ownerName' | 'email';
+  sortOrder?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
+}

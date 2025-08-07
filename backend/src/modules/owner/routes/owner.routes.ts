@@ -1,10 +1,5 @@
 import { Router } from 'express';  // ✅ Import Router directly
-import {
-  sendOTP,
-  verifyOTP,
-  submitKYC,
-  getRequestStatus,
-} from '../controllers/owner.controller';
+import { getRequestStatus, sendOTP, submitKYC, verifyOTP } from '../controllers/ownerRequest.controller';
 
 const router = Router();
 

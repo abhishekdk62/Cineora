@@ -1,38 +1,312 @@
-import { OwnerRepository } from "../repositories/owner.repository";
-import { OwnerRequestRepository } from "../repositories/ownerRequest.repository";
-import { ServiceResponse } from "../interfaces/owner.interface";
-import { OwnerService } from "./owner.service";
+import { Types } from "mongoose";
+import * as bcrypt from "bcryptjs";
 
-export class AdminOwnerService {
-  private ownerRepo = new OwnerRepository();
-  private ownerRequestRepo = new OwnerRequestRepository();
-  private ownerService = new OwnerService();
+import {
+  IOwnerRepository,
+  IOwnerRequestRepository,
+  OwnerKYCData,
+  ServiceResponse,
+} from "../interfaces/owner.interface";
+import { IUserRepository } from "../../user/interfaces/user.interface";
+import { IOTPRepository, OTPType } from "../../otp/interfaces/otp.interface"; // ✅ Changed to repository
 
-  async getOwnerCounts(): Promise<ServiceResponse> {
+export class OwnerRequestService {
+  constructor(
+    private ownerRequestRepo: IOwnerRequestRepository,
+    private ownerRepo: IOwnerRepository,
+    private otpRepo: IOTPRepository, // ✅ Changed from service to repository
+    private userRepo: IUserRepository,
+    private emailService: any
+  ) {}
+
+  private generateOTP(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  private generateRandomPassword(): string {
+    const chars =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let password = "";
+    for (let i = 0; i < 8; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+  }
+
+  private async hashPassword(password: string): Promise<string> {
+    const saltRounds = 12;
+    return await bcrypt.hash(password, saltRounds);
+  }
+
+  async sendOTP(email: string): Promise<ServiceResponse> {
     try {
-      const [activeOwners, inactiveOwners, pendingRequests, approvedRequests, rejectedRequests] = await Promise.all([
-        this.ownerRepo.findByStatus('active', 1, 1).then(result => result.total),
-        this.ownerRepo.findByStatus('blocked', 1, 1).then(result => result.total),
-        this.ownerRequestRepo.findByStatus('pending', 1, 1).then(result => result.total),
-        this.ownerRequestRepo.findByStatus('approved', 1, 1).then(result => result.total),
-        this.ownerRequestRepo.findByStatus('rejected', 1, 1).then(result => result.total),
-      ]);
+      const existingUser = await this.userRepo.findByEmail(email);
+      if (existingUser) {
+        return {
+          success: false,
+          message: "This email is already registered.",
+        };
+      }
+
+      const existingRequest = await this.ownerRequestRepo.findByEmail(email);
+      if (existingRequest && existingRequest.status !== "rejected") {
+        return {
+          success: false,
+          message: "Email already in use",
+        };
+      }
+
+      const existingOwner = await this.ownerRepo.findByEmail(email);
+      if (existingOwner) {
+        return {
+          success: false,
+          message: "Email already in use",
+        };
+      }
+
+      // ✅ Generate OTP and save directly using repository
+      const otp = this.generateOTP();
+      const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+      // ✅ Direct repository call
+      await this.otpRepo.create({
+        email,
+        otp,
+        type: "owner_verification" as OTPType,
+        expiresAt,
+        isUsed: false,
+      });
+
+      // ✅ Send email
+      const emailSent = await this.emailService.sendOTPEmail(email, otp);
+
+      if (!emailSent) {
+        return {
+          success: false,
+          message: "Failed to send verification email. Please try again.",
+        };
+      }
 
       return {
         success: true,
-        message: "Owner counts fetched successfully",
-        data: {
-          counts: {
-            activeOwners,
-            inactiveOwners,
-            pendingRequests,
-            approvedRequests,
-            rejectedRequests
-          }
-        }
+        message: "OTP sent successfully to your email address",
       };
     } catch (error) {
-      console.error("Get owner counts error:", error);
+      console.error("Send OTP error:", error);
+      return {
+        success: false,
+        message: "Something went wrong while sending OTP",
+      };
+    }
+  }
+
+  async verifyOTP(email: string, otp: string): Promise<ServiceResponse> {
+    try {
+      // ✅ Direct repository call to find valid OTP
+      const validOTP = await this.otpRepo.findValidOTP(
+        email,
+        otp,
+        "owner_verification"
+      );
+
+      if (!validOTP) {
+        return {
+          success: false,
+          message: "Invalid or expired OTP",
+        };
+      }
+
+      // ✅ Mark as used via repository
+      await this.otpRepo.markAsUsed(validOTP._id as string);
+
+      return {
+        success: true,
+        message: "Email verified successfully",
+      };
+    } catch (error) {
+      console.error("Verify OTP error:", error);
+      return {
+        success: false,
+        message: "Something went wrong during OTP verification",
+      };
+    }
+  }
+
+  async submitKYC(ownerData: OwnerKYCData): Promise<ServiceResponse> {
+    try {
+      const existingRequest =
+        await this.ownerRequestRepo.findExistingNonRejected({
+          phone: ownerData.phone,
+          email: ownerData.email,
+          aadhaar: ownerData.aadhaar,
+          pan: ownerData.pan,
+        });
+
+      if (existingRequest) {
+        if (existingRequest.phone === ownerData.phone) {
+          return {
+            success: false,
+            message:
+              "A pending/approved request with this phone number already exists",
+          };
+        }
+        if (existingRequest.email === ownerData.email) {
+          return {
+            success: false,
+            message:
+              "A pending/approved request with this email address already exists",
+          };
+        }
+        if (existingRequest.aadhaar === ownerData.aadhaar) {
+          return {
+            success: false,
+            message:
+              "A pending/approved request with this Aadhaar number already exists",
+          };
+        }
+        if (existingRequest.pan === ownerData.pan) {
+          return {
+            success: false,
+            message:
+              "A pending/approved request with this PAN number already exists",
+          };
+        }
+      }
+
+      const existingOwner = await this.ownerRepo.findByEmail(ownerData.email);
+      if (existingOwner) {
+        return {
+          success: false,
+          message: "An owner with this email already exists",
+        };
+      }
+
+      const ownerRequest = await this.ownerRequestRepo.create({
+        ...ownerData,
+        status: "pending",
+        submittedAt: new Date(),
+        emailVerified: true,
+      });
+
+      await this.emailService.sendKYCSubmittedEmail(
+        ownerData.email,
+        ownerData.ownerName,
+        ownerRequest._id
+      );
+
+      return {
+        success: true,
+        message: "KYC request submitted successfully",
+        data: {
+          requestId: ownerRequest._id,
+          status: ownerRequest.status,
+          submittedAt: ownerRequest.submittedAt,
+        },
+      };
+    } catch (error) {
+      console.error("Submit KYC error:", error);
+      return {
+        success: false,
+        message: "Something went wrong during KYC submission",
+      };
+    }
+  }
+
+  async updateRequestStatus(
+    requestId: string,
+    status: string,
+    reviewedBy?: string,
+    rejectionReason?: string
+  ): Promise<ServiceResponse> {
+    try {
+      const validStatuses = ["pending", "under_review", "approved", "rejected"];
+      if (!validStatuses.includes(status)) {
+        return {
+          success: false,
+          message: "Invalid status",
+        };
+      }
+
+      const kycRequest = await this.ownerRequestRepo.findById(requestId);
+      if (!kycRequest) {
+        return {
+          success: false,
+          message: "Request not found",
+        };
+      }
+
+      if (status === "approved") {
+        const existingOwner = await this.ownerRepo.findByKycRequestId(
+          requestId
+        );
+        if (existingOwner) {
+          return {
+            success: false,
+            message: "Owner account already exists for this request",
+          };
+        }
+
+        const randomPassword = this.generateRandomPassword();
+        const hashedPassword = await this.hashPassword(randomPassword);
+
+        const newOwner = await this.ownerRepo.create({
+          ownerName: kycRequest.ownerName,
+          phone: kycRequest.phone,
+          email: kycRequest.email,
+          password: hashedPassword,
+          aadhaar: kycRequest.aadhaar,
+          pan: kycRequest.pan,
+          accountHolder: kycRequest.accountHolder,
+          bankName: kycRequest.bankName,
+          accountNumber: kycRequest.accountNumber,
+          ifsc: kycRequest.ifsc,
+          aadhaarUrl: kycRequest.aadhaarUrl,
+          panUrl: kycRequest.panUrl,
+          ownerPhotoUrl: kycRequest.ownerPhotoUrl,
+          kycRequestId: new Types.ObjectId(requestId),
+          approvedAt: new Date(),
+          approvedBy: reviewedBy || "system",
+          isActive: true,
+          isVerified: true,
+          theatres: [],
+        });
+
+        await this.emailService.sendOwnerWelcomeEmail(
+          kycRequest.email,
+          kycRequest.ownerName,
+          randomPassword
+        );
+
+        console.log("✅ Owner account created:", newOwner._id);
+      }
+
+      if (status === "rejected") {
+        await this.emailService.sendKYCRejectedEmail(
+          kycRequest.email,
+          kycRequest.ownerName,
+          rejectionReason || "Your application did not meet our requirements."
+        );
+      }
+
+      const updatedRequest = await this.ownerRequestRepo.updateStatus(
+        requestId,
+        status,
+        reviewedBy,
+        rejectionReason
+      );
+
+      return {
+        success: true,
+        message:
+          status === "approved"
+            ? "Request approved and owner account created successfully"
+            : status === "rejected"
+            ? "Request rejected and notification sent"
+            : "Request status updated successfully",
+        data: updatedRequest,
+      };
+    } catch (error) {
+      console.error("Update request status error:", error);
       return {
         success: false,
         message: "Something went wrong",
@@ -40,61 +314,60 @@ export class AdminOwnerService {
     }
   }
 
-  async getOwners(filters: any): Promise<ServiceResponse> {
+  async getRequestStatus(requestId: string): Promise<ServiceResponse> {
     try {
-      const { search, status, sortBy, sortOrder, page = 1, limit = 10 } = filters;
-      
-      let result;
-      if (status) {
-        result = await this.ownerRepo.findByStatus(status, Number(page), Number(limit));
-      } else {
-        result = await this.ownerRepo.findAll(Number(page), Number(limit));
-      }
+      const request = await this.ownerRequestRepo.findById(requestId);
 
-      // Apply search filter if provided
-      if (search) {
-        result.owners = result.owners.filter((owner: any) =>
-          owner.ownerName.toLowerCase().includes(search.toLowerCase()) ||
-          owner.email.toLowerCase().includes(search.toLowerCase()) ||
-          owner.phone.includes(search)
-        );
-      }
-
-      // Apply sorting if provided
-      if (sortBy) {
-        result.owners.sort((a: any, b: any) => {
-          let aValue = a[sortBy];
-          let bValue = b[sortBy];
-          
-          if (sortBy.includes('Date') || sortBy.includes('At')) {
-            aValue = new Date(aValue);
-            bValue = new Date(bValue);
-          }
-          
-          if (sortOrder === 'desc') {
-            return bValue > aValue ? 1 : -1;
-          }
-          return aValue > bValue ? 1 : -1;
-        });
+      if (!request) {
+        return {
+          success: false,
+          message: "Request not found",
+        };
       }
 
       return {
         success: true,
-        message: "Owners fetched successfully",
+        message: "Request status fetched successfully",
+        data: request,
+      };
+    } catch (error) {
+      console.error("Get request status error:", error);
+      return {
+        success: false,
+        message: "Something went wrong",
+      };
+    }
+  }
+
+  async getAllRequests(
+    page: number = 1,
+    limit: number = 10,
+    status?: string
+  ): Promise<ServiceResponse> {
+    try {
+      let result;
+
+      if (status) {
+        result = await this.ownerRequestRepo.findByStatus(status, page, limit);
+      } else {
+        result = await this.ownerRequestRepo.findAll(page, limit);
+      }
+
+      return {
+        success: true,
+        message: "Requests fetched successfully",
         data: {
-          owners: result.owners,
-          meta: {
-            pagination: {
-              currentPage: Number(page),
-              totalPages: Math.ceil(result.total / Number(limit)),
-              total: result.total,
-              limit: Number(limit),
-            },
+          requests: result.requests,
+          pagination: {
+            currentPage: page,
+            totalPages: Math.ceil(result.total / limit),
+            totalRequests: result.total,
+            limit,
           },
         },
       };
     } catch (error) {
-      console.error("Get owners error:", error);
+      console.error("Get all requests error:", error);
       return {
         success: false,
         message: "Something went wrong",
@@ -104,36 +377,49 @@ export class AdminOwnerService {
 
   async getOwnerRequests(filters: any): Promise<ServiceResponse> {
     try {
-      const { search, status, sortBy, sortOrder, page = 1, limit = 10 } = filters;
-      
+      const {
+        search,
+        status,
+        sortBy,
+        sortOrder,
+        page = 1,
+        limit = 10,
+      } = filters;
+
       let result;
       if (status) {
-        result = await this.ownerRequestRepo.findByStatus(status, Number(page), Number(limit));
+        result = await this.ownerRequestRepo.findByStatus(
+          status,
+          Number(page),
+          Number(limit)
+        );
       } else {
-        result = await this.ownerRequestRepo.findAll(Number(page), Number(limit));
-      }
-
-      // Apply search filter if provided
-      if (search) {
-        result.requests = result.requests.filter((request: any) =>
-          request.ownerName.toLowerCase().includes(search.toLowerCase()) ||
-          request.email.toLowerCase().includes(search.toLowerCase()) ||
-          request.phone.includes(search)
+        result = await this.ownerRequestRepo.findAll(
+          Number(page),
+          Number(limit)
         );
       }
 
-      // Apply sorting if provided
+      if (search) {
+        result.requests = result.requests.filter(
+          (request: any) =>
+            request.ownerName.toLowerCase().includes(search.toLowerCase()) ||
+            request.email.toLowerCase().includes(search.toLowerCase()) ||
+            request.phone.includes(search)
+        );
+      }
+
       if (sortBy) {
         result.requests.sort((a: any, b: any) => {
           let aValue = a[sortBy];
           let bValue = b[sortBy];
-          
-          if (sortBy.includes('Date') || sortBy.includes('At')) {
+
+          if (sortBy.includes("Date") || sortBy.includes("At")) {
             aValue = new Date(aValue);
             bValue = new Date(bValue);
           }
-          
-          if (sortOrder === 'desc') {
+
+          if (sortOrder === "desc") {
             return bValue > aValue ? 1 : -1;
           }
           return aValue > bValue ? 1 : -1;
@@ -162,31 +448,5 @@ export class AdminOwnerService {
         message: "Something went wrong",
       };
     }
-  }
-
-  async toggleOwnerStatus(ownerId: string): Promise<ServiceResponse> {
-    try {
-      const updatedOwner = await this.ownerRepo.toggleStatus(ownerId);
-
-      return {
-        success: true,
-        message: `Owner ${updatedOwner.isActive ? 'activated' : 'blocked'} successfully`,
-        data: updatedOwner,
-      };
-    } catch (error) {
-      console.error("Toggle owner status error:", error);
-      return {
-        success: false,
-        message: error instanceof Error ? error.message : "Something went wrong",
-      };
-    }
-  }
-
-  async acceptOwnerRequest(requestId: string, adminId?: string): Promise<ServiceResponse> {
-    return await this.ownerService.updateRequestStatus(requestId, 'approved', adminId);
-  }
-
-  async rejectOwnerRequest(requestId: string, rejectionReason?: string, adminId?: string): Promise<ServiceResponse> {
-    return await this.ownerService.updateRequestStatus(requestId, 'rejected', adminId, rejectionReason);
   }
 }

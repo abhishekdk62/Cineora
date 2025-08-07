@@ -1,3 +1,4 @@
+// user.interface.ts
 import { IUser } from '../models/user.model';
 
 export interface IUserRepository {
@@ -5,13 +6,23 @@ export interface IUserRepository {
   findById(id: string): Promise<IUser | null>;
   findByEmail(email: string): Promise<IUser | null>;
   findByUsername(username: string): Promise<IUser | null>;
+  findByIdWithPassword(id: string): Promise<IUser | null>;
+  
   verifyEmail(email: string): Promise<boolean>;
   updateProfile(id: string, updateData: Partial<IUser>): Promise<IUser | null>;
   updateLastActive(id: string): Promise<boolean>;
+  updatePassword(id: string, hashedPassword: string): Promise<boolean>;
+  
   deactivateUser(id: string): Promise<boolean>;
-  findNearbyUsers(coordinates: [number, number], maxDistance: number): Promise<IUser[]>;
-  findActiveUsers(limit?: number): Promise<IUser[]>;
+  toggleStatus(id: string): Promise<IUser | null>;
   addXpPoints(id: string, points: number): Promise<boolean>;
+  
+  findNearbyUsers(coordinates: [number, number], maxDistance: number): Promise<IUser[]>;
+  findActiveUsers(limit: number): Promise<IUser[]>;
+  
+  findAll(page: number, limit: number): Promise<{ users: IUser[], total: number }>;
+  findByStatus(status: string, page: number, limit: number): Promise<{ users: IUser[], total: number }>;
+  findByVerification(isVerified: boolean, page: number, limit: number): Promise<{ users: IUser[], total: number }>;
 }
 
 export interface IUserService {
@@ -20,8 +31,15 @@ export interface IUserService {
   resendOTP(email: string): Promise<ServiceResponse>;
   getUserProfile(id: string): Promise<ServiceResponse>;
   updateProfile(id: string, updateData: UpdateProfileData): Promise<ServiceResponse>;
-  getNearbyUsers(userId: string, maxDistance: number): Promise<ServiceResponse>;
+  getNearbyUsers(userId: string, maxDistance?: number): Promise<ServiceResponse>;
   addXpPoints(userId: string, points: number): Promise<ServiceResponse>;
+  changePassword(userId: string, oldPassword: string, newPassword: string): Promise<ServiceResponse>;
+  sendEmailChangeOTP(id: string, email: string, password: string): Promise<ServiceResponse>;
+  verifyEmailChangeOTP(id: string, email: string, otp: string): Promise<ServiceResponse>;
+  getUserCounts(): Promise<ServiceResponse>;
+  getUsers(filters: any): Promise<ServiceResponse>;
+  toggleUserStatus(userId: string): Promise<ServiceResponse>;
+  getUserDetails(userId: string): Promise<ServiceResponse>;
 }
 
 export interface SignupData {
