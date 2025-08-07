@@ -7,7 +7,6 @@ import OTPStep from "../common/OTPStep";
 import PasswordStep from "./PasswordStep";
 import SuccessStep from "./SuccessStep";
 
-
 const lexend = Lexend({ weight: "500", subsets: ["latin"] });
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
 
@@ -71,7 +70,7 @@ export default function ForgotPassword({
               await onSubmitEmail(email);
               next("otp");
             } catch (err: any) {
-              setError(err.message);
+              setError(err.response.data.message || "Failed to send reset code. Please try again.");
             } finally {
               setLoading(false);
             }
@@ -96,12 +95,24 @@ export default function ForgotPassword({
               await onSubmitOTP(otp);
               next("password");
             } catch (err: any) {
-              setError(err.message);
+              setError(err.response.data.message || "Invalid verification code. Please try again.");
             } finally {
               setLoading(false);
             }
           }}
-          onResend={() => next("email")}
+          onResend={async () => {
+            // ✅ Fixed: Actually resend OTP instead of just going back
+            try {
+              setLoading(true);
+              setError("");
+              setOtp(""); // Clear current OTP
+              await onSubmitEmail(email); // Resend OTP with current email
+            } catch (err: any) {
+              setError(err.response.data.message || "Failed to resend code. Please try again.");
+            } finally {
+              setLoading(false);
+            }
+          }}
           lexend={lexend}
           lexendSmall={lexendSmall}
         />
@@ -125,6 +136,11 @@ export default function ForgotPassword({
               setError("Passwords do not match");
               return;
             }
+            // ✅ Add password length validation
+            if (password.length < 6) {
+              setError("Password must be at least 6 characters long");
+              return;
+            }
             setLoading(true);
             setError("");
             try {
@@ -132,7 +148,7 @@ export default function ForgotPassword({
               next("success");
               setTimeout(onComplete, 2000);
             } catch (err: any) {
-              setError(err.message);
+              setError(err?.message || "Failed to reset password. Please try again.");
             } finally {
               setLoading(false);
             }
@@ -163,7 +179,7 @@ function StepIndicator({ current }: { current: Step }) {
       {steps.map((s, i) => {
         const active = i === idx;
         const done = i < idx;
-        const Icon = s.icon; // store the icon for this step
+        const Icon = s.icon;
 
         return (
           <React.Fragment key={s.key}>
@@ -176,7 +192,7 @@ function StepIndicator({ current }: { current: Step }) {
                   : "border-white/20 bg-white/5 text-gray-400"
               }`}
             >
-              <Icon size={16} /> {/* Render the icon */}
+              <Icon size={16} />
             </div>
             {i < steps.length - 1 && (
               <div

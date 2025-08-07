@@ -17,6 +17,7 @@ export interface IUser extends Document {
   coordinates?: [number, number]; // [longitude, latitude]
   isVerified: boolean;
   xpPoints: number;
+  updatedAt: Date;
   joinedAt: Date;
   lastActive: Date;
   isActive: boolean;
@@ -104,7 +105,11 @@ const userSchema = new Schema<IUser>({
   lastActive: {
     type: Date,
     default: Date.now
+  },  updatedAt: {
+    type: Date,
+    default: Date.now
   },
+
   isActive: {
     type: Boolean,
     default: true

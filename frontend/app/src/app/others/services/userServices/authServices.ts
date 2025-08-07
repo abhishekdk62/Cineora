@@ -24,7 +24,7 @@ export const login = async (email: string, password: string) => {
   return response.data;
 };
 
-// Get User Profile by ID
+
 export const getUserProfile = async () => {
   const response = await apiClient.get(`/users/profile`);
   return response.data;
@@ -39,21 +39,32 @@ export const getNearbyUsers = async (userId: string, maxDistance: number = 5000)
   const response = await apiClient.get(`/users/nearby/${userId}?maxDistance=${maxDistance}`);
   return response.data;
 };
-
+  
 // Add XP Points
 export const addXpPoints = async (userId: string, points: number) => {
   const response = await apiClient.post(`/users/xp/${userId}`, { points });
   return response.data;
 };
 
-// Forgot Password (for future use)
-export const forgotPassword = async (email: string) => {
-  const response = await apiClient.post('/users/forgot-password', { email });
+
+
+export const resetPassword = async ( newPassword: string,oldpassword:string) => {
+  const response = await apiClient.patch('/users/reset-password', {  newPassword,oldpassword });
   return response.data;
 };
 
-// Reset Password (for future use)
-export const resetPassword = async ( newPassword: string) => {
-  const response = await apiClient.patch('/users/reset-password', {  newPassword });
+export const sendEmailChangeOtp = async (data: { newEmail: string; password: string }) => {
+  const response = await apiClient.post('/users/email/change', {
+    newEmail: data.newEmail,  // Backend expects 'newEmail'
+    password: data.password
+  });
   return response.data;
-};
+}
+
+export const verifyEmailChangeOtp = async (data: { email: string; otp: string }) => {
+  const response = await apiClient.post('/users/email/verify', {
+    email: data.email, 
+    otp: data.otp
+  });
+  return response.data;
+}

@@ -6,6 +6,7 @@ import Sidebar from "@/app/others/components/Admin/Dashboard/Sidebar";
 import MoviesManager from "@/app/others/components/Admin/Dashboard/Movies/MoviesManager";
 import { AdminProvider } from "@/app/others/components/Admin/Dashboard/AdminContext";
 import OwnersManager from "@/app/others/components/Admin/Dashboard/Owners/OwnerManager";
+import UsersManager from "@/app/others/components/Admin/Dashboard/User/UserManager";
 
 const lexend = Lexend({
   weight: "500",
@@ -22,6 +23,8 @@ const AdminDashboard = () => {
         return <MoviesManager />;
       case "owners":
         return <OwnersManager />;
+      case "users":
+        return <UsersManager />;
       default:
         return (
           <div className="flex items-center justify-center h-96">

@@ -6,7 +6,11 @@ import Aurora from "../others/Utils/ReactBits/Aurora";
 import { Lexend } from "next/font/google";
 import { useRouter } from "next/navigation";
 import ForgotPassword from "../others/components/Auth/ForgotPassword";
-import Orb from "../others/Utils/ReactBits/Orb";
+import {
+  forgotPassword,
+  resetPassword,
+  verifyPasswordResetOtp,
+} from "../others/services/authServices/authService";
 
 const lexend = Lexend({
   weight: "500",
@@ -16,51 +20,60 @@ const lexendSmall = Lexend({
   weight: "200",
   subsets: ["latin"],
 });
-
-
 export default function ForgotPasswordPage() {
   const router = useRouter();
+  
+  const [storedEmail, setStoredEmail] = useState("");
+  const [storedOtp, setStoredOtp] = useState("");
 
   const handleBackToLogin = () => {
     router.push("/login");
   };
 
   const handleSubmitEmail = async (email: string) => {
-    console.log("Sending OTP to:", email);
-    
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        if (email.includes("test")) {
-          resolve();
-        } else {
-          reject(new Error("Email not found"));
-        }
-      }, 2000);
-    });
+    try {
+      setStoredEmail(email);
+      const result = await forgotPassword(email);
+      console.log(result);
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+    } catch (error) {
+      console.log(error);
+      throw error; 
+    }
   };
 
   const handleSubmitOTP = async (otp: string) => {
-    console.log("Verifying OTP:", otp);
-    
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        if (otp === "123456") {
-          resolve();
-        } else {
-          reject(new Error("Invalid OTP"));
-        }
-      }, 1500);
-    });
+    try {
+      setStoredOtp(otp); // ✅ Store the OTP
+      // ✅ Pass the required parameters
+      const response = await verifyPasswordResetOtp(storedEmail, otp);
+      console.log(response);
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+    } catch (error) {
+      console.log(error);
+      throw error; // ✅ Re-throw to show error in component
+    }
   };
 
-  const handleSubmitNewPassword = async (password: string, confirmPassword: string) => {
-    console.log("Resetting password");
-    
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        resolve();
-      }, 2000);
-    });
+  const handleSubmitNewPassword = async (
+    password: string,
+    confirmPassword: string
+  ) => {
+    try {
+      // ✅ Pass all required parameters
+      const response = await resetPassword(storedEmail, storedOtp, password);
+      console.log(response);
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+    } catch (error) {
+      console.log(error);
+      throw error; // ✅ Re-throw to show error in component
+    }
   };
 
   const handleComplete = () => {

@@ -6,7 +6,7 @@ import Aurora from "../others/Utils/ReactBits/Aurora";
 import { Lexend } from "next/font/google";
 import AuthForm from "../others/components/Auth/AuthForm";
 import { useAppDispatch, useAppSelector } from "../others/redux/hooks/redux";
-import { loginUser, clearError } from "../others/redux/slices/authSlice"; // Import the async thunk
+import { loginUser, clearError } from "../others/redux/slices/authSlice"; 
 
 const lexend = Lexend({
   weight: "500",

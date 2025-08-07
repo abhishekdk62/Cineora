@@ -43,7 +43,6 @@ const Form = ({
   return (
     <div>
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Email field */}
         <div>
           <label
             htmlFor="email"
@@ -60,7 +59,6 @@ const Form = ({
           />
         </div>
 
-        {/* Password field */}
         <div>
           <label
             htmlFor="password"
@@ -180,16 +178,13 @@ const Form = ({
           {/* left line */}
           <div className="flex-grow border-t border-white/20" />
 
-          {/* text with horizontal padding to create the gap */}
           <span className={`${lexendSmall.className} px-4 text-gray-400`}>
             Or continue with
           </span>
 
-          {/* right line */}
           <div className="flex-grow border-t border-white/20" />
         </div>
 
-        {/* Social login buttons */}
         <div>
           <button
             type="button"
@@ -200,7 +195,6 @@ const Form = ({
           </button>
         </div>
 
-        {/* Sign up link */}
         <div className="text-center mt-6">
           <p className={`${lexendSmall.className} text-gray-400`}>
             {isSignup ? "Already have an account? " : "Dont have an account?"}

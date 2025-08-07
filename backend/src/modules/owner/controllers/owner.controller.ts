@@ -1,127 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
 import { OwnerService } from '../services/owner.service';
+import { OwnerRepository } from '../repositories/owner.repository';
+import { OwnerRequestRepository } from '../repositories/ownerRequest.repository';
 import { createResponse } from '../../../utils/createResponse';
 
-const ownerService = new OwnerService();
+// Create repository instances
+const ownerRepo = new OwnerRepository();
+const ownerRequestRepo = new OwnerRequestRepository();
 
-export async function sendOTP(req: Request, res: Response, next: NextFunction) {
-  try {
-    const { email } = req.body;
+// Create service instance with required dependencies
+const ownerService = new OwnerService(ownerRepo, ownerRequestRepo);
 
-    if (!email) {
-      return res.status(400).json(createResponse({
-        success: false,
-        message: 'Email is required'
-      }));
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json(createResponse({
-        success: false,
-        message: 'Please enter a valid email address'
-      }));
-    }
-
-    const result = await ownerService.sendOTP(email);
-
-    if (!result.success) {
-      return res.status(400).json(createResponse({
-        success: false,
-        message: result.message
-      }));
-    }
-
-    return res.status(200).json(createResponse({
-      success: true,
-      message: result.message
-    }));
-  } catch (err) {
-    next(err);
-  }
-}
-
-export async function verifyOTP(req: Request, res: Response, next: NextFunction) {
-  try {
-    const { email, otp } = req.body;
-
-    if (!email || !otp) {
-      return res.status(400).json(createResponse({
-        success: false,
-        message: 'Email and OTP are required'
-      }));
-    }
-
-    // Validate OTP format
-    if (!/^\d{6}$/.test(otp)) {
-      return res.status(400).json(createResponse({
-        success: false,
-        message: 'OTP must be a 6-digit number'
-      }));
-    }
-
-    const result = await ownerService.verifyOTP(email, otp);
-
-    if (!result.success) {
-      return res.status(400).json(createResponse({
-        success: false,
-        message: result.message
-      }));
-    }
-
-    return res.status(200).json(createResponse({
-      success: true,
-      message: result.message
-    }));
-  } catch (err) {
-    next(err);
-  }
-}
-
-export async function submitKYC(req: Request, res: Response, next: NextFunction) {
-  try {
-    const ownerData = req.body;
-
-    const requiredFields = [
-      'ownerName', 'phone', 'email', 'aadhaar', 'pan',
-      'aadhaarUrl', 'panUrl', 'declaration', 'agree'
-    ];
-
-    for (const field of requiredFields) {
-      if (!ownerData[field]) {
-        return res.status(400).json(createResponse({
-          success: false,
-          message: `${field} is required`
-        }));
-      }
-    }
-
-    if (ownerData.declaration !== true || ownerData.agree !== true) {
-      return res.status(400).json(createResponse({
-        success: false,
-        message: 'Declaration and agreement must be accepted'
-      }));
-    }
-
-    const result = await ownerService.submitKYC(ownerData);
-
-    if (!result.success) {
-      return res.status(400).json(createResponse({
-        success: false,
-        message: result.message
-      }));
-    }
-
-    return res.status(201).json(createResponse({
-      success: true,
-      message: result.message,
-      data: result.data
-    }));
-  } catch (err) {
-    next(err);
-  }
-}
-
-export async function getRequestStatus(req: Request, res: Response, next: NextFunction) {
+export async function getOwnerProfile(req: Request, res: Response, next: NextFunction) {
   try {
     const { requestId } = req.params;
 
@@ -132,7 +22,7 @@ export async function getRequestStatus(req: Request, res: Response, next: NextFu
       }));
     }
 
-    const result = await ownerService.getRequestStatus(requestId);
+    const result = await ownerService.getOwnerProfile(requestId);
 
     if (!result.success) {
       return res.status(404).json(createResponse({
@@ -145,6 +35,155 @@ export async function getRequestStatus(req: Request, res: Response, next: NextFu
       success: true,
       message: result.message,
       data: result.data
+    }));
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getOwnerCounts(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await ownerService.getOwnerCounts();
+
+    return res.status(200).json(createResponse({
+      success: result.success,
+      message: result.message,
+      data: result.data
+    }));
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getOwners(req: Request, res: Response, next: NextFunction) {
+  try {
+    const filters = req.query;
+    const result = await ownerService.getOwners(filters);
+
+    return res.status(200).json(createResponse({
+      success: result.success,
+      message: result.message,
+      data: result.data
+    }));
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function toggleOwnerStatus(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { ownerId } = req.params;
+
+    if (!ownerId) {
+      return res.status(400).json(createResponse({
+        success: false,
+        message: 'Owner ID is required'
+      }));
+    }
+
+    const result = await ownerService.toggleOwnerStatus(ownerId);
+
+    if (!result.success) {
+      return res.status(400).json(createResponse({
+        success: false,
+        message: result.message
+      }));
+    }
+
+    return res.status(200).json(createResponse({
+      success: true,
+      message: result.message,
+      data: result.data
+    }));
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getOwnerById(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { ownerId } = req.params;
+
+    if (!ownerId) {
+      return res.status(400).json(createResponse({
+        success: false,
+        message: 'Owner ID is required'
+      }));
+    }
+
+    const result = await ownerService.getOwnerById(ownerId);
+
+    if (!result.success) {
+      return res.status(404).json(createResponse({
+        success: false,
+        message: result.message
+      }));
+    }
+
+    return res.status(200).json(createResponse({
+      success: true,
+      message: result.message,
+      data: result.data
+    }));
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function updateOwner(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { ownerId } = req.params;
+    const updateData = req.body;
+
+    if (!ownerId) {
+      return res.status(400).json(createResponse({
+        success: false,
+        message: 'Owner ID is required'
+      }));
+    }
+
+    const result = await ownerService.updateOwner(ownerId, updateData);
+
+    if (!result.success) {
+      return res.status(400).json(createResponse({
+        success: false,
+        message: result.message
+      }));
+    }
+
+    return res.status(200).json(createResponse({
+      success: true,
+      message: result.message,
+      data: result.data
+    }));
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteOwner(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { ownerId } = req.params;
+
+    if (!ownerId) {
+      return res.status(400).json(createResponse({
+        success: false,
+        message: 'Owner ID is required'
+      }));
+    }
+
+    const result = await ownerService.deleteOwner(ownerId);
+
+    if (!result.success) {
+      return res.status(400).json(createResponse({
+        success: false,
+        message: result.message
+      }));
+    }
+
+    return res.status(200).json(createResponse({
+      success: true,
+      message: result.message
     }));
   } catch (err) {
     next(err);

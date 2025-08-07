@@ -110,6 +110,7 @@ const MoviesManager: React.FC = () => {
     try {
       setIsLoading(true);
       const response = await getMoviesWithFilters(filters);
+      console.log(response);
       
       setFilteredMovies(response.data || []);
       

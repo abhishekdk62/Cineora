@@ -1,5 +1,5 @@
-import * as nodemailer from 'nodemailer';
-import { config } from '../config';
+import * as nodemailer from "nodemailer";
+import { config } from "../config";
 
 export class EmailService {
   private transporter;
@@ -11,11 +11,11 @@ export class EmailService {
       secure: config.email.secure,
       auth: {
         user: config.email.auth.user,
-        pass: config.email.auth.pass
+        pass: config.email.auth.pass,
       },
       tls: {
-        rejectUnauthorized: false
-      }
+        rejectUnauthorized: false,
+      },
     });
   }
 
@@ -24,7 +24,7 @@ export class EmailService {
       const mailOptions = {
         from: `"Cineora App" <${config.email.auth.user}>`,
         to: email,
-        subject: 'Email Verification - OTP Code',
+        subject: "Email Verification - OTP Code",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
             <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
@@ -64,25 +64,27 @@ export class EmailService {
               </div>
             </div>
           </div>
-        `
+        `,
       };
 
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('Email sent successfully:', info.messageId);
       return true;
     } catch (error) {
-      console.error('Email sending failed:', error);
+      console.error("Email sending failed:", error);
       return false;
     }
   }
 
-  // NEW: KYC Request Submitted Email
-  async sendKYCSubmittedEmail(email: string, ownerName: string, requestId: string): Promise<boolean> {
+  async sendKYCSubmittedEmail(
+    email: string,
+    ownerName: string,
+    requestId: string
+  ): Promise<boolean> {
     try {
       const mailOptions = {
         from: `"Cineora App" <${config.email.auth.user}>`,
         to: email,
-        subject: 'KYC Request Submitted Successfully',
+        subject: "KYC Request Submitted Successfully",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
             <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
@@ -135,25 +137,98 @@ export class EmailService {
               </div>
             </div>
           </div>
-        `
+        `,
       };
 
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('KYC submitted email sent successfully:', info.messageId);
       return true;
     } catch (error) {
-      console.error('KYC submitted email sending failed:', error);
+      console.error("KYC submitted email sending failed:", error);
+      return false;
+    }
+  }
+  async sendEmailChangeOTP(
+    email: string,
+    otp: string,
+    oldEmail: string
+  ): Promise<boolean> {
+    try {
+      const expiryMinutes = Math.floor(config.otpExpiry / 1000 / 60);
+      const mailOptions = {
+        from: `"Cineora Security" <${config.email.auth.user}>`,
+        to: email,
+        subject: "Confirm your new Cineora email address",
+        html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+          <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #333; margin: 0;">Cineora</h1>
+              <p style="color: #666; margin: 5px 0;">Email Change Verification</p>
+            </div>
+            
+            <h2 style="color: #333; text-align: center;">Confirm Your New Email</h2>
+            
+            <p style="color: #666; font-size: 16px; line-height: 1.5;">
+              We received a request to change your Cineora account email from 
+              <strong>${oldEmail}</strong> to <strong>${email}</strong>.
+            </p>
+            
+            <p style="color: #666; font-size: 16px; line-height: 1.5;">
+              To confirm this change, please enter the verification code below:
+            </p>
+            
+            <div style="background-color: #f0f8ff; padding: 25px; text-align: center; margin: 25px 0; border-radius: 8px; border: 2px dashed #4CAF50;">
+              <p style="margin: 0; color: #333; font-size: 14px; margin-bottom: 10px;">Your verification code is:</p>
+              <div style="font-size: 32px; font-weight: bold; color: #4CAF50; letter-spacing: 5px; font-family: 'Courier New', monospace;">
+                ${otp}
+              </div>
+            </div>
+            
+            <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; border-left: 4px solid #ffc107; margin: 20px 0;">
+              <p style="margin: 0; color: #856404; font-size: 14px;">
+                ⚠️ <strong>Important:</strong> This code will expire in <strong>${expiryMinutes} minutes</strong>.
+              </p>
+            </div>
+            
+            <div style="background-color: #ffebee; padding: 15px; border-radius: 5px; border-left: 4px solid #f44336; margin: 20px 0;">
+              <p style="margin: 0; color: #c62828; font-size: 14px;">
+                🔒 <strong>Security Notice:</strong> If you didn't request this email change, please secure your account immediately by changing your password.
+              </p>
+            </div>
+            
+            <p style="color: #666; font-size: 14px; line-height: 1.5;">
+              If you didn't request this change, please ignore this email or contact our support team.
+            </p>
+            
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            
+            <div style="text-align: center; color: #999; font-size: 12px;">
+              <p>© ${new Date().getFullYear()} Cineora. All rights reserved.</p>
+              <p>This is an automated email. Please do not reply to this message.</p>
+            </div>
+          </div>
+        </div>
+      `,
+      };
+
+      const info = await this.transporter.sendMail(mailOptions);
+      return true;
+    } catch (error) {
+      console.error("Email change OTP sending failed:", error);
       return false;
     }
   }
 
-  // NEW: KYC Request Rejected Email
-  async sendKYCRejectedEmail(email: string, ownerName: string, rejectionReason: string): Promise<boolean> {
+  async sendKYCRejectedEmail(
+    email: string,
+    ownerName: string,
+    rejectionReason: string
+  ): Promise<boolean> {
     try {
       const mailOptions = {
         from: `"Cineora App" <${config.email.auth.user}>`,
         to: email,
-        subject: 'KYC Request Update - Action Required',
+        subject: "KYC Request Update - Action Required",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
             <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
@@ -212,25 +287,27 @@ export class EmailService {
               </div>
             </div>
           </div>
-        `
+        `,
       };
 
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('KYC rejected email sent successfully:', info.messageId);
       return true;
     } catch (error) {
-      console.error('KYC rejected email sending failed:', error);
+      console.error("KYC rejected email sending failed:", error);
       return false;
     }
   }
 
-  // NEW: Owner Account Created Email with Random Password
-  async sendOwnerWelcomeEmail(email: string, ownerName: string, tempPassword: string): Promise<boolean> {
+  async sendOwnerWelcomeEmail(
+    email: string,
+    ownerName: string,
+    tempPassword: string
+  ): Promise<boolean> {
     try {
       const mailOptions = {
         from: `"Cineora App" <${config.email.auth.user}>`,
         to: email,
-        subject: 'Welcome to Cineora - Your Owner Account is Ready!',
+        subject: "Welcome to Cineora - Your Owner Account is Ready!",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
             <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
@@ -301,15 +378,253 @@ export class EmailService {
               </div>
             </div>
           </div>
-        `
+        `,
       };
 
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('Owner welcome email sent successfully:', info.messageId);
       return true;
     } catch (error) {
-      console.error('Owner welcome email sending failed:', error);
+      console.error("Owner welcome email sending failed:", error);
       return false;
     }
   }
+  async sendEmailChangeSuccessNotification(
+    newEmail: string,
+    oldEmail: string
+  ): Promise<boolean> {
+    try {
+      const mailOptions = {
+        from: `"Cineora Security" <${config.email.auth.user}>`,
+        to: newEmail,
+        subject: "Email Successfully Changed - Cineora Account",
+        html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+          <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #333; margin: 0;">Cineora</h1>
+              <p style="color: #666; margin: 5px 0;">Account Security Update</p>
+            </div>
+            
+            <h2 style="color: #4CAF50; text-align: center;">✅ Email Successfully Changed</h2>
+            
+            <p style="color: #666; font-size: 16px; line-height: 1.5;">
+              Your Cineora account email has been successfully changed.
+            </p>
+            
+            <div style="background-color: #e8f5e8; padding: 20px; border-radius: 8px; margin: 25px 0; border: 2px solid #4CAF50;">
+              <h3 style="color: #2e7d32; margin: 0 0 15px 0; text-align: center;">Email Change Details</h3>
+              <div style="background-color: white; padding: 15px; border-radius: 5px; margin: 10px 0;">
+                <p style="margin: 0; color: #666; font-size: 14px;"><strong>Previous Email:</strong> ${oldEmail}</p>
+              </div>
+              <div style="background-color: white; padding: 15px; border-radius: 5px; margin: 10px 0;">
+                <p style="margin: 0; color: #666; font-size: 14px;"><strong>New Email:</strong> ${newEmail}</p>
+              </div>
+              <div style="background-color: white; padding: 15px; border-radius: 5px; margin: 10px 0;">
+                <p style="margin: 0; color: #666; font-size: 14px;"><strong>Changed On:</strong> ${new Date().toLocaleString()}</p>
+              </div>
+            </div>
+            
+            <div style="background-color: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #1976d2; margin: 0 0 15px 0;">✅ What this means:</h3>
+              <ul style="color: #666; font-size: 14px; line-height: 1.6; margin: 0; padding-left: 20px;">
+                <li>Your account is now associated with this new email address</li>
+                <li>Future login attempts should use this new email</li>
+                <li>All account notifications will be sent to this email</li>
+                <li>Your account remains secure and verified</li>
+              </ul>
+            </div>
+            
+            <div style="background-color: #ffebee; padding: 15px; border-radius: 5px; border-left: 4px solid #f44336; margin: 20px 0;">
+              <p style="margin: 0; color: #c62828; font-size: 14px;">
+                🔒 <strong>Security Notice:</strong> If you didn't make this change, please contact our support team immediately to secure your account.
+              </p>
+            </div>
+            
+            <p style="color: #666; font-size: 14px; line-height: 1.5;">
+              Thank you for keeping your account information up to date. If you have any questions or concerns, please don't hesitate to contact our support team.
+            </p>
+            
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            
+            <div style="text-align: center; color: #999; font-size: 12px;">
+              <p>© ${new Date().getFullYear()} Cineora. All rights reserved.</p>
+              <p>This is an automated email. Please do not reply to this message.</p>
+            </div>
+          </div>
+        </div>
+      `,
+      };
+
+      const info = await this.transporter.sendMail(mailOptions);
+      return true;
+    } catch (error) {
+      console.error("Email change success notification failed:", error);
+      return false;
+    }
+  }
+
+  async sendPasswordResetOTP(
+    email: string,
+    otp: string,
+    userName: string
+  ): Promise<boolean> {
+    try {
+      const expiryMinutes = Math.floor(config.otpExpiry / 1000 / 60);
+      const mailOptions = {
+        from: `"Cineora Security" <${config.email.auth.user}>`,
+        to: email,
+        subject: "Reset Your Cineora Password",
+        html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+          <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #333; margin: 0;">Cineora</h1>
+              <p style="color: #666; margin: 5px 0;">Password Reset Request</p>
+            </div>
+            
+            <h2 style="color: #333; text-align: center;">Reset Your Password</h2>
+            
+            <p style="color: #666; font-size: 16px; line-height: 1.5;">
+              Hello ${userName},
+            </p>
+            
+            <p style="color: #666; font-size: 16px; line-height: 1.5;">
+              We received a request to reset your Cineora account password. To proceed with the password reset, please use the verification code below:
+            </p>
+            
+            <div style="background-color: #f0f8ff; padding: 25px; text-align: center; margin: 25px 0; border-radius: 8px; border: 2px dashed #4CAF50;">
+              <p style="margin: 0; color: #333; font-size: 14px; margin-bottom: 10px;">Your password reset code is:</p>
+              <div style="font-size: 32px; font-weight: bold; color: #4CAF50; letter-spacing: 5px; font-family: 'Courier New', monospace;">
+                ${otp}
+              </div>
+            </div>
+            
+            <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; border-left: 4px solid #ffc107; margin: 20px 0;">
+              <p style="margin: 0; color: #856404; font-size: 14px;">
+                ⚠️ <strong>Important:</strong> This code will expire in <strong>${expiryMinutes} minutes</strong>.
+              </p>
+            </div>
+            
+            <div style="background-color: #ffebee; padding: 15px; border-radius: 5px; border-left: 4px solid #f44336; margin: 20px 0;">
+              <p style="margin: 0; color: #c62828; font-size: 14px;">
+                🔒 <strong>Security Notice:</strong> If you didn't request this password reset, please ignore this email or contact our support team to secure your account.
+              </p>
+            </div>
+            
+            <p style="color: #666; font-size: 14px; line-height: 1.5;">
+              If you didn't request this password reset, no action is needed on your part.
+            </p>
+            
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            
+            <div style="text-align: center; color: #999; font-size: 12px;">
+              <p>© ${new Date().getFullYear()} Cineora. All rights reserved.</p>
+              <p>This is an automated email. Please do not reply to this message.</p>
+            </div>
+          </div>
+        </div>
+      `,
+      };
+
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log("Password reset OTP sent successfully:", info.messageId);
+      return true;
+    } catch (error) {
+      console.error("Password reset OTP sending failed:", error);
+      return false;
+    }
+  }
+
+  async sendPasswordChangeConfirmation(
+    email: string,
+    userName: string
+  ): Promise<boolean> {
+    try {
+      const mailOptions = {
+        from: `"Cineora Security" <${config.email.auth.user}>`,
+        to: email,
+        subject: "Your Cineora Password Has Been Changed",
+        html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+          <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #333; margin: 0;">Cineora</h1>
+              <p style="color: #666; margin: 5px 0;">Password Change Confirmation</p>
+            </div>
+            
+            <h2 style="color: #4CAF50; text-align: center;">✅ Password Successfully Changed</h2>
+            
+            <p style="color: #666; font-size: 16px; line-height: 1.5;">
+              Hello ${userName},
+            </p>
+            
+            <p style="color: #666; font-size: 16px; line-height: 1.5;">
+              Your Cineora account password has been successfully changed.
+            </p>
+            
+            <div style="background-color: #e8f5e8; padding: 20px; border-radius: 8px; margin: 25px 0; border: 2px solid #4CAF50;">
+              <div style="text-align: center;">
+                <div style="color: #4CAF50; font-size: 48px; margin-bottom: 10px;">🔐</div>
+                <p style="margin: 0; color: #2e7d32; font-size: 18px; font-weight: bold;">Password Updated Successfully</p>
+                <p style="margin: 10px 0 0 0; color: #388e3c; font-size: 14px;">Changed on: ${new Date().toLocaleString()}</p>
+              </div>
+            </div>
+            
+            <div style="background-color: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #1976d2; margin: 0 0 15px 0;">✅ What this means:</h3>
+              <ul style="color: #666; font-size: 14px; line-height: 1.6; margin: 0; padding-left: 20px;">
+                <li>Your account is now secured with your new password</li>
+                <li>Please use your new password for future logins</li>
+                <li>Your account remains fully protected</li>
+              </ul>
+            </div>
+            
+            <div style="background-color: #ffebee; padding: 15px; border-radius: 5px; border-left: 4px solid #f44336; margin: 20px 0;">
+              <p style="margin: 0; color: #c62828; font-size: 14px;">
+                🔒 <strong>Security Notice:</strong> If you didn't make this change, please contact our support team immediately to secure your account.
+              </p>
+            </div>
+            
+            <p style="color: #666; font-size: 14px; line-height: 1.5;">
+              Thank you for keeping your account secure. If you have any questions or concerns, please don't hesitate to contact our support team.
+            </p>
+            
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            
+            <div style="text-align: center; color: #999; font-size: 12px;">
+              <p>© ${new Date().getFullYear()} Cineora. All rights reserved.</p>
+              <p>This is an automated email. Please do not reply to this message.</p>
+            </div>
+          </div>
+        </div>
+      `,
+      };
+
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log(
+        "Password change confirmation sent successfully:",
+        info.messageId
+      );
+      return true;
+    } catch (error) {
+      console.error("Password change confirmation sending failed:", error);
+      return false;
+    }
+  }
+}
+
+export interface IEmailService {
+  // OTP related emails
+  sendOTPEmail(email: string, otp: string): Promise<boolean>;
+  sendEmailChangeOTP(email: string, otp: string, oldEmail: string): Promise<boolean>;
+  sendPasswordResetOTP(email: string, otp: string, userName: string): Promise<boolean>;
+  
+  // Owner request related emails
+  sendKYCSubmittedEmail(email: string, ownerName: string, requestId: string): Promise<boolean>;
+  sendKYCRejectedEmail(email: string, ownerName: string, rejectionReason: string): Promise<boolean>;
+  sendOwnerWelcomeEmail(email: string, ownerName: string, tempPassword: string): Promise<boolean>;
+  
+  // Confirmation emails
+  sendEmailChangeSuccessNotification(newEmail: string, oldEmail: string): Promise<boolean>;
+  sendPasswordChangeConfirmation(email: string, userName: string): Promise<boolean>;
 }
