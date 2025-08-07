@@ -1,12 +1,15 @@
+// otp.model.ts
 import { Schema, model, Document } from 'mongoose';
+
+export type OTPType = 'signup' | 'password_reset' | 'login' | 'owner_verification' | 'email_change' | 'owner_password_reset';
 
 export interface IOTP extends Document {
   email: string;
   otp: string;
-  type: 'signup' | 'password_reset' | 'login'|'owner_verification';
+  type: OTPType;  // ✅ Use the exported type
   expiresAt: Date;
   isUsed: boolean;
-  userData?: any; // Add this to store temporary signup data
+  userData?: any;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,13 +26,13 @@ const otpSchema = new Schema<IOTP>({
   },
   type: {
     type: String,
-    enum: ['signup', 'password_reset', 'login','owner_verification'],
+    enum: ['signup', 'password_reset', 'login', 'owner_verification', 'email_change', 'owner_password_reset'],
     required: true
   },
   expiresAt: {
     type: Date,
     required: true,
-    index: { expireAfterSeconds: 0 }
+    index: { expireAfterSeconds: 0 }  // ✅ Good for automatic cleanup
   },
   isUsed: {
     type: Boolean,
@@ -40,10 +43,12 @@ const otpSchema = new Schema<IOTP>({
     required: false
   }
 }, {
-  timestamps: true
+  timestamps: true  // ✅ Automatically adds createdAt and updatedAt
 });
 
+// ✅ Good indexing strategy
 otpSchema.index({ email: 1, type: 1 });
 otpSchema.index({ otp: 1 });
+otpSchema.index({ expiresAt: 1 }); // ✅ Consider adding this for cleanup queries
 
 export const OTP = model<IOTP>('OTP', otpSchema);

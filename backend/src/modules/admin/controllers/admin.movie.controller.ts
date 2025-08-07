@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from "express";
-import { AdminMovieService } from "../services/admin.movie.service";
 import { createResponse } from "../../../utils/createResponse";
-
-const service = new AdminMovieService();
+import { MovieService } from "../../movies/services/movies.service";
+import { MovieRepository } from "../../movies/repositories/movie.repository";
+const movieRepo = new MovieRepository();
+const service = new MovieService(movieRepo);
 
 export async function addMovie(
   req: Request,
@@ -12,14 +13,12 @@ export async function addMovie(
   try {
     const movieData = req.body;
     if (!movieData.title || !movieData.tmdbId) {
-      return res
-        .status(400)
-        .json(
-          createResponse({
-            success: false,
-            message: "Title and TMDB ID are required",
-          })
-        );
+      return res.status(400).json(
+        createResponse({
+          success: false,
+          message: "Title and TMDB ID are required",
+        })
+      );
     }
 
     const result = await service.addMovie(movieData);
@@ -49,9 +48,9 @@ export async function getMovies(
   try {
     const page = req.query.page ? parseInt(req.query.page as string) : 1;
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
-    
+
     const result = await service.getMoviesPaginated(page, limit);
-    
+
     return res.status(200).json(
       createResponse({
         success: true,
@@ -63,9 +62,9 @@ export async function getMovies(
             total: result.total,
             limit: limit,
             hasNextPage: result.hasNextPage,
-            hasPrevPage: result.hasPrevPage
-          }
-        }
+            hasPrevPage: result.hasPrevPage,
+          },
+        },
       })
     );
   } catch (err) {
@@ -81,22 +80,30 @@ export async function getMoviesWithFilters(
   try {
     const filters = {
       search: req.query.search as string,
-      isActive: req.query.isActive ? req.query.isActive === 'true' : undefined,
+      isActive: req.query.isActive ? req.query.isActive === "true" : undefined,
       rating: req.query.rating as string,
-      minDuration: req.query.minDuration ? parseInt(req.query.minDuration as string) : undefined,
-      maxDuration: req.query.maxDuration ? parseInt(req.query.maxDuration as string) : undefined,
-      releaseYearStart: req.query.releaseYearStart ? parseInt(req.query.releaseYearStart as string) : undefined,
-      releaseYearEnd: req.query.releaseYearEnd ? parseInt(req.query.releaseYearEnd as string) : undefined,
+      minDuration: req.query.minDuration
+        ? parseInt(req.query.minDuration as string)
+        : undefined,
+      maxDuration: req.query.maxDuration
+        ? parseInt(req.query.maxDuration as string)
+        : undefined,
+      releaseYearStart: req.query.releaseYearStart
+        ? parseInt(req.query.releaseYearStart as string)
+        : undefined,
+      releaseYearEnd: req.query.releaseYearEnd
+        ? parseInt(req.query.releaseYearEnd as string)
+        : undefined,
       language: req.query.language as string,
       genre: req.query.genre as string,
-      sortBy: req.query.sortBy as string || 'title',
-      sortOrder: req.query.sortOrder as 'asc' | 'desc' || 'asc',
+      sortBy: (req.query.sortBy as string) || "title",
+      sortOrder: (req.query.sortOrder as "asc" | "desc") || "asc",
       page: req.query.page ? parseInt(req.query.page as string) : 1,
       limit: req.query.limit ? parseInt(req.query.limit as string) : 20,
     };
 
     const result = await service.getMoviesWithFilters(filters);
-    
+
     return res.status(200).json(
       createResponse({
         success: true,
@@ -108,16 +115,17 @@ export async function getMoviesWithFilters(
             total: result.total,
             limit: filters.limit,
             hasNextPage: result.hasNextPage,
-            hasPrevPage: result.hasPrevPage
+            hasPrevPage: result.hasPrevPage,
           },
           filters: {
-            applied: Object.keys(filters).filter(key => 
-              filters[key as keyof typeof filters] !== undefined && 
-              filters[key as keyof typeof filters] !== null &&
-              filters[key as keyof typeof filters] !== ''
-            ).length
-          }
-        }
+            applied: Object.keys(filters).filter(
+              (key) =>
+                filters[key as keyof typeof filters] !== undefined &&
+                filters[key as keyof typeof filters] !== null &&
+                filters[key as keyof typeof filters] !== ""
+            ).length,
+          },
+        },
       })
     );
   } catch (err) {
@@ -132,7 +140,7 @@ export async function toggleMovieStatus(
 ) {
   try {
     const { movieId } = req.params;
-    
+
     const movie = await service.toggleMovieStatus(movieId);
     return res.status(200).json(
       createResponse({
@@ -181,7 +189,7 @@ export async function getMovieById(
 ) {
   try {
     const { movieId } = req.params;
-   
+
     const movie = await service.getMovieById(movieId);
 
     if (!movie) {
@@ -209,7 +217,7 @@ export async function deleteMovie(
 ) {
   try {
     const { movieId } = req.params;
-    
+
     const success = await service.deleteMovie(movieId);
     if (!success) {
       return res
@@ -218,7 +226,9 @@ export async function deleteMovie(
     }
     return res
       .status(200)
-      .json(createResponse({ success: true, message: "Movie deleted successfully" }));
+      .json(
+        createResponse({ success: true, message: "Movie deleted successfully" })
+      );
   } catch (err) {
     next(err);
   }

@@ -70,9 +70,16 @@ const ChangePasswordModal = ({ onClose }: ChangePasswordModalProps) => {
     setPasswordLoading(true);
     try {
       console.log("Changing password:", passwordData);
-      const result = await resetPassword(passwordData.newPassword);
+      const result = await resetPassword(
+        passwordData.newPassword,
+        passwordData.currentPassword
+      );
+      console.log(result);
+      onClose();
       toast.success("Password changed successfully");
     } catch (error) {
+      console.log(error);
+
       setPasswordError(
         "Failed to change password. Please check your current password."
       );
@@ -115,7 +122,7 @@ const ChangePasswordModal = ({ onClose }: ChangePasswordModalProps) => {
         {/* Modal Content */}
         <div className="p-6 space-y-4">
           {passwordError && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+            <div className=" rounded-lg p-3">
               <p className={`${lexendSmall.className} text-red-400 text-sm`}>
                 {passwordError}
               </p>
