@@ -34,6 +34,7 @@ const UserCard: React.FC<{
   onToggleStatus: (user: UserType) => void;
 }> = ({ user, onViewDetails, onToggleStatus }) => {
   const formatDate = (dateString: string) => {
+    if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
@@ -42,11 +43,10 @@ const UserCard: React.FC<{
   };
 
   const getLastLoginText = (lastLogin?: string) => {
-    if (!lastLogin) return "Never logged in";
+    if (!lastLogin || lastLogin === '0') return "Never logged in";
     const date = new Date(lastLogin);
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
     if (diffInHours < 24) {
       return `${diffInHours} hours ago`;
     } else {
@@ -103,10 +103,10 @@ const UserCard: React.FC<{
                 <span className="text-gray-500">Phone:</span> {user.phone}
               </div>
               <div className="text-gray-300">
-                <span className="text-gray-500">Joined:</span> {formatDate(user.createdAt)}
+                <span className="text-gray-500">Joined:</span> {formatDate(user.joinedAt)}
               </div>
               <div className="text-gray-300">
-                <span className="text-gray-500">Last Login:</span> {getLastLoginText(user.lastLogin)}
+                <span className="text-gray-500">Last Login:</span> {getLastLoginText(user.lastActive)}
               </div>
               {user.gender && (
                 <div className="text-gray-300">
@@ -121,7 +121,7 @@ const UserCard: React.FC<{
             </div>
 
             {/* Status Badges */}
-            <div className="flex gap-2 mt-3">
+            <div className="flex gap-2 mt-3 flex-wrap">
               <span
                 className={`px-2 py-1 rounded-full text-xs font-medium ${
                   user.isActive
@@ -150,17 +150,17 @@ const UserCard: React.FC<{
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-col sm:flex-row">
           <button
             onClick={() => onViewDetails(user)}
-            className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition-colors flex items-center gap-1"
+            className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition-colors flex items-center justify-center gap-1"
           >
             <Eye size={14} />
             View
           </button>
           <button
             onClick={() => onToggleStatus(user)}
-            className={`px-3 py-2 text-white text-sm rounded-lg transition-colors flex items-center gap-1 ${
+            className={`px-3 py-2 text-white text-sm rounded-lg transition-colors flex items-center justify-center gap-1 ${
               user.isActive
                 ? "bg-red-500 hover:bg-red-600"
                 : "bg-green-500 hover:bg-green-600"
@@ -206,8 +206,8 @@ const ActiveUsers: React.FC<ActiveUsersProps> = ({
     <div className="space-y-6">
       {/* Search and Filters */}
       <div className="bg-[#1a1a1a] border border-gray-600 rounded-lg p-4">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="relative flex-1 max-w-md">
+        <div className="flex flex-col sm:flex-row items-center gap-4">
+          <div className="relative flex-1 w-full max-w-md">
             <Search
               className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
               size={16}
@@ -229,7 +229,7 @@ const ActiveUsers: React.FC<ActiveUsersProps> = ({
               const [sortBy, sortOrder] = e.target.value.split("-");
               handleSortChange(sortBy, sortOrder as "asc" | "desc");
             }}
-            className="bg-[#2a2a2a] border border-gray-500 rounded-lg text-white px-3 py-2 focus:outline-none focus:border-[#e78f03]"
+            className="bg-[#2a2a2a] border border-gray-500 rounded-lg text-white px-3 py-2 focus:outline-none focus:border-[#e78f03] min-w-[150px]"
           >
             <option value="name-asc">Name (A-Z)</option>
             <option value="name-desc">Name (Z-A)</option>
@@ -238,12 +238,11 @@ const ActiveUsers: React.FC<ActiveUsersProps> = ({
             <option value="lastLogin-desc">Recently Active</option>
             <option value="lastLogin-asc">Least Active</option>
           </select>
-
-          <div className="text-sm text-gray-400">{totalItems} users</div>
+          <div className="text-sm text-gray-400 whitespace-nowrap">
+            {totalItems} users
+          </div>
         </div>
       </div>
-
-      {/* Users List */}
       <div className="space-y-4">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
@@ -260,7 +259,7 @@ const ActiveUsers: React.FC<ActiveUsersProps> = ({
           ))
         ) : (
           <div className="flex items-center justify-center h-64">
-            <div className="bg-[#1a1a1a] border border-gray-600 rounded-lg p-8 text-center">
+            <div className="bg-[#1a1a1a] border border-gray-600 rounded-lg p-8 text-center max-w-md mx-auto">
               <User size={48} className="mx-auto text-gray-400 mb-4" />
               <h3 className={`${lexend.className} text-xl text-white mb-2`}>
                 No users found
@@ -273,18 +272,17 @@ const ActiveUsers: React.FC<ActiveUsersProps> = ({
         )}
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="bg-[#1a1a1a] border border-gray-600 rounded-lg p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-sm text-gray-400">
               Page {currentPage} of {totalPages} ({totalItems} total)
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap justify-center">
               <button
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="px-3 py-2 bg-[#2a2a2a] border border-gray-500 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#3a3a3a]"
+                className="px-3 py-2 bg-[#2a2a2a] border border-gray-500 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#3a3a3a] transition-colors"
               >
                 <ChevronLeft size={16} />
               </button>
@@ -302,7 +300,7 @@ const ActiveUsers: React.FC<ActiveUsersProps> = ({
                   <button
                     key={page}
                     onClick={() => onPageChange(page)}
-                    className={`px-3 py-2 rounded-lg ${
+                    className={`px-3 py-2 rounded-lg transition-colors ${
                       isActive
                         ? "bg-[#e78f03] text-black"
                         : "bg-[#2a2a2a] border border-gray-500 text-white hover:bg-[#3a3a3a]"
@@ -316,7 +314,7 @@ const ActiveUsers: React.FC<ActiveUsersProps> = ({
               <button
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="px-3 py-2 bg-[#2a2a2a] border border-gray-500 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#3a3a3a]"
+                className="px-3 py-2 bg-[#2a2a2a] border border-gray-500 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#3a3a3a] transition-colors"
               >
                 <ChevronRight size={16} />
               </button>
@@ -324,8 +322,14 @@ const ActiveUsers: React.FC<ActiveUsersProps> = ({
           </div>
         </div>
       )}
+    
+
     </div>
   );
 };
 
 export default ActiveUsers;
+
+
+
+

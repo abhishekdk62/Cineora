@@ -335,7 +335,7 @@ export class UserService implements IUserService {
       }
 
       const isRequestedOwner = await this.ownerRepo.findByEmail(email);
-      if (isRequestedOwner) {
+      if (isRequestedOwner.status!=='rejected'&&isRequestedOwner.status!=='approved') {
         return { success: false, message: "Email already in use" };
       }
 
@@ -425,7 +425,7 @@ export class UserService implements IUserService {
       }
 
       const isRequestedOwner = await this.ownerRepo.findByEmail(email);
-      if (isRequestedOwner) {
+      if (isRequestedOwner.status!=='rejected'&&isRequestedOwner.status!=='approved') {
         return { success: false, message: "Email already in use" };
       }
 
@@ -535,7 +535,6 @@ export class UserService implements IUserService {
         result = await this.userRepo.findAll(Number(page), Number(limit));
       }
 
-      // Apply search filter if provided
       if (search) {
         result.users = result.users.filter(
           (user: any) =>
@@ -548,14 +547,12 @@ export class UserService implements IUserService {
         );
       }
 
-      // Apply verification filter
       if (isVerified !== undefined) {
         result.users = result.users.filter(
           (user: any) => user.isVerified === isVerified
         );
       }
 
-      // Apply sorting if provided
       if (sortBy) {
         result.users.sort((a: any, b: any) => {
           let aValue = a[sortBy];
@@ -623,7 +620,6 @@ export class UserService implements IUserService {
     }
   }
 
-  // ✅ Fixed: Added return type
   async getUserDetails(userId: string): Promise<ServiceResponse> {
     try {
       if (!userId) {

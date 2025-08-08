@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom"; 
 import { Lexend } from "next/font/google";
 import { X, Search, Film, MapPin, Loader2 } from "lucide-react";
-import { getMoviesWithFilters } from "@/app/others/services/adminServices/movieServices";
+import { getMoviesWithFilters } from "@/app/others/services/userServices/movieServices";
+
 
 const lexendSmall = Lexend({
   weight: "200",

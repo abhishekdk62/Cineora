@@ -7,6 +7,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 import authRoutes from './modules/auth/routes/auth.routes';          
 import userRoutes from './modules/user/routes/user.routes';          
+import ownerReqRoutes from './modules/owner/routes/ownerRequest.routes';     
 import ownerRoutes from './modules/owner/routes/owner.routes';     
 import adminRoutes from './modules/admin/routes/index.routes';                     
 import { errorMiddleware } from './middlewares/error.middleware';
@@ -28,8 +29,8 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);                   
 app.use('/api/users',authenticateToken, userRoutes);                
-app.use('/api/owners', ownerRoutes);                
-
+app.use('/api/owners', ownerReqRoutes);                
+app.use('/api/owner',authenticateToken,ownerRoutes)
 app.use('/api/admin', authenticateToken, requireAdmin, adminRoutes);
 
 

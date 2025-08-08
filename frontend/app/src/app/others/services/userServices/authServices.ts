@@ -55,7 +55,7 @@ export const resetPassword = async ( newPassword: string,oldpassword:string) => 
 
 export const sendEmailChangeOtp = async (data: { newEmail: string; password: string }) => {
   const response = await apiClient.post('/users/email/change', {
-    newEmail: data.newEmail,  // Backend expects 'newEmail'
+    newEmail: data.newEmail,  
     password: data.password
   });
   return response.data;

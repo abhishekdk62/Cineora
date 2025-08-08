@@ -1,5 +1,9 @@
 // services/ownerServices/ownerService.ts
+import { UserProfile } from "../../components/Owner/MyAccount/MyAccount";
 import apiClient from "../../Utils/apiClient";
+type Partial<UserProfile> = {
+  [P in keyof UserProfile]?: UserProfile[P]
+}
 
 export interface OwnerRequestResponse {
   success: boolean;
@@ -45,3 +49,38 @@ export const getOwnerRequestStatus = async (requestId: string) => {
   const response = await apiClient.get(`/owners/request-status/${requestId}`);
   return response.data;
 };
+
+export const getOwnerProfile=async()=>{
+  const result=await apiClient.get('/owner/profile')
+  return result.data
+}
+
+export const updateOwnerProfile=async(data: Partial<UserProfile>)=>{
+const result=await apiClient.put('/owner',data)
+return result.data
+}
+
+export const resetPassword = async (data: { newPassword: string; oldPassword: string }) => {
+  const response = await apiClient.patch('/owner/reset-password', {
+    newPassword: data.newPassword,
+    oldPassword: data.oldPassword,
+  });
+  return response.data;
+};
+
+
+export const sendEmailChangeOtp = async (data: { newEmail: string; password: string }) => {
+  const response = await apiClient.post('/owner/email/change', {
+    newEmail: data.newEmail,  
+    password: data.password
+  });
+  return response.data;
+}
+
+export const verifyEmailChangeOtp = async (data: { email: string; otp: string }) => {
+  const response = await apiClient.post('/owner/email/verify', {
+    email: data.email, 
+    otp: data.otp
+  });
+  return response.data;
+}
