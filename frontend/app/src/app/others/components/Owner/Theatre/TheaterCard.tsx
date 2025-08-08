@@ -120,7 +120,7 @@ const TheaterCard: React.FC<TheaterCardProps> = ({ theater, onToggleStatus, onDe
               <div className="p-2">
                 <button className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-white/10 rounded-lg transition-colors text-gray-300 hover:text-white">
                   <Eye className="w-4 h-4 text-blue-400" />
-                  <span className={`${lexendSmall.className} text-sm`}>View Details</span>
+                  <span  className={`${lexendSmall.className} text-sm`}>View Details</span>
                 </button>
                 
                 <button 

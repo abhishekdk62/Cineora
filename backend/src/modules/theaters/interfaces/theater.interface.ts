@@ -20,7 +20,7 @@ export interface ITheater extends Document {
   updatedAt: Date;
 }
 export interface ITheaterRepository {
-  create(theaterData: Partial<ITheater>): Promise<ITheater | null>;
+  create(ownerId:string,theaterData: Partial<ITheater>): Promise<ITheater | null>;
   findById(theaterId: string): Promise<ITheater | null>;
   findByOwnerId(ownerId: string, filters?: any): Promise<{
     theaters: ITheater[];

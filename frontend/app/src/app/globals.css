@@ -1,6 +1,7 @@
 
 
 @import "tailwindcss";
+@import 'leaflet/dist/leaflet.css';
 
 @theme inline {
   --color-background: var(--background);
@@ -125,3 +126,19 @@
   }
 }
 
+
+
+
+/* Optional: Override leaflet styles for dark theme */
+.leaflet-container {
+  background-color: #1f2937; /* Dark background for map */
+}
+
+.leaflet-control-container .leaflet-control {
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.leaflet-control-container .leaflet-control a {
+  color: white;
+}

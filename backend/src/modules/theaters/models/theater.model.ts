@@ -26,7 +26,7 @@ const TheaterSchema: Schema = new Schema<ITheater>(
       type: [String],
       default: [],
     },
-    screens: { type: Number },
+    screens: { type: Number,default:0 },
     isActive: { type: Boolean, default: true },
     isVerified: { type: Boolean, default: false },
   },
@@ -36,5 +36,6 @@ const TheaterSchema: Schema = new Schema<ITheater>(
   }
 );
 TheaterSchema.index({ location: "2dsphere" });
+TheaterSchema.index({ name: 1, city: 1, state: 1 }, { unique: true });
 
 export const Theater= mongoose.model<ITheater>("Theater", TheaterSchema);

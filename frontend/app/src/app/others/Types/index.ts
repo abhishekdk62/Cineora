@@ -20,20 +20,25 @@ export type Movie = {
   updatedAt: Date;
 };
 
-export type Theater = {
-  _id: ObjectId | string;
-  ownerId: ObjectId | string;
+export interface Theater  {
+  ownerId: string;
   name: string;
   address: string;
   city: string;
   state: string;
-  coordinates: [number, number];
+  pincode: string;
+  location: {
+    type: "Point";
+    coordinates: [number, number];
+  };
   phone: string;
   facilities: string[];
+  screens: number;
   isActive: boolean;
+  isVerified:boolean;
   createdAt: Date;
   updatedAt: Date;
-};
+}
 
 export type ShowTime = {
   movieId: string;

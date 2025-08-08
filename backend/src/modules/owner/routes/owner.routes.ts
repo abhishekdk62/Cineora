@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { getOwnerProfile, resetOwnerPassword, sendEmailChangeOtp, updateOwner, verifyEmailChangeOtp } from "../controllers/owner.controller";
+import { createTheater, deleteTheater, getOwnerProfile, getTheatersByOwnerId, resetOwnerPassword, sendEmailChangeOtp, toggleTheaterStatus, updateOwner, updateTheater, verifyEmailChangeOtp } from "../controllers/owner.controller";
 
 const router = Router();
 
@@ -9,8 +9,9 @@ router.put('/',updateOwner)
 router.post('/email/change',sendEmailChangeOtp)
 router.post('/email/verify',verifyEmailChangeOtp)
 router.patch('/reset-password',resetOwnerPassword)
-router.get('/theaters')
-router.put('/theaters/:id')
-router.post('/theaters')
-router.patch('/theaters/:id')
+router.get('/theaters',getTheatersByOwnerId)
+router.put('/theaters/:id',updateTheater)
+router.post('/theaters',createTheater)
+router.delete('/theaters',deleteTheater)
+router.patch('/theaters/:id',toggleTheaterStatus)
 export default router;
