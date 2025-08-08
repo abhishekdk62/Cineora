@@ -10,16 +10,17 @@ import { EmailService } from "../../../services/email.service";
 
 const ownerRepo = new OwnerRepository();
 const ownerRequestRepo = new OwnerRequestRepository();
-const ownerService = new OwnerService(ownerRepo, ownerRequestRepo);
+const otpRepo=new OTPRepository()
+const userRepo=new UserRepository()
+const ownerService = new OwnerService(ownerRepo, ownerRequestRepo,otpRepo,userRepo);
 
-const userRepo = new UserRepository();
-const otpRepo = new OTPRepository(); // ✅ Use repository directly
+
 const emailService = new EmailService();
 
 const ownerRequestService = new OwnerRequestService(
   ownerRequestRepo,
   ownerRepo,
-  otpRepo,        // ✅ Pass repository instead of service
+  otpRepo,       
   userRepo,
   emailService
 );

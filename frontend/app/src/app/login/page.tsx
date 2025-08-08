@@ -6,7 +6,7 @@ import Aurora from "../others/Utils/ReactBits/Aurora";
 import { Lexend } from "next/font/google";
 import AuthForm from "../others/components/Auth/AuthForm";
 import { useAppDispatch, useAppSelector } from "../others/redux/hooks/redux";
-import { loginUser, clearError } from "../others/redux/slices/authSlice"; 
+import { loginUser, clearError } from "../others/redux/slices/authSlice";
 
 const lexend = Lexend({
   weight: "500",
@@ -20,13 +20,15 @@ const lexendSmall = Lexend({
 export default function LoginPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  
+
   // Get auth state from Redux
-  const { loading, error, isAuthenticated, role } = useAppSelector((state) => state.auth);
+  const { loading, error, isAuthenticated, role } = useAppSelector(
+    (state) => state.auth
+  );
 
   const handleSubmit = async (data: { email: string; password: string }) => {
     const { email, password } = data;
-    
+
     dispatch(clearError());
 
     if (!email.trim() || !password.trim() || password.length < 6) {
@@ -35,20 +37,22 @@ export default function LoginPage() {
 
     try {
       const resultAction = await dispatch(loginUser({ email, password }));
-      
+
       if (loginUser.fulfilled.match(resultAction)) {
         const userData = resultAction.payload;
-        
-        if (userData.role === 'admin') {
-          router.push('/admin/dashboard');
+
+        if (userData.role === "admin") {
+          router.push("/admin/dashboard");
+        } else if (userData.role == "owner") {
+          router.push("/owner/dashboard");
         } else {
-          router.push('/');
+          router.push("/");
         }
-        
+
         console.log(`${userData.role} login successful`);
       }
     } catch (err: any) {
-      console.error('Login error:', err);
+      console.error("Login error:", err);
     }
   };
 
@@ -62,10 +66,12 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated && role) {
-      if (role === 'admin') {
-        router.push('/admin/dashboard');
+      if (role === "admin") {
+        router.push("/admin/dashboard");
+      } else if (role == "owner") {
+        router.push("/owner/dashboard");
       } else {
-        router.push('/dashboard');
+        router.push("/admin/dashboard");
       }
     }
   }, [isAuthenticated, role, router]);

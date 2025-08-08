@@ -7,6 +7,7 @@ import { OTPService } from "../../otp/services/otp.service";
 import { createResponse } from "../../../utils/createResponse";
 import { EmailService } from "../../../services/email.service";
 import { OTPRepository } from "../../otp/repositories/otp.repository";
+import { OwnerService } from "../services/owner.service";
 
 const ownerRequestRepo = new OwnerRequestRepository();
 const ownerRepo = new OwnerRepository();
@@ -383,3 +384,4 @@ export async function rejectOwnerRequest(
     next(err);
   }
 }
+

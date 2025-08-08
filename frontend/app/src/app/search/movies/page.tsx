@@ -4,9 +4,9 @@ import MoviesPage from "../../others/components/Search/MoviesPage";
 import { Footer, NavBar } from "../../others/components/Home";
 import Orb from "../../others/Utils/ReactBits/Orb";
 
-// Import your API function
-import { getMoviesWithFilters } from "../../others/services/adminServices/movieServices"; 
+
 import Pagination from "../../others/Utils/Pagination";
+import { getMoviesWithFilters } from "@/app/others/services/userServices/movieServices";
 
 const Page = () => {
   const [movies, setMovies] = useState([]);
@@ -66,7 +66,6 @@ const Page = () => {
           onFiltersChange={fetchMovies}
         />
 
-        {/* Pass all required props to Pagination */}
         <Pagination 
           currentPage={currentPage}
           totalPages={totalPages}

@@ -2,7 +2,7 @@
 import { IOTP, OTPType } from '../models/otp.model'; // ✅ Add OTPType import
 
 export interface IOTPRepository {
-  // Basic CRUD operations
+
   create(otpData: Partial<IOTP>): Promise<IOTP>;
   findValidOTP(email: string, otp: string, type: string): Promise<IOTP | null>;
   markAsUsed(id: string): Promise<boolean>;
@@ -10,7 +10,6 @@ export interface IOTPRepository {
   findByEmail(email: string, type: string): Promise<IOTP | null>;
   findById(id: string): Promise<IOTP | null>;
   
-  // Utility methods
   deleteExpiredOTPs(): Promise<number>;
   findAllByEmail(email: string): Promise<IOTP[]>;
   updateOTP(id: string, updateData: Partial<IOTP>): Promise<IOTP | null>;

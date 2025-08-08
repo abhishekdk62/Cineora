@@ -5,12 +5,12 @@ import { Lexend } from "next/font/google";
 import { User, UserCheck, UserX, Clock } from "lucide-react";
 import toast from "react-hot-toast";
 import ActiveUsers from "./ActiveUsers";
-// Import your user services here
-// import {
-//   getUsers,
-//   getUserCounts,
-//   toggleUserStatus,
-// } from "@/app/others/services/adminServices/userServices";
+import {
+  getUserCounts,
+  getUsers,
+  toggleUserStatus,
+} from "@/app/others/services/adminServices/userService";
+import UserDetailsModal from "./UserDetailsModal";
 
 export interface User {
   _id: string;
@@ -24,8 +24,8 @@ export interface User {
   isVerified: boolean;
   emailVerified: boolean;
   phoneVerified: boolean;
-  lastLogin?: string;
-  createdAt: string;
+  lastActive?: string;
+  joinedAt: string;
   updatedAt: string;
   bookingHistory?: string[]; // Array of booking IDs
   favoriteTheatres?: string[]; // Array of theatre IDs
@@ -38,14 +38,21 @@ export interface UserFilters {
   page?: number;
   limit?: number;
   status?: "active" | "inactive";
-  verified?: boolean;
+  isVerified?: boolean; // Change from 'verified' to 'isVerified'
 }
 
 export interface UserResponse {
-  users: User[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
+  data: {
+    users: User[];
+    meta: {
+      pagination: {
+        currentPage: number;
+        totalPages: number;
+        total: number;
+        loimit: number;
+      };
+    };
+  };
 }
 
 const lexend = Lexend({
@@ -156,20 +163,15 @@ const UsersManager: React.FC = () => {
     verifiedUsers: 0,
     unverifiedUsers: 0,
   });
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Mock function - replace with actual API call
   const fetchCounts = async () => {
     try {
       setCountsLoading(true);
-      // const response = await getUserCounts();
-      // Mock data for now
-      const mockCounts = {
-        activeUsers: 1250,
-        inactiveUsers: 45,
-        verifiedUsers: 1100,
-        unverifiedUsers: 195,
-      };
-      setActiveCounts(mockCounts);
+      // Replace with actual API call
+      const counts = await getUserCounts();
+      setActiveCounts(counts);
     } catch (error: any) {
       console.error("Error fetching counts:", error);
       toast.error("Failed to load user counts");
@@ -213,44 +215,20 @@ const UsersManager: React.FC = () => {
     try {
       setIsLoading(true);
 
-      // Determine filter based on active view
       let apiFilters = { ...filters };
       if (activeView === "active" || activeView === "inactive") {
         apiFilters.status = activeView;
       } else if (activeView === "verified") {
-        apiFilters.verified = true;
+        apiFilters.isVerified = true;
       } else if (activeView === "unverified") {
-        apiFilters.verified = false;
+        apiFilters.isVerified = false;
       }
-
-      // const response = await getUsers(apiFilters);
-      // Mock data for now
-      const mockUsers: User[] = [
-        {
-          _id: "1",
-          name: "John Doe",
-          phone: "+91 9876543210",
-          email: "john.doe@example.com",
-          profilePicture: "https://via.placeholder.com/100",
-          dateOfBirth: "1990-05-15",
-          gender: "male",
-          isActive: true,
-          isVerified: true,
-          emailVerified: true,
-          phoneVerified: true,
-          lastLogin: "2024-08-07T10:30:00Z",
-          createdAt: "2024-01-15T08:00:00Z",
-          updatedAt: "2024-08-07T10:30:00Z",
-          bookingHistory: ["booking1", "booking2"],
-          favoriteTheatres: ["theatre1", "theatre2"],
-        },
-        // Add more mock users as needed
-      ];
-
-      setUsers(mockUsers);
-      setTotalPages(5);
-      setTotalItems(50);
-      setCurrentPage(1);
+      const response: UserResponse = await getUsers(apiFilters);
+      console.log(response);
+      setUsers(response.data.users);
+      setTotalPages(response.data.meta.pagination.totalPages);
+      setTotalItems(response.data.meta.pagination.total);
+      setCurrentPage(response.data.meta.pagination.currentPage);
     } catch (error: any) {
       console.error("Filter error:", error);
       toast.error("Failed to load users");
@@ -267,27 +245,19 @@ const UsersManager: React.FC = () => {
     setCurrentPage(1);
     setUsers([]);
     handleFiltersChange({}, true);
-    // eslint-disable-next-line
   }, [activeView]);
 
   const handleViewDetails = (user: User) => {
-    console.log("View details for:", user.name);
-    // Implement user details modal or navigation
+    setSelectedUser(user);
+    setIsModalOpen(true);
   };
 
   const handleToggleUserStatus = async (user: User) => {
     try {
-      // const confirmed = await confirmAction({
-      //   title: `${user.isActive ? 'Deactivate' : 'Activate'} User?`,
-      //   message: `Are you sure you want to ${user.isActive ? 'deactivate' : 'activate'} "${user.name}"?`,
-      //   confirmText: user.isActive ? 'Deactivate' : 'Activate',
-      //   cancelText: "Cancel",
-      // });
-      // if (!confirmed) return;
-
-      // await toggleUserStatus(user._id);
+      await toggleUserStatus(user._id);
       const action = user.isActive ? "deactivated" : "activated";
       toast.success(`User ${action} successfully!`);
+
       fetchCounts();
       if (Object.keys(currentFilters).length > 0) {
         handleFiltersChange(currentFilters, false);
@@ -321,6 +291,15 @@ const UsersManager: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <UserDetailsModal
+        user={selectedUser}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedUser(null);
+        }}
+      />
+
       <div>
         <h1
           className={`${lexend.className} text-3xl font-bold text-white mb-2`}

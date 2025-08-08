@@ -11,7 +11,6 @@ export interface UserFilters {
   limit?: number;
 }
 
-// Helper to build query string
 const buildQuery = (params: Record<string, any>): string => {
   const searchParams = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
@@ -22,27 +21,25 @@ const buildQuery = (params: Record<string, any>): string => {
   return searchParams.toString();
 };
 
-// Get user counts for dashboard (Admin only)
 export const getUserCounts = async () => {
   const response = await apiClient.get('/admin/users/counts');
   return response.data;
 };
 
-// Get users with filters (Admin only)
 export const getUsers = async (filters: UserFilters) => {
   const query = buildQuery(filters);
   const response = await apiClient.get(`/admin/users?${query}`);
   return response.data;
 };
 
-// Get user details (Admin only)
 export const getUserDetails = async (userId: string) => {
   const response = await apiClient.get(`/admin/users/${userId}`);
   return response.data;
 };
 
-// Toggle user status (Admin only)
 export const toggleUserStatus = async (userId: string) => {
   const response = await apiClient.patch(`/admin/users/${userId}/toggle-status`);
   return response.data;
 };
+
+

@@ -362,7 +362,7 @@ export async function changeEmail(
           success: false,
           message: "New email and password are required",
         })
-      );
+      ); 
     }
     const result = await userService.sendEmailChangeOTP(id, newEmail, password);
     if (!result.success) {
@@ -411,7 +411,7 @@ export async function verifyChangeEmailOtp(
     }
 
     const result = await userService.verifyEmailChangeOTP(id, email, otp);
-
+ 
     if (!result.success) {
       return res.status(400).json(
         createResponse({
@@ -490,16 +490,5 @@ export async function getMoviesWithFilters(
     );
   } catch (err) {
     next(err);
-  }
-}
-
-export async function getUsers(req:Request,res:Response,next:NextFunction)
-{
-  try {
-    const filters=req.body
-    
-    
-  } catch (error) {
-    next(error)
   }
 }

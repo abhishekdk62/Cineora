@@ -1,0 +1,51 @@
+import mongoose, {Document} from 'mongoose'
+
+export interface ITheater extends Document {
+  ownerId: mongoose.Types.ObjectId;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  pincode: string;
+  location: {
+    type: "Point";
+    coordinates: [number, number];
+  };
+  phone: string;
+  facilities: string[];
+  screens: number;
+  isActive: boolean;
+  isVerified:boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+export interface ITheaterRepository {
+  create(theaterData: Partial<ITheater>): Promise<ITheater | null>;
+  findById(theaterId: string): Promise<ITheater | null>;
+  findByOwnerId(ownerId: string, filters?: any): Promise<{
+    theaters: ITheater[];
+    total: number;
+  }>;
+  findAll(page: number, limit: number, filters?: any): Promise<{
+    theaters: ITheater[];
+    total: number;
+  }>;
+  findByFilters(filters: any, page: number, limit: number): Promise<{
+    theaters: ITheater[];
+    total: number;
+  }>;
+  update(theaterId: string, updateData: Partial<ITheater>): Promise<ITheater | null>;
+  toggleStatus(theaterId: string): Promise<ITheater | null>;
+  verifyTheater(theaterId: string): Promise<ITheater | null>;
+  delete(theaterId: string): Promise<boolean>;
+  findNearby(longitude: number, latitude: number, maxDistance: number): Promise<ITheater[]>;
+  existsByNameAndCity(name: string, city: string,state:string, excludeId?: string): Promise<boolean>;
+  findByOwnerIdAndName(ownerId: string, name: string): Promise<ITheater | null>;
+}
+
+
+export interface ServiceResponse {
+  success: boolean;
+  message: string;
+  data?: any;
+}

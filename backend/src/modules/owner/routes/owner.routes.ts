@@ -1,12 +1,16 @@
-import { Router } from 'express';  // ✅ Import Router directly
-import { getRequestStatus, sendOTP, submitKYC, verifyOTP } from '../controllers/ownerRequest.controller';
+import { Router } from "express";
+
+import { getOwnerProfile, resetOwnerPassword, sendEmailChangeOtp, updateOwner, verifyEmailChangeOtp } from "../controllers/owner.controller";
 
 const router = Router();
 
-router.post('/send-otp', sendOTP);
-router.post('/verify-otp', verifyOTP);
-router.post('/submit-kyc', submitKYC);
-
-router.get('/request-status/:requestId', getRequestStatus);
-
+router.get("/profile", getOwnerProfile);
+router.put('/',updateOwner)
+router.post('/email/change',sendEmailChangeOtp)
+router.post('/email/verify',verifyEmailChangeOtp)
+router.patch('/reset-password',resetOwnerPassword)
+router.get('/theaters')
+router.put('/theaters/:id')
+router.post('/theaters')
+router.patch('/theaters/:id')
 export default router;

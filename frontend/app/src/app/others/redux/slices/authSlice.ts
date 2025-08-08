@@ -14,7 +14,7 @@ interface User {
 interface AuthState {
   user: User | null;
   token: string | null;
-  role: 'user' | 'admin' | null;
+  role: 'user' | 'admin' | 'owner'|null;
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
