@@ -7,19 +7,19 @@ import {
 export class TheaterService {
   constructor(private theaterRepo: ITheaterRepository) {}
 
-  async createTheater(theaterData: ITheater): Promise<ServiceResponse> {
+  async createTheater(ownerId: string, theaterData: ITheater): Promise<ServiceResponse> {
     try {
-      if (!theaterData.ownerId) {
+      if (!ownerId) {
         return {
           success: false,
           message: "Owner ID is required",
         };
       }
 
-      if (!theaterData.name || !theaterData.address || !theaterData.city) {
+      if (!theaterData.name || !theaterData.address || !theaterData.city || !theaterData.state) {
         return {
           success: false,
-          message: "Name, address, and city are required",
+          message: "Name, address, city, and state are required",
         };
       }
 
@@ -32,7 +32,8 @@ export class TheaterService {
           message: "Valid location coordinates are required",
         };
       }
-      const theater = this.theaterRepo.create(theaterData);
+
+      const theater = await this.theaterRepo.create(ownerId, theaterData);
 
       if (!theater) {
         return {
@@ -40,17 +41,27 @@ export class TheaterService {
           message: "Failed to create theater",
         };
       }
+
       return {
         success: true,
-        message: "Theater created succusfully",
+        message: "Theater created successfully",
+        data: theater, 
       };
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message === "Theater with this name already exists in this city") {
+        return {
+          success: false,
+          message: error.message,
+        };
+      }
+
       return {
         success: false,
-        message: "Something went wrong",
+        message: error.message || "Something went wrong",
       };
     }
   }
+
   async getTheaterById(theaterId: string): Promise<ServiceResponse> {
     try {
       if (!theaterId) {
@@ -59,6 +70,7 @@ export class TheaterService {
           message: "Theater id is required",
         };
       }
+
       const theater = await this.theaterRepo.findById(theaterId);
 
       if (!theater) {
@@ -73,13 +85,14 @@ export class TheaterService {
         message: "Theater retrieved successfully",
         data: theater,
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         message: error.message || "Something went wrong",
       };
     }
   }
+
   async getTheatersByOwnerId(
     ownerId: string,
     filters?: any
@@ -106,6 +119,7 @@ export class TheaterService {
       };
     }
   }
+
   async getAllTheaters(
     page: number,
     limit: number,
@@ -157,12 +171,21 @@ export class TheaterService {
         data: theater,
       };
     } catch (error: any) {
+      // Handle duplicate error from repository update method
+      if (error.message === "Theater with this name already exists in this city") {
+        return {
+          success: false,
+          message: error.message,
+        };
+      }
+
       return {
         success: false,
         message: error.message || "Something went wrong",
       };
     }
   }
+
   async toggleTheaterStatus(theaterId: string): Promise<ServiceResponse> {
     try {
       if (!theaterId) {
@@ -183,9 +206,7 @@ export class TheaterService {
 
       return {
         success: true,
-        message: `Theater ${
-          theater.isActive ? "activated" : "deactivated"
-        } successfully`,
+        message: `Theater ${theater.isActive ? "activated" : "deactivated"} successfully`,
         data: theater,
       };
     } catch (error: any) {
@@ -226,6 +247,7 @@ export class TheaterService {
       };
     }
   }
+
   async deleteTheater(theaterId: string): Promise<ServiceResponse> {
     try {
       if (!theaterId) {
@@ -255,6 +277,7 @@ export class TheaterService {
       };
     }
   }
+
   async getNearbyTheaters(
     longitude: number,
     latitude: number,
@@ -305,6 +328,7 @@ export class TheaterService {
       };
     }
   }
+
   async checkTheaterExists(
     name: string,
     city: string,

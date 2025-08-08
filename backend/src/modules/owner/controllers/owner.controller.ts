@@ -6,12 +6,16 @@ import { OwnerRequestRepository } from "../repositories/ownerRequest.repository"
 import { createResponse } from "../../../utils/createResponse";
 import { OTPRepository } from "../../otp/repositories/otp.repository";
 import { UserRepository } from "../../user/repositories/user.repository";
+import { TheaterService } from "../../theaters/services/theater.service";
+import { TheaterRepository } from "../../theaters/repositories/theater.repository";
 
 const ownerRepo = new OwnerRepository();
 const ownerRequestRepo = new OwnerRequestRepository();
 const otpRepo = new OTPRepository();
 const userRepo = new UserRepository();
+const theaterRepo = new TheaterRepository();
 
+const theaterService = new TheaterService(theaterRepo);
 const ownerService = new OwnerService(
   ownerRepo,
   ownerRequestRepo,
@@ -394,3 +398,258 @@ export async function resetOwnerPassword(
     next(error);
   }
 }
+
+//!theater controllers
+
+export async function createTheater(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const { ownerId } = req.owner;
+    const  theaterData  = req.body;
+
+
+    if (!ownerId) {
+      res.status(400).json(
+        createResponse({
+          success: false,
+          message: "Owner id is required",
+        })
+      );
+      return;
+    }
+    if (!theaterData) {
+      res.status(400).json(
+        createResponse({
+          success: false,
+          message: "Theater data is required",
+        })
+      );
+      return;
+    }
+
+    const result = await theaterService.createTheater(ownerId, theaterData);
+
+    if (!result.success) {
+      return res.status(400).json(
+        createResponse({
+          success: false,
+          message: result.message,
+        })
+      );
+    }
+
+    return res.status(201).json(
+      createResponse({
+        success: true,
+        message: result.message,
+        data: result.data,
+      })
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getTheatersByOwnerId(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const { ownerId } = req.owner;
+    if (!ownerId) {
+      return res.status(400).json(
+        createResponse({
+          success: false,
+          message: "Owner id required",
+        })
+      );
+    }
+    const result = await theaterService.getTheatersByOwnerId(ownerId, req.query);
+    if (!result.success) {
+      return res.status(400).json(
+        createResponse({
+          success: false,
+          message: result.message,
+        })
+      );
+    }
+    return res.status(200).json(
+      createResponse({
+        success: true,
+        message: result.message,
+        data: result.data,
+      })
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateTheater(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const { theaterId } = req.params;
+    const updateData = req.body;
+    const { ownerId } = req.owner;
+
+    if (!theaterId) {
+      return res.status(400).json(
+        createResponse({
+          success: false,
+          message: "Theater ID is required",
+        })
+      );
+    }
+
+    if (!updateData || Object.keys(updateData).length === 0) {
+      return res.status(400).json(
+        createResponse({
+          success: false,
+          message: "Update data is required",
+        })
+      );
+    }
+
+    // Call service to update theater
+    const result = await theaterService.updateTheater(theaterId, updateData);
+
+    if (!result.success) {
+      // Map error types to appropriate HTTP status codes
+      let statusCode = 400;
+      
+      if (result.message === "Theater with this name already exists in this city") {
+        statusCode = 409; // Conflict
+      } else if (result.message === "Theater not found or update failed") {
+        statusCode = 404; // Not found
+      } else if (result.message === "Something went wrong") {
+        statusCode = 500; // Internal server error
+      }
+
+      return res.status(statusCode).json(
+        createResponse({
+          success: false,
+          message: result.message,
+        })
+      );
+    }
+
+    return res.status(200).json(
+      createResponse({
+        success: true,
+        message: result.message,
+        data: result.data,
+      })
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteTheater(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const { theaterId } = req.params;
+    const { ownerId } = req.owner;
+
+    if (!theaterId) {
+      return res.status(400).json(
+        createResponse({
+          success: false,
+          message: "Theater ID is required",
+        })
+      );
+    }
+
+    // Call service to delete theater
+    const result = await theaterService.deleteTheater(theaterId);
+
+    if (!result.success) {
+      // Map error types to appropriate HTTP status codes
+      let statusCode = 400;
+      
+      if (result.message === "Theater not found or deletion failed") {
+        statusCode = 404; // Not found
+      } else if (result.message === "Something went wrong") {
+        statusCode = 500; // Internal server error
+      }
+
+      return res.status(statusCode).json(
+        createResponse({
+          success: false,
+          message: result.message,
+        })
+      );
+    }
+
+    return res.status(200).json(
+      createResponse({
+        success: true,
+        message: result.message,
+      })
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function toggleTheaterStatus(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const { theaterId } = req.params;
+    const { ownerId } = req.owner;
+
+    if (!theaterId) {
+      return res.status(400).json(
+        createResponse({
+          success: false,
+          message: "Theater ID is required",
+        })
+      );
+    }
+
+    // Call service to toggle theater status
+    const result = await theaterService.toggleTheaterStatus(theaterId);
+
+    if (!result.success) {
+      // Map error types to appropriate HTTP status codes
+      let statusCode = 400;
+      
+      if (result.message === "Theater not found") {
+        statusCode = 404; // Not found
+      } else if (result.message === "Something went wrong") {
+        statusCode = 500; // Internal server error
+      }
+
+      return res.status(statusCode).json(
+        createResponse({
+          success: false,
+          message: result.message,
+        })
+      );
+    }
+
+    return res.status(200).json(
+      createResponse({
+        success: true,
+        message: result.message,
+        data: result.data,
+      })
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
