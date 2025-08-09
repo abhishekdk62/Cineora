@@ -2,10 +2,9 @@ import axios from "axios";
 import { Theater } from "../../Types";
 import apiClient from "../../Utils/apiClient";
 
-
-export async function createTheater(theaterData:Partial<Theater>) {
-    const result =await apiClient.post('/owner/theaters',theaterData)
-    return result.data
+export async function createTheater(theaterData: Partial<Theater>) {
+  const result = await apiClient.post("/owner/theaters", theaterData);
+  return result.data;
 }
 export const getTheatersByOwnerId = async (filters?: {
   search?: string;
@@ -13,14 +12,29 @@ export const getTheatersByOwnerId = async (filters?: {
   page?: number;
   limit?: number;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }) => {
   try {
-    const result = await apiClient.get('/owner/theaters', {params:filters});
+    const result = await apiClient.get("/owner/theaters", { params: filters });
     return result.data;
   } catch (error) {
-    console.error('Error fetching theaters:', error);
+    console.error("Error fetching theaters:", error);
     throw error;
   }
 };
 
+export const toggleTheaterStatusOwner = async (id:string) => {
+  const result = await apiClient.patch(`/owner/theaters/${id}`);
+  return result.data;
+};
+
+export const updateTheaterOwner=async(theaterId:string,theaterData:Partial<Theater>)=>
+{
+  const result=await apiClient.put(`/owner/theaters/${theaterId}`,theaterData)
+  return result.data
+}
+
+export async function deleteTheaterOwner(theaterId:string) {
+  const result=await apiClient.delete(`/owner/theaters/${theaterId}`)
+  return result.data
+}

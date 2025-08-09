@@ -4,10 +4,19 @@ import React, { useState, useEffect } from "react";
 import { Lexend } from "next/font/google";
 import { Building, Plus, Search, Power } from "lucide-react";
 import TheaterCard from "./TheaterCard";
-import CreateTheaterModal from "./CreateTheaterModal";
+import CreateTheaterModal from "./TheaterFormModal";
 import EditTheaterModal from "./EditTheaterModal";
 import TheaterFilters from "./TheaterFilters";
-import { getTheatersByOwnerId } from "@/app/others/services/ownerServices/theaterServices";
+import {
+  deleteTheaterOwner,
+  getTheatersByOwnerId,
+  toggleTheaterStatusOwner,
+} from "@/app/others/services/ownerServices/theaterServices";
+import TheaterFormModal from "./TheaterFormModal";
+import toast from "react-hot-toast";
+import TheaterViewModal from "./TheaterViewModal";
+import { Theater } from "@/app/others/Types";
+import { confirmAction, ConfirmDialog } from "@/app/others/Utils/ConfirmDialog";
 
 const lexendBold = Lexend({
   weight: "700",
@@ -24,19 +33,6 @@ const lexendSmall = Lexend({
   subsets: ["latin"],
 });
 
-interface Theater {
-  _id: string;
-  name: string;
-  address: string;
-  city: string;
-  state: string;
-  phone: string;
-  facilities: string[];
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
 const TheaterManager: React.FC = () => {
   const [theaters, setTheaters] = useState<Theater[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,11 +41,12 @@ const TheaterManager: React.FC = () => {
   const [selectedTheater, setSelectedTheater] = useState<Theater | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const [showTheaterDetails, setShowTheaterDetails] = useState(false);
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
     totalItems: 0,
-    itemsPerPage: 10
+    itemsPerPage: 10,
   });
   const [stats, setStats] = useState({
     total: 0,
@@ -57,7 +54,6 @@ const TheaterManager: React.FC = () => {
     inactive: 0,
   });
 
-  // Debounce hook for search
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
 
   useEffect(() => {
@@ -75,40 +71,39 @@ const TheaterManager: React.FC = () => {
   const fetchTheaters = async () => {
     try {
       setIsLoading(true);
-      
+
       const filters = {
         search: debouncedSearchQuery.trim() || undefined,
-        status: selectedFilter !== 'all' ? selectedFilter : undefined,
+        status: selectedFilter !== "all" ? selectedFilter : undefined,
         page: pagination.currentPage,
         limit: pagination.itemsPerPage,
-        sortBy: 'createdAt',
-        sortOrder: 'desc' as const
+        sortBy: "createdAt",
+        sortOrder: "desc" as const,
       };
 
       const data = await getTheatersByOwnerId(filters);
+      console.log(data);
 
-      setTheaters(data.data.theaters||[]);
-      
-      // Update pagination info
-      setPagination(prev => ({
+      setTheaters(data.data.theaters || []);
+
+      setPagination((prev) => ({
         ...prev,
         totalItems: data.total,
-        totalPages: Math.ceil(data.total / prev.itemsPerPage)
+        totalPages: Math.ceil(data.total / prev.itemsPerPage),
       }));
-      
+
       setStats({
-        total: data.total,
-        active: data?.theaters?.filter((t: Theater) => t.isActive).length,
-        inactive: data?.theaters?.filter((t: Theater) => !t.isActive).length,
+        total: data.data.totalAll,
+        active: data.data.activeAll,
+        inactive: data.data.inactiveAll,
       });
-      
     } catch (error) {
-      console.error('Error fetching theaters:', error);
+      console.error("Error fetching theaters:", error);
       setTheaters([]);
-      setPagination(prev => ({
+      setPagination((prev) => ({
         ...prev,
         totalItems: 0,
-        totalPages: 1
+        totalPages: 1,
       }));
       setStats({ total: 0, active: 0, inactive: 0 });
     } finally {
@@ -117,58 +112,74 @@ const TheaterManager: React.FC = () => {
   };
 
   const handlePageChange = (page: number) => {
-    setPagination(prev => ({
+    setPagination((prev) => ({
       ...prev,
-      currentPage: page
+      currentPage: page,
     }));
   };
 
   const handleFilterChange = (filter: string) => {
     setSelectedFilter(filter);
-    setPagination(prev => ({
+    setPagination((prev) => ({
       ...prev,
-      currentPage: 1
+      currentPage: 1,
     }));
   };
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
-    setPagination(prev => ({
+    setPagination((prev) => ({
       ...prev,
-      currentPage: 1
+      currentPage: 1,
     }));
   };
 
-  const handleToggleTheaterStatus = async (theaterId: string) => {
+  const handleToggleTheaterStatus = async (theater: Theater) => {
     try {
+      if (!theater.isVerified) {
+        toast.error(
+          "The theater needs to be verified to activate.Please try again later"
+        );
+        return;
+      }
+
+      const confirmed = await confirmAction({
+        title: theater.isActive ? "Disable Theater" : "Enable Theater",
+        message: `Are you sure you want to ${
+          theater.isActive ? `disable` : `enable`
+        }'the theater?`,
+        confirmText: theater.isActive ? "Disable" : "Enable",
+        cancelText: "Cancel",
+      });
+      if (!confirmed) return;
+
+      const data = await toggleTheaterStatusOwner(theater._id);
+
+      console.log(data);
+
       const updatedTheaters = theaters.map((theater) =>
-        theater._id === theaterId
+        theater._id === theater._id
           ? { ...theater, isActive: !theater.isActive }
           : theater
       );
       setTheaters(updatedTheaters);
-      
-      // TODO: Call API to update theater status
-      // await updateTheaterStatus(theaterId);
-      
     } catch (error) {
-      console.error('Error toggling theater status:', error);
+      console.error("Error toggling theater status:", error);
       fetchTheaters();
     }
   };
 
   const handleDeleteTheater = async (theaterId: string) => {
     try {
+      const data = await deleteTheaterOwner(theaterId);
+
       const updatedTheaters = theaters.filter(
         (theater) => theater._id !== theaterId
       );
       setTheaters(updatedTheaters);
-      
-      // TODO: Call API to delete theater
-      // await deleteTheater(theaterId);
-      
+      toast.success('Theater deleted succusfully')
     } catch (error) {
-      console.error('Error deleting theater:', error);
+      console.error("Error deleting theater:", error);
       fetchTheaters();
     }
   };
@@ -177,21 +188,22 @@ const TheaterManager: React.FC = () => {
     fetchTheaters();
     setShowCreateModal(false);
   };
+  const onView = (theater: Theater) => {
+    setSelectedTheater(theater);
+    setShowTheaterDetails(true);
+  };
 
   const handleEditTheater = (theater: Theater) => {
     setSelectedTheater(theater);
     setShowEditModal(true);
   };
-
-  const handleSaveEditTheater = (updatedTheater: Theater) => {
+  const handleEditTheaterSave = () => {
     fetchTheaters();
     setShowEditModal(false);
-    setSelectedTheater(null);
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className={`${lexendBold.className} text-3xl text-white mb-2`}>
@@ -292,7 +304,6 @@ const TheaterManager: React.FC = () => {
         </div>
       </div>
 
-      {/* Theater Grid */}
       <div className="space-y-4">
         {isLoading ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -313,14 +324,16 @@ const TheaterManager: React.FC = () => {
           <div className="bg-black/90 backdrop-blur-sm border border-gray-500/30 rounded-2xl p-12 text-center">
             <Building className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className={`${lexendMedium.className} text-xl text-white mb-2`}>
-              {searchQuery || selectedFilter !== 'all' ? "No theaters found" : "No theaters yet"}
+              {searchQuery || selectedFilter !== "all"
+                ? "No theaters found"
+                : "No theaters yet"}
             </h3>
             <p className={`${lexendSmall.className} text-gray-400 mb-6`}>
-              {searchQuery || selectedFilter !== 'all'
+              {searchQuery || selectedFilter !== "all"
                 ? `No theaters match your criteria`
                 : "Add your first theater to get started"}
             </p>
-            {!searchQuery && selectedFilter === 'all' && (
+            {!searchQuery && selectedFilter === "all" && (
               <button
                 onClick={() => setShowCreateModal(true)}
                 className={`${lexendMedium.className} bg-white text-black px-6 py-3 rounded-xl hover:bg-gray-200 transition-all duration-300`}
@@ -338,20 +351,26 @@ const TheaterManager: React.FC = () => {
                 onToggleStatus={handleToggleTheaterStatus}
                 onDelete={handleDeleteTheater}
                 onEdit={handleEditTheater}
+                onView={onView}
               />
             ))}
           </div>
         )}
       </div>
 
-      {/* Pagination */}
       {!isLoading && theaters.length > 0 && pagination.totalPages > 1 && (
         <div className="bg-black/90 backdrop-blur-sm border border-gray-500/30 rounded-2xl p-6">
           <div className="flex items-center justify-between">
             <p className={`${lexendSmall.className} text-gray-400`}>
-              Showing {((pagination.currentPage - 1) * pagination.itemsPerPage) + 1} to {Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems)} of {pagination.totalItems} theaters
+              Showing{" "}
+              {(pagination.currentPage - 1) * pagination.itemsPerPage + 1} to{" "}
+              {Math.min(
+                pagination.currentPage * pagination.itemsPerPage,
+                pagination.totalItems
+              )}{" "}
+              of {pagination.totalItems} theaters
             </p>
-            
+
             <div className="flex items-center gap-2">
               <button
                 onClick={() => handlePageChange(pagination.currentPage - 1)}
@@ -360,36 +379,44 @@ const TheaterManager: React.FC = () => {
               >
                 Previous
               </button>
-              
+
               <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                  let pageNumber;
-                  if (pagination.totalPages <= 5) {
-                    pageNumber = i + 1;
-                  } else if (pagination.currentPage <= 3) {
-                    pageNumber = i + 1;
-                  } else if (pagination.currentPage >= pagination.totalPages - 2) {
-                    pageNumber = pagination.totalPages - 4 + i;
-                  } else {
-                    pageNumber = pagination.currentPage - 2 + i;
+                {Array.from(
+                  { length: Math.min(5, pagination.totalPages) },
+                  (_, i) => {
+                    let pageNumber;
+                    if (pagination.totalPages <= 5) {
+                      pageNumber = i + 1;
+                    } else if (pagination.currentPage <= 3) {
+                      pageNumber = i + 1;
+                    } else if (
+                      pagination.currentPage >=
+                      pagination.totalPages - 2
+                    ) {
+                      pageNumber = pagination.totalPages - 4 + i;
+                    } else {
+                      pageNumber = pagination.currentPage - 2 + i;
+                    }
+
+                    return (
+                      <button
+                        key={pageNumber}
+                        onClick={() => handlePageChange(pageNumber)}
+                        className={`${
+                          lexendMedium.className
+                        } w-10 h-10 rounded-lg border border-gray-500/30 transition-all duration-300 ${
+                          pagination.currentPage === pageNumber
+                            ? "bg-white text-black"
+                            : "text-white hover:bg-white/10"
+                        }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
                   }
-                  
-                  return (
-                    <button
-                      key={pageNumber}
-                      onClick={() => handlePageChange(pageNumber)}
-                      className={`${lexendMedium.className} w-10 h-10 rounded-lg border border-gray-500/30 transition-all duration-300 ${
-                        pagination.currentPage === pageNumber
-                          ? 'bg-white text-black'
-                          : 'text-white hover:bg-white/10'
-                      }`}
-                    >
-                      {pageNumber}
-                    </button>
-                  );
-                })}
+                )}
               </div>
-              
+
               <button
                 onClick={() => handlePageChange(pagination.currentPage + 1)}
                 disabled={pagination.currentPage === pagination.totalPages}
@@ -402,22 +429,27 @@ const TheaterManager: React.FC = () => {
         </div>
       )}
 
-      {/* Modals */}
       {showCreateModal && (
-        <CreateTheaterModal
+        <TheaterFormModal
           onClose={() => setShowCreateModal(false)}
           onSuccess={handleCreateTheater}
+          mode={"create"}
         />
       )}
 
       {showEditModal && selectedTheater && (
-        <EditTheaterModal
-          theater={selectedTheater}
-          onClose={() => {
-            setShowEditModal(false);
-            setSelectedTheater(null);
-          }}
-          onSave={handleSaveEditTheater}
+        <TheaterFormModal
+          onClose={() => setShowEditModal(false)}
+          onSuccess={handleEditTheaterSave}
+          mode={"edit"}
+          initialData={selectedTheater}
+        />
+      )}
+
+      {showTheaterDetails && selectedTheater && (
+        <TheaterViewModal
+          theaterData={selectedTheater}
+          onClose={() => setShowTheaterDetails(false)}
         />
       )}
     </div>

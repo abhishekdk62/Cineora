@@ -37,7 +37,6 @@ export interface IAdminMovieRepository {
 }
 
 
-// Keep the AdminMovieFilters interface in admin module
 export interface AdminMovieFilters {
   search?: string;
   isActive?: boolean;
@@ -54,8 +53,6 @@ export interface AdminMovieFilters {
   limit?: number;
 }
 
-// Remove IAdminMovieRepository - use IMovieRepository from movies module instead
-// Keep admin-specific interfaces in admin module
 export interface AdminMovieFilters {
   search?: string;
   isActive?: boolean;

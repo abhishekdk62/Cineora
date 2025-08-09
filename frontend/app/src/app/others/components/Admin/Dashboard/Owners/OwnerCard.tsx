@@ -155,7 +155,6 @@ const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions }) => {
               </div>
             </div>
 
-            {/* View Details button */}
             <button
               onClick={() => setShowModal(true)}
               className="text-[#e78f03] hover:text-orange-400 text-sm font-medium transition-colors"

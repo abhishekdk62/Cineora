@@ -1,112 +1,142 @@
-"use client"
+"use client";
 
-import React, { useState } from "react"
-import { Lexend } from "next/font/google"
-import { 
-  Building, 
-  MapPin, 
-  Phone, 
-  Power, 
-  Edit, 
-  Trash2, 
+import React, { useState } from "react";
+import { Lexend } from "next/font/google";
+import {
+  Building,
+  MapPin,
+  Phone,
+  Power,
+  Edit,
+  Trash2,
   Eye,
   MoreVertical,
-  Calendar
-} from "lucide-react"
+  Calendar,
+  AlertCircle,
+  ShieldCheck,
+} from "lucide-react";
+import { Theater } from "@/app/others/Types";
+import { confirmAction } from "@/app/others/Utils/ConfirmDialog";
 
 const lexendBold = Lexend({
   weight: "700",
   subsets: ["latin"],
-})
+});
 
 const lexendMedium = Lexend({
   weight: "500",
   subsets: ["latin"],
-})
+});
 
 const lexendSmall = Lexend({
   weight: "300",
   subsets: ["latin"],
-})
-
-interface Theater {
-  _id: string
-  name: string
-  address: string
-  city: string
-  state: string
-  phone: string
-  facilities: string[]
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
-}
+});
 
 interface TheaterCardProps {
-  theater: Theater
-  onToggleStatus: (id: string) => void
-  onDelete: (id: string) => void
-  onEdit: (theater: Theater) => void
+  theater: Theater;
+  onToggleStatus: (theater: Theater) => void;
+  onDelete: (id: string) => void;
+  onEdit: (theater: Theater) => void;
+  onView: (theater: Theater) => void;
 }
 
-const TheaterCard: React.FC<TheaterCardProps> = ({ theater, onToggleStatus, onDelete, onEdit }) => {
-  const [showActions, setShowActions] = useState(false)
+const TheaterCard: React.FC<TheaterCardProps> = ({
+  theater,
+  onToggleStatus,
+  onDelete,
+  onEdit,
+  onView,
+}) => {
+  const [showActions, setShowActions] = useState(false);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
-  }
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+  const handleView = () => {
+    setShowActions(false);
+    onView(theater);
+  };
 
   const handleToggleStatus = () => {
-    onToggleStatus(theater._id)
-    setShowActions(false)
-  }
+    onToggleStatus(theater);
+    setShowActions(false);
+  };
 
-  const handleDelete = () => {
-    if (confirm(`Are you sure you want to delete "${theater.name}"? This action cannot be undone.`)) {
-      onDelete(theater._id)
+  const handleDelete =async () => {
+    const confirmed =await confirmAction({
+      title: "Delete theater",
+      message: "Do you want to permanently delete this theater?",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+    });
+    if (!confirmed) {
+        setShowActions(false);
+      return
     }
-    setShowActions(false)
-  }
+    onDelete(theater._id);
+    setShowActions(false);
+  };
 
   const handleEdit = () => {
-    onEdit(theater)
-    setShowActions(false)
-  }
+    onEdit(theater);
+    setShowActions(false);
+  };
 
   return (
     <div className="bg-black/90 backdrop-blur-sm border border-gray-500/30 rounded-2xl p-6 hover:border-gray-400/50 transition-all duration-300 group">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-            theater.isActive ? 'bg-green-500/20' : 'bg-orange-500/20'
-          }`}>
-            <Building className={`w-6 h-6 ${
-              theater.isActive ? 'text-green-400' : 'text-orange-400'
-            }`} />
+          <div
+            className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+              theater.isActive ? "bg-green-500/20" : "bg-orange-500/20"
+            }`}
+          >
+            <Building
+              className={`w-6 h-6 ${
+                theater.isActive ? "text-green-400" : "text-orange-400"
+              }`}
+            />
           </div>
           <div>
             <h3 className={`${lexendMedium.className} text-lg text-white`}>
               {theater.name}
             </h3>
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${
-                theater.isActive ? 'bg-green-400' : 'bg-orange-400'
-              }`} />
-              <span className={`${lexendSmall.className} text-xs ${
-                theater.isActive ? 'text-green-400' : 'text-orange-400'
-              }`}>
-                {theater.isActive ? 'Active' : 'Inactive'}
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  theater.isActive ? "bg-green-400" : "bg-orange-400"
+                }`}
+              />
+              <span
+                className={`${lexendSmall.className} text-xs ${
+                  theater.isActive ? "text-green-400" : "text-orange-400"
+                }`}
+              >
+                {theater.isActive ? "Active" : "Inactive"}
+              </span>
+              <span
+                className={`${lexendSmall.className} text-xs flex gap-1 ${
+                  theater.isVerified ? "text-green-400" : "text-red-400"
+                }`}
+              >
+                {theater.isVerified ? (
+                  <ShieldCheck className="w-3 h-3" />
+                ) : (
+                  <AlertCircle className="w-3 h-3" />
+                )}
+
+                {theater.isVerified ? "Verified" : "Not Verified"}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Actions Menu */}
         <div className="relative">
           <button
             onClick={() => setShowActions(!showActions)}
@@ -118,37 +148,50 @@ const TheaterCard: React.FC<TheaterCardProps> = ({ theater, onToggleStatus, onDe
           {showActions && (
             <div className="absolute right-0 top-full mt-2 w-48 bg-black/90 backdrop-blur-sm border border-gray-500/30 rounded-xl shadow-2xl z-10">
               <div className="p-2">
-                <button className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-white/10 rounded-lg transition-colors text-gray-300 hover:text-white">
+                <button
+                  onClick={handleView}
+                  className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-white/10 rounded-lg transition-colors text-gray-300 hover:text-white"
+                >
                   <Eye className="w-4 h-4 text-blue-400" />
-                  <span  className={`${lexendSmall.className} text-sm`}>View Details</span>
+                  <span className={`${lexendSmall.className} text-sm`}>
+                    View Details
+                  </span>
                 </button>
-                
-                <button 
+
+                <button
                   onClick={handleEdit}
                   className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-white/10 rounded-lg transition-colors text-gray-300 hover:text-white"
                 >
                   <Edit className="w-4 h-4 text-green-400" />
-                  <span className={`${lexendSmall.className} text-sm`}>Edit Theater</span>
+                  <span className={`${lexendSmall.className} text-sm`}>
+                    Edit Theater
+                  </span>
                 </button>
-                
-                <button 
+
+                <button
                   onClick={handleToggleStatus}
                   className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-white/10 rounded-lg transition-colors text-gray-300 hover:text-white"
                 >
-                  <Power className={`w-4 h-4 ${theater.isActive ? 'text-orange-400' : 'text-green-400'}`} />
+                  <Power
+                    className={`w-4 h-4 ${
+                      theater.isActive ? "text-orange-400" : "text-green-400"
+                    }`}
+                  />
                   <span className={`${lexendSmall.className} text-sm`}>
-                    {theater.isActive ? 'Deactivate' : 'Activate'}
+                    {theater.isActive ? "Deactivate" : "Activate"}
                   </span>
                 </button>
-                
+
                 <div className="border-t border-gray-500/30 my-2" />
-                
-                <button 
+
+                <button
                   onClick={handleDelete}
                   className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-red-500/20 rounded-lg transition-colors text-red-400 hover:text-red-300"
                 >
                   <Trash2 className="w-4 h-4" />
-                  <span className={`${lexendSmall.className} text-sm`}>Delete Theater</span>
+                  <span className={`${lexendSmall.className} text-sm`}>
+                    Delete Theater
+                  </span>
                 </button>
               </div>
             </div>
@@ -192,7 +235,9 @@ const TheaterCard: React.FC<TheaterCardProps> = ({ theater, onToggleStatus, onDe
             </span>
           ))}
           {theater.facilities.length > 3 && (
-            <span className={`${lexendSmall.className} px-2 py-1 bg-white/10 text-gray-400 text-xs rounded-lg`}>
+            <span
+              className={`${lexendSmall.className} px-2 py-1 bg-white/10 text-gray-400 text-xs rounded-lg`}
+            >
               +{theater.facilities.length - 3} more
             </span>
           )}
@@ -202,16 +247,24 @@ const TheaterCard: React.FC<TheaterCardProps> = ({ theater, onToggleStatus, onDe
       {/* Stats Row */}
       <div className="grid grid-cols-3 gap-4 mb-4 pt-4 border-t border-gray-500/30">
         <div className="text-center">
-          <p className={`${lexendSmall.className} text-xs text-gray-400`}>Screens</p>
+          <p className={`${lexendSmall.className} text-xs text-gray-400`}>
+            Screens
+          </p>
           <p className={`${lexendMedium.className} text-sm text-white`}>4</p>
         </div>
         <div className="text-center">
-          <p className={`${lexendSmall.className} text-xs text-gray-400`}>Shows Today</p>
+          <p className={`${lexendSmall.className} text-xs text-gray-400`}>
+            Shows Today
+          </p>
           <p className={`${lexendMedium.className} text-sm text-white`}>12</p>
         </div>
         <div className="text-center">
-          <p className={`${lexendSmall.className} text-xs text-gray-400`}>Occupancy</p>
-          <p className={`${lexendMedium.className} text-sm text-green-400`}>68%</p>
+          <p className={`${lexendSmall.className} text-xs text-gray-400`}>
+            Occupancy
+          </p>
+          <p className={`${lexendMedium.className} text-sm text-green-400`}>
+            68%
+          </p>
         </div>
       </div>
 
@@ -223,21 +276,22 @@ const TheaterCard: React.FC<TheaterCardProps> = ({ theater, onToggleStatus, onDe
             Added {formatDate(theater.createdAt)}
           </span>
         </div>
-        
-        <button className={`${lexendSmall.className} text-xs text-blue-400 hover:text-blue-300 transition-colors`}>
+
+        <button
+          className={`${lexendSmall.className} text-xs text-blue-400 hover:text-blue-300 transition-colors`}
+        >
           View Analytics
         </button>
       </div>
 
-      {/* Click overlay to close actions */}
       {showActions && (
-        <div 
+        <div
           className="fixed inset-0 z-5"
           onClick={() => setShowActions(false)}
         />
       )}
     </div>
-  )
-}
+  );
+};
 
-export default TheaterCard
+export default TheaterCard;

@@ -13,15 +13,13 @@ export const config = {
   
   bcryptRounds: Number(process.env.BCRYPT_ROUNDS) || 10,
   
-  // Client configuration
   clientUrl: process.env.CLIENT_URL || 'http://localhost:3000',
   
-  // Email configuration (needed for OTP)
- // Email configuration
+ 
 email: {
   host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-  port: Number(process.env.EMAIL_PORT) || 465, // Changed to 465
-  secure: false, // Changed to true for port 465
+  port: Number(process.env.EMAIL_PORT) || 465, 
+  secure: false,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
@@ -29,7 +27,6 @@ email: {
 },
 
   
-  // OTP configuration
   otpExpiry: 5 * 60 * 1000, 
   
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000',
@@ -37,7 +34,6 @@ email: {
   rateLimitWindowMs: 15 * 60 * 1000,
   rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX) || 100,
   
-  // File upload configuration (for profile pictures)
   maxFileSize: Number(process.env.MAX_FILE_SIZE) || 5000000, 
   allowedFileTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']
 };

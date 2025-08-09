@@ -1,12 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Lexend } from "next/font/google";
 import { X, Loader2 } from "lucide-react";
 import BasicInfoFields from "./BasicInfoFields";
 import LocationFields from "./LocationFields";
 import FacilitiesFields from "./FacilitiesFields";
-import { createTheater } from "@/app/others/services/ownerServices/theaterServices";
+import {
+  createTheater,
+  updateTheaterOwner,
+} from "@/app/others/services/ownerServices/theaterServices";
+import toast from "react-hot-toast";
 
 const lexendBold = Lexend({ weight: "700", subsets: ["latin"] });
 const lexendMedium = Lexend({ weight: "500", subsets: ["latin"] });
@@ -35,15 +39,19 @@ interface Theater {
 interface CreateTheaterModalProps {
   onClose: () => void;
   onSuccess: (theater: Theater) => void;
+  mode: "create" | "edit";
+  initialData?: Theater;
 }
 
 interface ValidationErrors {
   [key: string]: string;
 }
 
-const CreateTheaterModal: React.FC<CreateTheaterModalProps> = ({
+const TheaterFormModal: React.FC<CreateTheaterModalProps> = ({
   onClose,
   onSuccess,
+  mode,
+  initialData,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -61,6 +69,11 @@ const CreateTheaterModal: React.FC<CreateTheaterModalProps> = ({
       coordinates: [0, 0] as [number, number],
     },
   });
+  useEffect(() => {
+    if (mode === "edit" && initialData) {
+      setFormData(initialData);
+    }
+  }, [mode, initialData]);
 
   const validateForm = (): boolean => {
     const newErrors: ValidationErrors = {};
@@ -91,7 +104,9 @@ const CreateTheaterModal: React.FC<CreateTheaterModalProps> = ({
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
 
@@ -101,10 +116,9 @@ const CreateTheaterModal: React.FC<CreateTheaterModalProps> = ({
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value, 
+      [name]: value,
     }));
   };
-
 
   const updateFormData = (updates: Partial<typeof formData>) => {
     setFormData((prev) => ({ ...prev, ...updates }));
@@ -122,17 +136,23 @@ const CreateTheaterModal: React.FC<CreateTheaterModalProps> = ({
     setIsLoading(true);
 
     try {
-      const result = await createTheater(formData);
-console.log(result);
+      let result;
+      if (mode == "create") {
+        result = await createTheater(formData);
+      } else if (mode == "edit"&&initialData) {
+        result = await updateTheaterOwner(initialData._id, formData);
+      }
 
       if (result.success) {
         onSuccess(result.data);
+        toast.success(`Succesfully ${mode}ed`)
       } else {
-        alert(result.message || "Failed to create theater");
+        console.log(result.message);
+        
+
       }
     } catch (error) {
       console.error("Error creating theater:", error);
-      alert("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -164,7 +184,7 @@ console.log(result);
           <div className="flex-shrink-0 p-6 pb-4">
             <div className="flex items-center justify-between mb-6">
               <h2 className={`${lexendBold.className} text-2xl text-white`}>
-                Add New Theater
+                {mode === "create" ? "Add New Theater" : "Edit Theater"}
               </h2>
               <button
                 onClick={onClose}
@@ -200,7 +220,6 @@ console.log(result);
             </form>
           </div>
 
-          {/* Footer */}
           <div className="flex-shrink-0 p-6 pt-4 border-t border-gray-500/30">
             <div className="flex gap-3">
               <button
@@ -218,10 +237,14 @@ console.log(result);
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Creating Theater...
+                    {mode === "create"
+                      ? "Creating Theater..."
+                      : "Saving Changes..."}
                   </>
-                ) : (
+                ) : mode === "create" ? (
                   "Create Theater"
+                ) : (
+                  "Save Changes"
                 )}
               </button>
             </div>
@@ -232,4 +255,4 @@ console.log(result);
   );
 };
 
-export default CreateTheaterModal;
+export default TheaterFormModal;

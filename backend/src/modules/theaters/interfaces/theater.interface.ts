@@ -24,7 +24,9 @@ export interface ITheaterRepository {
   findById(theaterId: string): Promise<ITheater | null>;
   findByOwnerId(ownerId: string, filters?: any): Promise<{
     theaters: ITheater[];
-    total: number;
+    totalFiltered: number;
+    activeAll:number;
+    inactiveAll:number
   }>;
   findAll(page: number, limit: number, filters?: any): Promise<{
     theaters: ITheater[];
