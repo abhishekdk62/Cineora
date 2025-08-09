@@ -20,7 +20,8 @@ export type Movie = {
   updatedAt: Date;
 };
 
-export interface Theater  {
+export interface Theater {
+  _id: string;
   ownerId: string;
   name: string;
   address: string;
@@ -35,10 +36,11 @@ export interface Theater  {
   facilities: string[];
   screens: number;
   isActive: boolean;
-  isVerified:boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  isVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
+
 
 export type ShowTime = {
   movieId: string;

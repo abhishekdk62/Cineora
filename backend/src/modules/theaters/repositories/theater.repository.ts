@@ -33,60 +33,74 @@ export class TheaterRepository implements ITheaterRepository {
   }
 
   async findByOwnerId(
-  ownerId: string,
-  filters?: {
-    isActive?: string;
-    isVerified?: string;
-    city?: string;
-    state?: string;
-    search?: string;
-    page?: string | number;
-    limit?: string | number;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
+    ownerId: string,
+    filters?: {
+      status: string;
+      isActive?: string;
+      isVerified?: string;
+      city?: string;
+      state?: string;
+      search?: string;
+      page?: string | number;
+      limit?: string | number;
+      sortBy?: string;
+      sortOrder?: "asc" | "desc";
+    }
+  ): Promise<{
+    theaters: ITheater[];
+    totalFiltered: number;
+    inactiveAll: number;
+    activeAll: number;
+    totalAll: number;
+  }> {
+    const query: any = { ownerId };
+
+    if (filters.status === "active") {
+      query.isActive = true;
+    } else if (filters.status === "inactive") {
+      query.isActive = false;
+    }
+
+    if (filters?.isVerified !== undefined) {
+      query.isVerified = filters.isVerified === "true";
+    }
+    if (filters?.city) {
+      query.city = new RegExp(filters.city, "i");
+    }
+    if (filters?.state) {
+      query.state = new RegExp(filters.state, "i");
+    }
+    if (filters?.search) {
+      query.$or = [
+        { name: new RegExp(filters.search, "i") },
+        { address: new RegExp(filters.search, "i") },
+        { city: new RegExp(filters.search, "i") },
+      ];
+    }
+
+    const page = parseInt(filters?.page as string) || 1;
+    const limit = parseInt(filters?.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    const sortField = filters?.sortBy || "createdAt";
+    const sortOrder = filters?.sortOrder === "desc" ? -1 : 1;
+    const sortOptions: any = { [sortField]: sortOrder };
+
+    const theaters = await Theater.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limit)
+      .populate("ownerId", "ownerName email");
+
+    const totalFiltered = await Theater.countDocuments(query);
+    const [totalAll, activeAll, inactiveAll] = await Promise.all([
+      Theater.countDocuments({ ownerId }),
+      Theater.countDocuments({ ownerId, isActive: true }),
+      Theater.countDocuments({ ownerId, isActive: false }),
+    ]);
+
+    return { theaters, totalFiltered,activeAll,inactiveAll,totalAll };
   }
-): Promise<{ theaters: ITheater[]; total: number }> {
-  const query: any = { ownerId };
-
-  if (filters?.isActive !== undefined) {
-    query.isActive = filters.isActive === 'true';
-  }
-  if (filters?.isVerified !== undefined) {
-    query.isVerified = filters.isVerified === 'true';
-  }
-  if (filters?.city) {
-    query.city = new RegExp(filters.city, 'i');
-  }
-  if (filters?.state) {
-    query.state = new RegExp(filters.state, 'i');
-  }
-  if (filters?.search) {
-    query.$or = [
-      { name: new RegExp(filters.search, 'i') },
-      { address: new RegExp(filters.search, 'i') },
-      { city: new RegExp(filters.search, 'i') },
-    ];
-  }
-
-  const page = parseInt(filters?.page as string) || 1;
-  const limit = parseInt(filters?.limit as string) || 10;
-  const skip = (page - 1) * limit;
-
-  const sortField = filters?.sortBy || 'createdAt';
-  const sortOrder = filters?.sortOrder === 'desc' ? -1 : 1;
-  const sortOptions: any = { [sortField]: sortOrder };
-
-  const theaters = await Theater.find(query)
-    .sort(sortOptions)
-    .skip(skip)
-    .limit(limit)
-    .populate('ownerId', 'ownerName email');
-
-  const total = await Theater.countDocuments(query);
-
-  return { theaters, total };
-}
-
 
   private applyFilters(query: any, filters?: any): void {
     if (filters?.isActive !== undefined) {
@@ -110,14 +124,13 @@ export class TheaterRepository implements ITheaterRepository {
     }
   }
 
-
   async findAll(
     page: number,
     limit: number,
     filters?: any
   ): Promise<{ theaters: ITheater[]; total: number }> {
     const query: any = {};
-    
+
     this.applyFilters(query, filters);
 
     const skip = (page - 1) * limit;
@@ -174,7 +187,7 @@ export class TheaterRepository implements ITheaterRepository {
   async toggleStatus(theaterId: string): Promise<ITheater | null> {
     const theater = await Theater.findById(theaterId);
     if (!theater) return null;
-    
+
     theater.isActive = !theater.isActive;
     return await theater.save();
   }
@@ -182,7 +195,7 @@ export class TheaterRepository implements ITheaterRepository {
   async verifyTheater(theaterId: string): Promise<ITheater | null> {
     const theater = await Theater.findById(theaterId);
     if (!theater) return null;
-    
+
     theater.isVerified = true;
     return await theater.save();
   }
@@ -241,7 +254,6 @@ export class TheaterRepository implements ITheaterRepository {
       name: new RegExp(`^${name}$`, "i"),
     }).populate("ownerId", "ownerName email");
   }
-
 
   private getSortOptions(filters?: any): any {
     if (filters?.sortBy) {

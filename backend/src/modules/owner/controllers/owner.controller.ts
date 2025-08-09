@@ -559,7 +559,6 @@ export async function deleteTheater(
 ) {
   try {
     const { theaterId } = req.params;
-    const { ownerId } = req.owner;
 
     if (!theaterId) {
       return res.status(400).json(
@@ -570,13 +569,10 @@ export async function deleteTheater(
       );
     }
 
-    // Call service to delete theater
     const result = await theaterService.deleteTheater(theaterId);
 
     if (!result.success) {
-      // Map error types to appropriate HTTP status codes
       let statusCode = 400;
-      
       if (result.message === "Theater not found or deletion failed") {
         statusCode = 404; // Not found
       } else if (result.message === "Something went wrong") {

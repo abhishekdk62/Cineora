@@ -101,9 +101,7 @@ export class OwnerRepository implements IOwnerRepository {
     return result.modifiedCount > 0;
   }
 
-  // NEW METHOD: Update owner data (called from your Owner Service)
   async update(id: string, updateData: any): Promise<any> {
-    // Remove fields that shouldn't be updated directly
     const { _id, createdAt, password, kycRequestId, ...safeUpdateData } = updateData;
     
     return await Owner.findByIdAndUpdate(
@@ -119,9 +117,7 @@ export class OwnerRepository implements IOwnerRepository {
     );
   }
 
-  // NEW METHOD: Delete owner (called from your Owner Service)
   async delete(id: string): Promise<any> {
-    // Soft delete (recommended for data integrity)
     return await Owner.findByIdAndUpdate(
       id,
       {
@@ -133,11 +129,9 @@ export class OwnerRepository implements IOwnerRepository {
       { new: true }
     );
 
-    // Alternative: Hard delete (uncomment if preferred)
-    // return await Owner.findByIdAndDelete(id);
+
   }
 
-  // Additional helper methods that might be useful
 
   async findByPhone(phone: string) {
     return await Owner.findOne({ phone });

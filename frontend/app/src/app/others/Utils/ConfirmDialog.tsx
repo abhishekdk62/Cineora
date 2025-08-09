@@ -82,6 +82,5 @@ export function ConfirmDialog({
 }
 
 export function confirmAction(props: ConfirmDialogProps) {
-  // At runtime this will call the client‐only function
   return (window as any).__openConfirmDialog(props) as Promise<boolean>;
 }

@@ -3,10 +3,7 @@ import { IAdmin } from '../models/admin.model';
 export interface IAdminRepository {
   findByEmail(email: string): Promise<IAdmin | null>;
 }
-// Keep admin-specific interfaces in admin module
-// Remove IAdminUserRepository - use IUserRepository from users module instead
 
-// If you have admin-specific user filters, keep them here:
 export interface AdminUserFilters {
   search?: string;
   isActive?: boolean;
@@ -21,7 +18,6 @@ export interface AdminUserFilters {
   limit?: number;
 }
 
-// Keep admin-specific interfaces in admin module
 export interface ServiceResponse {
   success: boolean;
   message: string;

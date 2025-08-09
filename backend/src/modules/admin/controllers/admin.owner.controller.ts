@@ -5,7 +5,7 @@ import { OwnerRequestService } from "../../owner/services/ownerRequest.service";
 import { OwnerRepository } from "../../owner/repositories/owner.repository";
 import { OwnerRequestRepository } from "../../owner/repositories/ownerRequest.repository";
 import { UserRepository } from "../../user/repositories/user.repository";
-import { OTPRepository } from "../../otp/repositories/otp.repository"; // ✅ Changed to repository
+import { OTPRepository } from "../../otp/repositories/otp.repository";
 import { EmailService } from "../../../services/email.service";
 
 const ownerRepo = new OwnerRepository();
@@ -172,7 +172,6 @@ export async function acceptOwnerRequest(
       );
     }
 
-    // ✅ Add admin ID validation
     if (!adminId) {
       return res.status(400).json(
         createResponse({
@@ -237,7 +236,6 @@ export async function rejectOwnerRequest(
       );
     }
 
-    // ✅ Add admin ID validation
     if (!adminId) {
       return res.status(400).json(
         createResponse({
