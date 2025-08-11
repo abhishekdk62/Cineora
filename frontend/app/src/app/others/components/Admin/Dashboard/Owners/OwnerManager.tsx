@@ -215,7 +215,6 @@ const OwnersManager: React.FC = () => {
   const [ownerRequests, setOwnerRequests] = useState<OwnerRequest[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   
-  // Separate filter states for different views
   const [ownerFilters, setOwnerFilters] = useState<OwnerFilters>({});
   const [requestFilters, setRequestFilters] = useState<OwnerRequestFilters>({});
 

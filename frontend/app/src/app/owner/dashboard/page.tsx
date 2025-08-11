@@ -31,7 +31,8 @@ const OwnerManager = () => {
   }
 
   return (
-    <RouteGuard allowedRoles={['owner']}> 
+
+    <RouteGuard allowedRoles={['owner']} >
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
         <div className="flex">
           <OwnerSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -42,7 +43,7 @@ const OwnerManager = () => {
           </div>
         </div>
       </div>
-    </RouteGuard>
+      </RouteGuard>
   )
 }
 

@@ -116,8 +116,7 @@ export default function SignUp() {
   };
 
   return (
-
-      <RouteGuard excludedRoles={['user','owner','admin']}>
+ <RouteGuard excludedRoles={['owner','user','admin']} >
     <div className="min-h-screen relative flex items-center justify-center bg-black overflow-hidden p-4">
       <div className="absolute inset-0 z-0">
         <Aurora

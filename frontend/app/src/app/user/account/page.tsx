@@ -8,7 +8,7 @@ import React from "react";
 
 const page = () => {
   return (
-     <RouteGuard allowedRoles={["user"]}>
+    <RouteGuard allowedRoles={['user']}>
     <div className="relative min-h-screen bg-black">
       <div className="fixed top-9 inset-0 z-0">
         <DarkVeil />

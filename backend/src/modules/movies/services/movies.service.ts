@@ -16,7 +16,6 @@ export interface IMovieService {
 
 export class MovieService implements IMovieService {
   constructor(private movieRepo: IMovieRepository) {} 
-
   async addMovie(movieData: Partial<IMovie>): Promise<IMovie> {
     const existingMovie = await this.movieRepo.findByTmdbId(movieData.tmdbId!.toString());
     if (existingMovie) {

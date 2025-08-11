@@ -80,7 +80,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-<RouteGuard excludedRoles={['user','owner','admin']}>
+     <RouteGuard excludedRoles={['admin','owner','user']}>
     <div className="min-h-screen relative flex items-center justify-center bg-black overflow-hidden p-4">
       <div className="absolute inset-0 z-0">
         <Aurora
@@ -101,7 +101,6 @@ export default function ForgotPasswordPage() {
         />
       </div>
     </div>
-
 
 </RouteGuard>
   );

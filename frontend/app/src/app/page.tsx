@@ -38,22 +38,26 @@ export default function LandingPage() {
     }
   };
 
-  
   return (
     <div className="relative min-h-screen bg-black overflow-hidden">
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <Orb hoverIntensity={0.5} rotateOnHover={true} hue={0} forceHoverState={false} />
+        <Orb
+          hoverIntensity={0.5}
+          rotateOnHover={true}
+          hue={0}
+          forceHoverState={false}
+        />
       </div>
 
       <div className="relative z-10">
-         <RouteGuard excludedRoles={['admin','owner']}>
-        <NavBar   />
-        <Hero />
-        <Trending />
-        <Upcoming />
-        <CallToAction />
-        <SpotlightArticles />
-        <Footer />
+        <RouteGuard excludedRoles={["owner", "admin"]}>
+          <NavBar />
+          <Hero />
+          <Trending />
+          <Upcoming />
+          <CallToAction />
+          <SpotlightArticles />
+          <Footer />
         </RouteGuard>
       </div>
     </div>

@@ -7,7 +7,7 @@ import RouteGuard from "../others/components/Auth/common/RouteGuard";
 
 const page = () => {
   return (
-      <RouteGuard excludedRoles={['owner','admin','user']}>
+    <RouteGuard excludedRoles={['owner','user','admin']} >
       <div>
         <div className="min-h-screen relative flex items-center justify-center bg-black overflow-hidden p-4">
           <div className="absolute inset-0 z-0">
@@ -24,7 +24,7 @@ const page = () => {
           </div>
         </div>
       </div>
-    </RouteGuard>
+      </RouteGuard>
   );
 };
 

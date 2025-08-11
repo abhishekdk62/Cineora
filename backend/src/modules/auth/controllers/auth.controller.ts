@@ -2,9 +2,26 @@ import { Request, Response, NextFunction } from "express";
 import { AuthService } from "../services/auth.service";
 import { createResponse } from "../../../utils/createResponse";
 import { UserService } from "../../user/services/user.service";
-
-const authService = new AuthService();
-
+import { UserRepository } from "../../user/repositories/user.repository";
+import { AdminRepository } from "../../admin/repositories/admin.repository";
+import { OwnerRepository } from "../../owner/repositories/owner.repository";
+import { OTPRepository } from "../../otp/repositories/otp.repository";
+import { EmailService } from "../../../services/email.service";
+import { OwnerRequestRepository } from "../../owner/repositories/ownerRequest.repository";
+const userRepo = new UserRepository();
+const adminRepo = new AdminRepository();
+const ownerRepo = new OwnerRepository();
+const otpRepo = new OTPRepository();
+const emailService = new EmailService();
+const ownerRequestRepo = new OwnerRequestRepository();
+const authService = new AuthService(
+  userRepo,
+  adminRepo,
+  ownerRepo,
+  otpRepo,
+  emailService,
+  ownerRequestRepo
+);
 
 export async function login(req: Request, res: Response, next: NextFunction) {
   try {
@@ -203,14 +220,14 @@ export async function googleAuthenticate(
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
-        maxAge: 15 * 60 * 1000, 
+        maxAge: 15 * 60 * 1000,
       });
 
       res.cookie("refreshToken", result.data.refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000, 
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
       res.status(200).json(
         createResponse({
@@ -272,14 +289,14 @@ export async function logout(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = req.user?.userId || req.user?.adminId || req.user?.ownerId;
     const userType = req.user?.role;
-    
+
     if (userId && userType) {
       await authService.logout(userId, userType);
     }
-    
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
-    
+
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+
     return res.status(200).json(
       createResponse({
         success: true,
@@ -287,11 +304,11 @@ export async function logout(req: Request, res: Response, next: NextFunction) {
       })
     );
   } catch (error) {
-    console.error('Logout error:', error);
-    
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
-    
+    console.error("Logout error:", error);
+
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+
     return res.status(500).json(
       createResponse({
         success: false,
@@ -300,11 +317,14 @@ export async function logout(req: Request, res: Response, next: NextFunction) {
     );
   }
 }
-export const getCurrentUser = async (req: Request, res: Response, next: NextFunction) => {
+export const getCurrentUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     let userId: string | undefined;
     let userRole: string | undefined;
-
 
     if (req.user?.id) {
       userId = req.user.id;
@@ -321,19 +341,18 @@ export const getCurrentUser = async (req: Request, res: Response, next: NextFunc
       return res.status(401).json(
         createResponse({
           success: false,
-          message: 'Invalid token data'
+          message: "Invalid token data",
         })
       );
     }
 
-       const user = await authService.getUserByIdAndRole(userId, userRole);
+    const user = await authService.getUserByIdAndRole(userId, userRole);
 
-    
     if (!user) {
       return res.status(404).json(
         createResponse({
           success: false,
-          message: 'User not found'
+          message: "User not found",
         })
       );
     }
@@ -341,19 +360,18 @@ export const getCurrentUser = async (req: Request, res: Response, next: NextFunc
     return res.status(200).json(
       createResponse({
         success: true,
-        message: 'User retrieved successfully',
+        message: "User retrieved successfully",
         data: {
           id: user._id,
           email: user.email,
           role: user.role,
           name: user.name,
-          ownerName: user.ownerName
-        }
+          ownerName: user.ownerName,
+        },
       })
     );
-    
   } catch (error) {
-    console.error('Get current user controller error:', error);
+    console.error("Get current user controller error:", error);
     next(error);
   }
 };
