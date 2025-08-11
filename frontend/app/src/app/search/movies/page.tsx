@@ -46,7 +46,7 @@ const Page = () => {
   }, [currentPage]);
 
   return (
-    <RouteGuard excludedRoles={['owner','admin']}>
+     <RouteGuard excludedRoles={['owner','admin']} >
     <div className="relative min-h-screen bg-black overflow-hidden">
       <div className="fixed inset-0 z-0 pointer-events-none">
         <Orb

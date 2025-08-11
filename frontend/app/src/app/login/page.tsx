@@ -46,6 +46,7 @@ export default function LoginPage() {
       if (loginUser.fulfilled.match(resultAction)) {
         const userData = resultAction.payload;
         redirectBasedOnRole(userData.role);
+        localStorage.setItem("role", userData.role);
         console.log(`${userData.role} login successful`);
       }
     } catch (err: any) {
@@ -60,7 +61,7 @@ export default function LoginPage() {
 
       if (googleLogin.fulfilled.match(resultAction)) {
         const data = resultAction.payload;
-        localStorage.setItem("authToken", data.user);
+        localStorage.setItem("role", data.user.role);
         redirectBasedOnRole(data.user.role);
       } else {
         console.error("Google auth failed:", resultAction);
@@ -88,38 +89,39 @@ export default function LoginPage() {
     router.push("/forgot-password");
   };
 
-
   return (
-    <RouteGuard excludedRoles={['user','owner','admin']}>
-    <div className="min-h-screen relative flex items-center justify-center bg-black overflow-hidden p-4">
-      <div className="absolute inset-0 z-0">
-        <Aurora
-          colorStops={["#5B2EFF", "#FF5A3C", "#2EFF68"]}
-          blend={0.5}
-          amplitude={1.0}
-          speed={0.5}
-        />
-      </div>
 
-      <div className="relative z-10 w-full max-w-md border border-gray-500 p-8 rounded-2xl backdrop-blur-sm">
-        <div className="text-center mb-8">
-          <h1 className={`${lexend.className} text-3xl text-white mb-2`}>
-            Welcome Back
-          </h1>
-          <p className={`${lexendSmall.className} text-gray-300`}>
-            Sign in to your account
-          </p>
+    <RouteGuard excludedRoles={['admin','owner','user']}>
+ 
+      <div className="min-h-screen relative flex items-center justify-center bg-black overflow-hidden p-4">
+        <div className="absolute inset-0 z-0">
+          <Aurora
+            colorStops={["#5B2EFF", "#FF5A3C", "#2EFF68"]}
+            blend={0.5}
+            amplitude={1.0}
+            speed={0.5}
+          />
         </div>
-        <AuthForm
-          error={error}
-          loading={loading}
-          onSubmit={handleSubmit}
-          onForgotPassword={forgotPassword}
-          onSwitch={goToSignUp}
-          onGoogleSuccess={handleGoogleSuccess}
-        />
+
+        <div className="relative z-10 w-full max-w-md border border-gray-500 p-8 rounded-2xl backdrop-blur-sm">
+          <div className="text-center mb-8">
+            <h1 className={`${lexend.className} text-3xl text-white mb-2`}>
+              Welcome Back
+            </h1>
+            <p className={`${lexendSmall.className} text-gray-300`}>
+              Sign in to your account
+            </p>
+          </div>
+          <AuthForm
+            error={error}
+            loading={loading}
+            onSubmit={handleSubmit}
+            onForgotPassword={forgotPassword}
+            onSwitch={goToSignUp}
+            onGoogleSuccess={handleGoogleSuccess}
+          />
+        </div>
       </div>
-    </div>
-    </RouteGuard>
+      </RouteGuard>
   );
 }

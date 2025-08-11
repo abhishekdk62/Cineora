@@ -40,18 +40,32 @@ export const googleAuth=async(credentialResponse: any)=>{
 
 }
 
-export const getCurrentUser = async () => {
-  try {
-    const response = await apiClient.get("/auth/me");
-       if (response.data?.success) {
-      return response.data.data;
-    }
 
-    return null;
-  } catch {
+export const getCurrentUser = async () => {
+  console.log('🔍 getCurrentUser called');
+  
+  try {
+    const userData = localStorage.getItem('userData');
+    console.log('📦 Raw data from localStorage:', userData);
+    
+    if (!userData) {
+      console.log('❌ No userData found in localStorage');
+      console.log('🗄️ All localStorage items:', {...localStorage});
+      return null;
+    }
+    
+    const parsedUser = JSON.parse(userData);
+    console.log('✅ Parsed user data:', parsedUser);
+    
+    return parsedUser;
+    
+  } catch (error) {
+    console.log('💥 getCurrentUser error:', error);
+    localStorage.removeItem('userData');
     return null;
   }
 };
+
 export const getUserRole = async (): Promise<
   "admin" | "owner" | "user" | null
 > => {
@@ -67,10 +81,13 @@ export const isAuthenticated = async (): Promise<boolean> => {
 export const logout = async () => {
   try {
     const response = await apiClient.post("/auth/logout", {});
-    
+    localStorage.removeItem('authToken'); 
         return response.data?.success || false;
 
   } catch {
+        localStorage.removeItem('authToken');
+
     return false;
   }
 };
+

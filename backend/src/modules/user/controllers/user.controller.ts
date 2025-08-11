@@ -9,11 +9,13 @@ import { OwnerRequestRepository } from "../../owner/repositories/ownerRequest.re
 import { OTPRepository } from "../../otp/repositories/otp.repository";
 import { EmailService } from "../../../services/email.service";
 import { AuthService } from "../../auth/services/auth.service";
+import { AdminRepository } from "../../admin/repositories/admin.repository";
 const userRepo = new UserRepository();
 const ownerRepo = new OwnerRepository();
 const ownerRequestRepo = new OwnerRequestRepository();
 const otpRepo = new OTPRepository();
 const emailService = new EmailService();
+const adminRepo=new AdminRepository()
 
 const userService = new UserService(
   userRepo,
@@ -24,7 +26,15 @@ const userService = new UserService(
 );
 
 const movieService = new MovieService(new MovieRepository());
-const authService=new AuthService()
+
+const authService = new AuthService(
+  userRepo,
+  adminRepo,
+  ownerRepo,
+  otpRepo,
+  emailService,
+  ownerRequestRepo
+);
 export async function signup(req: Request, res: Response, next: NextFunction) {
   try {
     const userData = req.body;
@@ -97,9 +107,12 @@ export async function verifyOTP(
     }
 
     try {
-      const { accessToken, refreshToken } = authService.generateTokenPair(user, 'user');
-      
-      await authService.storeRefreshToken(user._id, refreshToken, 'user');
+      const { accessToken, refreshToken } = authService.generateTokenPair(
+        user,
+        "user"
+      );
+
+      await authService.storeRefreshToken(user._id, refreshToken, "user");
 
       await userRepo.updateLastActive(user._id);
 
@@ -122,13 +135,13 @@ export async function verifyOTP(
             },
             role: "user",
             redirectTo: "/dashboard",
-            isNewUser: true, 
+            isNewUser: true,
           },
         })
       );
     } catch (tokenError) {
-      console.error('Token generation error:', tokenError);
-      
+      console.error("Token generation error:", tokenError);
+
       return res.status(200).json(
         createResponse({
           success: true,
@@ -141,7 +154,6 @@ export async function verifyOTP(
     next(err);
   }
 }
-
 
 export async function resendOTP(
   req: Request,
@@ -544,18 +556,22 @@ export async function getMoviesWithFilters(
     next(err);
   }
 }
-function setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
+function setAuthCookies(
+  res: Response,
+  accessToken: string,
+  refreshToken: string
+) {
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-    maxAge: 15 * 60 * 1000, 
+    maxAge: 15 * 60 * 1000,
   });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000, 
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 }

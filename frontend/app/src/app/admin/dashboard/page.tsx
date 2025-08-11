@@ -7,6 +7,7 @@ import MoviesManager from "@/app/others/components/Admin/Dashboard/Movies/Movies
 import { AdminProvider } from "@/app/others/components/Admin/Dashboard/AdminContext";
 import OwnersManager from "@/app/others/components/Admin/Dashboard/Owners/OwnerManager";
 import UsersManager from "@/app/others/components/Admin/Dashboard/User/UserManager";
+import RoleCheck from "@/app/others/components/Auth/common/RouteGuard";
 import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
 
 const lexend = Lexend({
@@ -41,7 +42,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <RouteGuard allowedRoles={['admin']}> {/* 🔒 PROTECT WITH ADMIN ROLE */}
+    <RouteGuard allowedRoles={["admin"]}>
       <AdminProvider>
         <div className="min-h-screen bg-[#040404] flex">
           <Sidebar

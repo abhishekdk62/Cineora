@@ -5,31 +5,15 @@ const apiClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true,
+  withCredentials: true, // ensures cookies are sent
 });
 
 apiClient.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  async (error) => {
-    const originalRequest = error.config;
-
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      
-      try {
-        const retryResponse = await apiClient.request(originalRequest);
-        return retryResponse;
-      } catch (refreshError) {
-        console.error('Token refresh failed:', refreshError);
-        
-       
-        
-        return Promise.reject(refreshError);
-      }
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      window.location.href = "/login";
     }
-    
     return Promise.reject(error);
   }
 );

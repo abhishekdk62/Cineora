@@ -24,6 +24,14 @@ export const app = express();
 app.use(helmet());
 app.use(cookieParser());
 
+app.use((req: Request, res: Response, next) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  res.setHeader("Surrogate-Control", "no-store");
+  next();
+});
+
 app.use(
   cors({
     origin: "http://localhost:3000",
@@ -34,9 +42,9 @@ app.use(
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
-app.use("/api/users", authenticateToken, userRoutes);
+app.use("/api/users", authenticateToken, requireUser, userRoutes);
 app.use("/api/owners", ownerReqRoutes);
-app.use("/api/owner", authenticateToken, ownerRoutes);
+app.use("/api/owner", authenticateToken, requireOwner, ownerRoutes);
 app.use("/api/admin", authenticateToken, requireAdmin, adminRoutes);
 app.use("/api/common", commonRoutes);
 

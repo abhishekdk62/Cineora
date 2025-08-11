@@ -16,8 +16,7 @@ interface LoginResponse {
   data?: {
     user: any;
     accessToken: string;
-    refreshToken: string; 
-
+    refreshToken: string;
     role: "user" | "admin" | "owner";
     redirectTo: string;
   };
@@ -26,19 +25,22 @@ interface LoginResponse {
 export class AuthService {
   private googleClient: OAuth2Client;
 
-  private userRepo = new UserRepository();
-  private adminRepo = new AdminRepository();
-  private ownerRepo = new OwnerRepository();
-  private otpRepo = new OTPRepository();
-  private emailService = new EmailService();
-  private ownerRequestRepo = new OwnerRequestRepository();
+  constructor(
+    private readonly userRepo: UserRepository,
+    private readonly adminRepo: AdminRepository,
+    private readonly ownerRepo: OwnerRepository,
+    private readonly otpRepo: OTPRepository,
+    private readonly emailService: EmailService,
+    private readonly ownerRequestRepo: OwnerRequestRepository
+  ) {
+    this.googleClient = new OAuth2Client(config.googleClientId);
+  }
+
   private generateOTP(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
-  constructor() {
-    this.googleClient = new OAuth2Client(config.googleClientId);
-  }
-    async login(email: string, password: string): Promise<LoginResponse> {
+
+  async login(email: string, password: string): Promise<LoginResponse> {
     try {
       const admin = await this.adminRepo.findByEmail(email);
       if (admin) {
@@ -177,93 +179,89 @@ export class AuthService {
     }
   }
 
- generateTokenPair(user: any, role: string) {
-  let payload: any = {
-    email: user.email,
-    role,
-  };
-  if (role === 'admin') {
-    payload.adminId = user._id;
-  } else if (role === 'owner') {
-    payload.ownerId = user._id;
-  } else if (role === 'user') {
-    payload.userId = user._id;
-  }
-
-  const accessToken = jwt.sign(payload, config.jwtAccessSecret, {
-    expiresIn: '15m'
-  });
-
-  const refreshToken = jwt.sign(
-    { ...payload, tokenType: 'refresh' },
-    config.jwtRefreshSecret,
-    { expiresIn: '7d' }
-  );
-
-  return { accessToken, refreshToken };
-}
-
-async getUserByIdAndRole(userId: string, role: string) {
-  try {
-    let user;
-
-    switch (role) {
-      case 'user':
-        user = await this.userRepo.findById(userId)
-        if (user) {
-          return {
-            _id: user._id,
-            email: user.email,
-            role: 'user',
-            name: user.name,
-            ownerName: null
-          };
-        }
-        break;
-
-      case 'owner':
-        user = await this.ownerRepo.findById(userId)
-        if (user) {
-          return {
-            _id: user._id,
-            email: user.email,
-            role: 'owner',
-            name: user.ownerName,
-            ownerName: user.ownerName
-          };
-        }
-        break;
-
-      case 'admin':
-        user = await this.adminRepo.findById(userId)
-        if (user) {
-          return {
-            _id: user._id,
-            email: user.email,
-            role: 'admin',
-            name: user.adminName || user.name,
-            ownerName: null
-          };
-        }
-        break;
-
-      default:
-        return null;
+  generateTokenPair(user: any, role: string) {
+    let payload: any = {
+      email: user.email,
+      role,
+    };
+    if (role === 'admin') {
+      payload.adminId = user._id;
+    } else if (role === 'owner') {
+      payload.ownerId = user._id;
+    } else if (role === 'user') {
+      payload.userId = user._id;
     }
 
-    return null;
-    
-  } catch (error) {
-    console.error('Auth service getUserByIdAndRole error:', error);
-    return null;
+    const accessToken = jwt.sign(payload, config.jwtAccessSecret, {
+      expiresIn: '15m'
+    });
+
+    const refreshToken = jwt.sign(
+      { ...payload, tokenType: 'refresh' },
+      config.jwtRefreshSecret,
+      { expiresIn: '7d' }
+    );
+
+    return { accessToken, refreshToken };
   }
-}
 
+  async getUserByIdAndRole(userId: string, role: string) {
+    try {
+      let user;
 
+      switch (role) {
+        case 'user':
+          user = await this.userRepo.findById(userId)
+          if (user) {
+            return {
+              _id: user._id,
+              email: user.email,
+              role: 'user',
+              name: user.name,
+              ownerName: null
+            };
+          }
+          break;
 
+        case 'owner':
+          user = await this.ownerRepo.findById(userId)
+          if (user) {
+            return {
+              _id: user._id,
+              email: user.email,
+              role: 'owner',
+              name: user.ownerName,
+              ownerName: user.ownerName
+            };
+          }
+          break;
 
+        case 'admin':
+          user = await this.adminRepo.findById(userId)
+          if (user) {
+            return {
+              _id: user._id,
+              email: user.email,
+              role: 'admin',
+              name: user.adminName || user.name,
+              ownerName: null
+            };
+          }
+          break;
 
-   async storeRefreshToken(userId: string, refreshToken: string, userType: 'user' | 'admin' | 'owner') {
+        default:
+          return null;
+      }
+
+      return null;
+      
+    } catch (error) {
+      console.error('Auth service getUserByIdAndRole error:', error);
+      return null;
+    }
+  }
+
+  async storeRefreshToken(userId: string, refreshToken: string, userType: 'user' | 'admin' | 'owner') {
     const hashedToken = await bcrypt.hash(refreshToken, 10);
     
     if (userType === 'user') {
@@ -546,7 +544,7 @@ async getUserByIdAndRole(userId: string, role: string) {
     }
   }
 
-   async googleAuth(credential: string): Promise<ServiceResponse> {
+  async googleAuth(credential: string): Promise<ServiceResponse> {
     try {
       if (!config.googleClientId || !config.googleClientSecret) {
         return {
@@ -774,6 +772,7 @@ async getUserByIdAndRole(userId: string, role: string) {
       lastActive: sanitizedUser.lastActive,
     };
   }
+
   async logout(userId: string, userType: 'user' | 'admin' | 'owner') {
     try {
       if (userType === 'user') {
@@ -789,7 +788,6 @@ async getUserByIdAndRole(userId: string, role: string) {
       return { success: false, message: 'Logout failed' };
     }
   }
-
 
   async checkAuthProvider(email: string): Promise<ServiceResponse> {
     try {
