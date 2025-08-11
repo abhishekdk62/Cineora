@@ -17,10 +17,9 @@ export const fetchGenres = async () => {
   const response = await tmdbClient.get("/genre/movie/list", {
     params: { language: "en-US" },
   });
-  return response.data.genres; // array of { id, name }
+  return response.data.genres; 
 };
 
-// also takes `page`
 export const searchMoviesFromDb = async (searchTerm: string, page = 1) => {
   const response = await tmdbClient.get("/search/movie", {
     params: {

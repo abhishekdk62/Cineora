@@ -10,7 +10,6 @@ export class TheaterRepository implements ITheaterRepository {
       throw new Error("Owner ID is required");
     }
 
-    // Proactive duplicate check
     const exists = await this.existsByNameAndCity(
       theaterData.name!,
       theaterData.city!,

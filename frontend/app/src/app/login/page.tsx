@@ -6,7 +6,13 @@ import Aurora from "../others/Utils/ReactBits/Aurora";
 import { Lexend } from "next/font/google";
 import AuthForm from "../others/components/Auth/AuthForm";
 import { useAppDispatch, useAppSelector } from "../others/redux/hooks/redux";
-import { loginUser, clearError } from "../others/redux/slices/authSlice";
+import {
+  loginUser,
+  clearError,
+  googleLogin,
+} from "../others/redux/slices/authSlice";
+import { googleAuth } from "../others/services/authServices/authService";
+import RouteGuard from "../others/components/Auth/common/RouteGuard";
 
 const lexend = Lexend({
   weight: "500",
@@ -21,7 +27,6 @@ export default function LoginPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
-  // Get auth state from Redux
   const { loading, error, isAuthenticated, role } = useAppSelector(
     (state) => state.auth
   );
@@ -40,19 +45,38 @@ export default function LoginPage() {
 
       if (loginUser.fulfilled.match(resultAction)) {
         const userData = resultAction.payload;
-
-        if (userData.role === "admin") {
-          router.push("/admin/dashboard");
-        } else if (userData.role == "owner") {
-          router.push("/owner/dashboard");
-        } else {
-          router.push("/");
-        }
-
+        redirectBasedOnRole(userData.role);
         console.log(`${userData.role} login successful`);
       }
     } catch (err: any) {
       console.error("Login error:", err);
+    }
+  };
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    dispatch(clearError());
+
+    try {
+      const resultAction = await dispatch(googleLogin(credentialResponse));
+
+      if (googleLogin.fulfilled.match(resultAction)) {
+        const data = resultAction.payload;
+        localStorage.setItem("authToken", data.user);
+        redirectBasedOnRole(data.user.role);
+      } else {
+        console.error("Google auth failed:", resultAction);
+      }
+    } catch (error) {
+      console.error("Google Sign-In error:", error);
+    }
+  };
+
+  const redirectBasedOnRole = (userRole: string) => {
+    if (userRole === "admin") {
+      router.push("/admin/dashboard");
+    } else if (userRole === "owner") {
+      router.push("/owner/dashboard");
+    } else {
+      router.push("/");
     }
   };
 
@@ -64,19 +88,9 @@ export default function LoginPage() {
     router.push("/forgot-password");
   };
 
-  useEffect(() => {
-    if (isAuthenticated && role) {
-      if (role === "admin") {
-        router.push("/admin/dashboard");
-      } else if (role == "owner") {
-        router.push("/owner/dashboard");
-      } else {
-        router.push("/admin/dashboard");
-      }
-    }
-  }, [isAuthenticated, role, router]);
 
   return (
+    <RouteGuard excludedRoles={['user','owner','admin']}>
     <div className="min-h-screen relative flex items-center justify-center bg-black overflow-hidden p-4">
       <div className="absolute inset-0 z-0">
         <Aurora
@@ -97,13 +111,15 @@ export default function LoginPage() {
           </p>
         </div>
         <AuthForm
-          error={error} // Redux error state
-          loading={loading} // Redux loading state
+          error={error}
+          loading={loading}
           onSubmit={handleSubmit}
           onForgotPassword={forgotPassword}
           onSwitch={goToSignUp}
+          onGoogleSuccess={handleGoogleSuccess}
         />
       </div>
     </div>
+    </RouteGuard>
   );
 }

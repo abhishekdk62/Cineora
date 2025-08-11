@@ -1,5 +1,5 @@
-import React from "react"
-import { Lexend } from "next/font/google"
+import React from "react";
+import { Lexend } from "next/font/google";
 import {
   Film,
   Users,
@@ -9,23 +9,27 @@ import {
   Ticket,
   Menu,
   LogOut,
-} from "lucide-react"
+} from "lucide-react";
+import { logoutUser } from "@/app/others/redux/slices/authSlice";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/app/others/redux/store";
+import { useRouter } from "next/navigation";
 
 const lexend = Lexend({
   weight: "500",
   subsets: ["latin"],
-})
+});
 
 const lexendSmall = Lexend({
   weight: "300",
   subsets: ["latin"],
-})
+});
 
 interface SidebarProps {
-  activeTab: string
-  setActiveTab: (tab: string) => void
-  sidebarOpen: boolean
-  setSidebarOpen: (open: boolean) => void
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -41,19 +45,39 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: "analytics", label: "Analytics", icon: BarChart3 },
     { id: "bookings", label: "Bookings", icon: Calendar, count: 89 },
     { id: "coupons", label: "Coupons", icon: Ticket, count: 5 },
-  ]
+  ];
+
+  const dispatch = useDispatch<AppDispatch>();
+const router=useRouter()
+  const handleLogout = async () => {
+    try {
+      await dispatch(logoutUser()).unwrap();
+      console.log("Logged out successfully");
+      router.push('/login')
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   return (
     <div
-      className={`${sidebarOpen ? "w-72" : "w-20"} bg-[#0a0a0a] border-r border-gray-700 transition-all duration-300 flex flex-col shadow-lg`}
+      className={`${
+        sidebarOpen ? "w-72" : "w-20"
+      } bg-[#0a0a0a] border-r border-gray-700 transition-all duration-300 flex flex-col shadow-lg`}
     >
       {/* Sidebar Header */}
       <div className="p-6 border-b border-gray-700">
         <div className="flex items-center justify-between">
           {sidebarOpen && (
             <div>
-              <h2 className={`${lexend.className} text-xl font-bold text-white`}>Showteria</h2>
-              <p className={`${lexendSmall.className} text-gray-300 text-sm`}>Movie Management</p>
+              <h2
+                className={`${lexend.className} text-xl font-bold text-white`}
+              >
+                Showteria
+              </h2>
+              <p className={`${lexendSmall.className} text-gray-300 text-sm`}>
+                Movie Management
+              </p>
             </div>
           )}
           <button
@@ -69,8 +93,8 @@ const Sidebar: React.FC<SidebarProps> = ({
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
           {sidebarItems.map((item) => {
-            const Icon = item.icon
-            const isActive = activeTab === item.id
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
             return (
               <li key={item.id}>
                 <button
@@ -84,26 +108,34 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <Icon size={20} />
                   {sidebarOpen && (
                     <>
-                      <span className={`${lexendSmall.className} flex-1 text-left`}>{item.label}</span>
-                     
+                      <span
+                        className={`${lexendSmall.className} flex-1 text-left`}
+                      >
+                        {item.label}
+                      </span>
                     </>
                   )}
                 </button>
               </li>
-            )
+            );
           })}
         </ul>
       </nav>
 
       {/* Sidebar Footer */}
       <div className="p-4 border-t border-gray-700">
-        <button className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-gray-300 hover:text-white hover:bg-red-500/20 hover:border-red-500/30 transition-colors">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-gray-300 hover:text-white hover:bg-red-500/20 hover:border-red-500/30 transition-colors"
+        >
           <LogOut size={20} />
-          {sidebarOpen && <span className={`${lexendSmall.className}`}>Logout</span>}
+          {sidebarOpen && (
+            <span className={`${lexendSmall.className}`}>Logout</span>
+          )}
         </button>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Sidebar
+export default Sidebar;

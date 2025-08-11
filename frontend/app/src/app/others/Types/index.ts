@@ -1,24 +1,6 @@
-import { ObjectId } from "mongodb";
+import { Movie } from "../components/Admin/Dashboard/Movies/MoviesList";
 
-export type Movie = {
-  _id: ObjectId | string;
-  tmdbId: string;
-  title: string;
-  genre: string[];
-  releaseDate: Date;
-  duration: number;
-  rating: string;
-  description: string;
-  poster: string;
-  trailer: string;
-  cast: string[];
-  director: string;
-  language: string;
-  isActive: boolean;
-  createdBy: ObjectId | string;
-  createdAt: Date;
-  updatedAt: Date;
-};
+
 
 export interface Theater {
   _id: string;
@@ -45,7 +27,7 @@ export interface Theater {
 export type ShowTime = {
   movieId: string;
   theaterId: string;
-  time: string; // ISO string or relevant time format
+  time: string; 
 };
 
 export type Suggestion =

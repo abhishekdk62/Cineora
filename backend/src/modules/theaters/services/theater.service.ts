@@ -171,7 +171,6 @@ export class TheaterService {
         data: theater,
       };
     } catch (error: any) {
-      // Handle duplicate error from repository update method
       if (error.message === "Theater with this name already exists in this city") {
         return {
           success: false,

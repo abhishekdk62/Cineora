@@ -26,7 +26,6 @@ const lexendSmall = Lexend({
   subsets: ["latin"],
 });
 
-// Types
 export interface UserProfile {
   _id: string;
   ownerName: string;
@@ -61,7 +60,6 @@ export interface BankDetails {
   ifsc: string;
 }
 
-// Utility functions
 export const formatDate = (dateString: string | undefined) => {
   if (!dateString) return "N/A";
   return new Date(dateString).toLocaleDateString("en-US", {

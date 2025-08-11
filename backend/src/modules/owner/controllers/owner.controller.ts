@@ -517,19 +517,17 @@ export async function updateTheater(
       );
     }
 
-    // Call service to update theater
     const result = await theaterService.updateTheater(theaterId, updateData);
 
     if (!result.success) {
-      // Map error types to appropriate HTTP status codes
       let statusCode = 400;
       
       if (result.message === "Theater with this name already exists in this city") {
-        statusCode = 409; // Conflict
+        statusCode = 409; 
       } else if (result.message === "Theater not found or update failed") {
-        statusCode = 404; // Not found
+        statusCode = 404; 
       } else if (result.message === "Something went wrong") {
-        statusCode = 500; // Internal server error
+        statusCode = 500; 
       }
 
       return res.status(statusCode).json(
@@ -574,9 +572,9 @@ export async function deleteTheater(
     if (!result.success) {
       let statusCode = 400;
       if (result.message === "Theater not found or deletion failed") {
-        statusCode = 404; // Not found
+        statusCode = 404;
       } else if (result.message === "Something went wrong") {
-        statusCode = 500; // Internal server error
+        statusCode = 500;
       }
 
       return res.status(statusCode).json(
@@ -616,17 +614,15 @@ export async function toggleTheaterStatus(
       );
     }
 
-    // Call service to toggle theater status
     const result = await theaterService.toggleTheaterStatus(theaterId);
 
     if (!result.success) {
-      // Map error types to appropriate HTTP status codes
       let statusCode = 400;
       
       if (result.message === "Theater not found") {
-        statusCode = 404; // Not found
+        statusCode = 404; 
       } else if (result.message === "Something went wrong") {
-        statusCode = 500; // Internal server error
+        statusCode = 500; 
       }
 
       return res.status(statusCode).json(

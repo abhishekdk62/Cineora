@@ -30,11 +30,29 @@ export class OwnerRepository implements IOwnerRepository {
 
     return { owners, total };
   }
+async updateRefreshToken(userId: string, hashedRefreshToken: string) {
+  return await Owner.findByIdAndUpdate(
+    userId,
+    { 
+      refreshToken: hashedRefreshToken,
+      updatedAt: new Date()
+    },
+    { new: true }
+  );
+}
 
+async clearRefreshToken(userId: string) {
+  return await Owner.findByIdAndUpdate(
+    userId,
+    { 
+      $unset: { refreshToken: 1 },
+      updatedAt: new Date()
+    }
+  );
+}
   async findByStatus(status: string, page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
     
-    // Enhanced to handle different status types
     let query: any = {};
     
     if (status === 'active') {

@@ -17,7 +17,7 @@ import {
   Shield,
   X
 } from "lucide-react"
-import { OwnerRequest } from "./OwnersManager"
+import { OwnerRequest } from "./OwnerManager"
 
 const lexend = Lexend({
   weight: "500",

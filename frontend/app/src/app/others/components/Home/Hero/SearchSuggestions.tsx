@@ -50,7 +50,7 @@ const SearchSuggestions = forwardRef<HTMLUListElement, Props>(
                 tabIndex={-1}
               >
                 <img
-                  src="/default.jpg" // Replace with actual poster if available
+                  src="/default.jpg" 
                   alt={`${suggestion.title} poster`}
                   className="w-10 h-14 rounded-md object-cover mr-3 flex-shrink-0 border border-gray-700"
                 />

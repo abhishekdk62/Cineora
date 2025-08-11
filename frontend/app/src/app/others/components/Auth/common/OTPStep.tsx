@@ -22,16 +22,13 @@ export default function OTPStep({
   onResend: () => void;
   lexend: any;
   lexendSmall: any;
-  resendLoading?: boolean; // Add this prop type
+  resendLoading?: boolean; 
 }) {
-  // create 6 refs
   const inputs = useRef<HTMLInputElement[]>([]);
   
-  // Timer state
-  const [timeLeft, setTimeLeft] = useState(120); // 2 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(120); 
   const [canResend, setCanResend] = useState(false);
 
-  // Timer effect
   useEffect(() => {
     if (timeLeft > 0) {
       const timer = setTimeout(() => {
@@ -44,7 +41,6 @@ export default function OTPStep({
     }
   }, [timeLeft]);
 
-  // Format time as MM:SS
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -54,12 +50,10 @@ export default function OTPStep({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>, idx: number) => {
     const val = e.target.value.replace(/\D/, "");
     if (!val) return;
-    // update otp string
     const newOtp = otp.split("");
     newOtp[idx] = val;
     setOtp(newOtp.join(""));
 
-    // move focus
     if (val && inputs.current[idx + 1]) {
       inputs.current[idx + 1].focus();
     }
@@ -69,12 +63,10 @@ export default function OTPStep({
     if (e.key === "Backspace") {
       e.preventDefault();
       
-      // Clear current input
       const newOtp = otp.split("");
       newOtp[idx] = "";
       setOtp(newOtp.join(""));
       
-      // Move focus to previous input if current was empty
       if (!e.currentTarget.value && inputs.current[idx - 1]) {
         inputs.current[idx - 1].focus();
       }
@@ -82,9 +74,8 @@ export default function OTPStep({
   };
 
   const handleResend = () => {
-    if (canResend && !resendLoading) { // Add resendLoading check
+    if (canResend && !resendLoading) { 
       onResend();
-      // Reset timer
       setTimeLeft(120);
       setCanResend(false);
     }
@@ -116,7 +107,7 @@ export default function OTPStep({
               ref={el => {
                 if (el) inputs.current[i] = el;
               }}
-              disabled={loading} // Disable during loading
+              disabled={loading} 
             />
           ))}
         </div>

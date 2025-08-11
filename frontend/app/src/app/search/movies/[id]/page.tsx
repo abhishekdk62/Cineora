@@ -46,14 +46,12 @@ export default function MovieDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [showTrailer, setShowTrailer] = useState(false);
 
-  // Helper function to format duration
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return `${hours}h ${mins}m`;
   };
 
-  // Language display mapping
   const languageMap: { [key: string]: string } = {
     "en": "English",
     "es": "Spanish",
@@ -94,7 +92,7 @@ const handleBookTicket=()=>{
           <Orb hoverIntensity={0.5} rotateOnHover={true} hue={0} forceHoverState={false} />
         </div>
         <div className="relative z-10">
-          <NavBar scrollToSection={() => {}} />
+          <NavBar />
           <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
             <div className="backdrop-blur-sm bg-black/20 rounded-2xl p-8 border border-gray-500/30">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
@@ -114,7 +112,7 @@ const handleBookTicket=()=>{
           <Orb hoverIntensity={0.5} rotateOnHover={true} hue={0} forceHoverState={false} />
         </div>
         <div className="relative z-10">
-          <NavBar scrollToSection={() => {}} />
+          <NavBar  />
           <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
             <div className="backdrop-blur-sm bg-black/20 rounded-2xl p-8 border border-gray-500/30 text-center">
               <h2 className={`${lexendBold.className} text-white text-2xl mb-4`}>Movie Not Found</h2>
@@ -142,10 +140,9 @@ const handleBookTicket=()=>{
       </div>
 
       <div className="relative z-10">
-        <NavBar scrollToSection={() => {}} />
+        <NavBar  />
         
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-          {/* Back Button */}
           <div className="pt-20 pb-4">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <button
@@ -229,7 +226,6 @@ const handleBookTicket=()=>{
                       </p>
                     </div>
 
-                    {/* Director and Cast */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <h3 className={`${lexendMedium.className} text-white text-lg mb-3`}>Director</h3>
@@ -273,7 +269,6 @@ const handleBookTicket=()=>{
           </div>
         </div>
 
-        {/* Trailer Modal */}
         {showTrailer && movie.trailer && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
             <div className="relative w-full max-w-4xl">

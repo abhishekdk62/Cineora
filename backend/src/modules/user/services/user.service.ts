@@ -1,4 +1,6 @@
 import * as bcrypt from "bcryptjs";
+import { OAuth2Client } from "google-auth-library";
+import * as jwt from "jsonwebtoken";
 
 import { EmailService, IEmailService } from "../../../services/email.service";
 import { config } from "../../../config";
@@ -9,23 +11,28 @@ import {
   ServiceResponse,
   IUserRepository,
 } from "../interfaces/user.interface";
-import { IOwnerRepository, IOwnerRequestRepository } from "../../owner/interfaces/owner.interface";
+import {
+  IOwnerRepository,
+  IOwnerRequestRepository,
+} from "../../owner/interfaces/owner.interface";
 import { IOTPRepository } from "../../otp/interfaces/otp.interface";
 
-
-
 export class UserService implements IUserService {
+
   constructor(
     private userRepo: IUserRepository,
     private ownerRepo: IOwnerRepository,
     private ownerRequestRepo: IOwnerRequestRepository,
     private otpRepo: IOTPRepository,
     private emailService: IEmailService
-  ) {}
+  ) {
+     
+  }
 
   private generateOTP(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
+
 
   async signup(userData: SignupData): Promise<ServiceResponse> {
     try {
@@ -335,7 +342,10 @@ export class UserService implements IUserService {
       }
 
       const isRequestedOwner = await this.ownerRepo.findByEmail(email);
-      if (isRequestedOwner.status!=='rejected'&&isRequestedOwner.status!=='approved') {
+      if (
+        isRequestedOwner.status !== "rejected" &&
+        isRequestedOwner.status !== "approved"
+      ) {
         return { success: false, message: "Email already in use" };
       }
 
@@ -425,7 +435,10 @@ export class UserService implements IUserService {
       }
 
       const isRequestedOwner = await this.ownerRepo.findByEmail(email);
-      if (isRequestedOwner.status!=='rejected'&&isRequestedOwner.status!=='approved') {
+      if (
+        isRequestedOwner.status !== "rejected" &&
+        isRequestedOwner.status !== "approved"
+      ) {
         return { success: false, message: "Email already in use" };
       }
 

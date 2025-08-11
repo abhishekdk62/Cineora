@@ -11,6 +11,7 @@ import {
   resetPassword,
   verifyPasswordResetOtp,
 } from "../others/services/authServices/authService";
+import RouteGuard from "../others/components/Auth/common/RouteGuard";
 
 const lexend = Lexend({
   weight: "500",
@@ -46,8 +47,7 @@ export default function ForgotPasswordPage() {
 
   const handleSubmitOTP = async (otp: string) => {
     try {
-      setStoredOtp(otp); // ✅ Store the OTP
-      // ✅ Pass the required parameters
+      setStoredOtp(otp);  
       const response = await verifyPasswordResetOtp(storedEmail, otp);
       console.log(response);
       if (!response.success) {
@@ -55,7 +55,7 @@ export default function ForgotPasswordPage() {
       }
     } catch (error) {
       console.log(error);
-      throw error; // ✅ Re-throw to show error in component
+      throw error; 
     }
   };
 
@@ -64,7 +64,6 @@ export default function ForgotPasswordPage() {
     confirmPassword: string
   ) => {
     try {
-      // ✅ Pass all required parameters
       const response = await resetPassword(storedEmail, storedOtp, password);
       console.log(response);
       if (!response.success) {
@@ -72,7 +71,7 @@ export default function ForgotPasswordPage() {
       }
     } catch (error) {
       console.log(error);
-      throw error; // ✅ Re-throw to show error in component
+      throw error; 
     }
   };
 
@@ -81,6 +80,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
+<RouteGuard excludedRoles={['user','owner','admin']}>
     <div className="min-h-screen relative flex items-center justify-center bg-black overflow-hidden p-4">
       <div className="absolute inset-0 z-0">
         <Aurora
@@ -101,5 +101,8 @@ export default function ForgotPasswordPage() {
         />
       </div>
     </div>
+
+
+</RouteGuard>
   );
 }

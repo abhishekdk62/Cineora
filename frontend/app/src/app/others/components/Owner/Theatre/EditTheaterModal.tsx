@@ -59,19 +59,16 @@ const EditTheaterModal: React.FC<EditTheaterModalProps> = ({ theater, onClose, o
     }
   }
 
-  /* ---------- submit ---------- */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simulate API latency – replace with real API call later
     setTimeout(() => {
       onSave({ ...formData, updatedAt: new Date().toISOString() })
       setIsLoading(false)
     }, 1500)
   }
 
-  /* ---------- UI ---------- */
   return (
     <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-10 pb-10">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />

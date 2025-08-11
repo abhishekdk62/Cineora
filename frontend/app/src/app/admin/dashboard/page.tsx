@@ -7,6 +7,7 @@ import MoviesManager from "@/app/others/components/Admin/Dashboard/Movies/Movies
 import { AdminProvider } from "@/app/others/components/Admin/Dashboard/AdminContext";
 import OwnersManager from "@/app/others/components/Admin/Dashboard/Owners/OwnerManager";
 import UsersManager from "@/app/others/components/Admin/Dashboard/User/UserManager";
+import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
 
 const lexend = Lexend({
   weight: "500",
@@ -40,17 +41,19 @@ const AdminDashboard = () => {
   };
 
   return (
-    <AdminProvider>
-      <div className="min-h-screen bg-[#040404] flex">
-        <Sidebar
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-        />
-        <div className="flex-1 p-8 overflow-auto">{renderContent()}</div>
-      </div>
-    </AdminProvider>
+    <RouteGuard allowedRoles={['admin']}> {/* 🔒 PROTECT WITH ADMIN ROLE */}
+      <AdminProvider>
+        <div className="min-h-screen bg-[#040404] flex">
+          <Sidebar
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            sidebarOpen={sidebarOpen}
+            setSidebarOpen={setSidebarOpen}
+          />
+          <div className="flex-1 p-8 overflow-auto">{renderContent()}</div>
+        </div>
+      </AdminProvider>
+    </RouteGuard>
   );
 };
 

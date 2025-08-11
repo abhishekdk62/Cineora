@@ -4,6 +4,7 @@ import React, { useState } from "react"
 import TheaterManager from "@/app/others/components/Owner/Theatre/TheaterManager"
 import MyAccount from "@/app/others/components/Owner/MyAccount/MyAccount"
 import OwnerSidebar from "@/app/others/components/Owner/SideBar.tsx/Sidebar"
+import RouteGuard from "@/app/others/components/Auth/common/RouteGuard"
 
 const OwnerManager = () => {
   const [activeTab, setActiveTab] = useState("theaters")
@@ -30,16 +31,18 @@ const OwnerManager = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-      <div className="flex">
-        <OwnerSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-        <div className="flex-1 ml-64">
-          <div className="p-8">
-            {renderContent()}
+    <RouteGuard allowedRoles={['owner']}> 
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
+        <div className="flex">
+          <OwnerSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+          <div className="flex-1 ml-64">
+            <div className="p-8">
+              {renderContent()}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </RouteGuard>
   )
 }
 

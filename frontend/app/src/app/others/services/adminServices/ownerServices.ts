@@ -1,4 +1,3 @@
-// services/adminServices/ownerService.ts
 import apiClient from "../../Utils/apiClient";
 
 export interface OwnerFilters {

@@ -13,6 +13,7 @@ import {
 import { useRouter } from "next/navigation";
 import OrbClient from "./others/components/Home/OrbClient";
 import Orb from "./others/Utils/ReactBits/Orb";
+import RouteGuard from "./others/components/Auth/common/RouteGuard";
 
 interface Movie {
   id: string;
@@ -37,10 +38,7 @@ export default function LandingPage() {
     }
   };
 
-  const handleClick = () => {
-    router.push("/login");
-  };
-
+  
   return (
     <div className="relative min-h-screen bg-black overflow-hidden">
       <div className="fixed inset-0 z-0 pointer-events-none">
@@ -48,13 +46,15 @@ export default function LandingPage() {
       </div>
 
       <div className="relative z-10">
-        <NavBar handleClick={handleClick} scrollToSection={scrollToSection} />
+         <RouteGuard excludedRoles={['admin','owner']}>
+        <NavBar   />
         <Hero />
         <Trending />
         <Upcoming />
         <CallToAction />
         <SpotlightArticles />
         <Footer />
+        </RouteGuard>
       </div>
     </div>
   );

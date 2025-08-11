@@ -1,4 +1,3 @@
-// components/PageHeader.tsx
 "use client";
 import React from "react";
 import { Lexend } from "next/font/google";

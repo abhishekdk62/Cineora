@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { ReduxProvider } from "./others/redux/providers/ReduxProvider";
 import { ConfirmDialog } from "./others/Utils/ConfirmDialog";
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,12 +29,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ReduxProvider>
-          {/* Global toaster for toast notifications */}
-          <Toaster position="top-center" />
-          {children}
-          <ConfirmDialog />
-        </ReduxProvider>
+        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
+          <ReduxProvider>
+            <Toaster position="top-center" />
+            {children}
+            <ConfirmDialog title={''} message={''} />
+          </ReduxProvider>
+        </GoogleOAuthProvider>
       </body>
     </html>
   );

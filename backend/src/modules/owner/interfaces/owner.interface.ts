@@ -1,4 +1,3 @@
-// owner.interface.ts
 import { Types } from "mongoose";
 
 export interface OwnerKYCData {
@@ -24,7 +23,6 @@ export interface ServiceResponse {
   data?: any;
 }
 
-// Owner Service Interface
 export interface IOwnerService {
   getOwnerProfile(requestId: string): Promise<ServiceResponse>;
   getOwnerCounts(): Promise<ServiceResponse>;
@@ -35,7 +33,6 @@ export interface IOwnerService {
   deleteOwner(ownerId: string): Promise<ServiceResponse>;
 }
 
-// Owner Repository Interface
 export interface IOwnerRepository {
   findByEmail(email: string): Promise<any>;
   findByKycRequestId(requestId: string): Promise<any>;
@@ -49,7 +46,6 @@ export interface IOwnerRepository {
   update(id: string, updateData: any): Promise<any>;
   delete(id: string): Promise<any>;
   
-  // Additional helper methods
   findByPhone(phone: string): Promise<any>;
   findByPan(pan: string): Promise<any>;
   findByAadhaar(aadhaar: string): Promise<any>;
@@ -61,7 +57,6 @@ export interface IOwnerRepository {
   bulkUpdateStatus(ownerIds: string[], isActive: boolean): Promise<any>;
 }
 
-// Owner Request Repository Interface
 export interface IOwnerRequestRepository {
   findByEmail(email: string): Promise<any>;
   findByPhone(phone: string): Promise<any>;
@@ -82,7 +77,6 @@ export interface IOwnerRequestRepository {
   delete(id: string): Promise<any>;
 }
 
-// Owner Request Service Interface (separate from Owner Service)
 export interface IOwnerRequestService {
   sendOTP(email: string): Promise<ServiceResponse>;
   verifyOTP(email: string, otp: string): Promise<ServiceResponse>;

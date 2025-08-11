@@ -35,9 +35,7 @@ export function ConfirmDialog({
     cancelText,
   });
 
-  // **Only on the client** register the global opener
   useEffect(() => {
-    // this runs only in browser
     (window as any).__openConfirmDialog = (opts: ConfirmDialogProps) => {
       setDialogProps(opts);
       setOpen(true);

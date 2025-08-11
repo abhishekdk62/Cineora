@@ -1,10 +1,8 @@
-// otp.repository.ts
 import { IOTPRepository } from '../interfaces/otp.interface';
 import { OTP, IOTP } from '../models/otp.model';
 
 export class OTPRepository implements IOTPRepository {
   async create(otpData: Partial<IOTP>): Promise<IOTP> {
-    // Delete existing OTPs for same email/type
     await OTP.deleteMany({ 
       email: otpData.email, 
       type: otpData.type 
@@ -46,7 +44,6 @@ export class OTPRepository implements IOTPRepository {
     }).exec();
   }
 
-  // ✅ ADD MISSING METHODS:
   async findById(id: string): Promise<IOTP | null> {
     return OTP.findById(id).exec();
   }

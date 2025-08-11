@@ -24,7 +24,6 @@ export class UserRepository implements IUserRepository {
     return User.findById(id).select("+password").exec();
   }
 
-  // ✅ User profile methods
   async verifyEmail(email: string): Promise<boolean> {
     const result = await User.updateOne({ email }, { isVerified: true });
     return result.modifiedCount > 0;
@@ -59,7 +58,6 @@ export class UserRepository implements IUserRepository {
     return result.modifiedCount > 0;
   }
 
-  // ✅ User management methods
   async deactivateUser(id: string): Promise<boolean> {
     const result = await User.updateOne({ _id: id }, { isActive: false });
     return result.modifiedCount > 0;
@@ -85,7 +83,6 @@ export class UserRepository implements IUserRepository {
     return result.modifiedCount > 0;
   }
 
-  // ✅ User discovery methods
   async findNearbyUsers(coordinates: [number, number], maxDistance: number): Promise<IUser[]> {
     return User.find({
       coordinates: {
@@ -94,7 +91,7 @@ export class UserRepository implements IUserRepository {
             type: "Point",
             coordinates: coordinates,
           },
-          $maxDistance: maxDistance, // in meters
+          $maxDistance: maxDistance, 
         },
       },
       isActive: true,
@@ -116,7 +113,6 @@ export class UserRepository implements IUserRepository {
       .exec();
   }
 
-  // ✅ Admin-related methods (but operate on User schema)
   async findAll(page: number = 1, limit: number = 10): Promise<{ users: IUser[], total: number }> {
     const skip = (page - 1) * limit;
     
@@ -168,4 +164,79 @@ export class UserRepository implements IUserRepository {
 
     return { users, total };
   }
+    async findByGoogleId(googleId: string): Promise<IUser | null> {
+    return User.findOne({ googleId }).exec();
+  }
+
+  async findByGoogleIdOrEmail(googleId: string, email: string): Promise<IUser | null> {
+    return User.findOne({
+      $or: [
+        { googleId: googleId },
+      { email: { $regex: `^${email}$`, $options: "i" } } 
+      ]
+    }).exec();
+  }
+  async updateRefreshToken(userId: string, hashedRefreshToken: string) {
+    return await User.findByIdAndUpdate(
+      userId,
+      { 
+        refreshToken: hashedRefreshToken,
+        updatedAt: new Date()
+      },
+      { new: true }
+    );
+  }
+
+  async clearRefreshToken(userId: string) {
+    return await User.findByIdAndUpdate(
+      userId,
+      { 
+        $unset: { refreshToken: 1 },
+        updatedAt: new Date()
+      }
+    );
+  }
+
+
+
+  async createGoogleUser(userData: Partial<IUser>): Promise<IUser> {
+    const user = new User({
+      ...userData,
+      authProvider: 'google',
+      isVerified: true, 
+      xpPoints: 100, 
+      joinedAt: new Date(),
+      lastActive: new Date(),
+      isActive: true
+    });
+    return user.save();
+  }
+
+  async linkGoogleAccount(userId: string, googleId: string, googleData: Partial<IUser>): Promise<IUser | null> {
+    return User.findByIdAndUpdate(
+      userId,
+      {
+        googleId,
+        name: googleData.firstName,
+        avatar: googleData.avatar,
+        lastActive: new Date(),
+      },
+      { new: true, runValidators: true }
+    ).select("-password").exec();
+  }
+
+  async updateUserFromGoogle(userId: string, googleData: Partial<IUser>): Promise<IUser | null> {
+    return User.findByIdAndUpdate(
+      userId,
+      {
+        name: googleData.firstName,
+        avatar: googleData.avatar,
+        lastActive: new Date(),
+        ...(googleData.isVerified && { isVerified: true })
+      },
+      { new: true, runValidators: true }
+    ).select("-password").exec();
+  }
 }
+
+

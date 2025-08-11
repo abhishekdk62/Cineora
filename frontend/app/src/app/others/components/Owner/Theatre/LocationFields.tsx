@@ -1,4 +1,3 @@
-// components/LocationFields.tsx
 import React, { useState } from "react";
 import { Lexend } from "next/font/google";
 import { Navigation, Loader2, AlertCircle, MapPin } from "lucide-react";
@@ -70,7 +69,7 @@ const LocationFields: React.FC<LocationFieldsProps> = ({
     updateFormData({
       location: {
         type: "Point",
-        coordinates: [lng, lat], // Note: [longitude, latitude] format for GeoJSON
+        coordinates: [lng, lat], 
       },
     });
     clearError("location");
@@ -119,8 +118,8 @@ const LocationFields: React.FC<LocationFieldsProps> = ({
           <MapLocationPicker
             onLocationSelect={handleMapLocationSelect}
             initialPosition={[
-              formData.location.coordinates[1] || 28.7041, // latitude
-              formData.location.coordinates[0] || 77.1025  // longitude
+              formData.location.coordinates[1] || 28.7041, 
+              formData.location.coordinates[0] || 77.1025  
             ]}
           />
           {(formData.location.coordinates[0] !== 0 || formData.location.coordinates[1] !== 0) && (

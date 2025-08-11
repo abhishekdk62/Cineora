@@ -1,4 +1,3 @@
-// services/ownerServices/ownerService.ts
 import { UserProfile } from "../../components/Owner/MyAccount/MyAccount";
 import apiClient from "../../Utils/apiClient";
 type Partial<UserProfile> = {
@@ -19,11 +18,11 @@ export interface OwnerRequestData {
   aadhaar: string;
   pan: string;
   declaration: boolean;
+  otp:string;
   agree: boolean;
   aadhaarUrl: string;
   panUrl: string;
   ownerPhotoUrl: string | null;
-  // Optional bank details
   accountHolder?: string;
   bankName?: string;
   accountNumber?: string;

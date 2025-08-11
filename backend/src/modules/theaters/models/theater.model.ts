@@ -27,7 +27,7 @@ const TheaterSchema: Schema = new Schema<ITheater>(
       default: [],
     },
     screens: { type: Number,default:0 },
-    isActive: { type: Boolean, default: true },
+    isActive: { type: Boolean, default: false },
     isVerified: { type: Boolean, default: false },
   },
 

@@ -27,8 +27,8 @@ export interface User {
   lastActive?: string;
   joinedAt: string;
   updatedAt: string;
-  bookingHistory?: string[]; // Array of booking IDs
-  favoriteTheatres?: string[]; // Array of theatre IDs
+  bookingHistory?: string[]; 
+  favoriteTheatres?: string[]; 
 }
 
 export interface UserFilters {
@@ -38,7 +38,7 @@ export interface UserFilters {
   page?: number;
   limit?: number;
   status?: "active" | "inactive";
-  isVerified?: boolean; // Change from 'verified' to 'isVerified'
+  isVerified?: boolean; 
 }
 
 export interface UserResponse {
@@ -169,7 +169,6 @@ const UsersManager: React.FC = () => {
   const fetchCounts = async () => {
     try {
       setCountsLoading(true);
-      // Replace with actual API call
       const counts = await getUserCounts();
       setActiveCounts(counts);
     } catch (error: any) {

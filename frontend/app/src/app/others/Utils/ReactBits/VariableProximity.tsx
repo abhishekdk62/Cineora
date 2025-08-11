@@ -7,7 +7,7 @@ import { Roboto_Flex } from "next/font/google";
 const robotoFlex = Roboto_Flex({
   subsets: ["latin"],
   variable: "--font-roboto-flex",
-  weight: "variable", // <-- use this, not "100..1000"
+  weight: "variable", 
 });
 
 function useAnimationFrame(callback: () => void) {

@@ -54,7 +54,7 @@ const ChangeEmailModal = ({ currentEmail, onClose }: ChangeEmailModalProps) => {
     e: React.ChangeEvent<HTMLInputElement>,
     index: number
   ) => {
-    const value = e.target.value.replace(/\D/g, ""); // Only allow digits
+    const value = e.target.value.replace(/\D/g, ""); 
 
     if (value.length > 1) return;
 
@@ -68,7 +68,6 @@ const ChangeEmailModal = ({ currentEmail, onClose }: ChangeEmailModalProps) => {
 
     setEmailError("");
 
-    // Auto-focus next input
     if (value && index < 5) {
       inputs.current[index + 1]?.focus();
     }
@@ -79,7 +78,6 @@ const ChangeEmailModal = ({ currentEmail, onClose }: ChangeEmailModalProps) => {
     index: number
   ) => {
     if (e.key === "Backspace" && !emailData.otp[index] && index > 0) {
-      // Focus previous input on backspace
       inputs.current[index - 1]?.focus();
     } else if (e.key === "ArrowLeft" && index > 0) {
       inputs.current[index - 1]?.focus();
@@ -89,7 +87,6 @@ const ChangeEmailModal = ({ currentEmail, onClose }: ChangeEmailModalProps) => {
   };
 
   const handleSendOTP = async () => {
-    // Validation
     if (!emailData.newEmail || emailData.newEmail === currentEmail) {
       setEmailError("Please enter a valid new email address");
       return;
@@ -115,7 +112,7 @@ const ChangeEmailModal = ({ currentEmail, onClose }: ChangeEmailModalProps) => {
 
       if (result.success) {
         setOtpSent(true);
-        setOtpTimer(300); // 5 minutes
+        setOtpTimer(300); 
         setEmailError("");
 
         setEmailData((prev) => ({
@@ -158,7 +155,6 @@ const ChangeEmailModal = ({ currentEmail, onClose }: ChangeEmailModalProps) => {
           otp: [],
         }));
 
-        // Focus first OTP input
         inputs.current[0]?.focus();
       } else {
         setEmailError(
@@ -247,7 +243,6 @@ const ChangeEmailModal = ({ currentEmail, onClose }: ChangeEmailModalProps) => {
     onClose();
   };
 
-  // Handle form submission with Enter key
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (otpSent) {

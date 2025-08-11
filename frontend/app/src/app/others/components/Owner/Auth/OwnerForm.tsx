@@ -10,6 +10,7 @@ import {
   sendOwnerOTP,
   verifyOwnerOTP,
 } from "../../../services/ownerServices/ownerServices";
+import { useRouter } from "next/navigation";
 
 const lexendSmall = Lexend({
   weight: "200",
@@ -20,7 +21,7 @@ export default function OwnerKYCForm() {
   const [formData, setFormData] = useState({
     ownerName: "",
     phone: "",
-    email: "", // Added email field
+    email: "",
     aadhaar: "",
     pan: "",
     accountHolder: "",
@@ -31,13 +32,11 @@ export default function OwnerKYCForm() {
     agree: false,
   });
 
-  // OTP verification states
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpVerified, setOtpVerified] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
 
-  // Store uploaded URLs
   const [uploadedFiles, setUploadedFiles] = useState({
     aadhaarUrl: "",
     panUrl: "",
@@ -85,7 +84,6 @@ export default function OwnerKYCForm() {
     }
   }
 
-  // Upload handlers (same as before)
   const handleAadhaarUpload = (url: string) => {
     setUploadedFiles((prev) => ({ ...prev, aadhaarUrl: url }));
     setUploadStatus((prev) => ({ ...prev, aadhaarUploading: false }));
@@ -112,7 +110,6 @@ export default function OwnerKYCForm() {
     console.error("Upload error:", error);
   };
 
-  // Validation functions
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -132,6 +129,7 @@ export default function OwnerKYCForm() {
     const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
     return panRegex.test(pan.toUpperCase().replace(/\s+/g, ""));
   };
+  const router = useRouter();
 
   const validateIFSC = (ifsc: string): boolean => {
     const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
@@ -148,7 +146,6 @@ export default function OwnerKYCForm() {
     return nameRegex.test(name.trim());
   };
 
-  // Send OTP to email
   const handleSendOTP = async () => {
     setOtpLoading(true);
     setError("");
@@ -165,7 +162,7 @@ export default function OwnerKYCForm() {
       if (result.success) {
         setOtpSent(true);
         setError("");
-        setResendTimer(120); // 2 minutes = 120 seconds
+        setResendTimer(120);
         setCanResend(false);
 
         setOtpSent(true);
@@ -180,7 +177,6 @@ export default function OwnerKYCForm() {
     }
   };
 
-  // Verify OTP
   const handleVerifyOTP = async () => {
     setOtpLoading(true);
     setError("");
@@ -214,21 +210,18 @@ export default function OwnerKYCForm() {
     setSuccess(false);
 
     try {
-      // Check if OTP is verified
       if (!otpVerified) {
         setError("Please verify your email with OTP first");
         setLoading(false);
         return;
       }
 
-      // ✅ CORRECTED: Only validate fields that actually exist in your form
       const requiredFields = {
         ownerName: "Owner name",
         phone: "Phone number",
         email: "Email address",
         aadhaar: "Aadhaar number",
         pan: "PAN number",
-        // ❌ REMOVED: accountHolder, bankName, accountNumber, ifsc (not in your form)
       };
 
       for (const [field, label] of Object.entries(requiredFields)) {
@@ -254,7 +247,6 @@ export default function OwnerKYCForm() {
         return;
       }
 
-      // ✅ Only validate fields that exist
       if (!validatePhone(formData.phone)) {
         setError("Please enter a valid 10-digit phone number");
         setLoading(false);
@@ -289,7 +281,6 @@ export default function OwnerKYCForm() {
         return;
       }
 
-      // ✅ CORRECTED: Only submit fields that exist in your form
       const submissionData: OwnerRequestData = {
         ownerName: formData.ownerName.trim(),
         phone: formData.phone.replace(/\s+/g, ""),
@@ -298,11 +289,10 @@ export default function OwnerKYCForm() {
         aadhaar: formData.aadhaar.replace(/\s+/g, ""),
         pan: formData.pan.toUpperCase().replace(/\s+/g, ""),
 
-        // ✅ CORRECTED: Set default values for missing fields
-        accountHolder: formData.ownerName.trim(), // Use owner name as default
-        bankName: "", // Empty for now
-        accountNumber: "", // Empty for now
-        ifsc: "", // Empty for now
+        accountHolder: formData.ownerName.trim(),
+        bankName: "",
+        accountNumber: "",
+        ifsc: "",
 
         declaration: formData.declaration,
         agree: formData.agree,
@@ -347,7 +337,6 @@ export default function OwnerKYCForm() {
 
   const isAnyUploading = Object.values(uploadStatus).some((status) => status);
 
-  // Success Screen (same as before)
   if (success) {
     return (
       <div className="max-w-2xl border rounded-4xl mx-auto p-6">
@@ -410,8 +399,15 @@ export default function OwnerKYCForm() {
 
   return (
     <div className="max-w-2xl border rounded-4xl mx-auto p-6">
+    
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="text-center mb-8">
+            <button
+        onClick={() => router.push("/login")}
+        className="py-2 px-2 mt-2 border border-gray-400 text-white rounded-4xl"
+      >
+        Back to sign in 
+      </button>
           <h2 className="text-3xl font-bold text-white mb-2">
             Become a Theatre Owner
           </h2>

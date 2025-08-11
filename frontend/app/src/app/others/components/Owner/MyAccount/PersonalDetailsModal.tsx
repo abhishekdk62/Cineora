@@ -97,7 +97,6 @@ const PersonalDetailsModal: React.FC<PersonalDetailsModalProps> = ({
   };
 
   const handleEmailChangeSuccess = (newEmail: string) => {
-    // Update the personalDetails and profile with the new email
     setPersonalDetails((prev) => ({
       ...prev,
       email: newEmail,

@@ -1,7 +1,7 @@
 import { IOTPService, IOTPRepository, OTPType } from '../interfaces/otp.interface';
 import { IOTP } from '../models/otp.model';
 
-export class OTPService implements IOTPService { // ✅ Changed interface
+export class OTPService implements IOTPService { 
   constructor(private otpRepo: IOTPRepository) {}
 
   private generateOTP(): string {
@@ -53,7 +53,6 @@ export class OTPService implements IOTPService { // ✅ Changed interface
     };
   }
 
-  // ✅ REPOSITORY METHODS (return raw data)
   async verifyOTP(email: string, otp: string, type: string): Promise<IOTP | null> {
     const validOTP = await this.otpRepo.findValidOTP(email, otp, type);
     
@@ -84,7 +83,6 @@ export class OTPService implements IOTPService { // ✅ Changed interface
     return { otp, expiresAt };
   }
 
-  // ✅ MISSING METHOD - Validate and mark OTP
   async validateAndMarkOTP(
     email: string, 
     otp: string, 
@@ -118,7 +116,6 @@ export class OTPService implements IOTPService { // ✅ Changed interface
     };
   }
 
-  // ✅ CONVENIENCE METHOD
   async createAndSendOTP(
     email: string, 
     type: OTPType, 

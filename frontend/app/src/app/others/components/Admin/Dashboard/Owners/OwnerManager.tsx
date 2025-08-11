@@ -21,7 +21,7 @@ import RejectedRequests from "./RejectedOwners";
 
 export interface Owner {
   _id: string;
-  ownerName: string; // ✅ Changed from 'name'
+  ownerName: string;
   phone: string;
   email: string;
   password?: string;
@@ -35,19 +35,19 @@ export interface Owner {
   panUrl: string;
   ownerPhotoUrl?: string;
   kycRequestId: string;
-  approvedAt: string; // ✅ This is when they became an owner
+  approvedAt: string;
   approvedBy: string;
-  isActive: boolean; // ✅ Changed from status: "active" | "blocked"
+  isActive: boolean;
   isVerified: boolean;
-  theatres: string[]; // Array of theatre IDs
+  theatres: string[];
   lastLogin?: string;
-  createdAt: string; // ✅ This is their join date
+  createdAt: string;
   updatedAt: string;
 }
 
 export interface OwnerRequest {
   _id: string;
-  ownerName: string; // ✅ Changed from 'name' to match backend
+  ownerName: string;
   email: string;
   phone: string;
   aadhaar: string;
@@ -60,9 +60,10 @@ export interface OwnerRequest {
   panUrl: string;
   ownerPhotoUrl?: string;
   declaration: boolean;
+  otp: string;
   agree: boolean;
   status: "pending" | "approved" | "rejected";
-  submittedAt: string; // ✅ Changed from 'requestDate'
+  submittedAt: string;
   reviewedAt?: string;
   reviewedBy?: string;
   rejectionReason?: string;
@@ -131,7 +132,6 @@ const OwnersTopBar: React.FC<OwnersTopBarProps> = ({
   setActiveView,
   activeCounts,
 }) => {
-  // ✅ Add safety check for activeCounts
   const safeActiveCounts = activeCounts || {
     activeOwners: 0,
     inactiveOwners: 0,
@@ -161,7 +161,6 @@ const OwnersTopBar: React.FC<OwnersTopBarProps> = ({
       count: safeActiveCounts.pendingRequests,
       color: "text-blue-400",
     },
-
     {
       id: "rejected" as const,
       label: "Rejected Requests",
@@ -215,9 +214,10 @@ const OwnersManager: React.FC = () => {
   const [owners, setOwners] = useState<Owner[]>([]);
   const [ownerRequests, setOwnerRequests] = useState<OwnerRequest[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentFilters, setCurrentFilters] = useState<
-    OwnerFilters | OwnerRequestFilters
-  >({});
+  
+  // Separate filter states for different views
+  const [ownerFilters, setOwnerFilters] = useState<OwnerFilters>({});
+  const [requestFilters, setRequestFilters] = useState<OwnerRequestFilters>({});
 
   const [countsLoading, setCountsLoading] = useState(true);
 
@@ -266,14 +266,19 @@ const OwnersManager: React.FC = () => {
   const handlePageChange = useCallback(
     (page: number) => {
       setCurrentPage(page);
-      const filtersWithPage = { ...currentFilters, page, limit: itemsPerPage };
-      handleFiltersChange(filtersWithPage, false);
+      if (activeView === "inactive" || activeView === "active") {
+        const filtersWithPage = { ...ownerFilters, page, limit: itemsPerPage };
+        handleOwnerFiltersChange(filtersWithPage, false);
+      } else {
+        const filtersWithPage = { ...requestFilters, page, limit: itemsPerPage };
+        handleRequestFiltersChange(filtersWithPage, false);
+      }
     },
-    [currentFilters, itemsPerPage]
+    [ownerFilters, requestFilters, itemsPerPage, activeView]
   );
 
-  const handleFiltersChange = async (
-    filters: OwnerFilters | OwnerRequestFilters,
+  const handleOwnerFiltersChange = async (
+    filters: OwnerFilters,
     resetPage: boolean = true
   ) => {
     if (resetPage) {
@@ -283,30 +288,18 @@ const OwnersManager: React.FC = () => {
       filters = { ...filters, limit: itemsPerPage };
     }
 
-    setCurrentFilters(filters);
+    setOwnerFilters(filters);
 
     try {
       setIsLoading(true);
-      let response;
+      const ownerFiltersWithStatus = {
+        ...filters,
+        status: activeView as "active" | "inactive",
+      };
+      const response = await getOwners(ownerFiltersWithStatus);
 
-      if (activeView === "inactive" || activeView === "active") {
-        const ownerFilters = {
-          ...filters,
-          status: activeView,
-        } as OwnerFilters;
-        response = await getOwners(ownerFilters);
-
-        setOwners(response.data?.owners || response.owners || []);
-        setOwnerRequests([]);
-      } else {
-        const requestFilters = {
-          ...filters,
-          status: activeView,
-        } as OwnerRequestFilters;
-        response = await getOwnerRequests(requestFilters);
-        setOwnerRequests(response.data?.requests || response.requests || []);
-        setOwners([]);
-      }
+      setOwners(response.data?.owners || response.owners || []);
+      setOwnerRequests([]);
 
       if (response.data?.meta?.pagination) {
         setTotalPages(response.data.meta.pagination.totalPages);
@@ -321,6 +314,49 @@ const OwnersManager: React.FC = () => {
       console.error("Filter error:", error);
       toast.error(error.response?.data?.message || "Filter failed");
       setOwners([]);
+      setTotalPages(1);
+      setTotalItems(0);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRequestFiltersChange = async (
+    filters: OwnerRequestFilters,
+    resetPage: boolean = true
+  ) => {
+    if (resetPage) {
+      setCurrentPage(1);
+      filters = { ...filters, page: 1, limit: itemsPerPage };
+    } else {
+      filters = { ...filters, limit: itemsPerPage };
+    }
+
+    setRequestFilters(filters);
+
+    try {
+      setIsLoading(true);
+      const requestFiltersWithStatus = {
+        ...filters,
+        status: activeView as "pending" | "approved" | "rejected",
+      };
+      const response = await getOwnerRequests(requestFiltersWithStatus);
+      
+      setOwnerRequests(response.data?.requests || response.requests || []);
+      setOwners([]);
+
+      if (response.data?.meta?.pagination) {
+        setTotalPages(response.data.meta.pagination.totalPages);
+        setTotalItems(response.data.meta.pagination.total);
+        setCurrentPage(response.data.meta.pagination.currentPage);
+      } else if (response.meta?.pagination) {
+        setTotalPages(response.meta.pagination.totalPages);
+        setTotalItems(response.meta.pagination.total);
+        setCurrentPage(response.meta.pagination.currentPage);
+      }
+    } catch (error: any) {
+      console.error("Filter error:", error);
+      toast.error(error.response?.data?.message || "Filter failed");
       setOwnerRequests([]);
       setTotalPages(1);
       setTotalItems(0);
@@ -330,12 +366,17 @@ const OwnersManager: React.FC = () => {
   };
 
   useEffect(() => {
-    setCurrentFilters({});
+    setOwnerFilters({});
+    setRequestFilters({});
     setCurrentPage(1);
     setOwners([]);
     setOwnerRequests([]);
-    handleFiltersChange({}, true);
-    // eslint-disable-next-line
+    
+    if (activeView === "inactive" || activeView === "active") {
+      handleOwnerFiltersChange({}, true);
+    } else {
+      handleRequestFiltersChange({}, true);
+    }
   }, [activeView]);
 
   const handleViewDetails = (item: Owner | OwnerRequest) => {
@@ -360,8 +401,9 @@ const OwnersManager: React.FC = () => {
       const action = owner.isActive ? "blocked" : "activated";
       toast.success(`Owner ${action} successfully!`);
       fetchCounts();
-      if (Object.keys(currentFilters).length > 0) {
-        handleFiltersChange(currentFilters, false);
+      
+      if (Object.keys(ownerFilters).length > 0) {
+        handleOwnerFiltersChange(ownerFilters, false);
       }
     } catch (error: any) {
       console.error("Error toggling owner status:", error);
@@ -384,8 +426,9 @@ const OwnersManager: React.FC = () => {
       await acceptOwnerRequest(request._id);
       toast.success("Owner request accepted! New owner account created.");
       fetchCounts();
-      if (Object.keys(currentFilters).length > 0) {
-        handleFiltersChange(currentFilters, false);
+      
+      if (Object.keys(requestFilters).length > 0) {
+        handleRequestFiltersChange(requestFilters, false);
       }
     } catch (error: any) {
       console.error("Error accepting request:", error);
@@ -401,8 +444,9 @@ const OwnersManager: React.FC = () => {
       await rejectOwnerRequest(request._id, rejectionReason);
       toast.success("Owner request rejected!");
       fetchCounts();
-      if (Object.keys(currentFilters).length > 0) {
-        handleFiltersChange(currentFilters, false);
+      
+      if (Object.keys(requestFilters).length > 0) {
+        handleRequestFiltersChange(requestFilters, false);
       }
     } catch (error: any) {
       console.error("Error rejecting request:", error);
@@ -411,14 +455,25 @@ const OwnersManager: React.FC = () => {
   };
 
   const renderContent = () => {
-    const commonProps = {
+    const ownerCommonProps = {
       isLoading,
-      currentFilters,
+      currentFilters: ownerFilters,
       currentPage,
       totalPages,
       totalItems,
       onPageChange: handlePageChange,
-      onFiltersChange: handleFiltersChange,
+      onFiltersChange: handleOwnerFiltersChange,
+      onViewDetails: handleViewDetails,
+    };
+
+    const requestCommonProps = {
+      isLoading,
+      currentFilters: requestFilters,
+      currentPage,
+      totalPages,
+      totalItems,
+      onPageChange: handlePageChange,
+      onFiltersChange: handleRequestFiltersChange,
       onViewDetails: handleViewDetails,
     };
 
@@ -426,7 +481,7 @@ const OwnersManager: React.FC = () => {
       case "active":
         return (
           <ActiveOwners
-            {...commonProps}
+            {...ownerCommonProps}
             owners={owners}
             onToggleStatus={handleToggleOwnerStatus}
           />
@@ -434,7 +489,7 @@ const OwnersManager: React.FC = () => {
       case "inactive":
         return (
           <InactiveOwners
-            {...commonProps}
+            {...ownerCommonProps}
             owners={owners}
             onToggleStatus={handleToggleOwnerStatus}
           />
@@ -442,7 +497,7 @@ const OwnersManager: React.FC = () => {
       case "pending":
         return (
           <OwnerRequests
-            {...commonProps}
+            {...requestCommonProps}
             requests={ownerRequests}
             onAcceptRequest={handleAcceptRequest}
             onRejectRequest={handleRejectRequest}
@@ -450,12 +505,12 @@ const OwnersManager: React.FC = () => {
         );
       case "rejected":
         return (
-          <RejectedRequests {...commonProps} requests={ownerRequests} />
+          <RejectedRequests {...requestCommonProps} requests={ownerRequests} />
         );
       default:
         return (
           <ActiveOwners
-            {...commonProps}
+            {...ownerCommonProps}
             owners={owners}
             onToggleStatus={handleToggleOwnerStatus}
           />
