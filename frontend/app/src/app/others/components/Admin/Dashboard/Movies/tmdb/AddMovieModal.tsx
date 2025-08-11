@@ -134,7 +134,6 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({
         Array.isArray(tmdbMovie.genre) ? tmdbMovie.genre.join(", ") : ""
       );
     } else if (editingMovie) {
-      // Pre-fill form with existing movie data
       setFormData(editingMovie);
       setCastInput(editingMovie.cast.join(", "));
       setGenreInput(editingMovie.genre.join(", "));

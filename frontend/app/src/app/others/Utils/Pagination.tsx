@@ -28,7 +28,6 @@ export default function Pagination({
   className = "",
 }: PaginationProps) {
   
-  // Debug logs
   console.log('Pagination rendering with:', { currentPage, totalPages });
 
   const getVisiblePages = () => {
@@ -38,7 +37,6 @@ export default function Pagination({
     let startPage = Math.max(1, currentPage - halfShow);
     let endPage = Math.min(totalPages, startPage + showPages - 1);
     
-    // Adjust start if we're near the end
     if (endPage - startPage + 1 < showPages) {
       startPage = Math.max(1, endPage - showPages + 1);
     }
@@ -64,7 +62,6 @@ export default function Pagination({
     }
   };
 
-  // Add debug for early return
   if (totalPages <= 1) {
     console.log('Pagination hidden: totalPages <= 1');
     return null;

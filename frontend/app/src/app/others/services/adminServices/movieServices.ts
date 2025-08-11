@@ -1,4 +1,3 @@
-// services/adminServices/movieService.ts
 import apiClient from "../../Utils/apiClient";
 
 export const addMovie = async (data: any) => {

@@ -7,6 +7,7 @@ import Orb from "../../others/Utils/ReactBits/Orb";
 
 import Pagination from "../../others/Utils/Pagination";
 import { getMoviesWithFilters } from "@/app/others/services/userServices/movieServices";
+import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
 
 const Page = () => {
   const [movies, setMovies] = useState([]);
@@ -45,6 +46,7 @@ const Page = () => {
   }, [currentPage]);
 
   return (
+    <RouteGuard excludedRoles={['owner','admin']}>
     <div className="relative min-h-screen bg-black overflow-hidden">
       <div className="fixed inset-0 z-0 pointer-events-none">
         <Orb
@@ -56,7 +58,7 @@ const Page = () => {
       </div>
 
       <div className="relative z-10">
-        <NavBar scrollToSection={() => {}} />
+        <NavBar  />
         <MoviesPage 
           movies={movies}
           loading={loading}
@@ -76,6 +78,7 @@ const Page = () => {
         <Footer />
       </div>
     </div>
+    </RouteGuard>
   );
 };
 

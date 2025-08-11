@@ -138,10 +138,10 @@ const TheaterViewModal: React.FC<TheaterViewModalProps> = ({ theaterData, onClos
 
               <div className="rounded-xl overflow-hidden border border-gray-500/30 h-60">
                 <MapLocationPicker
-                  onLocationSelect={() => {}} // Not used here for viewing
+                  onLocationSelect={() => {}} 
                   initialPosition={[
-                    location?.coordinates?.[1] || 28.7041, // lat
-                    location?.coordinates?.[0] || 77.1025, // lng
+                    location?.coordinates?.[1] || 28.7041, 
+                    location?.coordinates?.[0] || 77.1025, 
                   ]}
                 />
               </div>

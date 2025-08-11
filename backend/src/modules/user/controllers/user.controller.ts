@@ -8,16 +8,23 @@ import { OwnerRepository } from "../../owner/repositories/owner.repository";
 import { OwnerRequestRepository } from "../../owner/repositories/ownerRequest.repository";
 import { OTPRepository } from "../../otp/repositories/otp.repository";
 import { EmailService } from "../../../services/email.service";
+import { AuthService } from "../../auth/services/auth.service";
 const userRepo = new UserRepository();
 const ownerRepo = new OwnerRepository();
 const ownerRequestRepo = new OwnerRequestRepository();
 const otpRepo = new OTPRepository();
 const emailService = new EmailService();
 
-const userService = new UserService(userRepo, ownerRepo, ownerRequestRepo, otpRepo, emailService);
+const userService = new UserService(
+  userRepo,
+  ownerRepo,
+  ownerRequestRepo,
+  otpRepo,
+  emailService
+);
 
 const movieService = new MovieService(new MovieRepository());
-
+const authService=new AuthService()
 export async function signup(req: Request, res: Response, next: NextFunction) {
   try {
     const userData = req.body;
@@ -79,17 +86,62 @@ export async function verifyOTP(
       );
     }
 
-    return res.status(200).json(
-      createResponse({
-        success: true,
-        message: result.message,
-        data: result.data,
-      })
-    );
+    const user = await userRepo.findByEmail(email);
+    if (!user) {
+      return res.status(400).json(
+        createResponse({
+          success: false,
+          message: "User not found after verification",
+        })
+      );
+    }
+
+    try {
+      const { accessToken, refreshToken } = authService.generateTokenPair(user, 'user');
+      
+      await authService.storeRefreshToken(user._id, refreshToken, 'user');
+
+      await userRepo.updateLastActive(user._id);
+
+      setAuthCookies(res, accessToken, refreshToken);
+
+      return res.status(200).json(
+        createResponse({
+          success: true,
+          message: "Email verified and logged in successfully",
+          data: {
+            user: {
+              id: user._id,
+              username: user.username,
+              email: user.email,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              isVerified: true,
+              xpPoints: user.xpPoints,
+              role: "user",
+            },
+            role: "user",
+            redirectTo: "/dashboard",
+            isNewUser: true, 
+          },
+        })
+      );
+    } catch (tokenError) {
+      console.error('Token generation error:', tokenError);
+      
+      return res.status(200).json(
+        createResponse({
+          success: true,
+          message: "Email verified successfully. Please login manually.",
+          data: result.data,
+        })
+      );
+    }
   } catch (err) {
     next(err);
   }
 }
+
 
 export async function resendOTP(
   req: Request,
@@ -362,7 +414,7 @@ export async function changeEmail(
           success: false,
           message: "New email and password are required",
         })
-      ); 
+      );
     }
     const result = await userService.sendEmailChangeOTP(id, newEmail, password);
     if (!result.success) {
@@ -411,7 +463,7 @@ export async function verifyChangeEmailOtp(
     }
 
     const result = await userService.verifyEmailChangeOTP(id, email, otp);
- 
+
     if (!result.success) {
       return res.status(400).json(
         createResponse({
@@ -491,4 +543,19 @@ export async function getMoviesWithFilters(
   } catch (err) {
     next(err);
   }
+}
+function setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
+  res.cookie("accessToken", accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 15 * 60 * 1000, 
+  });
+
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000, 
+  });
 }

@@ -1,4 +1,4 @@
-import { Router } from "express"; // ✅ Import Router directly
+import { Router } from "express"; 
 import {
   getRequestStatus,
   sendOTP,

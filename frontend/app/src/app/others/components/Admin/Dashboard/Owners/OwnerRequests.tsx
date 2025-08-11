@@ -3,9 +3,9 @@
 import React, { useState } from "react"
 import { Lexend } from "next/font/google"
 import { Search, Eye, CheckCircle, XCircle, UserCheck, ChevronLeft, ChevronRight } from "lucide-react"
-import { OwnerRequest, OwnerRequestFilters } from "./OwnersManager"
 import OwnerRequestCard from "./OwnerRequestCard"
 import toast from "react-hot-toast"
+import { OwnerRequest, OwnerRequestFilters } from "./OwnerManager"
 
 const lexend = Lexend({
   weight: "500",
@@ -77,14 +77,12 @@ const OwnerRequests: React.FC<OwnerRequestsProps> = ({
     }
   }
 
-  // Close modal
   const closeRejectModal = () => {
     setShowRejectModal(false)
     setPendingRejectRequest(null)
     setRejectionReason("")
   }
 
-  // Render rejection modal
   const renderRejectModal = () => {
     if (!showRejectModal || !pendingRejectRequest) return null
 

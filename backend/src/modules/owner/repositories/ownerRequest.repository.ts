@@ -1,4 +1,5 @@
 import { IOwnerRequestRepository } from "../interfaces/owner.interface";
+import { Owner } from "../models/owner.model";
 import { OwnerRequest } from "../models/ownerRequest.model";
 
 
@@ -11,6 +12,9 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
   async findByPhone(phone: string) {
     return await OwnerRequest.findOne({ phone });
   }
+
+
+
 
   async findByAadhaar(aadhaar: string) {
     return await OwnerRequest.findOne({ aadhaar });
@@ -44,13 +48,11 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
   async findByStatus(status: string, page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
     
-    // Handle multiple status types
     let statusQuery: any = {};
     
     if (status === 'all') {
       statusQuery = {};
     } else if (status.includes(',')) {
-      // Handle multiple statuses like "pending,under_review"
       const statuses = status.split(',').map(s => s.trim());
       statusQuery = { status: { $in: statuses } };
     } else {
@@ -110,7 +112,6 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
       updateData.rejectionReason = rejectionReason;
     }
 
-    // Add status-specific fields
     if (status === 'approved') {
       updateData.approvedAt = new Date();
     } else if (status === 'rejected') {
@@ -120,9 +121,7 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
     return await OwnerRequest.findByIdAndUpdate(id, updateData, { new: true });
   }
 
-  // Additional method: Update request data
   async update(id: string, updateData: any): Promise<any> {
-    // Remove fields that shouldn't be updated directly
     const { _id, submittedAt, createdAt, ...safeUpdateData } = updateData;
     
     return await OwnerRequest.findByIdAndUpdate(
@@ -138,9 +137,7 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
     );
   }
 
-  // Additional method: Delete request (soft delete)
   async delete(id: string): Promise<any> {
-    // Soft delete - mark as deleted instead of removing
     return await OwnerRequest.findByIdAndUpdate(
       id,
       {
@@ -151,11 +148,8 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
       { new: true }
     );
 
-    // Hard delete option (uncomment if preferred)
-    // return await OwnerRequest.findByIdAndDelete(id);
   }
 
-  // Search requests by name, email, or phone
   async searchRequests(searchTerm: string, page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
     
@@ -181,7 +175,6 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
     return { requests, total };
   }
 
-  // Get requests by date range
   async getRequestsByDateRange(startDate: Date, endDate: Date, page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
     
@@ -204,7 +197,6 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
     return { requests, total };
   }
 
-  // Bulk update status for multiple requests
   async bulkUpdateStatus(requestIds: string[], status: string, reviewedBy?: string): Promise<any> {
     const updateData: any = {
       status,
@@ -228,9 +220,7 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
     );
   }
 
-  // Additional utility methods
 
-  // Get request statistics
   async getRequestStats() {
     const stats = await OwnerRequest.aggregate([
       {
@@ -252,13 +242,11 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
     };
   }
 
-  // Find duplicate requests
   async findDuplicateRequests(field: 'email' | 'phone' | 'aadhaar' | 'pan', value: string) {
     return await OwnerRequest.find({ [field]: value })
       .sort({ submittedAt: -1 });
   }
 
-  // Get pending requests older than specified days
   async getPendingRequestsOlderThan(days: number) {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
@@ -269,7 +257,6 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
     }).sort({ submittedAt: 1 });
   }
 
-  // Get requests by reviewer
   async getRequestsByReviewer(reviewerId: string, page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
 
@@ -285,7 +272,6 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
     return { requests, total };
   }
 
-  // Update email verification status
   async updateEmailVerification(id: string, isVerified: boolean) {
     return await OwnerRequest.findByIdAndUpdate(
       id,
@@ -298,7 +284,6 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
     );
   }
 
-  // Add notes to request
   async addNotes(id: string, notes: string, addedBy: string) {
     return await OwnerRequest.findByIdAndUpdate(
       id,

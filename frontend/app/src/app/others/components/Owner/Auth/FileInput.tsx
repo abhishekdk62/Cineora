@@ -1,4 +1,3 @@
-// app/others/components/FileUploadInput.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -47,7 +46,6 @@ export default function FileUploadInput({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
       const error = 'File size too large. Maximum 5MB allowed.';
       setFileState({
@@ -61,7 +59,6 @@ export default function FileUploadInput({
       return;
     }
 
-    // Validate file type
     const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
     if (!validTypes.includes(file.type)) {
       const error = 'Invalid file type. Only JPEG, PNG, and PDF files are allowed.';
@@ -76,7 +73,6 @@ export default function FileUploadInput({
       return;
     }
 
-    // Start upload
     setFileState({
       file,
       url: null,
@@ -114,7 +110,6 @@ export default function FileUploadInput({
       onUploadError?.(errorMessage);
     }
 
-    // Reset input
     e.target.value = '';
   };
 

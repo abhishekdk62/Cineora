@@ -1,4 +1,3 @@
-// app/others/services/ownerServices/uploadKYCImages.ts
 export interface UploadResult {
   success: boolean;
   url?: string;
@@ -6,7 +5,6 @@ export interface UploadResult {
   error?: string;
 }
 
-// Simple unsigned upload to Cloudinary
 export async function uploadKYCImage(
   file: File, 
   folder: string
@@ -58,7 +56,6 @@ export async function uploadKYCImage(
   }
 }
 
-// Batch upload function
 export async function uploadMultipleKYCImages(
   files: { file: File; type: string }[]
 ): Promise<UploadResult[]> {

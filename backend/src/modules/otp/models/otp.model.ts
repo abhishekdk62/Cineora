@@ -1,4 +1,3 @@
-// otp.model.ts
 import { Schema, model, Document } from "mongoose";
 
 export type OTPType =
@@ -13,9 +12,10 @@ export type OTPType =
 export interface IOTP extends Document {
   email: string;
   otp: string;
-  type: OTPType; 
+  type: string;
   expiresAt: Date;
   isUsed: boolean;
+  refreshToken: string;
   userData?: any;
   createdAt: Date;
   updatedAt: Date;
@@ -45,6 +45,11 @@ const otpSchema = new Schema<IOTP>(
       ],
       required: true,
     },
+    refreshToken: {
+      type: String,
+      select: false, 
+    },
+
     expiresAt: {
       type: Date,
       required: true,
@@ -64,9 +69,7 @@ const otpSchema = new Schema<IOTP>(
   }
 );
 
-// ✅ Good indexing strategy
 otpSchema.index({ email: 1, type: 1 });
 otpSchema.index({ otp: 1 });
-otpSchema.index({ expiresAt: 1 }); 
 
 export const OTP = model<IOTP>("OTP", otpSchema);

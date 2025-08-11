@@ -8,13 +8,13 @@ import {
   ServiceResponse,
 } from "../interfaces/owner.interface";
 import { IUserRepository } from "../../user/interfaces/user.interface";
-import { IOTPRepository, OTPType } from "../../otp/interfaces/otp.interface"; // ✅ Changed to repository
+import { IOTPRepository, OTPType } from "../../otp/interfaces/otp.interface"; 
 
 export class OwnerRequestService {
   constructor(
     private ownerRequestRepo: IOwnerRequestRepository,
     private ownerRepo: IOwnerRepository,
-    private otpRepo: IOTPRepository, // ✅ Changed from service to repository
+    private otpRepo: IOTPRepository, 
     private userRepo: IUserRepository,
     private emailService: any
   ) {}
@@ -64,11 +64,9 @@ export class OwnerRequestService {
         };
       }
 
-      // ✅ Generate OTP and save directly using repository
       const otp = this.generateOTP();
       const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-      // ✅ Direct repository call
       await this.otpRepo.create({
         email,
         otp,
@@ -77,7 +75,6 @@ export class OwnerRequestService {
         isUsed: false,
       });
 
-      // ✅ Send email
       const emailSent = await this.emailService.sendOTPEmail(email, otp);
 
       if (!emailSent) {
@@ -102,7 +99,6 @@ export class OwnerRequestService {
 
   async verifyOTP(email: string, otp: string): Promise<ServiceResponse> {
     try {
-      // ✅ Direct repository call to find valid OTP
       const validOTP = await this.otpRepo.findValidOTP(
         email,
         otp,
@@ -116,7 +112,6 @@ export class OwnerRequestService {
         };
       }
 
-      // ✅ Mark as used via repository
       await this.otpRepo.markAsUsed(validOTP._id as string);
 
       return {

@@ -8,10 +8,10 @@ export interface IOwnerRequest extends Document {
   otp?: string;
   aadhaar: string;
   pan: string;
-  accountHolder?: string;  // Made optional
-  bankName?: string;       // Made optional
-  accountNumber?: string;  // Made optional
-  ifsc?: string;          // Made optional
+  accountHolder?: string;  
+  bankName?: string;       
+  accountNumber?: string;  
+  ifsc?: string;        
   aadhaarUrl: string;
   panUrl: string;
   ownerPhotoUrl?: string;
@@ -58,27 +58,26 @@ const ownerRequestSchema = new Schema<IOwnerRequest>({
     trim: true,
     uppercase: true,
   },
-  // ✅ CHANGED: Made bank fields optional
   accountHolder: {
     type: String,
-    required: false, // Changed to optional
+    required: false, 
     trim: true,
     maxlength: 100
   },
   bankName: {
     type: String,
-    required: false, // Changed to optional
+    required: false, 
     trim: true,
     maxlength: 100
   },
   accountNumber: {
     type: String,
-    required: false, // Changed to optional
+    required: false, 
     trim: true
   },
   ifsc: {
     type: String,
-    required: false, // Changed to optional
+    required: false, 
     trim: true,
     uppercase: true
   },
@@ -132,11 +131,11 @@ const ownerRequestSchema = new Schema<IOwnerRequest>({
 });
 
 ownerRequestSchema.index({ phone: 1 });
-ownerRequestSchema.index({ email: 1 }); // ✅ Add email index
+ownerRequestSchema.index({ email: 1 }); 
 ownerRequestSchema.index({ aadhaar: 1 });
 ownerRequestSchema.index({ pan: 1 });
 ownerRequestSchema.index({ status: 1 });
 ownerRequestSchema.index({ submittedAt: -1 });
-ownerRequestSchema.index({ emailVerified: 1 }); // ✅ Add emailVerified index
+ownerRequestSchema.index({ emailVerified: 1 }); 
 
 export const OwnerRequest = model<IOwnerRequest>('OwnerRequest', ownerRequestSchema);

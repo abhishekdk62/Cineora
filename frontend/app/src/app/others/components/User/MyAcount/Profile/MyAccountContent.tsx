@@ -1,8 +1,3 @@
-/* ------------------------------------------------------------------
- * MyAccountContent.tsx  –  COMPLETE VERSION
- *  • Shows all profile data (optional fields render only if present)
- *  • “Change Password” and “Change Email” modals wired up
- * ----------------------------------------------------------------- */
 
 "use client";
 
@@ -27,12 +22,10 @@ import EditProfileModal from "./EditProfileModal";
 import ChangePasswordModal from "./ChangePasswordModal";
 import ChangeEmailModal from "./ChangeEmailModal";
 
-/* ---------- font helpers ---------- */
 const lexendBold   = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
 const lexendSmall  = { className: "font-normal text-sm" };
 
-/* ---------- data types ---------- */
 export interface IUser {
   _id: string;
   username: string;
@@ -55,10 +48,9 @@ export interface IUser {
 }
 
 interface MyAccountContentProps {
-  userData: IUser | null;          // may be null while loading
+  userData: IUser | null;          
 }
 
-/* ---------- reusable sub-components ---------- */
 type InfoRowProps = { label: string; icon: React.ReactNode; value: string };
 const InfoRow = ({ label, icon, value }: InfoRowProps) => (
   <div>
@@ -92,7 +84,6 @@ const MyAccountContent = ({ userData }: MyAccountContentProps) => {
 
   if (!userData) return <div className="text-white">Loading…</div>;
 
-  /* membership calculations */
   const membershipLevel =
     userData.xpPoints >= 5_000 ? "Premium"
     : userData.xpPoints >= 2_000 ? "Gold"
@@ -105,9 +96,8 @@ const MyAccountContent = ({ userData }: MyAccountContentProps) => {
     : userData.xpPoints >=   500 ? 2_000 - userData.xpPoints
     : 500 - userData.xpPoints;
 
-  /* bar width for membership progress */
   const progressPct = (() => {
-    const tiers = { Bronze: 500, Silver: 1_500, Gold: 3_000, Premium: 1 }; // dummy for division by 1
+    const tiers = { Bronze: 500, Silver: 1_500, Gold: 3_000, Premium: 1 }; 
     const tierLimit = tiers[membershipLevel as keyof typeof tiers];
     const pointsIntoTier =
       membershipLevel === "Premium" ? tierLimit : userData.xpPoints % tierLimit;

@@ -1,26 +1,8 @@
 import React, { createContext, useContext, useState, Dispatch, SetStateAction } from "react";
+import { Movie } from "./Movies/MoviesList";
 
-// Shared Movie interface
-export interface Movie {
-  _id: string;
-  tmdbId: number;
-  title: string;
-  genre: string[];
-  releaseDate: string;
-  duration: number;
-  rating: string;
-  description: string;
-  poster: string;
-  trailer: string;
-  cast: string[];
-  director: string;
-  language: string;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
 
-// Shared TMDB types
+
 export interface TMDBMovie {
   id: number;
   title: string;
@@ -41,7 +23,6 @@ export interface TMDBGenre {
   name: string;
 }
 
-// Context type
 interface AdminContextType {
   movies: Movie[];
   setMovies: Dispatch<SetStateAction<Movie[]>>;

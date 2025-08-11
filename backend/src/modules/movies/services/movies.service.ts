@@ -10,8 +10,8 @@ export interface IMovieService {
   updateMovie(id: string, movieData: Partial<IMovie>): Promise<IMovie | null>;
   deleteMovie(id: string): Promise<boolean>;
   toggleMovieStatus(id: string): Promise<IMovie | null>;
-  getMoviesForUser(filters?: any): Promise<any>; // For user access
-  getMoviesForOwner(ownerId: string, filters?: any): Promise<any>; // For owner access
+  getMoviesForUser(filters?: any): Promise<any>;
+  getMoviesForOwner(ownerId: string, filters?: any): Promise<any>; 
 }
 
 export class MovieService implements IMovieService {
@@ -89,21 +89,17 @@ export class MovieService implements IMovieService {
     return this.movieRepo.toggleStatus(id);
   }
 
-  // ✅ Additional methods for different user types
   async getMoviesForUser(filters: any = {}): Promise<any> {
-    // Users only see active movies
     const userFilters = { ...filters, isActive: true };
     return this.getMoviesWithFilters(userFilters);
   }
 
   async getMoviesForOwner(ownerId: string, filters: any = {}): Promise<any> {
-    // Owners see movies in their cinemas (add owner-specific logic)
     const ownerFilters = { ...filters, ownerId };
     return this.getMoviesWithFilters(ownerFilters);
   }
 
   async getMoviesForAdmin(filters: any = {}): Promise<any> {
-    // Admins see all movies (including inactive)
     return this.getMoviesWithFilters(filters);
   }
 }

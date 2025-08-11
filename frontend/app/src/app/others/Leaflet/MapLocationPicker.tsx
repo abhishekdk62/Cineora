@@ -1,15 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import React, { useState, useEffect } from "react";
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
 interface MapLocationPickerProps {
@@ -19,10 +22,12 @@ interface MapLocationPickerProps {
 
 const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
   onLocationSelect,
-  initialPosition = [28.7041, 77.1025] // Default to Delhi, India
+  initialPosition = [28.7041, 77.1025],
 }) => {
   const [position, setPosition] = useState<[number, number] | null>(
-    initialPosition[0] !== 0 && initialPosition[1] !== 0 ? initialPosition : null
+    initialPosition[0] !== 0 && initialPosition[1] !== 0
+      ? initialPosition
+      : null
   );
 
   function LocationMarker() {
@@ -44,20 +49,22 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
   }
 
   return (
-    <div className="w-full h-64 rounded-xl overflow-hidden border border-gray-500/30">
-      <MapContainer 
-        center={initialPosition} 
-        zoom={13} 
-        style={{ height: '100%', width: '100%' }}
-        scrollWheelZoom={true}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        />
-        <LocationMarker />
-      </MapContainer>
-    </div>
+    <>
+      <div className="w-full h-64 rounded-xl overflow-hidden border border-gray-500/30">
+        <MapContainer
+          center={initialPosition}
+          zoom={13}
+          style={{ height: "100%", width: "100%" }}
+          scrollWheelZoom={true}
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          />
+          <LocationMarker />
+        </MapContainer>
+      </div>
+    </>
   );
 };
 

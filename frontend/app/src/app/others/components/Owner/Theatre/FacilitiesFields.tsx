@@ -1,4 +1,3 @@
-// components/FacilitiesFields.tsx
 import React, { useState } from "react";
 import { Lexend } from "next/font/google";
 import { Plus, X } from "lucide-react";

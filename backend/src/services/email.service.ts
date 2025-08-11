@@ -614,17 +614,14 @@ export class EmailService {
 }
 
 export interface IEmailService {
-  // OTP related emails
   sendOTPEmail(email: string, otp: string): Promise<boolean>;
   sendEmailChangeOTP(email: string, otp: string, oldEmail: string): Promise<boolean>;
   sendPasswordResetOTP(email: string, otp: string, userName: string): Promise<boolean>;
   
-  // Owner request related emails
   sendKYCSubmittedEmail(email: string, ownerName: string, requestId: string): Promise<boolean>;
   sendKYCRejectedEmail(email: string, ownerName: string, rejectionReason: string): Promise<boolean>;
   sendOwnerWelcomeEmail(email: string, ownerName: string, tempPassword: string): Promise<boolean>;
   
-  // Confirmation emails
   sendEmailChangeSuccessNotification(newEmail: string, oldEmail: string): Promise<boolean>;
   sendPasswordChangeConfirmation(email: string, userName: string): Promise<boolean>;
 }

@@ -15,7 +15,6 @@ const initialState: AdminState = {
   loading: false,
   error: null,
 };
-
 const adminSlice = createSlice({
   name: 'admin',
   initialState,

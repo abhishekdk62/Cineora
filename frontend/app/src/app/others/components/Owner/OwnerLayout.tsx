@@ -15,6 +15,10 @@ import {
   X,
   LogOut
 } from "lucide-react"
+import { useDispatch } from "react-redux"
+import { AppDispatch } from "../../redux/store"
+import { useRouter } from "next/navigation"
+import { logoutUser } from "../../redux/slices/authSlice"
 
 const lexendBold = Lexend({
   weight: "700",
@@ -90,6 +94,17 @@ const OwnerLayout: React.FC<OwnerLayoutProps> = ({ children, activeTab }) => {
       color: "text-gray-400" 
     },
   ]
+  const dispatch = useDispatch<AppDispatch>();
+const router=useRouter()
+  const handleLogout = async () => {
+    try {
+      await dispatch(logoutUser()).unwrap();
+      console.log("Logged out successfully");
+      router.push('/login')
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black">
@@ -182,7 +197,7 @@ const OwnerLayout: React.FC<OwnerLayoutProps> = ({ children, activeTab }) => {
               </span>
             </a>
             
-            <button className="flex items-center gap-3 p-3 rounded-xl transition-all duration-200 text-gray-300 hover:bg-red-500/20 hover:text-red-400 w-full">
+            <button onClick={handleLogout} className="flex items-center gap-3 p-3 rounded-xl transition-all duration-200 text-gray-300 hover:bg-red-500/20 hover:text-red-400 w-full">
               <LogOut className="w-5 h-5 text-red-400" />
               <span className={`${lexendMedium.className} text-sm`}>
                 Logout

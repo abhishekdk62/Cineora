@@ -1,4 +1,3 @@
-// src/app/services/adminServices/tmdbClient.ts
 import axios from "axios";
 
 const tmdbClient = axios.create({

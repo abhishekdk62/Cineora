@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { Lexend } from "next/font/google";
-import SearchModal from "./SearchModal"; // Import the modal
+import SearchModal from "./SearchModal"; 
 
 const lexendMedium = Lexend({
   weight: "400",
@@ -21,7 +21,6 @@ export default function SearchInput({ onSearch, onSuggestionSelect }: SearchInpu
   const handleModalSearch = (query: string, type: "movies" | "theaters") => {
     console.log(`Searching for ${type}:`, query);
     onSearch(query);
-    // You can also pass the type to your parent component if needed
   };
 
   return (

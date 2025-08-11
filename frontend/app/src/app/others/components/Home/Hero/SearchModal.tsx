@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createPortal } from "react-dom"; 
+import { createPortal } from "react-dom";
 import { Lexend } from "next/font/google";
 import { X, Search, Film, MapPin, Loader2 } from "lucide-react";
 import { getMoviesWithFilters } from "@/app/others/services/userServices/movieServices";
-
+import { useRouter } from "next/navigation";
 
 const lexendSmall = Lexend({
   weight: "200",
@@ -40,7 +40,6 @@ export default function SearchModal({
   const [movies, setMovies] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Get all movies when modal opens
   const getAllMovies = async () => {
     try {
       setIsLoading(true);
@@ -54,13 +53,15 @@ export default function SearchModal({
     }
   };
 
-  // Search movies with API call
   const searchMovies = async (query: string) => {
     if (!query.trim()) return movies;
-    
+
     try {
       setIsLoading(true);
-      const response = await getMoviesWithFilters({ search: query, isActive: true });
+      const response = await getMoviesWithFilters({
+        search: query,
+        isActive: true,
+      });
       return response.data || [];
     } catch (error) {
       console.error("Error searching movies:", error);
@@ -75,14 +76,12 @@ export default function SearchModal({
     return () => setMounted(false);
   }, []);
 
-  // Fetch movies when modal opens
   useEffect(() => {
     if (isOpen && searchType === "movies") {
       getAllMovies();
     }
   }, [isOpen, searchType]);
 
-  // Static theaters data
   const theaters = [
     {
       id: 1,
@@ -113,6 +112,7 @@ export default function SearchModal({
     },
   ];
 
+
   useEffect(() => {
     const filterResults = async () => {
       if (searchType === "movies") {
@@ -123,13 +123,18 @@ export default function SearchModal({
           setFilteredResults(searchResults);
         }
       } else {
-        const results = searchQuery.trim() === ""
-          ? theaters
-          : theaters.filter(
-              (theater) =>
-                theater.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                theater.location.toLowerCase().includes(searchQuery.toLowerCase())
-            );
+        const results =
+          searchQuery.trim() === ""
+            ? theaters
+            : theaters.filter(
+                (theater) =>
+                  theater.name
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase()) ||
+                  theater.location
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase())
+              );
         setFilteredResults(results);
       }
     };
@@ -140,18 +145,22 @@ export default function SearchModal({
 
     return () => clearTimeout(delayedSearch);
   }, [searchQuery, searchType, movies]);
-
+  const router = useRouter();
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      onSearch(searchQuery, searchType);
-      onClose();
-    }
+    router.push("/search/movies");
   };
 
   if (!isOpen || !mounted) return null;
 
   const displayResults = filteredResults.slice(0, 6);
+
+    const handleClick=(item:any)=>{
+
+    router.push(`/search/movies/${item._id}`)
+
+onClose()
+
+  }
 
   const modalContent = (
     <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-10 pb-10">
@@ -163,7 +172,6 @@ export default function SearchModal({
       {/* Modal with fixed height and flex layout */}
       <div className="relative w-full max-w-2xl mx-4 h-[80vh] max-h-[600px] min-h-[500px]">
         <div className="backdrop-blur-sm bg-black/90 rounded-3xl border border-gray-500/30 shadow-2xl h-full flex flex-col">
-          
           {/* Fixed Header */}
           <div className="flex-shrink-0 p-6 pb-4">
             <div className="flex items-center justify-between mb-6">
@@ -177,7 +185,7 @@ export default function SearchModal({
                 <X className="w-6 h-6 text-white" />
               </button>
             </div>
-            
+
             <div className="flex mb-6">
               <div className="backdrop-blur-sm flex bg-black/30 rounded-2xl p-1 border border-gray-500/30 w-full">
                 <button
@@ -249,7 +257,8 @@ export default function SearchModal({
                 {/* Results Counter */}
                 <div className="mb-3 text-center">
                   <p className={`${lexendSmall.className} text-gray-400`}>
-                    Showing {Math.min(filteredResults.length, 6)} of {filteredResults.length} results
+                    Showing {Math.min(filteredResults.length, 6)} of{" "}
+                    {filteredResults.length} results
                     {filteredResults.length > 6 && " (showing first 6)"}
                   </p>
                 </div>
@@ -260,14 +269,16 @@ export default function SearchModal({
                       key={item.id || item._id}
                       className="flex items-center p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors duration-200 cursor-pointer"
                       onClick={() => {
-                        const query =
-                          searchType === "movies" ? item.title : item.name;
-                        onSearch(query, searchType);
-                        onClose();
+
+                        handleClick(item)
                       }}
                     >
                       <img
-                        src={item.poster || item.image || "/api/placeholder/300/400"}
+                        src={
+                          item.poster ||
+                          item.image ||
+                          "/api/placeholder/300/400"
+                        }
                         alt={searchType === "movies" ? item.title : item.name}
                         className="w-16 h-20 object-cover rounded-lg mr-4"
                       />
@@ -282,7 +293,9 @@ export default function SearchModal({
                             <span
                               className={`${lexendSmall.className} text-gray-300`}
                             >
-                              {Array.isArray(item.genre) ? item.genre[0] : item.genre}
+                              {Array.isArray(item.genre)
+                                ? item.genre[0]
+                                : item.genre}
                             </span>
                             <span
                               className={`${lexendSmall.className} text-gray-300`}

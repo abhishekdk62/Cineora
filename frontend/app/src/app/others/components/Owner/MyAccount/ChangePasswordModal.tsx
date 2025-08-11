@@ -43,7 +43,6 @@ const ChangePasswordModal = ({ onClose, onPasswordChanged }: ChangePasswordModal
   };
 
   const handleChangePassword = async () => {
-    // Basic validations
     if (!passwordData.oldPassword) {
       setPasswordError("Please enter your old password");
       return;

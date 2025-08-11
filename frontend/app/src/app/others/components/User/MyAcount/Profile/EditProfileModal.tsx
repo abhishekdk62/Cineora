@@ -52,6 +52,7 @@ interface EditFormData {
 interface EditProfileModalProps {
   user: IUser;
   onClose: () => void;
+  onDataUpdate?: () => Promise<void>; 
 }
 
 /* ---------- helper functions ---------- */
@@ -117,7 +118,7 @@ async function canvasPreview(
 }
 
 /* ---------- component ---------- */
-const EditProfileModal = ({ user, onClose }: EditProfileModalProps) => {
+const EditProfileModal = ({ user, onClose ,onDataUpdate}: EditProfileModalProps) => {
   /* ----- state ----- */
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<EditFormData>({
@@ -134,7 +135,6 @@ const EditProfileModal = ({ user, onClose }: EditProfileModalProps) => {
     profilePicture: user.profilePicture ?? "",
   });
 
-  // Image cropping states
   const [showCropModal, setShowCropModal] = useState(false);
   const [imgSrc, setImgSrc] = useState('');
   const [crop, setCrop] = useState<Crop>();
@@ -174,7 +174,7 @@ const EditProfileModal = ({ user, onClose }: EditProfileModalProps) => {
 
   const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const { width, height } = e.currentTarget;
-    setCrop(centerAspectCrop(width, height, 1)); // 1:1 aspect ratio
+    setCrop(centerAspectCrop(width, height, 1)); 
   };
 
   const onCropComplete = (crop: PixelCrop) => {
@@ -233,7 +233,6 @@ const EditProfileModal = ({ user, onClose }: EditProfileModalProps) => {
 
   const isFormValid = !validate(formData);
 
-  /* ----- save ----- */
   const onSave = async () => {
     const errMsg = validate(formData);
     if (errMsg) {

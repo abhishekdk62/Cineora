@@ -15,7 +15,7 @@ import {
   Settings,
   Shield,
 } from "lucide-react";
-import MyAccountContent, { IUser, UserDTO } from "./Profile/MyAccountContent";
+import MyAccountContent, { IUser } from "./Profile/MyAccountContent";
 import { getUserProfile } from "@/app/others/services/userServices/authServices";
 
 const lexendBold = { className: "font-bold" };
@@ -34,7 +34,7 @@ type SidebarItem =
 const AccountPage = () => {
   const [activeSection, setActiveSection] = useState<SidebarItem>("account");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [userData, setUserData] = useState<IUser | null>();
+  const [userData, setUserData] = useState<IUser | null>(null);
   useEffect(() => {
     getUeserDetails();
   }, []);
@@ -42,7 +42,7 @@ const AccountPage = () => {
     try {
       const result = await getUserProfile();
       console.log(result);
-      const dto: UserDTO = (await getUserProfile()).data;
+      const dto = (await getUserProfile()).data;
 
       const parsed: IUser = {
         ...dto,
@@ -192,19 +192,6 @@ const AccountPage = () => {
                   </button>
                 );
               })}
-
-              {/* Logout Button */}
-              <div className="pt-6 mt-6 border-t border-white/10">
-                <button
-                  onClick={handleLogout}
-                  className={`${lexendMedium.className} w-full flex items-center px-4 py-3 rounded-xl transition-all duration-300 text-red-400 hover:bg-red-500/10 hover:text-red-300 group`}
-                >
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center mr-3 bg-red-500/10 group-hover:bg-red-500/20">
-                    <LogOut className="w-4 h-4" />
-                  </div>
-                  <span>Sign Out</span>
-                </button>
-              </div>
             </nav>
           </div>
         </div>
@@ -332,7 +319,6 @@ const AccountPage = () => {
   );
 };
 
-// Enhanced Coming Soon Component
 const ComingSoonContent = ({
   title,
   icon: Icon,

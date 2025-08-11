@@ -1,5 +1,6 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { login as loginAPI } from '../../services/userServices/authServices';
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { login as loginAPI } from "../../services/userServices/authServices";
+import { googleAuth, logout } from "../../services/authServices/authService";
 
 interface User {
   id: string;
@@ -9,12 +10,12 @@ interface User {
   lastName?: string;
   role?: string;
   xpPoints?: number;
+  isVerified?: boolean;
 }
 
 interface AuthState {
   user: User | null;
-  token: string | null;
-  role: 'user' | 'admin' | 'owner'|null;
+  role: "user" | "admin" | "owner" | null;
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
@@ -22,7 +23,6 @@ interface AuthState {
 
 const initialState: AuthState = {
   user: null,
-  token: null,
   role: null,
   isAuthenticated: false,
   loading: false,
@@ -30,84 +30,133 @@ const initialState: AuthState = {
 };
 
 export const loginUser = createAsyncThunk(
-  'auth/loginUser',
-  async ({ email, password }: { email: string; password: string }, { dispatch, rejectWithValue }) => {
+  "auth/loginUser",
+  async (
+    { email, password }: { email: string; password: string },
+    { rejectWithValue }
+  ) => {
     try {
-      dispatch(loginStart());
-      
       const result = await loginAPI(email, password);
-      
+
       if (result.success) {
-        // Store in localStorage
-        localStorage.setItem('token', result.data.token);
-        localStorage.setItem('user', JSON.stringify(result.data.user));
-        localStorage.setItem('role', result.data.role);
-        
-        dispatch(loginSuccess({
+        return {
           user: result.data.user,
-          token: result.data.token,
-          role: result.data.role
-        }));
-        
-        return result.data; // Return for component to handle redirect
+          role: result.data.role,
+          redirectTo: result.data.redirectTo,
+        };
       } else {
-        // Dispatch loginFailure
-        dispatch(loginFailure(result.message));
         return rejectWithValue(result.message);
       }
     } catch (error: any) {
-      let errorMessage = 'Login failed';
-      
+      let errorMessage = "Login failed";
+
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.status === 401) {
-        errorMessage = 'Invalid email or password';
+        errorMessage = "Invalid email or password";
       } else if (error.response?.status >= 500) {
-        errorMessage = 'Server error. Please try again later.';
+        errorMessage = "Server error. Please try again later.";
       } else if (error.request) {
-        errorMessage = 'Network error. Please check your connection.';
+        errorMessage = "Network error. Please check your connection.";
       }
-      
-      // Dispatch loginFailure
-      dispatch(loginFailure(errorMessage));
+
       return rejectWithValue(errorMessage);
     }
   }
 );
 
+export const googleLogin = createAsyncThunk(
+  "auth/googleLogin",
+  async (credentialResponse: any, { rejectWithValue }) => {
+    try {
+      const result = await googleAuth(credentialResponse);
+
+      if (result.success) {
+        return {
+          user: result.data.user,
+          role: result.data.user.role || "user",
+          isNewUser: result.data.isNewUser,
+          redirectTo: result.data.redirectTo || "/dashboard",
+        };
+      } else {
+        return rejectWithValue(
+          result.message || "Google authentication failed"
+        );
+      }
+    } catch (error: any) {
+      let errorMessage = "Google Sign-In failed";
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.status >= 500) {
+        errorMessage = "Server error. Please try again later.";
+      } else if (error.request) {
+        errorMessage = "Network error. Please check your connection.";
+      }
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+export const checkAuthStatus = createAsyncThunk(
+  "auth/checkStatus",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await fetch("/api/auth/me", {
+        credentials: "include", 
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return {
+          user: data.data.user,
+          role: data.data.user.role,
+        };
+      } else {
+        throw new Error("Not authenticated");
+      }
+    } catch (error) {
+      return rejectWithValue("Authentication check failed");
+    }
+  }
+);
+
+export const logoutUser = createAsyncThunk(
+  "auth/logout",
+  async (_, { rejectWithValue }) => {
+    try {
+      await logout();
+
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+);
+
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
-    loginStart: (state) => {
-      state.loading = true;
-      state.error = null;
-    },
-    loginSuccess: (state, action: PayloadAction<{ user: User; token: string; role: 'user' | 'admin' }>) => {
+    setUser: (
+      state,
+      action: PayloadAction<{ user: User; role: "user" | "admin" | "owner" }>
+    ) => {
       state.user = action.payload.user;
-      state.token = action.payload.token;
       state.role = action.payload.role;
       state.isAuthenticated = true;
-      state.loading = false;
       state.error = null;
     },
-    loginFailure: (state, action: PayloadAction<string>) => {
-      state.loading = false;
-      state.error = action.payload;
-      state.isAuthenticated = false;
-    },
-    logout: (state) => {
+    clearUser: (state) => {
       state.user = null;
-      state.token = null;
       state.role = null;
       state.isAuthenticated = false;
-      state.loading = false;
       state.error = null;
-      
-      // Clear localStorage
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      localStorage.removeItem('role');
+    },
+    setLoading: (state, action: PayloadAction<boolean>) => {
+      state.loading = action.payload;
+    },
+    setError: (state, action: PayloadAction<string>) => {
+      state.error = action.payload;
     },
     clearError: (state) => {
       state.error = null;
@@ -117,24 +166,74 @@ const authSlice = createSlice({
         state.user = { ...state.user, ...action.payload };
       }
     },
-    // Add this to load user from localStorage on app start
-    loadUserFromStorage: (state, action: PayloadAction<{ user: User; token: string; role: 'user' | 'admin' }>) => {
-      state.user = action.payload.user;
-      state.token = action.payload.token;
-      state.role = action.payload.role;
-      state.isAuthenticated = true;
-    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(loginUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(loginUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user;
+        state.role = action.payload.role;
+        state.isAuthenticated = true;
+        state.error = null;
+      })
+      .addCase(loginUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+        state.isAuthenticated = false;
+      })
+      .addCase(googleLogin.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(googleLogin.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user;
+        state.role = action.payload.role;
+        state.isAuthenticated = true;
+        state.error = null;
+      })
+      .addCase(googleLogin.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+        state.isAuthenticated = false;
+      })
+      .addCase(checkAuthStatus.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(checkAuthStatus.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user;
+        state.role = action.payload.role;
+        state.isAuthenticated = true;
+        state.error = null;
+      })
+      .addCase(checkAuthStatus.rejected, (state) => {
+        state.loading = false;
+        state.user = null;
+        state.role = null;
+        state.isAuthenticated = false;
+        state.error = null; 
+      })
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.user = null;
+        state.role = null;
+        state.isAuthenticated = false;
+        state.error = null;
+      });
   },
 });
 
 export const {
-  loginStart,
-  loginSuccess,
-  loginFailure,
-  logout,
+  setUser,
+  clearUser,
+  setLoading,
+  setError,
   clearError,
   updateUser,
-  loadUserFromStorage,
 } = authSlice.actions;
 
 export default authSlice.reducer;

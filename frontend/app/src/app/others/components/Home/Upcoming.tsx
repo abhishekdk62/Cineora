@@ -65,7 +65,6 @@ export default function Upcoming() {
             />
           </div>
 
-          {/* Right Side - Carousel */}
           <div className="lg:w-2/3">
             <div className="overflow-x-auto p-5 custom-scrollbar">
               <div className="flex space-x-6 min-w-max">

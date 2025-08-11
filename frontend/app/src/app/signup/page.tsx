@@ -15,6 +15,7 @@ import {
   signup,
   verifyOTP,
 } from "../others/services/userServices/authServices";
+import RouteGuard from "../others/components/Auth/common/RouteGuard";
 
 const lexend = Lexend({
   weight: "500",
@@ -115,6 +116,8 @@ export default function SignUp() {
   };
 
   return (
+
+      <RouteGuard excludedRoles={['user','owner','admin']}>
     <div className="min-h-screen relative flex items-center justify-center bg-black overflow-hidden p-4">
       <div className="absolute inset-0 z-0">
         <Aurora
@@ -134,6 +137,12 @@ export default function SignUp() {
             <p className={`${lexendSmall.className} text-gray-300`}>
               Create your account
             </p>
+            <button
+              onClick={() => router.push("/owner")}
+              className="py-2 px-2 mt-2 border border-gray-400 text-white rounded-4xl"
+            >
+              Or Become an Owner
+            </button>
           </div>
           <AuthForm
             isSignup
@@ -160,5 +169,6 @@ export default function SignUp() {
         </div>
       )}
     </div>
+    </RouteGuard>
   );
 }

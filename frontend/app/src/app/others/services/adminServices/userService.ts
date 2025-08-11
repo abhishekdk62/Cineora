@@ -1,4 +1,3 @@
-// services/adminServices/userService.ts
 import apiClient from "../../Utils/apiClient";
 
 export interface UserFilters {

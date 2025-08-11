@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { config } from '../../../config';
 import { createResponse } from '../../../utils/createResponse';
+import { AuthService } from '../services/auth.service';
 
 declare global {
   namespace Express {
@@ -14,12 +15,10 @@ declare global {
   }
 }
 
-export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
+export const authenticateToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const token =
-      req.cookies?.token ||
-      req.header("Authorization")?.replace("Bearer ", "");
-    if (!token) {
+    const accessToken = req.cookies?.accessToken;
+    if (!accessToken) {
       return res.status(401).json(
         createResponse({
           success: false,
@@ -28,41 +27,112 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
       );
     }
 
-    const decoded: any = jwt.verify(token, config.jwtSecret);
+    try {
+      const decoded: any = jwt.verify(accessToken, config.jwtAccessSecret);
+      
+      setUserFromDecoded(req, decoded);
+      next();
+      
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        const refreshToken = req.cookies?.refreshToken;
+        
+        if (!refreshToken) {
+          return res.status(401).json(
+            createResponse({
+              success: false,
+              message: "Access token expired and no refresh token."
+            })
+          );
+        }
 
-    switch (decoded.role) {
-      case "admin":
-        req.admin = decoded;
-        req.userRole = "admin";
-        break;
-      case "owner":
-        req.owner = decoded;
-        req.userRole = "owner";
-        break;
-      case "user":
-        req.user = decoded;
-        req.userRole = "user";
-        break;
-      default:
+        try {
+          const authService = new AuthService();
+          const refreshResult = await authService.refreshAccessToken(refreshToken);
+          
+          if (refreshResult.success) {
+            res.cookie("accessToken", refreshResult.data.accessToken, {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === "production",
+              sameSite: "strict",
+              maxAge: 15 * 60 * 1000,
+            });
+
+            res.cookie("refreshToken", refreshResult.data.refreshToken, {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === "production",
+              sameSite: "strict",
+              maxAge: 7 * 24 * 60 * 60 * 1000,
+            });
+            const newDecoded: any = jwt.verify(refreshResult.data.accessToken, config.jwtAccessSecret);
+            setUserFromDecoded(req, newDecoded);
+            next();
+          } else {
+            return res.status(401).json(
+              createResponse({
+                success: false,
+                message: "Token refresh failed. Please login again."
+              })
+            );
+          }
+        } catch (refreshError) {
+          return res.status(401).json(
+            createResponse({
+              success: false,
+              message: "Token refresh failed. Please login again."
+            })
+          );
+        }
+      } else {
         return res.status(401).json(
           createResponse({
             success: false,
-            message: "Invalid token role."
+            message: "Invalid token."
           })
         );
+      }
     }
-    next();
   } catch (error) {
     return res.status(401).json(
       createResponse({
         success: false,
-        message: "Invalid token."
+        message: "Authentication failed."
       })
     );
   }
 };
+
+function setUserFromDecoded(req: Request, decoded: any) {
+  switch (decoded.role) {
+    case "admin":
+      req.admin = {
+        adminId: decoded.adminId,
+        email: decoded.email,
+        role: "admin"
+      };
+      break;
+    case "owner":
+      req.owner = {
+        ownerId: decoded.ownerId,
+        email: decoded.email,
+        role: "owner"
+      };
+      break;
+    case "user":
+      req.user = {
+        id: decoded.userId,
+        email: decoded.email,
+        role: "user"
+      };
+      break;
+    default:
+      throw new Error("Invalid token role");
+  }
+}
+
 export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
-  if (req.userRole !== 'admin') {
+  
+  if (req.admin.role !== 'admin') {
     return res.status(403).json(createResponse({
       success: false,
       message: 'Admin access required.'
@@ -71,7 +141,8 @@ export const requireAdmin = (req: Request, res: Response, next: NextFunction) =>
   next();
 };
 export const requireOwner = (req: Request, res: Response, next: NextFunction) => {
-  if (req.userRole !== 'owner') {
+  
+  if (req.owner.role !== 'owner') {
     return res.status(403).json(createResponse({
       success: false,
       message: 'Owner access required.'
@@ -80,7 +151,7 @@ export const requireOwner = (req: Request, res: Response, next: NextFunction) =>
   next();
 };
 export const requireUser = (req: Request, res: Response, next: NextFunction) => {
-  if (req.userRole !== 'user') {
+  if (req.user.role !== 'user') {
     return res.status(403).json(createResponse({
       success: false,
       message: 'User access required.'

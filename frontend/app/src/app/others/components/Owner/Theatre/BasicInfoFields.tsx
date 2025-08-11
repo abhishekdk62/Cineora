@@ -1,4 +1,3 @@
-// components/BasicInfoFields.tsx
 import React from "react";
 import { Lexend } from "next/font/google";
 import { Building, MapPin, Phone, Hash, AlertCircle } from "lucide-react";

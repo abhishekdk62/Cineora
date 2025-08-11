@@ -13,6 +13,10 @@ import {
   LogOut,
   Menu
 } from "lucide-react"
+import { useDispatch } from "react-redux"
+import { AppDispatch } from "@/app/others/redux/store"
+import { useRouter } from "next/navigation"
+import { logoutUser } from "@/app/others/redux/slices/authSlice"
 
 const lexendBold = Lexend({
   weight: "700",
@@ -40,11 +44,17 @@ const OwnerSidebar: React.FC<OwnerSidebarProps> = ({ activeTab, setActiveTab }) 
     { id: "account", label: "My Account", icon: User },
   ]
 
-  const handleLogout = () => {
-    // Add logout logic here
-    console.log("Logging out...")
-  }
-
+   const dispatch = useDispatch<AppDispatch>();
+const router=useRouter()
+  const handleLogout = async () => {
+    try {
+      await dispatch(logoutUser()).unwrap();
+      console.log("Logged out successfully");
+      router.push('/login')
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
   return (
     <div className="fixed left-0 top-0 h-full w-64 bg-black/95 backdrop-blur-sm border-r border-gray-500/30 z-50">
       <div className="flex flex-col h-full">

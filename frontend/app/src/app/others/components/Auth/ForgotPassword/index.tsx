@@ -101,12 +101,11 @@ export default function ForgotPassword({
             }
           }}
           onResend={async () => {
-            // ✅ Fixed: Actually resend OTP instead of just going back
             try {
               setLoading(true);
               setError("");
-              setOtp(""); // Clear current OTP
-              await onSubmitEmail(email); // Resend OTP with current email
+              setOtp(""); 
+              await onSubmitEmail(email); 
             } catch (err: any) {
               setError(err.response.data.message || "Failed to resend code. Please try again.");
             } finally {
@@ -136,7 +135,6 @@ export default function ForgotPassword({
               setError("Passwords do not match");
               return;
             }
-            // ✅ Add password length validation
             if (password.length < 6) {
               setError("Password must be at least 6 characters long");
               return;
