@@ -342,7 +342,7 @@ export class UserService implements IUserService {
       }
 
       const isRequestedOwner = await this.ownerRepo.findByEmail(email);
-      if (
+      if (isRequestedOwner&&
         isRequestedOwner.status !== "rejected" &&
         isRequestedOwner.status !== "approved"
       ) {
@@ -436,6 +436,7 @@ export class UserService implements IUserService {
 
       const isRequestedOwner = await this.ownerRepo.findByEmail(email);
       if (
+        isRequestedOwner&&
         isRequestedOwner.status !== "rejected" &&
         isRequestedOwner.status !== "approved"
       ) {

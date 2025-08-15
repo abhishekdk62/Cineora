@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -22,9 +21,9 @@ import EditProfileModal from "./EditProfileModal";
 import ChangePasswordModal from "./ChangePasswordModal";
 import ChangeEmailModal from "./ChangeEmailModal";
 
-const lexendBold   = { className: "font-bold" };
+const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
-const lexendSmall  = { className: "font-normal text-sm" };
+const lexendSmall = { className: "font-normal text-sm" };
 
 export interface IUser {
   _id: string;
@@ -48,13 +47,16 @@ export interface IUser {
 }
 
 interface MyAccountContentProps {
-  userData: IUser | null;          
+  userData: IUser | null;
+  getUeserDetails(): void;
 }
 
 type InfoRowProps = { label: string; icon: React.ReactNode; value: string };
 const InfoRow = ({ label, icon, value }: InfoRowProps) => (
   <div>
-    <label className={`${lexendSmall.className} block text-sm font-medium text-gray-300 mb-3`}>
+    <label
+      className={`${lexendSmall.className} block text-sm font-medium text-gray-300 mb-3`}
+    >
       {icon}
       {label}
     </label>
@@ -64,50 +66,65 @@ const InfoRow = ({ label, icon, value }: InfoRowProps) => (
   </div>
 );
 
-type StatCardProps = { icon: React.ReactNode; label: string; value: string; sub?: string };
+type StatCardProps = {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  sub?: string;
+};
 const StatCard = ({ icon, label, value, sub }: StatCardProps) => (
   <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
     <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center mx-auto mb-2">
       {icon}
     </div>
-    <p className={`${lexendSmall.className} text-gray-400 text-xs mb-1`}>{label}</p>
+    <p className={`${lexendSmall.className} text-gray-400 text-xs mb-1`}>
+      {label}
+    </p>
     <p className={`${lexendBold.className} text-white text-lg`}>{value}</p>
-    {sub && <p className={`${lexendSmall.className} text-gray-500 text-xs`}>{sub}</p>}
+    {sub && (
+      <p className={`${lexendSmall.className} text-gray-500 text-xs`}>{sub}</p>
+    )}
   </div>
 );
 
-/* ---------- main component ---------- */
-const MyAccountContent = ({ userData }: MyAccountContentProps) => {
-  const [isEditing, setIsEditing]       = useState(false);
-  const [showPwd, setShowPwd]           = useState(false);
-  const [showEmail, setShowEmail]       = useState(false);
+const MyAccountContent = ({
+  getUeserDetails,
+  userData,
+}: MyAccountContentProps) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
+  const [showEmail, setShowEmail] = useState(false);
 
   if (!userData) return <div className="text-white">Loading…</div>;
 
   const membershipLevel =
-    userData.xpPoints >= 5_000 ? "Premium"
-    : userData.xpPoints >= 2_000 ? "Gold"
-    : userData.xpPoints >=   500 ? "Silver"
-    : "Bronze";
+    userData.xpPoints >= 5_000
+      ? "Premium"
+      : userData.xpPoints >= 2_000
+      ? "Gold"
+      : userData.xpPoints >= 500
+      ? "Silver"
+      : "Bronze";
 
   const nextLevelPoints =
-    userData.xpPoints >= 5_000 ? 0
-    : userData.xpPoints >= 2_000 ? 5_000 - userData.xpPoints
-    : userData.xpPoints >=   500 ? 2_000 - userData.xpPoints
-    : 500 - userData.xpPoints;
+    userData.xpPoints >= 5_000
+      ? 0
+      : userData.xpPoints >= 2_000
+      ? 5_000 - userData.xpPoints
+      : userData.xpPoints >= 500
+      ? 2_000 - userData.xpPoints
+      : 500 - userData.xpPoints;
 
   const progressPct = (() => {
-    const tiers = { Bronze: 500, Silver: 1_500, Gold: 3_000, Premium: 1 }; 
+    const tiers = { Bronze: 500, Silver: 1_500, Gold: 3_000, Premium: 1 };
     const tierLimit = tiers[membershipLevel as keyof typeof tiers];
     const pointsIntoTier =
       membershipLevel === "Premium" ? tierLimit : userData.xpPoints % tierLimit;
     return Math.min(100, (pointsIntoTier / tierLimit) * 100);
   })();
 
-  /* ---------- render ---------- */
   return (
     <div className="max-w-6xl mx-auto space-y-8">
-      {/* ───── header ───── */}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className={`${lexendBold.className} text-4xl text-white mb-2`}>
@@ -125,7 +142,6 @@ const MyAccountContent = ({ userData }: MyAccountContentProps) => {
         </button>
       </div>
 
-      {/* ───── overview card ───── */}
       <div className="bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/10 rounded-2xl p-8 backdrop-blur-xl">
         <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8">
           {/* avatar */}
@@ -164,19 +180,25 @@ const MyAccountContent = ({ userData }: MyAccountContentProps) => {
             {/* name / verified */}
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-6">
               <div>
-                <h2 className={`${lexendBold.className} text-3xl text-white mb-2`}>
+                <h2
+                  className={`${lexendBold.className} text-3xl text-white mb-2`}
+                >
                   {userData.firstName && userData.lastName
                     ? `${userData.firstName} ${userData.lastName}`
                     : userData.username}
                 </h2>
-                <p className={`${lexendMedium.className} text-gray-300 mb-4 flex items-center gap-2`}>
+                <p
+                  className={`${lexendMedium.className} text-gray-300 mb-4 flex items-center gap-2`}
+                >
                   <User className="w-4 h-4" />@{userData.username}
                 </p>
               </div>
               {userData.isVerified && (
                 <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-xl">
                   <Shield className="w-4 h-4 text-green-400" />
-                  <span className={`${lexendSmall.className} text-green-400 font-medium`}>
+                  <span
+                    className={`${lexendSmall.className} text-green-400 font-medium`}
+                  >
                     Verified Account
                   </span>
                 </div>
@@ -189,7 +211,9 @@ const MyAccountContent = ({ userData }: MyAccountContentProps) => {
                 icon={<span className="text-yellow-400 text-lg">✨</span>}
                 label="XP Points"
                 value={userData.xpPoints.toLocaleString()}
-                sub={nextLevelPoints > 0 ? `${nextLevelPoints} to next level` : ""}
+                sub={
+                  nextLevelPoints > 0 ? `${nextLevelPoints} to next level` : ""
+                }
               />
               <StatCard
                 icon={<Calendar className="w-4 h-4 text-blue-400" />}
@@ -210,7 +234,11 @@ const MyAccountContent = ({ userData }: MyAccountContentProps) => {
               <StatCard
                 icon={<Globe className="w-4 h-4 text-purple-400" />}
                 label="Language"
-                value={userData.language === "en" ? "English" : userData.language ?? "—"}
+                value={
+                  userData.language === "en"
+                    ? "English"
+                    : userData.language ?? "—"
+                }
               />
             </div>
           </div>
@@ -223,7 +251,9 @@ const MyAccountContent = ({ userData }: MyAccountContentProps) => {
           <div className="w-10 h-10 bg-white text-black  hover:border-gray-400 rounded-xl flex items-center justify-center">
             <User className="w-5 h-5 bg-white text-black  hover:border-gray-400" />
           </div>
-          <h3 className={`${lexendBold.className} text-xl text-white`}>Personal Information</h3>
+          <h3 className={`${lexendBold.className} text-xl text-white`}>
+            Personal Information
+          </h3>
         </div>
 
         <div className="space-y-5">
@@ -240,7 +270,9 @@ const MyAccountContent = ({ userData }: MyAccountContentProps) => {
           <InfoRow
             label="Preferred Language"
             icon={<Globe className="w-4 h-4 inline mr-2" />}
-            value={userData.language === "en" ? "English" : userData.language ?? "—"}
+            value={
+              userData.language === "en" ? "English" : userData.language ?? "—"
+            }
           />
 
           {userData.phone && (
@@ -273,7 +305,10 @@ const MyAccountContent = ({ userData }: MyAccountContentProps) => {
             <InfoRow
               label="Gender"
               icon={<User className="w-4 h-4 inline mr-2" />}
-              value={userData.gender.charAt(0).toUpperCase() + userData.gender.slice(1)}
+              value={
+                userData.gender.charAt(0).toUpperCase() +
+                userData.gender.slice(1)
+              }
             />
           )}
         </div>
@@ -285,7 +320,9 @@ const MyAccountContent = ({ userData }: MyAccountContentProps) => {
           <div className="w-10 h-10 bg-white text-black  rounded-xl flex items-center justify-center">
             <Shield className="w-5 h-5 text-black" />
           </div>
-          <h3 className={`${lexendBold.className} text-xl text-white`}>Security &amp; Status</h3>
+          <h3 className={`${lexendBold.className} text-xl text-white`}>
+            Security &amp; Status
+          </h3>
         </div>
 
         <div className="space-y-4">
@@ -312,7 +349,6 @@ const MyAccountContent = ({ userData }: MyAccountContentProps) => {
             statusChipStyle="bg-green-500/20 text-green-400 border-green-500/30"
           />
 
-
           {/* last login */}
           <SecurityRow
             iconBg="bg-white"
@@ -328,7 +364,9 @@ const MyAccountContent = ({ userData }: MyAccountContentProps) => {
                 <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
                   <Award className="w-4 h-4 text-black" />
                 </div>
-                <span className={`${lexendMedium.className} text-gray-200`}>Membership Level</span>
+                <span className={`${lexendMedium.className} text-gray-200`}>
+                  Membership Level
+                </span>
               </div>
               <span
                 className={`px-3 py-1 rounded-full text-sm font-medium ${
@@ -371,13 +409,27 @@ const MyAccountContent = ({ userData }: MyAccountContentProps) => {
 
       {/* ───── modals ───── */}
       {isEditing && (
-        <EditProfileModal user={userData} onClose={() => setIsEditing(false)} />
+        <EditProfileModal
+          user={userData}
+          onClose={() => {
+            getUeserDetails();
+            setIsEditing(false);
+          }}
+        />
       )}
-      {showPwd && <ChangePasswordModal onClose={() => setShowPwd(false)} />}
+      {showPwd && (
+        <ChangePasswordModal
+          onClose={() => {
+            setShowPwd(false);
+          }}
+        />
+      )}
       {showEmail && (
         <ChangeEmailModal
           currentEmail={userData.email}
-          onClose={() => setShowEmail(false)}
+          onClose={() => {
+            setShowEmail(false);
+          }}
         />
       )}
     </div>
@@ -407,10 +459,14 @@ const SecurityRow = ({
   <div className="bg-white/5 border border-white/10 rounded-xl p-4">
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <div className={`w-8 h-8 ${iconBg} rounded-lg flex items-center justify-center`}>
+        <div
+          className={`w-8 h-8 ${iconBg} rounded-lg flex items-center justify-center`}
+        >
           {icon}
         </div>
-        <span className={`${lexendMedium.className} text-gray-200`}>{label}</span>
+        <span className={`${lexendMedium.className} text-gray-200`}>
+          {label}
+        </span>
       </div>
 
       {actionLabel && onAction && (
@@ -423,12 +479,18 @@ const SecurityRow = ({
       )}
 
       {statusChip && (
-        <span className={`px-3 py-1 rounded-full text-sm font-medium border ${statusChipStyle}`}>
+        <span
+          className={`px-3 py-1 rounded-full text-sm font-medium border ${statusChipStyle}`}
+        >
           {statusChip}
         </span>
       )}
 
-      {rightText && <span className={`${lexendMedium.className} text-white`}>{rightText}</span>}
+      {rightText && (
+        <span className={`${lexendMedium.className} text-white`}>
+          {rightText}
+        </span>
+      )}
     </div>
   </div>
 );

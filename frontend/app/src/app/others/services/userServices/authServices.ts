@@ -1,17 +1,17 @@
 import apiClient from "../../Utils/apiClient";
 
 export const signup = async (userData: any) => {
-  const response = await apiClient.post('/users/signup', userData);
+  const response = await apiClient.post('/auth/signup', userData);
   return response.data;
 };
 
 export const verifyOTP = async (email: string, otp: string) => {
-  const response = await apiClient.post('/users/verify-otp', { email, otp });
+  const response = await apiClient.post('/auth/verify-otp', { email, otp });
   return response.data;
 };
 
 export const resendOTP = async (email: string) => {
-  const response = await apiClient.post('/users/resend-otp', { email });
+  const response = await apiClient.post('/auth/resend-otp', { email });
   return response.data;
 };
 

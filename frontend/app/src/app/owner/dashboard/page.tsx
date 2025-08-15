@@ -5,6 +5,7 @@ import TheaterManager from "@/app/others/components/Owner/Theatre/TheaterManager
 import MyAccount from "@/app/others/components/Owner/MyAccount/MyAccount"
 import OwnerSidebar from "@/app/others/components/Owner/SideBar.tsx/Sidebar"
 import RouteGuard from "@/app/others/components/Auth/common/RouteGuard"
+import ScreensManager from "@/app/others/components/Owner/Screens/ScreensManager"
 
 const OwnerManager = () => {
   const [activeTab, setActiveTab] = useState("theaters")
@@ -14,7 +15,7 @@ const OwnerManager = () => {
       case "theaters":
         return <TheaterManager />
       case "screens":
-        return <div className="text-white">Screens component coming soon...</div>
+        return <ScreensManager />
       case "shows":
         return <div className="text-white">Shows & Pricing component coming soon...</div>
       case "wallet":

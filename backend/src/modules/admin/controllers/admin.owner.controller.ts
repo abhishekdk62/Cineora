@@ -161,7 +161,7 @@ export async function acceptOwnerRequest(
 ) {
   try {
     const { requestId } = req.params;
-    const adminId = (req as any).admin?.id;
+    const adminId = req.admin.adminId
 
     if (!requestId) {
       return res.status(400).json(
@@ -216,7 +216,7 @@ export async function rejectOwnerRequest(
   try {
     const { requestId } = req.params;
     const { rejectionReason } = req.body;
-    const adminId = (req as any).admin?.id;
+     const adminId = req.admin.adminId
 
     if (!requestId) {
       return res.status(400).json(

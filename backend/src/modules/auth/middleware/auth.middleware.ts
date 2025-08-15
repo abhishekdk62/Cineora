@@ -22,6 +22,7 @@ declare global {
 }
 export const authenticateToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    
     const accessToken = req.cookies?.accessToken;
     const refreshToken = req.cookies?.refreshToken;
     if (!accessToken) {
@@ -180,6 +181,7 @@ export const requireAdmin = (req: Request, res: Response, next: NextFunction) =>
   next();
 };
 export const requireOwner = (req: Request, res: Response, next: NextFunction) => {
+  
   if (req.owner.role !== 'owner') {
     return res.status(403).json(createResponse({
       success: false,

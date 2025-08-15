@@ -6,21 +6,7 @@ export class TheaterRepository implements ITheaterRepository {
     ownerId: string,
     theaterData: Partial<ITheater>
   ): Promise<ITheater | null> {
-    if (!ownerId) {
-      throw new Error("Owner ID is required");
-    }
-
-    const exists = await this.existsByNameAndCity(
-      theaterData.name!,
-      theaterData.city!,
-      theaterData.state!
-    );
-
-    if (exists) {
-      throw new Error("Theater with this name already exists in this city");
-    }
-
-    const theater = new Theater({ ...theaterData, ownerId });
+      const theater = new Theater({ ...theaterData, ownerId });
     return await theater.save();
   }
 
@@ -54,9 +40,9 @@ export class TheaterRepository implements ITheaterRepository {
   }> {
     const query: any = { ownerId };
 
-    if (filters.status === "active") {
+    if (filters?.status === "active") {
       query.isActive = true;
-    } else if (filters.status === "inactive") {
+    } else if (filters?.status === "inactive") {
       query.isActive = false;
     }
 
@@ -158,24 +144,7 @@ export class TheaterRepository implements ITheaterRepository {
     theaterId: string,
     updateData: Partial<ITheater>
   ): Promise<ITheater | null> {
-    if (updateData.name || updateData.city || updateData.state) {
-      const currentTheater = await Theater.findById(theaterId);
-      if (!currentTheater) {
-        throw new Error("Theater not found");
-      }
-
-      const exists = await this.existsByNameAndCity(
-        updateData.name || currentTheater.name,
-        updateData.city || currentTheater.city,
-        updateData.state || currentTheater.state,
-        theaterId
-      );
-
-      if (exists) {
-        throw new Error("Theater with this name already exists in this city");
-      }
-    }
-
+   
     return await Theater.findByIdAndUpdate(
       theaterId,
       { $set: updateData },

@@ -15,7 +15,7 @@ import {
 import TheaterFormModal from "./TheaterFormModal";
 import toast from "react-hot-toast";
 import TheaterViewModal from "./TheaterViewModal";
-import { Theater } from "@/app/others/Types";
+import { ITheater } from "@/app/others/Types";
 import { confirmAction, ConfirmDialog } from "@/app/others/Utils/ConfirmDialog";
 
 const lexendBold = Lexend({
@@ -34,11 +34,11 @@ const lexendSmall = Lexend({
 });
 
 const TheaterManager: React.FC = () => {
-  const [theaters, setTheaters] = useState<Theater[]>([]);
+  const [theaters, setTheaters] = useState<ITheater[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedTheater, setSelectedTheater] = useState<Theater | null>(null);
+  const [selectedTheater, setSelectedTheater] = useState<ITheater | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [showTheaterDetails, setShowTheaterDetails] = useState(false);
@@ -82,7 +82,6 @@ const TheaterManager: React.FC = () => {
       };
 
       const data = await getTheatersByOwnerId(filters);
-      console.log(data);
 
       setTheaters(data.data.theaters || []);
 
@@ -134,7 +133,7 @@ const TheaterManager: React.FC = () => {
     }));
   };
 
-  const handleToggleTheaterStatus = async (theater: Theater) => {
+  const handleToggleTheaterStatus = async (theater: ITheater) => {
     try {
       if (!theater.isVerified) {
         toast.error(
@@ -184,16 +183,16 @@ const TheaterManager: React.FC = () => {
     }
   };
 
-  const handleCreateTheater = (newTheater: Theater) => {
+  const handleCreateTheater = (newTheater: ITheater) => {
     fetchTheaters();
     setShowCreateModal(false);
   };
-  const onView = (theater: Theater) => {
+  const onView = (theater: ITheater) => {
     setSelectedTheater(theater);
     setShowTheaterDetails(true);
   };
 
-  const handleEditTheater = (theater: Theater) => {
+  const handleEditTheater = (theater: ITheater) => {
     setSelectedTheater(theater);
     setShowEditModal(true);
   };

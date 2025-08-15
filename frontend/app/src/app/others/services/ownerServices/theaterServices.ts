@@ -1,8 +1,8 @@
 import axios from "axios";
-import { Theater } from "../../Types";
+import { ITheater } from "../../Types";
 import apiClient from "../../Utils/apiClient";
 
-export async function createTheater(theaterData: Partial<Theater>) {
+export async function createTheater(theaterData: Partial<ITheater>) {
   const result = await apiClient.post("/owner/theaters", theaterData);
   return result.data;
 }
@@ -28,7 +28,7 @@ export const toggleTheaterStatusOwner = async (id:string) => {
   return result.data;
 };
 
-export const updateTheaterOwner=async(theaterId:string,theaterData:Partial<Theater>)=>
+export const updateTheaterOwner=async(theaterId:string,theaterData:Partial<ITheater>)=>
 {
   const result=await apiClient.put(`/owner/theaters/${theaterId}`,theaterData)
   return result.data

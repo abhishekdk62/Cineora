@@ -122,7 +122,6 @@ const MoviesManager: React.FC = () => {
       setHasActiveFilters(isFilterActive);
 
       if (!isFilterActive) {
-        // No active filters - show all movies with client-side pagination
         setFilteredMovies(movies);
         setTotalPages(Math.ceil(movies.length / itemsPerPage));
         setTotalItems(movies.length);

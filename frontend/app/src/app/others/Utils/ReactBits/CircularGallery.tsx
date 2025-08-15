@@ -1,5 +1,14 @@
-import { Camera, Mesh, Plane, Program, Renderer, Texture, Transform } from "ogl";
+import {
+  Camera,
+  Mesh,
+  Plane,
+  Program,
+  Renderer,
+  Texture,
+  Transform,
+} from "ogl";
 import { useEffect, useRef } from "react";
+import { Movie } from "../../components/Admin/Dashboard/Movies/MoviesList";
 
 type GL = Renderer["gl"];
 
@@ -78,7 +87,14 @@ class Title {
   font: string;
   mesh!: Mesh;
 
-  constructor({ gl, plane, renderer, text, textColor = "#545050", font = "30px sans-serif" }: TitleProps) {
+  constructor({
+    gl,
+    plane,
+    renderer,
+    text,
+    textColor = "#545050",
+    font = "30px sans-serif",
+  }: TitleProps) {
     autoBind(this);
     this.gl = gl;
     this.plane = plane;
@@ -90,7 +106,12 @@ class Title {
   }
 
   createMesh() {
-    const { texture, width, height } = createTextTexture(this.gl, this.text, this.font, this.textColor);
+    const { texture, width, height } = createTextTexture(
+      this.gl,
+      this.text,
+      this.font,
+      this.textColor
+    );
     const geometry = new Plane(this.gl);
     const program = new Program(this.gl, {
       vertex: `
@@ -122,7 +143,8 @@ class Title {
     const textHeightScaled = this.plane.scale.y * 0.15;
     const textWidthScaled = textHeightScaled * aspect;
     this.mesh.scale.set(textWidthScaled, textHeightScaled, 1);
-    this.mesh.position.y = -this.plane.scale.y * 0.5 - textHeightScaled * 0.5 - 0.05;
+    this.mesh.position.y =
+      -this.plane.scale.y * 0.5 - textHeightScaled * 0.5 - 0.05;
     this.mesh.setParent(this.plane);
   }
 }
@@ -281,12 +303,80 @@ class Media {
       },
       transparent: true,
     });
+
     const img = new Image();
+    
+    // ✅ Use crossOrigin for all images since we're using proxy for TMDB
     img.crossOrigin = "anonymous";
     img.src = this.image;
+    
     img.onload = () => {
       texture.image = img;
-      this.program.uniforms.uImageSizes.value = [img.naturalWidth, img.naturalHeight];
+      this.program.uniforms.uImageSizes.value = [
+        img.naturalWidth,
+        img.naturalHeight,
+      ];
+    };
+
+    img.onerror = (error) => {
+      console.error('❌ Poster failed to load:', this.image, error);
+      // Create fallback canvas if proxy fails
+      const canvas = document.createElement('canvas');
+      canvas.width = 600;
+      canvas.height = 900;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        // Create movie poster-style fallback
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, '#2d3748');
+        gradient.addColorStop(1, '#1a202c');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Add border
+        ctx.strokeStyle = '#4a5568';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(4, 4, canvas.width - 8, canvas.height - 8);
+        
+        // Add movie icon
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = 'bold 120px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('🎬', canvas.width / 2, canvas.height / 2 - 100);
+        
+        // Add movie title
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 32px Arial';
+        ctx.textAlign = 'center';
+        
+        const title = this.text || 'Movie Title';
+        const maxWidth = canvas.width - 40;
+        const words = title.split(' ');
+        let line = '';
+        let y = canvas.height / 2 + 50;
+        
+        for (let n = 0; n < words.length; n++) {
+          const testLine = line + words[n] + ' ';
+          const metrics = ctx.measureText(testLine);
+          const testWidth = metrics.width;
+          
+          if (testWidth > maxWidth && n > 0) {
+            ctx.fillText(line, canvas.width / 2, y);
+            line = words[n] + ' ';
+            y += 40;
+          } else {
+            line = testLine;
+          }
+        }
+        ctx.fillText(line, canvas.width / 2, y);
+        
+        ctx.fillStyle = '#a0aec0';
+        ctx.font = '18px Arial';
+        ctx.fillText('Poster Unavailable', canvas.width / 2, canvas.height - 60);
+        
+        texture.image = canvas;
+        this.program.uniforms.uImageSizes.value = [canvas.width, canvas.height];
+      }
     };
   }
 
@@ -309,7 +399,10 @@ class Media {
     });
   }
 
-  update(scroll: { current: number; last: number }, direction: "right" | "left") {
+  update(
+    scroll: { current: number; last: number },
+    direction: "right" | "left"
+  ) {
     this.plane.position.x = this.x - scroll.current - this.extra;
 
     const x = this.plane.position.x;
@@ -351,18 +444,29 @@ class Media {
     }
   }
 
-  onResize({ screen, viewport }: { screen?: ScreenSize; viewport?: Viewport } = {}) {
+  onResize({
+    screen,
+    viewport,
+  }: { screen?: ScreenSize; viewport?: Viewport } = {}) {
     if (screen) this.screen = screen;
     if (viewport) {
       this.viewport = viewport;
       if (this.plane.program.uniforms.uViewportSizes) {
-        this.plane.program.uniforms.uViewportSizes.value = [this.viewport.width, this.viewport.height];
+        this.plane.program.uniforms.uViewportSizes.value = [
+          this.viewport.width,
+          this.viewport.height,
+        ];
       }
     }
     this.scale = this.screen.height / 1500;
-    this.plane.scale.y = (this.viewport.height * (900 * this.scale)) / this.screen.height;
-    this.plane.scale.x = (this.viewport.width * (700 * this.scale)) / this.screen.width;
-    this.plane.program.uniforms.uPlaneSizes.value = [this.plane.scale.x, this.plane.scale.y];
+    this.plane.scale.y =
+      (this.viewport.height * (900 * this.scale)) / this.screen.height;
+    this.plane.scale.x =
+      (this.viewport.width * (700 * this.scale)) / this.screen.width;
+    this.plane.program.uniforms.uPlaneSizes.value = [
+      this.plane.scale.x,
+      this.plane.scale.y,
+    ];
     this.padding = 2;
     this.width = this.plane.scale.x + this.padding;
     this.widthTotal = this.width * this.length;
@@ -371,7 +475,7 @@ class Media {
 }
 
 interface AppConfig {
-  items?: { image: string; text: string }[];
+  items?: Movie[];
   bend?: number;
   textColor?: string;
   borderRadius?: number;
@@ -397,7 +501,7 @@ class App {
   scene!: Transform;
   planeGeometry!: Plane;
   medias: Media[] = [];
-  mediasImages: { image: string; text: string }[] = [];
+  mediasImages: any[] = [];
   screen!: { width: number; height: number };
   viewport!: { width: number; height: number };
   raf: number = 0;
@@ -442,7 +546,17 @@ class App {
     this.renderer = new Renderer({ alpha: true });
     this.gl = this.renderer.gl;
     this.gl.clearColor(0, 0, 0, 0);
-    this.container.appendChild(this.renderer.gl.canvas as HTMLCanvasElement);
+    
+    const canvas = this.renderer.gl.canvas as HTMLCanvasElement;
+    
+    // Remove debug background after testing
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.display = 'block';
+    
+
+    
+    this.container.appendChild(canvas);
   }
 
   createCamera() {
@@ -463,7 +577,7 @@ class App {
   }
 
   createMedias(
-    items: { image: string; text: string }[] | undefined,
+    items: Movie[] | undefined,
     bend: number = 1,
     textColor: string,
     borderRadius: number,
@@ -519,19 +633,29 @@ class App {
         text: "Palm Trees",
       },
     ];
-    const galleryItems = items && items.length ? items : defaultItems;
+
+    // ✅ Use proxy service for TMDB images to show real posters
+    const galleryItems = items && items.length ? items.map(movie => ({
+      poster: movie.poster?.includes('image.tmdb.org') 
+        ? `https://images.weserv.nl/?url=${encodeURIComponent(movie.poster)}&w=600&h=900&output=webp`
+        : movie.poster || `https://picsum.photos/seed/${movie._id}/600/900`,
+      title: movie.title || 'Untitled Movie',
+      id: movie._id
+    })) : defaultItems;
+
+
     this.mediasImages = galleryItems.concat(galleryItems);
     this.medias = this.mediasImages.map((data, index) => {
       return new Media({
         geometry: this.planeGeometry,
         gl: this.gl,
-        image: data.image,
+        image: data.poster || data.image,
         index,
         length: this.mediasImages.length,
         renderer: this.renderer,
         scene: this.scene,
         screen: this.screen,
-        text: data.text,
+        text: data.title || data.text,
         viewport: this.viewport,
         bend,
         textColor,
@@ -561,7 +685,10 @@ class App {
 
   onWheel(e: Event) {
     const wheelEvent = e as WheelEvent;
-    const delta = wheelEvent.deltaY || (wheelEvent as any).wheelDelta || (wheelEvent as any).detail;
+    const delta =
+      wheelEvent.deltaY ||
+      (wheelEvent as any).wheelDelta ||
+      (wheelEvent as any).detail;
     this.scroll.target += delta > 0 ? this.scrollSpeed : -this.scrollSpeed;
     this.onCheckDebounce();
   }
@@ -579,25 +706,36 @@ class App {
       width: this.container.clientWidth,
       height: this.container.clientHeight,
     };
+    
     this.renderer.setSize(this.screen.width, this.screen.height);
     this.camera.perspective({
       aspect: this.screen.width / this.screen.height,
     });
+    
     const fov = (this.camera.fov * Math.PI) / 180;
     const height = 2 * Math.tan(fov / 2) * this.camera.position.z;
     const width = height * this.camera.aspect;
     this.viewport = { width, height };
+    
     if (this.medias) {
-      this.medias.forEach((media) => media.onResize({ screen: this.screen, viewport: this.viewport }));
+      this.medias.forEach((media) =>
+        media.onResize({ screen: this.screen, viewport: this.viewport })
+      );
     }
   }
 
   update() {
-    this.scroll.current = lerp(this.scroll.current, this.scroll.target, this.scroll.ease);
+    this.scroll.current = lerp(
+      this.scroll.current,
+      this.scroll.target,
+      this.scroll.ease
+    );
     const direction = this.scroll.current > this.scroll.last ? "right" : "left";
-    if (this.medias) {
+    
+    if (this.medias && this.medias.length > 0) {
       this.medias.forEach((media) => media.update(this.scroll, direction));
     }
+    
     this.renderer.render({ scene: this.scene, camera: this.camera });
     this.scroll.last = this.scroll.current;
     this.raf = window.requestAnimationFrame(this.update.bind(this));
@@ -621,30 +759,48 @@ class App {
   }
 
   destroy() {
-    window.cancelAnimationFrame(this.raf);
-    window.removeEventListener("resize", this.boundOnResize);
-    window.removeEventListener("mousewheel", this.boundOnWheel);
-    window.removeEventListener("wheel", this.boundOnWheel);
-    window.removeEventListener("mousedown", this.boundOnTouchDown);
-    window.removeEventListener("mousemove", this.boundOnTouchMove);
-    window.removeEventListener("mouseup", this.boundOnTouchUp);
-    window.removeEventListener("touchstart", this.boundOnTouchDown);
-    window.removeEventListener("touchmove", this.boundOnTouchMove);
-    window.removeEventListener("touchend", this.boundOnTouchUp);
-    if (this.renderer && this.renderer.gl && this.renderer.gl.canvas.parentNode) {
-      this.renderer.gl.canvas.parentNode.removeChild(this.renderer.gl.canvas as HTMLCanvasElement);
+    
+    if (this.raf) {
+      window.cancelAnimationFrame(this.raf);
     }
+    
+    if (this.boundOnResize) window.removeEventListener("resize", this.boundOnResize);
+    if (this.boundOnWheel) {
+      window.removeEventListener("mousewheel", this.boundOnWheel);
+      window.removeEventListener("wheel", this.boundOnWheel);
+    }
+    if (this.boundOnTouchDown) window.removeEventListener("mousedown", this.boundOnTouchDown);
+    if (this.boundOnTouchMove) window.removeEventListener("mousemove", this.boundOnTouchMove);
+    if (this.boundOnTouchUp) window.removeEventListener("mouseup", this.boundOnTouchUp);
+    if (this.boundOnTouchDown) window.removeEventListener("touchstart", this.boundOnTouchDown);
+    if (this.boundOnTouchMove) window.removeEventListener("touchmove", this.boundOnTouchMove);
+    if (this.boundOnTouchUp) window.removeEventListener("touchend", this.boundOnTouchUp);
+    
+    if (this.renderer && this.renderer.gl && this.renderer.gl.canvas && this.renderer.gl.canvas.parentNode) {
+      this.renderer.gl.canvas.parentNode.removeChild(this.renderer.gl.canvas);
+    }
+    
+    if (this.medias) {
+      this.medias.forEach(media => {
+        if (media.plane && media.plane.parent) {
+          media.plane.setParent(null);
+        }
+      });
+      this.medias = [];
+    }
+    
   }
 }
 
 interface CircularGalleryProps {
-  items?: { image: string; text: string }[];
+  items?: Movie[];
   bend?: number;
   textColor?: string;
   borderRadius?: number;
   font?: string;
   scrollSpeed?: number;
   scrollEase?: number;
+  handleClick(id: string): void;
 }
 
 export default function CircularGallery({
@@ -655,24 +811,48 @@ export default function CircularGallery({
   font = "bold 30px Figtree",
   scrollSpeed = 2,
   scrollEase = 0.05,
+  handleClick,
 }: CircularGalleryProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const appRef = useRef<App | null>(null);
+
   useEffect(() => {
     if (!containerRef.current) return;
-    const app = new App(containerRef.current, {
-      items,
-      bend,
-      textColor,
-      borderRadius,
-      font,
-      scrollSpeed,
-      scrollEase,
-    });
 
-    return () => {
-      app.destroy();
-    };
-    
+
+    try {
+      const app = new App(containerRef.current, {
+        items,
+        bend,
+        textColor,
+        borderRadius,
+        font,
+        scrollSpeed,
+        scrollEase,
+      });
+      
+      appRef.current = app;
+
+      return () => {
+        if (appRef.current && typeof appRef.current.destroy === 'function') {
+          appRef.current.destroy();
+        } else {
+          console.warn('⚠️ App destroy method not available');
+          if (appRef.current?.raf) {
+            window.cancelAnimationFrame(appRef.current.raf);
+          }
+        }
+        appRef.current = null;
+      };
+    } catch (error) {
+      console.error('❌ Error creating CircularGallery app:', error);
+    }
   }, [items, bend, textColor, borderRadius, font, scrollSpeed, scrollEase]);
-  return <div className="w-full h-full overflow-hidden cursor-grab active:cursor-grabbing" ref={containerRef} />;
+
+  return (
+    <div
+      className="w-full h-full overflow-hidden cursor-grab active:cursor-grabbing"
+      ref={containerRef}
+    />
+  );
 }

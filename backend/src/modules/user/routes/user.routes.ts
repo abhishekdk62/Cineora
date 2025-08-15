@@ -13,11 +13,9 @@ import {
   getMoviesWithFilters,
 } from "../controllers/user.controller";
 const router = Router();
-router.post("/signup", signup);
-router.post("/verify-otp", verifyOTP);
-router.post("/resend-otp", resendOTP);
-router.patch("/reset-password", resetPassword);
 router.get("/profile", getUserProfile);
+router.patch("/reset-password", resetPassword);
+
 router.put("/profile", updateProfile);
 router.post("/email/change",changeEmail);
 router.post("/email/verify",verifyChangeEmailOtp);

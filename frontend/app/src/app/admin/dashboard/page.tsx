@@ -42,7 +42,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <RouteGuard allowedRoles={["admin"]}>
+    <RouteGuard  allowedRoles={["admin"]}>
       <AdminProvider>
         <div className="min-h-screen bg-[#040404] flex">
           <Sidebar

@@ -27,7 +27,7 @@ export default function LoginPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
-  const { loading, error, isAuthenticated, role } = useAppSelector(
+  const { loading, error } = useAppSelector(
     (state) => state.auth
   );
 

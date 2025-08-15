@@ -1,3 +1,4 @@
+import axios from "axios";
 import apiClient from "../../Utils/apiClient"
 
 export const getMovieById = async (id:string) => {
@@ -31,3 +32,5 @@ export const getMoviesWithFilters = async (filters: {
   const response = await apiClient.get(`/users/movies/filter?${params.toString()}`);
   return response.data;
 };
+
+

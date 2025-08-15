@@ -30,7 +30,7 @@ export async function getOwnerProfile(
 ) {
   try {
     const owner = req.owner;
-    const requestId = owner.id;
+    const requestId = owner.ownerId;
     if (!requestId) {
       return res.status(400).json(
         createResponse({
