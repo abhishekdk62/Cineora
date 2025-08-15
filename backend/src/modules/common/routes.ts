@@ -7,5 +7,4 @@ const router=Router()
 
 router.get('/movies/:movieId',getMovieById)
 
-
 export default router

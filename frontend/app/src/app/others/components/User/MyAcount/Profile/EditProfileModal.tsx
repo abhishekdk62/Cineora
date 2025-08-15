@@ -1,10 +1,4 @@
-/* -----------------------------------------------------------------------------
- * EditProfileModal.tsx
- * Complete modal with:
- *   • required-field validation
- *   • react-hot-toast feedback
- *   • 1:1 image cropping functionality
- * -------------------------------------------------------------------------- */
+
 
 "use client";
 
@@ -245,6 +239,7 @@ const EditProfileModal = ({ user, onClose ,onDataUpdate}: EditProfileModalProps)
       await updateProfile(formData);
       toast.success("Profile updated");
       onClose();
+      
     } catch (err) {
       console.error(err);
       toast.error("Update failed — try again.");

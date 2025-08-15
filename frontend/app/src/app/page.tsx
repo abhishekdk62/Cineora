@@ -30,6 +30,7 @@ interface Movie {
 export default function LandingPage() {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const router = useRouter();
+  console.log('🏠 LANDING PAGE - Rendering with RouteGuard excludedRoles:', ["owner", "admin"]);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);

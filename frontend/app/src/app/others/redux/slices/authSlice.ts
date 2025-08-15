@@ -1,6 +1,10 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { login as loginAPI } from "../../services/userServices/authServices";
+import {
+  login as loginAPI,
+  verifyOTP,
+} from "../../services/userServices/authServices";
 import { googleAuth, logout } from "../../services/authServices/authService";
+import { verify } from "crypto";
 
 interface User {
   id: string;
@@ -28,6 +32,42 @@ const initialState: AuthState = {
   loading: false,
   error: null,
 };
+
+export const verifyOtp = createAsyncThunk(
+  "auth/verifyOtp",
+  async (
+    { email, otp }: { email: string; otp: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const result = await verifyOTP(email, otp);
+
+      if (result.success) {
+        return {
+          user: result.data.user,
+          role: result.data.role,
+          redirectTo: result.data.redirectTo,
+        };
+      } else {
+        return rejectWithValue(result.message);
+      }
+    } catch (error: any) {
+      let errorMessage = "OTP verification failed";
+
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.status === 401) {
+        errorMessage = "Invalid OTP";
+      } else if (error.response?.status >= 500) {
+        errorMessage = "Server error. Please try again later.";
+      } else if (error.request) {
+        errorMessage = "Network error. Please check your connection.";
+      }
+
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
 
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
@@ -102,7 +142,7 @@ export const checkAuthStatus = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await fetch("/api/auth/me", {
-        credentials: "include", 
+        credentials: "include",
       });
 
       if (response.ok) {
@@ -216,13 +256,29 @@ const authSlice = createSlice({
         state.user = null;
         state.role = null;
         state.isAuthenticated = false;
-        state.error = null; 
+        state.error = null;
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
         state.role = null;
         state.isAuthenticated = false;
         state.error = null;
+      })
+      .addCase(verifyOtp.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(verifyOtp.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user;
+        state.role = action.payload.role;
+        state.isAuthenticated = true;
+        state.error = null;
+      })
+      .addCase(verifyOtp.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+        state.isAuthenticated = false;
       });
   },
 });

@@ -317,7 +317,7 @@ export class OwnerService {
       const existingOwnerRequest = await this.ownerRequestRepo.findByEmail(
         newEmail
       );
-      if (
+      if (existingOwnerRequest&&
         existingOwnerRequest.status !== "rejected" &&
         existingOwnerRequest.status !== "approved"
       ) {
@@ -401,6 +401,7 @@ export class OwnerService {
 
       const isRequestedOwner = await this.ownerRequestRepo.findByEmail(email);
       if (
+        isRequestedOwner &&
         isRequestedOwner.status !== "rejected" &&
         isRequestedOwner.status !== "approved"
       ) {

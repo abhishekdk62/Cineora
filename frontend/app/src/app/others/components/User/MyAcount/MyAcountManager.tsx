@@ -104,7 +104,7 @@ const AccountPage = () => {
   const renderContent = () => {
     switch (activeSection) {
       case "account":
-        return <MyAccountContent userData={userData} />;
+        return <MyAccountContent getUeserDetails={getUeserDetails} userData={userData} />;
       case "bookings":
         return <ComingSoonContent title="My Bookings" icon={Calendar} />;
       case "notifications":
@@ -118,7 +118,7 @@ const AccountPage = () => {
       case "help":
         return <ComingSoonContent title="Help & Support" icon={HelpCircle} />;
       default:
-        return <MyAccountContent userData={userData} />;
+        return <MyAccountContent getUeserDetails={getUeserDetails} userData={userData} />;
     }
   };
 

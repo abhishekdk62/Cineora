@@ -435,7 +435,6 @@ const MoviesList: React.FC<MoviesListProps> = ({
         {/* Your existing Search and Filter Bar */}
         <div className="bg-[#1a1a1a] border border-gray-600 rounded-lg p-4 shadow-lg">
           <div className="flex flex-col gap-4">
-            {/* Search and Toggle Filters Row */}
             <div className="flex gap-4 items-center">
               <div className="relative flex-1">
                 <Search
@@ -460,11 +459,7 @@ const MoviesList: React.FC<MoviesListProps> = ({
               >
                 <SlidersHorizontal size={16} />
                 <span>Filters</span>
-                {activeFilterCount > 0 && (
-                  <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                    {activeFilterCount}
-                  </span>
-                )}
+             
               </button>
               {activeFilterCount > 0 && (
                 <button
@@ -477,11 +472,8 @@ const MoviesList: React.FC<MoviesListProps> = ({
               )}
             </div>
 
-            {/* Advanced Filters - Your existing filters remain the same */}
             {showFilters && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pt-4 border-t border-gray-600">
-                {/* All your existing filter components remain the same */}
-                {/* Rating Filter */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Rating

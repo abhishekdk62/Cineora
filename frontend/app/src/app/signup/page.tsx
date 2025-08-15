@@ -16,6 +16,9 @@ import {
   verifyOTP,
 } from "../others/services/userServices/authServices";
 import RouteGuard from "../others/components/Auth/common/RouteGuard";
+import { useDispatch } from "react-redux";
+import { verifyOtp } from "../others/redux/slices/authSlice";
+import { useAppDispatch } from "../others/redux/hooks/redux";
 
 const lexend = Lexend({
   weight: "500",
@@ -36,7 +39,7 @@ export default function SignUp() {
   const [resendLoading, setResendLoading] = useState(false);
 
   const router = useRouter();
-
+  const dispatch = useAppDispatch();
   const handleSubmit = async (data: any) => {
     setLoading(true);
     setError("");
@@ -57,9 +60,20 @@ export default function SignUp() {
         lastName: data.lastName,
         language: "en",
       };
+
       const result = await signup(signupData);
+
+      if (result.success) {
+        setEmail(data.email);
+        setStep("otp");
+        console.log("Signup successful, moving to OTP step");
+      } else {
+        setError(result.message || "Signup failed");
+      }
     } catch (err: any) {
-      setError(err.response.data.message || "Signup failed. Please try again.");
+      setError(
+        err.response?.data?.message || "Signup failed. Please try again."
+      );
       console.error("Signup error:", err);
     } finally {
       setLoading(false);
@@ -74,20 +88,16 @@ export default function SignUp() {
     e.preventDefault();
     setOtpLoading(true);
     setError("");
-
     try {
-      const result = await verifyOTP(email, otp);
-
-      if (result.success) {
-        console.log("OTP verified successfully:", result.message);
+      const resultAction = await dispatch(verifyOtp({ email, otp }));
+      if (verifyOtp.fulfilled.match(resultAction)) {
         router.push("/");
       } else {
-        setError("Something went wrong");
+        setError(resultAction.payload as string);
       }
     } catch (err: any) {
       setError(err.message || "OTP verification failed. Please try again.");
       console.error("OTP verification error:", err);
-      setError(err.response.data.message);
     } finally {
       setOtpLoading(false);
     }
@@ -116,58 +126,58 @@ export default function SignUp() {
   };
 
   return (
- <RouteGuard excludedRoles={['owner','user','admin']} >
-    <div className="min-h-screen relative flex items-center justify-center bg-black overflow-hidden p-4">
-      <div className="absolute inset-0 z-0">
-        <Aurora
-          colorStops={["#5B2EFF", "#FF5A3C", "#2EFF68"]}
-          blend={0.5}
-          amplitude={1.0}
-          speed={0.5}
-        />
-      </div>
+    <RouteGuard excludedRoles={["owner", "user", "admin"]}>
+      <div className="min-h-screen relative flex items-center justify-center bg-black overflow-hidden p-4">
+        <div className="absolute inset-0 z-0">
+          <Aurora
+            colorStops={["#5B2EFF", "#FF5A3C", "#2EFF68"]}
+            blend={0.5}
+            amplitude={1.0}
+            speed={0.5}
+          />
+        </div>
 
-      {step === "signup" ? (
-        <div className="relative z-10 w-full max-w-md border border-gray-500 p-8 rounded-2xl backdrop-blur-sm">
-          <div className="text-center mb-8">
-            <h1 className={`${lexend.className} text-3xl text-white mb-2`}>
-              Are you new here?
-            </h1>
-            <p className={`${lexendSmall.className} text-gray-300`}>
-              Create your account
-            </p>
-            <button
-              onClick={() => router.push("/owner")}
-              className="py-2 px-2 mt-2 border border-gray-400 text-white rounded-4xl"
-            >
-              Or Become an Owner
-            </button>
+        {step === "signup" ? (
+          <div className="relative z-10 w-full max-w-md border border-gray-500 p-8 rounded-2xl backdrop-blur-sm">
+            <div className="text-center mb-8">
+              <h1 className={`${lexend.className} text-3xl text-white mb-2`}>
+                Are you new here?
+              </h1>
+              <p className={`${lexendSmall.className} text-gray-300`}>
+                Create your account
+              </p>
+              <button
+                onClick={() => router.push("/owner")}
+                className="py-2 px-2 mt-2 border border-gray-400 text-white rounded-4xl"
+              >
+                Or Become an Owner
+              </button>
+            </div>
+            <AuthForm
+              isSignup
+              onSubmit={handleSubmit}
+              onSwitch={goToSignIn}
+              error={error}
+              loading={loading}
+            />
           </div>
-          <AuthForm
-            isSignup
-            onSubmit={handleSubmit}
-            onSwitch={goToSignIn}
-            error={error}
-            loading={loading}
-          />
-        </div>
-      ) : (
-        <div className="relative z-10 w-full max-w-md border border-gray-500 p-8 rounded-2xl backdrop-blur-sm">
-          <OTPStep
-            email={email}
-            otp={otp}
-            setOtp={setOtp}
-            loading={otpLoading}
-            error={error}
-            onSubmit={handleVerifyOTP}
-            onResend={handleResendOTP}
-            lexend={lexend}
-            lexendSmall={lexendSmall}
-            resendLoading={resendLoading}
-          />
-        </div>
-      )}
-    </div>
+        ) : (
+          <div className="relative z-10 w-full max-w-md border border-gray-500 p-8 rounded-2xl backdrop-blur-sm">
+            <OTPStep
+              email={email}
+              otp={otp}
+              setOtp={setOtp}
+              loading={otpLoading}
+              error={error}
+              onSubmit={handleVerifyOTP}
+              onResend={handleResendOTP}
+              lexend={lexend}
+              lexendSmall={lexendSmall}
+              resendLoading={resendLoading}
+            />
+          </div>
+        )}
+      </div>
     </RouteGuard>
   );
 }

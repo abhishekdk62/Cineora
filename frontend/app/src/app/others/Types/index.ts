@@ -1,8 +1,6 @@
 import { Movie } from "../components/Admin/Dashboard/Movies/MoviesList";
 
-
-
-export interface Theater {
+export interface ITheater {
   _id: string;
   ownerId: string;
   name: string;
@@ -23,13 +21,12 @@ export interface Theater {
   updatedAt: string;
 }
 
-
 export type ShowTime = {
   movieId: string;
   theaterId: string;
-  time: string; 
+  time: string;
 };
 
 export type Suggestion =
   | { type: "movie"; data: Movie }
-  | { type: "theater"; data: Theater };
+  | { type: "theater"; data: ITheater };

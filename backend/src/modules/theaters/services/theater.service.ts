@@ -7,7 +7,10 @@ import {
 export class TheaterService {
   constructor(private theaterRepo: ITheaterRepository) {}
 
-  async createTheater(ownerId: string, theaterData: ITheater): Promise<ServiceResponse> {
+  async createTheater(
+    ownerId: string,
+    theaterData: ITheater
+  ): Promise<ServiceResponse> {
     try {
       if (!ownerId) {
         return {
@@ -16,7 +19,12 @@ export class TheaterService {
         };
       }
 
-      if (!theaterData.name || !theaterData.address || !theaterData.city || !theaterData.state) {
+      if (
+        !theaterData.name ||
+        !theaterData.address ||
+        !theaterData.city ||
+        !theaterData.state
+      ) {
         return {
           success: false,
           message: "Name, address, city, and state are required",
@@ -32,6 +40,18 @@ export class TheaterService {
           message: "Valid location coordinates are required",
         };
       }
+      const exists = await this.theaterRepo.existsByNameAndCity(
+        theaterData.name,
+        theaterData.city,
+        theaterData.state
+      );
+
+      if (exists) {
+        return {
+          success: false,
+          message: "Theater with this name already exists in this city",
+        };
+      }
 
       const theater = await this.theaterRepo.create(ownerId, theaterData);
 
@@ -45,10 +65,12 @@ export class TheaterService {
       return {
         success: true,
         message: "Theater created successfully",
-        data: theater, 
+        data: theater,
       };
     } catch (error: any) {
-      if (error.message === "Theater with this name already exists in this city") {
+      if (
+        error.message === "Theater with this name already exists in this city"
+      ) {
         return {
           success: false,
           message: error.message,
@@ -155,6 +177,30 @@ export class TheaterService {
           message: "Theater ID is required",
         };
       }
+      if (updateData.name || updateData.city || updateData.state) {
+      const currentTheater = await this.theaterRepo.findById(theaterId);
+      if (!currentTheater) {
+        return {
+          success: false,
+          message: "Theater not found",
+        };
+      }
+
+      const exists = await this.theaterRepo.existsByNameAndCity(
+        updateData.name || currentTheater.name,
+        updateData.city || currentTheater.city,
+        updateData.state || currentTheater.state,
+        theaterId
+      );
+
+      if (exists) {
+        return {
+          success: false,
+          message: "Theater with this name already exists in this city",
+        };
+      }
+    }
+
 
       const theater = await this.theaterRepo.update(theaterId, updateData);
 
@@ -171,7 +217,9 @@ export class TheaterService {
         data: theater,
       };
     } catch (error: any) {
-      if (error.message === "Theater with this name already exists in this city") {
+      if (
+        error.message === "Theater with this name already exists in this city"
+      ) {
         return {
           success: false,
           message: error.message,
@@ -205,7 +253,9 @@ export class TheaterService {
 
       return {
         success: true,
-        message: `Theater ${theater.isActive ? "activated" : "deactivated"} successfully`,
+        message: `Theater ${
+          theater.isActive ? "activated" : "deactivated"
+        } successfully`,
         data: theater,
       };
     } catch (error: any) {

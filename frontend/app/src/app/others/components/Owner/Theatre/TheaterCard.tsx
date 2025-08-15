@@ -15,7 +15,7 @@ import {
   AlertCircle,
   ShieldCheck,
 } from "lucide-react";
-import { Theater } from "@/app/others/Types";
+import { ITheater } from "@/app/others/Types";
 import { confirmAction } from "@/app/others/Utils/ConfirmDialog";
 
 const lexendBold = Lexend({
@@ -34,11 +34,11 @@ const lexendSmall = Lexend({
 });
 
 interface TheaterCardProps {
-  theater: Theater;
-  onToggleStatus: (theater: Theater) => void;
+  theater: ITheater;
+  onToggleStatus: (theater: ITheater) => void;
   onDelete: (id: string) => void;
-  onEdit: (theater: Theater) => void;
-  onView: (theater: Theater) => void;
+  onEdit: (theater: ITheater) => void;
+  onView: (theater: ITheater) => void;
 }
 
 const TheaterCard: React.FC<TheaterCardProps> = ({
