@@ -205,6 +205,7 @@ const ScreenFormModal: React.FC<ScreenFormModalProps> = ({
       setErrors({ submit: errorMessage });
       toast.error(errorMessage);
     } finally {
+      onClose()
       setIsLoading(false);
     }
   };

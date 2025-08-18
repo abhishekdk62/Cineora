@@ -28,6 +28,7 @@ const TheaterSchema: Schema = new Schema<ITheater>(
     },
     screens: { type: Number,default:0 },
     isActive: { type: Boolean, default: false },
+    isRejected:{type:Boolean,default:false},
     isVerified: { type: Boolean, default: false },
   },
 

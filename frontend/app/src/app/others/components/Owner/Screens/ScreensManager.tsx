@@ -54,6 +54,7 @@ const ScreenManagement = () => {
     try {
       setIsLoading(true);
       const data = await getTheatersByOwnerId();
+      
       setTheaters(data.data.theaters || []);
     } catch (error) {
       console.error("Error fetching theaters:", error);

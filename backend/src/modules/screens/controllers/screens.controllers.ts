@@ -1,13 +1,16 @@
 import { Request, Response } from "express";
 import { ScreenService } from "../services/screens.services";
 import { ScreenRepository } from "../repositories/screens.repositories";
+import { TheaterRepository } from "../../theaters/repositories/theater.repository";
+import { TheaterService } from "../../theaters/services/theater.service";
 
 export class ScreenController {
   private screenService: ScreenService;
 
   constructor() {
     const screenRepo = new ScreenRepository();
-    this.screenService = new ScreenService(screenRepo);
+    const theaterRepo=new TheaterRepository()
+    this.screenService = new ScreenService(screenRepo,theaterRepo);
   }
 
   async createScreen(req: Request, res: Response): Promise<void> {
@@ -149,6 +152,7 @@ export class ScreenController {
       });
     }
   }
+  
   getScreenStats = async (req: Request, res: Response) => {
     try {
       const { theaterId } = req.params;
@@ -220,14 +224,13 @@ export class ScreenController {
         req.params.id,
         req.body
       );
-   
+
       if (result.success) {
         res.status(200).json(result);
       } else {
         res.status(400).json(result);
       }
     } catch (error: any) {
-      
       res.status(500).json({
         success: false,
         message: error.message || "Internal server error",
@@ -237,7 +240,12 @@ export class ScreenController {
 
   async toggleScreenStatus(req: Request, res: Response): Promise<void> {
     try {
-
+      const screen = await this.screenService.getScreensTheaterData(
+        req.params.id
+      );
+      if (!screen.success) {
+        res.status(403).json(screen.message);
+      }
       const result = await this.screenService.toggleScreenStatus(req.params.id);
 
       if (result.success) {

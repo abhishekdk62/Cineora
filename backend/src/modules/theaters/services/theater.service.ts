@@ -1,3 +1,4 @@
+import { IEmailService } from "../../../services/email.service";
 import {
   ITheater,
   ITheaterRepository,
@@ -5,7 +6,10 @@ import {
 } from "../interfaces/theater.interface";
 
 export class TheaterService {
-  constructor(private theaterRepo: ITheaterRepository) {}
+  constructor(
+    private theaterRepo: ITheaterRepository,
+    private emailService: IEmailService
+  ) {}
 
   async createTheater(
     ownerId: string,
@@ -178,29 +182,28 @@ export class TheaterService {
         };
       }
       if (updateData.name || updateData.city || updateData.state) {
-      const currentTheater = await this.theaterRepo.findById(theaterId);
-      if (!currentTheater) {
-        return {
-          success: false,
-          message: "Theater not found",
-        };
+        const currentTheater = await this.theaterRepo.findById(theaterId);
+        if (!currentTheater) {
+          return {
+            success: false,
+            message: "Theater not found",
+          };
+        }
+
+        const exists = await this.theaterRepo.existsByNameAndCity(
+          updateData.name || currentTheater.name,
+          updateData.city || currentTheater.city,
+          updateData.state || currentTheater.state,
+          theaterId
+        );
+
+        if (exists) {
+          return {
+            success: false,
+            message: "Theater with this name already exists in this city",
+          };
+        }
       }
-
-      const exists = await this.theaterRepo.existsByNameAndCity(
-        updateData.name || currentTheater.name,
-        updateData.city || currentTheater.city,
-        updateData.state || currentTheater.state,
-        theaterId
-      );
-
-      if (exists) {
-        return {
-          success: false,
-          message: "Theater with this name already exists in this city",
-        };
-      }
-    }
-
 
       const theater = await this.theaterRepo.update(theaterId, updateData);
 
@@ -265,7 +268,6 @@ export class TheaterService {
       };
     }
   }
-
   async verifyTheater(theaterId: string): Promise<ServiceResponse> {
     try {
       if (!theaterId) {
@@ -275,13 +277,38 @@ export class TheaterService {
         };
       }
 
-      const theater = await this.theaterRepo.verifyTheater(theaterId);
+      const existingTheater = await this.theaterRepo.findById(theaterId);
+      if (!existingTheater) {
+        return {
+          success: false,
+          message: "Theater not found",
+        };
+      }
 
+      const theater = await this.theaterRepo.verifyTheater(theaterId);
       if (!theater) {
         return {
           success: false,
           message: "Theater not found",
         };
+      }
+
+      if (
+        existingTheater.ownerId &&
+        typeof existingTheater.ownerId === "object" &&
+        "email" in existingTheater.ownerId
+      ) {
+        try {
+          await this.emailService.sendTheaterVerifiedEmail(
+            (existingTheater.ownerId as any).email,
+            existingTheater.name
+          );
+        } catch (emailError) {
+          console.error(
+            "❌ Failed to send theater verification email:",
+            emailError
+          );
+        }
       }
 
       return {
@@ -290,6 +317,69 @@ export class TheaterService {
         data: theater,
       };
     } catch (error: any) {
+      console.error("Verify theater error:", error);
+      return {
+        success: false,
+        message: error.message || "Something went wrong",
+      };
+    }
+  }
+
+  async rejectTheater(
+    theaterId: string,
+    rejectionReason?: string
+  ): Promise<ServiceResponse> {
+    try {
+      if (!theaterId) {
+        return {
+          success: false,
+          message: "Theater ID is required",
+        };
+      }
+
+      const existingTheater = await this.theaterRepo.findById(theaterId);
+      if (!existingTheater) {
+        return {
+          success: false,
+          message: "Theater not found",
+        };
+      }
+
+      const theater = await this.theaterRepo.delete(theaterId);
+      if (!theater) {
+        return {
+          success: false,
+          message: "Theater not found",
+        };
+      }
+
+      if (
+        existingTheater.ownerId &&
+        typeof existingTheater.ownerId === "object" &&
+        "email" in existingTheater.ownerId
+      ) {
+        try {
+          await this.emailService.sendTheaterRejectedEmail(
+            (existingTheater.ownerId as any).email,
+            existingTheater.name,
+            rejectionReason ||
+              "Your theater application did not meet our requirements."
+          );
+        } catch (emailError) {
+          console.error(
+            "❌ Failed to send theater rejection email:",
+            emailError
+          );
+        }
+      }
+
+      return {
+        success: true,
+        message: "Theater rejected successfully",
+        data: theater,
+      };
+    } catch (error: any) {
+      console.error("Reject theater error:", error);
       return {
         success: false,
         message: error.message || "Something went wrong",

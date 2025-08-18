@@ -15,6 +15,7 @@ export interface ITheater extends Document {
   facilities: string[];
   screens: number;
   isActive: boolean;
+  isRejected:boolean;
   isVerified:boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -39,6 +40,9 @@ export interface ITheaterRepository {
   update(theaterId: string, updateData: Partial<ITheater>): Promise<ITheater | null>;
   toggleStatus(theaterId: string): Promise<ITheater | null>;
   verifyTheater(theaterId: string): Promise<ITheater | null>;
+  rejectTheater(theaterId: string): Promise<ITheater | null>;
+  incrementScreenCount(theaterId: any): Promise<void> 
+  decrementScreenCount(theaterId: any): Promise<void>
   delete(theaterId: string): Promise<boolean>;
   findNearby(longitude: number, latitude: number, maxDistance: number): Promise<ITheater[]>;
   existsByNameAndCity(name: string, city: string,state:string, excludeId?: string): Promise<boolean>;

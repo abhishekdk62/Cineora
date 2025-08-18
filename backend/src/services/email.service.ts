@@ -18,6 +18,146 @@ export class EmailService {
       },
     });
   }
+async sendTheaterVerifiedEmail(email: string, theaterName: string): Promise<boolean> {
+  try {
+    const mailOptions = {
+      from: `"Cineora App" <${config.email.auth.user}>`,
+      to: email,
+      subject: "Theater Verified Successfully - Cineora",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+          <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #333; margin: 0;">Cineora</h1>
+              <p style="color: #666; margin: 5px 0;">Theater Management Platform</p>
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 30px;">
+              <div style="background-color: #d4edda; padding: 20px; border-radius: 50%; display: inline-block; margin-bottom: 20px;">
+                <span style="font-size: 40px; color: #28a745;">✓</span>
+              </div>
+              <h2 style="color: #28a745; margin: 0;">Theater Verified Successfully!</h2>
+            </div>
+            
+            <p style="color: #666; font-size: 16px; line-height: 1.5; text-align: center;">
+              Congratulations! Your theater <strong>${theaterName}</strong> has been successfully verified and is now active on our platform.
+            </p>
+            
+            <div style="background-color: #d1ecf1; padding: 20px; margin: 25px 0; border-radius: 8px; border-left: 4px solid #17a2b8;">
+              <h3 style="color: #0c5460; margin-top: 0;">What's Next?</h3>
+              <ul style="color: #0c5460; margin: 0; padding-left: 20px;">
+                <li>Your theater is now visible to customers</li>
+                <li>You can start adding movie shows and schedules</li>
+                <li>Manage bookings through your dashboard</li>
+                <li>Update theater information as needed</li>
+              </ul>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <p style="color: #666; margin-bottom: 20px;">Ready to get started?</p>
+              <div style="background-color: #28a745; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+                Access Your Dashboard
+              </div>
+            </div>
+            
+            <p style="color: #666; font-size: 14px; line-height: 1.5; text-align: center;">
+              If you have any questions or need assistance, please don't hesitate to contact our support team.
+            </p>
+            
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            
+            <div style="text-align: center; color: #999; font-size: 12px;">
+              <p>© ${new Date().getFullYear()} Cineora. All rights reserved.</p>
+              <p>This is an automated email. Please do not reply to this message.</p>
+            </div>
+          </div>
+        </div>
+      `,
+    };
+
+    const info = await this.transporter.sendMail(mailOptions);
+    console.log("Theater verified email sent:", info.messageId);
+    return true;
+  } catch (error) {
+    console.error("Theater verified email sending failed:", error);
+    return false;
+  }
+}
+
+async sendTheaterRejectedEmail(email: string, theaterName: string, rejectionReason?: string): Promise<boolean> {
+  try {
+    const mailOptions = {
+      from: `"Cineora App" <${config.email.auth.user}>`,
+      to: email,
+      subject: "Theater Application Rejected - Cineora",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+          <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #333; margin: 0;">Cineora</h1>
+              <p style="color: #666; margin: 5px 0;">Theater Management Platform</p>
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 30px;">
+              <div style="background-color: #f8d7da; padding: 20px; border-radius: 50%; display: inline-block; margin-bottom: 20px;">
+                <span style="font-size: 40px; color: #dc3545;">✗</span>
+              </div>
+              <h2 style="color: #dc3545; margin: 0;">Theater Application Rejected</h2>
+            </div>
+            
+            <p style="color: #666; font-size: 16px; line-height: 1.5; text-align: center;">
+              We regret to inform you that your theater application for <strong>${theaterName}</strong> has been rejected.
+            </p>
+            
+            ${rejectionReason ? `
+              <div style="background-color: #f8d7da; padding: 20px; margin: 25px 0; border-radius: 8px; border-left: 4px solid #dc3545;">
+                <h3 style="color: #721c24; margin-top: 0;">Rejection Reason:</h3>
+                <p style="color: #721c24; margin: 0; font-size: 14px; line-height: 1.5;">
+                  ${rejectionReason}
+                </p>
+              </div>
+            ` : ''}
+            
+            <div style="background-color: #fff3cd; padding: 20px; margin: 25px 0; border-radius: 8px; border-left: 4px solid #ffc107;">
+              <h3 style="color: #856404; margin-top: 0;">Next Steps:</h3>
+              <ul style="color: #856404; margin: 0; padding-left: 20px; font-size: 14px;">
+                <li>Review the rejection reason carefully</li>
+                <li>Address the mentioned concerns</li>
+                <li>Resubmit your application with the necessary improvements</li>
+                <li>Contact our support team if you need clarification</li>
+              </ul>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <p style="color: #666; margin-bottom: 20px;">Ready to resubmit?</p>
+              <div style="background-color: #007bff; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+                Submit New Application
+              </div>
+            </div>
+            
+            <p style="color: #666; font-size: 14px; line-height: 1.5; text-align: center;">
+              We appreciate your interest in joining Cineora. Please don't hesitate to contact our support team if you have any questions.
+            </p>
+            
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            
+            <div style="text-align: center; color: #999; font-size: 12px;">
+              <p>© ${new Date().getFullYear()} Cineora. All rights reserved.</p>
+              <p>This is an automated email. Please do not reply to this message.</p>
+            </div>
+          </div>
+        </div>
+      `,
+    };
+
+    const info = await this.transporter.sendMail(mailOptions);
+    console.log("Theater rejected email sent:", info.messageId);
+    return true;
+  } catch (error) {
+    console.error("Theater rejected email sending failed:", error);
+    return false;
+  }
+}
 
   async sendOTPEmail(email: string, otp: string): Promise<boolean> {
     try {
@@ -617,11 +757,11 @@ export interface IEmailService {
   sendOTPEmail(email: string, otp: string): Promise<boolean>;
   sendEmailChangeOTP(email: string, otp: string, oldEmail: string): Promise<boolean>;
   sendPasswordResetOTP(email: string, otp: string, userName: string): Promise<boolean>;
-  
+  sendTheaterVerifiedEmail(email: string, theaterName: string): Promise<boolean>
+  sendTheaterRejectedEmail(email: string, theaterName: string, rejectionReason?: string): Promise<boolean>
   sendKYCSubmittedEmail(email: string, ownerName: string, requestId: string): Promise<boolean>;
   sendKYCRejectedEmail(email: string, ownerName: string, rejectionReason: string): Promise<boolean>;
   sendOwnerWelcomeEmail(email: string, ownerName: string, tempPassword: string): Promise<boolean>;
-  
   sendEmailChangeSuccessNotification(newEmail: string, oldEmail: string): Promise<boolean>;
   sendPasswordChangeConfirmation(email: string, userName: string): Promise<boolean>;
 }

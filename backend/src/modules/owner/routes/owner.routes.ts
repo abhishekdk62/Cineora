@@ -13,6 +13,8 @@ import {
   verifyEmailChangeOtp,
 } from "../controllers/owner.controller";
 import { ScreenController } from "../../screens/controllers/screens.controllers";
+import { ShowtimeController } from "../../showtimes/controllers/showtimes.controller";
+import { getMoviesWithFilters } from "../../user/controllers/user.controller";
 
 const router = Router();
 
@@ -26,6 +28,7 @@ router.put("/theaters/:theaterId", updateTheater);
 router.post("/theaters", createTheater);
 router.delete("/theaters/:theaterId", deleteTheater);
 router.patch("/theaters/:theaterId", toggleTheaterStatus);
+router.get('/movies/filter',getMoviesWithFilters)
 const screenController = new ScreenController();
 
 router.post("/screens", screenController.createScreen.bind(screenController));
@@ -34,7 +37,7 @@ router.get(
   "/screens/:theaterId",
   screenController.getScreensByTheaterId.bind(screenController)
 );
- 
+
 router.get(
   "/screens/theater/:theaterId/filtered",
   screenController.getScreensByTheaterIdWithFilters.bind(screenController)
@@ -49,8 +52,7 @@ router.get(
   "/screens/theater/:theaterId/count",
   screenController.getScreenCountByTheaterId.bind(screenController)
 );
-router.get('/screens/stats/:theaterId', screenController.getScreenStats);
-
+router.get("/screens/stats/:theaterId", screenController.getScreenStats);
 
 router.get(
   "/screens/theater/:theaterId/name/:name",
@@ -59,7 +61,7 @@ router.get(
 
 router.get(
   "/screens/:id",
-  screenController.getScreenById.bind(screenController) 
+  screenController.getScreenById.bind(screenController)
 );
 
 router.put(
@@ -81,5 +83,17 @@ router.post(
   "/screens/check-exists",
   screenController.checkScreenExists.bind(screenController)
 );
+
+const controller = new ShowtimeController();
+
+router.post("/showtime", (req, res) => controller.createShowtime(req, res));
+router.put("/showtime", (req, res) => controller.editShowtime(req, res));
+router.put("/showtime/:showtimeId", (req, res) => controller.updateShowtime(req, res));
+router.delete("/showtime/:showtimeId", (req, res) =>
+  controller.deleteShowtime(req, res)
+);
+router.get('/showtime',(req,res)=>controller.getShowTimes(req,res))
+router.patch('/showtime/:id',(req,res)=>controller.changeShowtimeStatus(req,res))
+router.get("/screen/:screenId", (req, res) => controller.getShowtimesByScreen(req, res));
 
 export default router;

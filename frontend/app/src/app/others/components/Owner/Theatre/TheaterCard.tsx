@@ -250,7 +250,7 @@ const TheaterCard: React.FC<TheaterCardProps> = ({
           <p className={`${lexendSmall.className} text-xs text-gray-400`}>
             Screens
           </p>
-          <p className={`${lexendMedium.className} text-sm text-white`}>4</p>
+          <p className={`${lexendMedium.className} text-sm text-white`}>{theater.screens}</p>
         </div>
         <div className="text-center">
           <p className={`${lexendSmall.className} text-xs text-gray-400`}>

@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/app/utils/useAuth'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 interface RouteGuardProps {
   children: React.ReactNode
@@ -21,18 +21,17 @@ export default function RouteGuard({
 }: RouteGuardProps) {
   const { role, loading, isAuthenticated } = useAuth()
   const router = useRouter()
-
- 
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-   
+    setMounted(true)
+  }, [])
 
-    if (!loading && redirectOnAuth) {
-      
+  useEffect(() => {
+    if (!loading && redirectOnAuth && mounted) {
+      // Your existing redirect logic here
       if (allowedRoles && allowedRoles.length > 0) {
-        
         if (!isAuthenticated && !allowUnauthenticated) {
-        
           setTimeout(() => {
             router.replace('/login')
           }, 1500)
@@ -57,13 +56,10 @@ export default function RouteGuard({
             router.replace(redirectPath)
           }, 1500)
           return
-        } else {
         }
       }
-
-    } else {
     }
-  }, [loading, isAuthenticated, role, router, excludedRoles, allowedRoles, allowUnauthenticated, redirectOnAuth])
+  }, [loading, isAuthenticated, role, router, excludedRoles, allowedRoles, allowUnauthenticated, redirectOnAuth, mounted])
 
   const getRoleBasedPath = (userRole: string) => {
     const path = (() => {
@@ -78,6 +74,11 @@ export default function RouteGuard({
     return path
   }
 
+  // Don't render until mounted - prevents hydration mismatch
+  if (!mounted) {
+    return null
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#040404] flex items-center justify-center">
@@ -88,11 +89,10 @@ export default function RouteGuard({
     )
   }
 
+  // Rest of your existing logic...
   if (allowedRoles && allowedRoles.length > 0) {
-    
     if ((!isAuthenticated && !allowUnauthenticated) || 
         (isAuthenticated && role && !allowedRoles.includes(role))) {
-      
       
       if (redirectOnAuth) {
         return (
@@ -133,9 +133,7 @@ export default function RouteGuard({
   }
 
   if (excludedRoles && excludedRoles.length > 0) {
-    
     if (isAuthenticated && role && excludedRoles.includes(role)) {
-      
       if (redirectOnAuth) {
         return (
           <div className="min-h-screen bg-[#040404] flex items-center justify-center">
@@ -160,7 +158,6 @@ export default function RouteGuard({
           </div>
         )
       }
-    } else {
     }
   }
 

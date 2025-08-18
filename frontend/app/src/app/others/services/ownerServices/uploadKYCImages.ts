@@ -39,7 +39,7 @@ export async function uploadKYCImage(
     }
 
     const result = await response.json();
-    console.log('✅ Upload success:', result.secure_url);
+    console.log(' Upload success:', result.secure_url);
 
     return {
       success: true,
@@ -48,7 +48,7 @@ export async function uploadKYCImage(
     };
 
   } catch (error) {
-    console.error('💥 Upload error:', error);
+    console.error(' Upload error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to upload file. Please try again.'
