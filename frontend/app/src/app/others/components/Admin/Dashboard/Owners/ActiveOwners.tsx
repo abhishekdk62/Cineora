@@ -1,28 +1,36 @@
-"use client"
+"use client";
 
-import React from "react"
-import { Lexend } from "next/font/google"
-import { Search, Eye, Ban, User, ChevronLeft, ChevronRight } from "lucide-react"
+import React from "react";
+import { Lexend } from "next/font/google";
+import {
+  Search,
+  Eye,
+  Ban,
+  User,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
-import OwnerCard from "./OwnerCard"
-import { Owner, OwnerFilters } from "./OwnerManager"
+import OwnerCard from "./OwnerCard";
+import { Owner, OwnerFilters } from "./OwnerManager";
 
 const lexend = Lexend({
   weight: "500",
   subsets: ["latin"],
-})
+});
 
 interface ActiveOwnersProps {
-  owners: Owner[]
-  isLoading: boolean
-  currentFilters: OwnerFilters
-  currentPage: number
-  totalPages: number
-  totalItems: number
-  onPageChange: (page: number) => void
-  onFiltersChange: (filters: OwnerFilters, resetPage?: boolean) => void
-  onViewDetails: (owner: Owner) => void
-  onToggleStatus: (owner: Owner) => void
+  owners: Owner[];
+  isLoading: boolean;
+  currentFilters: OwnerFilters;
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  onPageChange: (page: number) => void;
+  onFiltersChange: (filters: OwnerFilters, resetPage?: boolean) => void;
+  onViewDetails: (owner: Owner) => void;
+  onToggleStatus: (owner: Owner) => void;
+  setViewThaeter:(id:string)=>void
 }
 
 const ActiveOwners: React.FC<ActiveOwnersProps> = ({
@@ -36,28 +44,33 @@ const ActiveOwners: React.FC<ActiveOwnersProps> = ({
   onFiltersChange,
   onViewDetails,
   onToggleStatus,
+  setViewThaeter
+  
 }) => {
   const handleSearch = (searchTerm: string) => {
     onFiltersChange({
       ...currentFilters,
       search: searchTerm,
-    })
-  }
+    });
+  };
 
-  const handleSortChange = (sortBy: string, sortOrder: 'asc' | 'desc') => {
+  const handleSortChange = (sortBy: string, sortOrder: "asc" | "desc") => {
     onFiltersChange({
       ...currentFilters,
       sortBy,
       sortOrder,
-    })
-  }
+    });
+  };
 
   return (
     <div className="space-y-6">
       <div className="bg-[#1a1a1a] border border-gray-600 rounded-lg p-4">
         <div className="flex items-center gap-4 mb-4">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+            <Search
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              size={16}
+            />
             <input
               type="text"
               placeholder="Search active owners..."
@@ -66,12 +79,14 @@ const ActiveOwners: React.FC<ActiveOwnersProps> = ({
               className="w-full pl-10 pr-4 py-2 bg-[#2a2a2a] border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#e78f03]"
             />
           </div>
-          
+
           <select
-            value={`${currentFilters.sortBy || 'ownerName'}-${currentFilters.sortOrder || 'asc'}`}
+            value={`${currentFilters.sortBy || "ownerName"}-${
+              currentFilters.sortOrder || "asc"
+            }`}
             onChange={(e) => {
-              const [sortBy, sortOrder] = e.target.value.split("-")
-              handleSortChange(sortBy, sortOrder as "asc" | "desc")
+              const [sortBy, sortOrder] = e.target.value.split("-");
+              handleSortChange(sortBy, sortOrder as "asc" | "desc");
             }}
             className="bg-[#2a2a2a] border border-gray-500 rounded-lg text-white px-3 py-2 focus:outline-none focus:border-[#e78f03]"
           >
@@ -83,7 +98,7 @@ const ActiveOwners: React.FC<ActiveOwnersProps> = ({
             <option value="approvedAt-asc">Oldest Approved</option>
             <option value="lastLogin-desc">Recently Active</option>
           </select>
-          
+
           <div className="text-sm text-gray-400">
             {totalItems} active owners
           </div>
@@ -97,12 +112,12 @@ const ActiveOwners: React.FC<ActiveOwnersProps> = ({
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#e78f03]"></div>
           </div>
         ) : owners.length > 0 ? (
-          owners.map(owner => (
+          owners.map((owner) => (
             <OwnerCard
+              setViewThaeter={setViewThaeter}
               key={owner._id}
               owner={owner}
               actions={[
-          
                 {
                   label: "Block Owner",
                   icon: Ban,
@@ -116,8 +131,12 @@ const ActiveOwners: React.FC<ActiveOwnersProps> = ({
           <div className="flex items-center justify-center h-64">
             <div className="bg-[#1a1a1a] border border-gray-600 rounded-lg p-8 text-center">
               <User size={48} className="mx-auto text-gray-400 mb-4" />
-              <h3 className={`${lexend.className} text-xl text-white mb-2`}>No active owners found</h3>
-              <p className="text-gray-400">No owners match your current search criteria.</p>
+              <h3 className={`${lexend.className} text-xl text-white mb-2`}>
+                No active owners found
+              </h3>
+              <p className="text-gray-400">
+                No owners match your current search criteria.
+              </p>
             </div>
           </div>
         )}
@@ -138,16 +157,16 @@ const ActiveOwners: React.FC<ActiveOwnersProps> = ({
               >
                 <ChevronLeft size={16} />
               </button>
-              
+
               {[...Array(Math.min(totalPages, 5))].map((_, index) => {
-                let page = index + 1
+                let page = index + 1;
                 if (totalPages > 5) {
-                  const start = Math.max(1, currentPage - 2)
-                  page = start + index
-                  if (page > totalPages) return null
+                  const start = Math.max(1, currentPage - 2);
+                  page = start + index;
+                  if (page > totalPages) return null;
                 }
-                
-                const isActive = page === currentPage
+
+                const isActive = page === currentPage;
                 return (
                   <button
                     key={page}
@@ -160,9 +179,9 @@ const ActiveOwners: React.FC<ActiveOwnersProps> = ({
                   >
                     {page}
                   </button>
-                )
+                );
               })}
-              
+
               <button
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
@@ -175,7 +194,7 @@ const ActiveOwners: React.FC<ActiveOwnersProps> = ({
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default ActiveOwners
+export default ActiveOwners;

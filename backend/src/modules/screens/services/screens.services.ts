@@ -5,9 +5,13 @@ import {
   IScreenInput,
   IScreenRepository,
 } from "../interfaces/screens.interface";
+import { ITheaterRepository } from "../../theaters/interfaces/theater.interface";
 
 export class ScreenService {
-  constructor(private screenRepo: IScreenRepository) {}
+  constructor(
+    private screenRepo: IScreenRepository,
+    private theaterRepo: ITheaterRepository
+  ) {}
 
   async createScreen(
     screenData: IScreen & { theater: { _id: Types.ObjectId } }
@@ -32,6 +36,16 @@ export class ScreenService {
         theaterIdString
       );
 
+      const existtheater=await this.theaterRepo.findById(theaterIdString)
+      if(!existtheater.isVerified)
+      {
+                return {
+          success: false,
+          message: "Theater needs to be verified first",
+        };
+
+      }
+
       if (exists) {
         return {
           success: false,
@@ -53,9 +67,113 @@ export class ScreenService {
           message: "Failed to create screen",
         };
       }
+      
+      const theater = await this.theaterRepo.incrementScreenCount(
+        screenData.theater._id
+      );
+
       return {
         success: true,
         message: "Screen created successfully",
+        data: screen,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || "Something went wrong",
+      };
+    }
+  }
+  async deleteScreen(screenId: string): Promise<ServiceResponse> {
+    try {
+      if (!screenId) {
+        return {
+          success: false,
+          message: "Screen ID is required",
+        };
+      }
+
+      const deleted = await this.screenRepo.delete(screenId);
+
+      if (!deleted) {
+        return {
+          success: false,
+          message: "Screen not found or deletion failed",
+        };
+      }
+      await this.theaterRepo.decrementScreenCount(deleted.theaterId);
+      return {
+        success: true,
+        message: "Screen deleted successfully",
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || "Something went wrong",
+      };
+    }
+  }
+async deleteScreensByTheater(theaterId: string): Promise<ServiceResponse> {
+  try {
+    if (!theaterId) {
+      return {
+        success: false,
+        message: "Theater ID is required",
+      };
+    }
+
+    const deletedCount = await this.screenRepo.deleteMany(theaterId);
+
+    if (deletedCount === 0) {
+      return {
+        success: false,
+        message: "No screens found for this theater",
+      };
+    }
+
+    return {
+      success: true,
+      message: `${deletedCount} screens deleted successfully`,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || "Something went wrong",
+    };
+  }
+}
+
+
+  async getScreensTheaterData(screenId: string): Promise<ServiceResponse> {
+    try {
+      if (!screenId) {
+        return {
+          success: false,
+          message: "Screen ID is required",
+        };
+      }
+      const screen = await this.screenRepo.findByIdGetTheaterDetails(screenId);
+      if (!screen) {
+        return {
+          success: false,
+          message: "Screen not found",
+        };
+      }
+      if (
+        typeof screen.theaterId === "object" &&
+        "isActive" in screen.theaterId
+      ) {
+        if (!screen.theaterId.isActive) {
+          return {
+            success: false,
+            message: "Please enable the theater first",
+          };
+        }
+      }
+
+      return {
+        success: true,
+        message: "Screen retrieved successfully",
         data: screen,
       };
     } catch (error: any) {
@@ -294,7 +412,6 @@ export class ScreenService {
           message: "Screen ID is required",
         };
       }
-      
 
       if (updateData.totalSeats && updateData.totalSeats <= 0) {
         return {
@@ -315,8 +432,6 @@ export class ScreenService {
         }
       }
 
-      
-
       if (updateData.name) {
         const currentScreen = await this.screenRepo.findById(screenId);
         if (!currentScreen) {
@@ -327,7 +442,7 @@ export class ScreenService {
         }
 
         const theaterIdString = currentScreen.theaterId._id.toString();
-        
+
         const exists = await this.screenRepo.existsByNameAndTheater(
           updateData.name,
           theaterIdString,
@@ -388,36 +503,6 @@ export class ScreenService {
           screen.isActive ? "activated" : "deactivated"
         } successfully`,
         data: screen,
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Something went wrong",
-      };
-    }
-  }
-
-  async deleteScreen(screenId: string): Promise<ServiceResponse> {
-    try {
-      if (!screenId) {
-        return {
-          success: false,
-          message: "Screen ID is required",
-        };
-      }
-
-      const deleted = await this.screenRepo.delete(screenId);
-
-      if (!deleted) {
-        return {
-          success: false,
-          message: "Screen not found or deletion failed",
-        };
-      }
-
-      return {
-        success: true,
-        message: "Screen deleted successfully",
       };
     } catch (error: any) {
       return {

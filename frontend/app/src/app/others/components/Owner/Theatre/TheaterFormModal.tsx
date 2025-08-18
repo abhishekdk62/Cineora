@@ -139,22 +139,27 @@ const TheaterFormModal: React.FC<CreateTheaterModalProps> = ({
       let result;
       if (mode == "create") {
         result = await createTheater(formData);
-      } else if (mode == "edit"&&initialData) {
+      } else if (mode == "edit" && initialData) {
         result = await updateTheaterOwner(initialData._id, formData);
       }
 
       if (result.success) {
+        if (mode == 'create') {
+          toast('Theater submitted successfully! Please check your email for further details')
+        }
         onSuccess(result.data);
-        toast.success(`Succesfully ${mode}ed`)
+        if (mode == 'edit') toast.success(`Succesfully ${mode}ed`)
+
       } else {
         console.log(result.message);
-        
+
 
       }
     } catch (error) {
       console.error("Error creating theater:", error);
     } finally {
       setIsLoading(false);
+      onClose()
     }
   };
 

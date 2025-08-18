@@ -86,6 +86,32 @@ export class TheaterRepository implements ITheaterRepository {
 
     return { theaters, totalFiltered,activeAll,inactiveAll,totalAll };
   }
+async incrementScreenCount(theaterId: any): Promise<void> {
+  try {
+    
+    await Theater.findByIdAndUpdate(
+      theaterId,
+      { $inc: { screens: 1 } }, // Increment by 1
+      { new: true }
+    );
+  } catch (error) {
+    console.error("Error incrementing screen count:", error);
+    throw error;
+  }
+}
+
+async decrementScreenCount(theaterId: any): Promise<void> {
+  try {
+    await Theater.findByIdAndUpdate(
+      theaterId,
+      { $inc: { screens: -1 } }, // Decrement by 1
+      { new: true }
+    );
+  } catch (error) {
+    console.error("Error decrementing screen count:", error);
+    throw error;
+  }
+}
 
   private applyFilters(query: any, filters?: any): void {
     if (filters?.isActive !== undefined) {
@@ -165,6 +191,13 @@ export class TheaterRepository implements ITheaterRepository {
     if (!theater) return null;
 
     theater.isVerified = true;
+    return await theater.save();
+  }
+  async rejectTheater(theaterId: string): Promise<ITheater | null> {
+    const theater = await Theater.findById(theaterId);
+    if (!theater) return null;
+
+    theater.isRejected = true;
     return await theater.save();
   }
 

@@ -38,9 +38,10 @@ interface ActionButton {
 interface OwnerCardProps {
   owner: Owner
   actions: ActionButton[]
+  setViewThaeter:(id:string)=>void
 }
 
-const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions }) => {
+const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions,setViewThaeter }) => {
   const [showModal, setShowModal] = useState(false)
 
   const formatDate = (dateString: string) => {
@@ -63,7 +64,7 @@ const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions }) => {
 
   return (
     <>
-      {/* Main Card - Simple View */}
+      
       <div className="bg-[#1a1a1a] border border-gray-600 rounded-lg p-6 hover:border-gray-500 transition-colors">
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -112,7 +113,7 @@ const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions }) => {
               </div>
             </div>
 
-            {/* Quick info grid */}
+            
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
               <div className="bg-[#2a2a2a] p-3 rounded-lg">
                 <div className="flex items-center gap-2 mb-1">
@@ -160,6 +161,12 @@ const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions }) => {
               className="text-[#e78f03] hover:text-orange-400 text-sm font-medium transition-colors"
             >
               View Full Details
+            </button>
+            <button
+              onClick={() => setViewThaeter(owner._id)}
+              className="text-[#e78f03] ml-10 hover:text-orange-400 text-sm font-medium transition-colors"
+            >
+              View Theaters
             </button>
           </div>
 

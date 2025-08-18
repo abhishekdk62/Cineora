@@ -1,5 +1,6 @@
 import { IScreen, IScreenRepository } from "../interfaces/screens.interface";
-import Screen from "../models/screens.model";
+import { Screen } from "../models/screens.model";  
+
 import { Types } from "mongoose";
 
 export class ScreenRepository implements IScreenRepository {
@@ -9,6 +10,10 @@ export class ScreenRepository implements IScreenRepository {
     const screen = new Screen(screenData);
     return screen.save();
   }
+async deleteMany(theaterId: string): Promise<number> {
+  const res = await Screen.deleteMany({ theaterId });
+  return res.deletedCount || 0;
+}
 
   async findById(screenId: string): Promise<IScreen | null> {
     return Screen.findById(screenId).populate("theaterId", "name city state");
@@ -41,7 +46,9 @@ export class ScreenRepository implements IScreenRepository {
     const total = await Screen.countDocuments(query);
     return { screens, total };
   }
-
+async findByIdGetTheaterDetails(screenId: string): Promise<IScreen> {
+  return await Screen.findById(screenId).populate('theaterId','name isActive')
+}
   async findByTheaterIdWithFilters(
     theaterId: string,
     filters?: {
@@ -120,9 +127,9 @@ export class ScreenRepository implements IScreenRepository {
     return screen.save();
   }
 
-  async delete(screenId: string): Promise<boolean> {
+  async delete(screenId: string): Promise<IScreen> {
     const result = await Screen.findByIdAndDelete(screenId);
-    return !!result;
+    return result;
   }
 
   async existsByNameAndTheater(

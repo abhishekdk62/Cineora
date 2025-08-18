@@ -5,6 +5,7 @@ import { Lexend } from "next/font/google";
 import { User, UserCheck, UserX, Clock } from "lucide-react";
 import ActiveOwners from "./ActiveOwners";
 import OwnerRequests from "./OwnerRequests";
+import Theaters from "./Theaters";
 import InactiveOwners from "./InactiveOwners";
 import { confirmAction, ConfirmDialog } from "@/app/others/Utils/ConfirmDialog";
 
@@ -115,7 +116,15 @@ const lexendSmall = Lexend({
 });
 
 interface OwnersTopBarProps {
-  activeView: "active" | "inactive" | "pending" | "approved" | "rejected";
+  activeView?:
+    | "active"
+    | "inactive"
+    | "pending"
+    | "approved"
+    | "rejected"
+    | "active-theaters"
+    | "inactive-theaters";
+
   setActiveView: (
     view: "active" | "inactive" | "pending" | "approved" | "rejected"
   ) => void;
@@ -209,21 +218,42 @@ const OwnersTopBar: React.FC<OwnersTopBarProps> = ({
 
 const OwnersManager: React.FC = () => {
   const [activeView, setActiveView] = useState<
-    "active" | "inactive" | "pending" | "approved" | "rejected"
+    | "active"
+    | "inactive"
+    | "pending"
+    | "approved"
+    | "rejected"
+    | "active-theaters"
+    | "inactive-theaters"
   >("active");
   const [owners, setOwners] = useState<Owner[]>([]);
   const [ownerRequests, setOwnerRequests] = useState<OwnerRequest[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const [ownerFilters, setOwnerFilters] = useState<OwnerFilters>({});
   const [requestFilters, setRequestFilters] = useState<OwnerRequestFilters>({});
-
+  const [ownerId, setOwnerId] = useState<string>("");
   const [countsLoading, setCountsLoading] = useState(true);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [itemsPerPage] = useState(10);
+
+  const setViewThaeter = (id: string) => {
+    setActiveView("active-theaters");
+    setOwnerId(id);
+  };
+  const setViewInactiveTheater = () => {
+    if (activeView == "active-theaters") {
+      setActiveView("inactive-theaters");
+    } else {
+      setActiveView("active-theaters");
+    }
+  };
+  const onClose = () => {
+    setActiveView("approved");
+  };
 
   const [activeCounts, setActiveCounts] = useState({
     activeOwners: 0,
@@ -269,7 +299,11 @@ const OwnersManager: React.FC = () => {
         const filtersWithPage = { ...ownerFilters, page, limit: itemsPerPage };
         handleOwnerFiltersChange(filtersWithPage, false);
       } else {
-        const filtersWithPage = { ...requestFilters, page, limit: itemsPerPage };
+        const filtersWithPage = {
+          ...requestFilters,
+          page,
+          limit: itemsPerPage,
+        };
         handleRequestFiltersChange(filtersWithPage, false);
       }
     },
@@ -340,7 +374,7 @@ const OwnersManager: React.FC = () => {
         status: activeView as "pending" | "approved" | "rejected",
       };
       const response = await getOwnerRequests(requestFiltersWithStatus);
-      
+
       setOwnerRequests(response.data?.requests || response.requests || []);
       setOwners([]);
 
@@ -370,7 +404,7 @@ const OwnersManager: React.FC = () => {
     setCurrentPage(1);
     setOwners([]);
     setOwnerRequests([]);
-    
+
     if (activeView === "inactive" || activeView === "active") {
       handleOwnerFiltersChange({}, true);
     } else {
@@ -400,7 +434,7 @@ const OwnersManager: React.FC = () => {
       const action = owner.isActive ? "blocked" : "activated";
       toast.success(`Owner ${action} successfully!`);
       fetchCounts();
-      
+
       if (Object.keys(ownerFilters).length > 0) {
         handleOwnerFiltersChange(ownerFilters, false);
       }
@@ -425,7 +459,7 @@ const OwnersManager: React.FC = () => {
       await acceptOwnerRequest(request._id);
       toast.success("Owner request accepted! New owner account created.");
       fetchCounts();
-      
+
       if (Object.keys(requestFilters).length > 0) {
         handleRequestFiltersChange(requestFilters, false);
       }
@@ -443,7 +477,7 @@ const OwnersManager: React.FC = () => {
       await rejectOwnerRequest(request._id, rejectionReason);
       toast.success("Owner request rejected!");
       fetchCounts();
-      
+
       if (Object.keys(requestFilters).length > 0) {
         handleRequestFiltersChange(requestFilters, false);
       }
@@ -483,6 +517,7 @@ const OwnersManager: React.FC = () => {
             {...ownerCommonProps}
             owners={owners}
             onToggleStatus={handleToggleOwnerStatus}
+            setViewThaeter={setViewThaeter}
           />
         );
       case "inactive":
@@ -506,12 +541,31 @@ const OwnersManager: React.FC = () => {
         return (
           <RejectedRequests {...requestCommonProps} requests={ownerRequests} />
         );
+      case "active-theaters":
+        return (
+          <Theaters
+            setViewInactiveTheater={setViewInactiveTheater}
+            ownerId={ownerId}
+            onClose={onClose}
+            status="active"
+          />
+        );
+      case "inactive-theaters":
+        return (
+          <Theaters
+            setViewInactiveTheater={setViewInactiveTheater}
+            ownerId={ownerId}
+            onClose={onClose}
+            status="inactive"
+          />
+        );
       default:
         return (
           <ActiveOwners
             {...ownerCommonProps}
             owners={owners}
             onToggleStatus={handleToggleOwnerStatus}
+            setViewThaeter={setViewThaeter}
           />
         );
     }

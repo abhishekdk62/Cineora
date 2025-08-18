@@ -6,7 +6,7 @@ import { IScreen } from "@/app/others/Types/screen.types";
 import { lexendMedium, lexendSmall } from "@/app/others/Utils/fonts";
 import {
   deleteScreenOwner,
-  getScreensByOwnerId,
+  getScreensByTheaterId,
   toggleScreenStatusOwner,
 } from "@/app/others/services/ownerServices/screenServices";
 import toast from "react-hot-toast";
@@ -37,7 +37,7 @@ const ScreensList: React.FC<ScreensListProps> = ({
   const fetchScreens = async () => {
     try {
       setIsLoading(true);
-      const result = await getScreensByOwnerId(theater._id);
+      const result = await getScreensByTheaterId(theater._id);
       setScreens(result.data.data);
     } catch (error) {
       console.error("Error fetching screens:", error);
@@ -71,7 +71,6 @@ const ScreensList: React.FC<ScreensListProps> = ({
       if (!confirmed) return;
 
       const result = await toggleScreenStatusOwner(screenId);
-      console.log(result);
 
       const message = currentStatus
         ? "Screen successfully disabled"
@@ -79,7 +78,11 @@ const ScreensList: React.FC<ScreensListProps> = ({
 
       fetchScreens();
       toast.success(message);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.response.data.includes("Please enable the theater first")) {
+        toast.error(error.response.data);
+        return;
+      }
       console.error("Error toggling screen status:", error);
       toast.error("Failed to toggle screen status");
     }
@@ -96,10 +99,9 @@ const ScreensList: React.FC<ScreensListProps> = ({
       if (!confirmed) return;
 
       const response = await deleteScreenOwner(screenId); // Fixed function name conflict
-      console.log(response);
 
       toast.success("Screen deleted successfully");
-      fetchScreens(); 
+      fetchScreens();
     } catch (error: any) {
       console.error("Error deleting screen:", error);
       toast.error(error.response?.data?.message || "Failed to delete screen");

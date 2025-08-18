@@ -1,5 +1,6 @@
 import Mongoose from "mongoose";
 import { IScreen } from "../interfaces/screens.interface";
+import mongoose from "mongoose";  // Use this everywhere
 
 const screenSchema = new Mongoose.Schema<IScreen>(
   {
@@ -25,4 +26,5 @@ const screenSchema = new Mongoose.Schema<IScreen>(
   }
 );
 
-export default Mongoose.model<IScreen>("Screen", screenSchema);
+export const Screen = mongoose.model<IScreen>("Screen", screenSchema);
+

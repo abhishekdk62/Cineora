@@ -1,7 +1,7 @@
-import { Document,Types } from "mongoose";
+import { Document, Types } from "mongoose";
 
 export interface IScreen extends Document {
-  theaterId: Types.ObjectId;
+  theaterId: Types.ObjectId | { name: string; isActive: boolean;_id:string };
   name: string;
   totalSeats: number;
   layout: {
@@ -28,7 +28,7 @@ export interface IScreen extends Document {
   updatedAt?: Date; // Added from frontend interface
 }
 export interface IScreenInput {
-  theaterId: Types.ObjectId;
+  theaterId: Types.ObjectId ;
   name: string;
   totalSeats: number;
   layout: {
@@ -55,12 +55,14 @@ export interface IScreenRepository {
   create(screenData: Partial<IScreen>): Promise<IScreen | null>;
   findById(screenId: string): Promise<IScreen | null>;
   findByTheaterId(theaterId: string): Promise<IScreen[]>;
+  deleteMany(theaterId: string): Promise<number>;
   findAll(
     page: number,
     limit: number,
     filters?: any
   ): Promise<{ screens: IScreen[]; total: number }>;
-
+  findByIdGetTheaterDetails(screenId: string): Promise<IScreen>;
+  
   findByTheaterIdWithFilters(
     theaterId: string,
     filters?: {
@@ -86,7 +88,7 @@ export interface IScreenRepository {
   ): Promise<IScreen | null>;
 
   toggleStatus(screenId: string): Promise<IScreen | null>;
-  delete(screenId: string): Promise<boolean>;
+  delete(screenId: string): Promise<IScreen>;
   existsByNameAndTheater(
     name: string,
     theaterId: string,

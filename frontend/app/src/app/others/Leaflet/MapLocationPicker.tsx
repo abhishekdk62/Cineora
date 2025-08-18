@@ -16,7 +16,7 @@ L.Icon.Default.mergeOptions({
 });
 
 interface MapLocationPickerProps {
-  onLocationSelect: (lat: number, lng: number) => void;
+  onLocationSelect?: (lat: number, lng: number) => void;
   initialPosition?: [number, number];
 }
 
@@ -35,7 +35,11 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
       click(e) {
         const { lat, lng } = e.latlng;
         setPosition([lat, lng]);
-        onLocationSelect(lat, lng);
+        if(onLocationSelect)
+        {
+
+          onLocationSelect(lat, lng);
+        }
       },
     });
 

@@ -5,6 +5,7 @@ import { X, Monitor, Users, Calendar, Edit3, MapPin, Star } from "lucide-react";
 import { IScreen } from "@/app/others/Types/screen.types";
 import { ITheater } from "@/app/others/Types";
 import { Lexend } from "next/font/google";
+import { LayoutPreview } from "./LayoutPreview"; // Import the LayoutPreview component
 
 const lexendBold = Lexend({ weight: "700", subsets: ["latin"] });
 const lexendMedium = Lexend({ weight: "500", subsets: ["latin"] });
@@ -37,6 +38,15 @@ const ScreenViewModal: React.FC<ScreenViewModalProps> = ({
     
     return stats;
   }, [screen.layout.advancedLayout.rows]);
+
+  // Calculate maxCols for the LayoutPreview component
+  const getMaxCols = () => {
+    if (!screen.layout.advancedLayout?.rows) return screen.layout.seatsPerRow;
+    
+    return Math.max(...screen.layout.advancedLayout.rows.map((row: any) => 
+      (row.offset || 0) + (row.seats?.length || 0)
+    ));
+  };
 
   const getSeatTypeColor = (type: string) => {
     switch (type.toLowerCase()) {
@@ -90,7 +100,6 @@ const ScreenViewModal: React.FC<ScreenViewModalProps> = ({
                 </div>
               </div>
               <div className="flex items-center gap-2">
-              
                 <button
                   onClick={onClose}
                   className="p-2 hover:bg-white/10 rounded-full transition-colors duration-200"
@@ -215,79 +224,12 @@ const ScreenViewModal: React.FC<ScreenViewModalProps> = ({
               </div>
             </div>
 
-            {/* Seat Layout Visualization - Full Width Bottom Section */}
-            <div className="bg-white/5 rounded-2xl p-6 border border-gray-500/20">
-              <h3 className={`${lexendMedium.className} text-lg text-white mb-6`}>
-                Seat Layout Preview
-              </h3>
-              
-              {/* Screen */}
-              <div className="mb-8">
-                <div className="w-full max-w-4xl mx-auto h-4 bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-full mb-3" />
-                <p className={`${lexendSmall.className} text-center text-gray-400 text-sm`}>
-                  SCREEN
-                </p>
-              </div>
-
-              {/* Seat Map */}
-              <div className="flex justify-center">
-                <div className="space-y-2 max-h-[350px] overflow-y-auto">
-                  {screen.layout.advancedLayout.rows.map((row, rowIndex) => (
-                    <div key={rowIndex} className="flex items-center gap-1">
-                      <div className={`${lexendSmall.className} w-10 text-center text-gray-300 text-sm font-medium`}>
-                        {row.rowLabel}
-                      </div>
-                      
-                      {/* Empty spaces for offset */}
-                      {Array.from({ length: row.offset }).map((_, i) => (
-                        <div key={`offset-${i}`} className="w-5 h-5" />
-                      ))}
-                      
-                      {/* Seats */}
-                      {row.seats.map((seat, seatIndex) => (
-                        <div
-                          key={seatIndex}
-                          className={`w-5 h-5 rounded-sm border ${
-                            seat.type.toLowerCase() === 'vip'
-                              ? 'bg-yellow-500/60 border-yellow-500/40'
-                              : seat.type.toLowerCase() === 'premium'
-                              ? 'bg-blue-500/60 border-blue-500/40'
-                              : 'bg-gray-500/60 border-gray-500/40'
-                          } hover:scale-110 transition-transform cursor-pointer`}
-                          title={`${seat.id} - ${seat.type} - ₹${seat.price}`}
-                        />
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Legend */}
-              <div className="mt-8 pt-6 border-t border-gray-500/20">
-                <p className={`${lexendSmall.className} text-gray-400 text-sm mb-4`}>
-                  LEGEND
-                </p>
-                <div className="flex justify-center">
-                  <div className="flex flex-wrap gap-6">
-                    {Object.keys(seatTypeStats).map((type) => (
-                      <div key={type} className="flex items-center gap-2">
-                        <div
-                          className={`w-4 h-4 rounded-sm border ${
-                            type.toLowerCase() === 'vip'
-                              ? 'bg-yellow-500/60 border-yellow-500/40'
-                              : type.toLowerCase() === 'premium'
-                              ? 'bg-blue-500/60 border-blue-500/40'
-                              : 'bg-gray-500/60 border-gray-500/40'
-                          }`}
-                        />
-                        <span className={`${lexendSmall.className} text-gray-300 text-sm`}>
-                          {type.charAt(0).toUpperCase() + type.slice(1)} ({seatTypeStats[type].count} seats)
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+            {/* Seat Layout Visualization using LayoutPreview */}
+            <div className="mb-6">
+              <LayoutPreview 
+                advancedLayoutJSON={screen.layout.advancedLayout}
+                maxCols={getMaxCols()}
+              />
             </div>
           </div>
 

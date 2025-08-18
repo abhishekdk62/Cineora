@@ -15,8 +15,10 @@ export const getTheatersByOwnerId = async (filters?: {
   sortOrder?: "asc" | "desc";
 }) => {
   try {
+  
     const result = await apiClient.get("/owner/theaters", { params: filters });
     return result.data;
+
   } catch (error) {
     console.error("Error fetching theaters:", error);
     throw error;
@@ -38,3 +40,4 @@ export async function deleteTheaterOwner(theaterId:string) {
   const result=await apiClient.delete(`/owner/theaters/${theaterId}`)
   return result.data
 }
+

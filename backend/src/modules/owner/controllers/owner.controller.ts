@@ -8,14 +8,19 @@ import { OTPRepository } from "../../otp/repositories/otp.repository";
 import { UserRepository } from "../../user/repositories/user.repository";
 import { TheaterService } from "../../theaters/services/theater.service";
 import { TheaterRepository } from "../../theaters/repositories/theater.repository";
+import { EmailService } from "../../../services/email.service";
+import { ScreenService } from "../../screens/services/screens.services";
+import { ScreenRepository } from "../../screens/repositories/screens.repositories";
 
 const ownerRepo = new OwnerRepository();
+const screenRepo=new ScreenRepository()
 const ownerRequestRepo = new OwnerRequestRepository();
 const otpRepo = new OTPRepository();
 const userRepo = new UserRepository();
 const theaterRepo = new TheaterRepository();
-
-const theaterService = new TheaterService(theaterRepo);
+const emailService = new EmailService();
+const screenService=new ScreenService(screenRepo,theaterRepo)
+const theaterService = new TheaterService(theaterRepo, emailService);
 const ownerService = new OwnerService(
   ownerRepo,
   ownerRequestRepo,
@@ -408,8 +413,7 @@ export async function createTheater(
 ) {
   try {
     const { ownerId } = req.owner;
-    const  theaterData  = req.body;
-
+    const theaterData = req.body;
 
     if (!ownerId) {
       res.status(400).json(
@@ -459,7 +463,10 @@ export async function getTheatersByOwnerId(
   next: NextFunction
 ) {
   try {
-    const { ownerId } = req.owner;
+    let ownerId = req.query.ownerId as string;
+    if (!ownerId) {
+      ownerId = req.owner.ownerId as string;
+    }
     if (!ownerId) {
       return res.status(400).json(
         createResponse({
@@ -468,7 +475,11 @@ export async function getTheatersByOwnerId(
         })
       );
     }
-    const result = await theaterService.getTheatersByOwnerId(ownerId, req.query);
+
+    const result = await theaterService.getTheatersByOwnerId(
+      ownerId,
+      req.query
+    );
     if (!result.success) {
       return res.status(400).json(
         createResponse({
@@ -477,6 +488,7 @@ export async function getTheatersByOwnerId(
         })
       );
     }
+
     return res.status(200).json(
       createResponse({
         success: true,
@@ -521,13 +533,15 @@ export async function updateTheater(
 
     if (!result.success) {
       let statusCode = 400;
-      
-      if (result.message === "Theater with this name already exists in this city") {
-        statusCode = 409; 
+
+      if (
+        result.message === "Theater with this name already exists in this city"
+      ) {
+        statusCode = 409;
       } else if (result.message === "Theater not found or update failed") {
-        statusCode = 404; 
+        statusCode = 404;
       } else if (result.message === "Something went wrong") {
-        statusCode = 500; 
+        statusCode = 500;
       }
 
       return res.status(statusCode).json(
@@ -577,6 +591,7 @@ export async function deleteTheater(
         statusCode = 500;
       }
 
+
       return res.status(statusCode).json(
         createResponse({
           success: false,
@@ -584,6 +599,7 @@ export async function deleteTheater(
         })
       );
     }
+const resp=await screenService.deleteScreensByTheater(theaterId)
 
     return res.status(200).json(
       createResponse({
@@ -618,11 +634,11 @@ export async function toggleTheaterStatus(
 
     if (!result.success) {
       let statusCode = 400;
-      
+
       if (result.message === "Theater not found") {
-        statusCode = 404; 
+        statusCode = 404;
       } else if (result.message === "Something went wrong") {
-        statusCode = 500; 
+        statusCode = 500;
       }
 
       return res.status(statusCode).json(
@@ -644,4 +660,3 @@ export async function toggleTheaterStatus(
     next(error);
   }
 }
-

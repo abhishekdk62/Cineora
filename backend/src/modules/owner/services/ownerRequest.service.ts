@@ -272,7 +272,6 @@ export class OwnerRequestService {
           randomPassword
         );
 
-        console.log("✅ Owner account created:", newOwner._id);
       }
 
       if (status === "rejected") {
