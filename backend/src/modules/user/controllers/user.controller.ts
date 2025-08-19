@@ -234,6 +234,87 @@ export async function getUserProfile(
   }
 }
 
+export const refreshToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    
+    const refreshToken = req.cookies?.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json(
+        createResponse({
+          success: false,
+          message: "Refresh token required.",
+        })
+      );
+    }
+
+    const userRepo = new UserRepository();
+    const adminRepo = new AdminRepository();
+    const ownerRepo = new OwnerRepository();
+    const otpRepo = new OTPRepository();
+    const emailService = new EmailService();
+    const ownerRequestRepo = new OwnerRequestRepository();
+    const authService = new AuthService(
+      userRepo,
+      adminRepo,
+      ownerRepo,
+      otpRepo,
+      emailService,
+      ownerRequestRepo
+    );
+
+    const refreshResult = await authService.refreshAccessToken(refreshToken);
+
+
+    if (!refreshResult.success) {
+      res.clearCookie("accessToken");
+      res.clearCookie("refreshToken");
+      
+      return res.status(401).json(
+        createResponse({
+          success: false,
+          message: "Invalid refresh token. Please login again.",
+        })
+      );
+    }
+
+    res.cookie("accessToken", refreshResult.data.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 15 * 60 * 1000, 
+    });
+
+    res.cookie("refreshToken", refreshResult.data.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    return res.status(200).json(
+      createResponse({
+        success: true,
+        message: "Token refreshed successfully",
+      })
+    );
+
+  } catch (error) {
+    console.error("Token refresh error:", error);
+    return res.status(401).json(
+      createResponse({
+        success: false,
+        message: "Token refresh failed.",
+      })
+    );
+  }
+};
+
+
 export async function updateProfile(
   req: Request,
   res: Response,

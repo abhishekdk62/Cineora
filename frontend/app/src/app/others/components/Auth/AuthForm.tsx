@@ -66,7 +66,6 @@ const Form: React.FC<AuthFormProps> = ({
           </label>
           <input
             id="email"
-            type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className={`${lexendSmall.className} w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent backdrop-blur-sm`}

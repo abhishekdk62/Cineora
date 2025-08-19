@@ -193,7 +193,7 @@ export class AuthService {
     }
 
     const accessToken = jwt.sign(payload, config.jwtAccessSecret, {
-      expiresIn: '15m'
+      expiresIn: '20s'
     });
 
     const refreshToken = jwt.sign(
@@ -262,7 +262,11 @@ export class AuthService {
   }
 
   async storeRefreshToken(userId: string, refreshToken: string, userType: 'user' | 'admin' | 'owner') {
+
+    
+    
     const hashedToken = await bcrypt.hash(refreshToken, 10);
+
     
     if (userType === 'user') {
       await this.userRepo.updateRefreshToken(userId, hashedToken);
@@ -596,54 +600,68 @@ export class AuthService {
     }
   }
 
-  async refreshAccessToken(refreshToken: string): Promise<{
-    success: boolean;
-    message: string;
-    data?: { accessToken: string; refreshToken: string };
-  }> {
-    try {
-      const decoded = jwt.verify(refreshToken, config.jwtRefreshSecret) as any;
-      if (decoded.tokenType !== 'refresh') {
-        return { success: false, message: 'Invalid token type' };
-      }
+async refreshAccessToken(refreshToken: string): Promise<{
+  success: boolean;
+  message: string;
+  data?: { accessToken: string; refreshToken: string, user?: any; };
+}> {
+  try {
+    
+    const decoded = jwt.verify(refreshToken, config.jwtRefreshSecret) as any;
 
-      let user;
-      let userType = decoded.role;
-      
-      if (userType === 'user') {
-        user = await this.userRepo.findById(decoded.userId);
-      } else if (userType === 'owner') {
-        user = await this.ownerRepo.findById(decoded.ownerId);
-      } else if (userType === 'admin') {
-        user = await this.adminRepo.findById(decoded.adminId);
-      }
-
-      if (!user || !user.refreshToken) {
-        return { success: false, message: 'Invalid refresh token' };
-      }
-
-      const isValidRefreshToken = await bcrypt.compare(refreshToken, user.refreshToken);
-      if (!isValidRefreshToken) {
-        return { success: false, message: 'Invalid refresh token' };
-      }
-
-      const { accessToken, refreshToken: newRefreshToken } = this.generateTokenPair(user, userType);
-      
-      await this.storeRefreshToken(user._id, newRefreshToken, userType);
-
-      return {
-        success: true,
-        message: 'Token refreshed successfully',
-        data: {
-          accessToken,
-          refreshToken: newRefreshToken
-        }
-      };
-    } catch (error) {
-      console.error('Refresh token error:', error);
-      return { success: false, message: 'Token refresh failed' };
+    
+    if (decoded.tokenType !== 'refresh') {
+      return { success: false, message: 'Invalid token type' };
     }
+
+    let user;
+    let userType = decoded.role;
+    
+    
+    if (userType === 'user') {
+      user = await this.userRepo.findById(decoded.userId);
+    } else if (userType === 'owner') {
+      user = await this.ownerRepo.findById(decoded.ownerId);
+    } else if (userType === 'admin') {
+      user = await this.adminRepo.findById(decoded.adminId);
+    }
+
+    
+    
+
+    if (!user || !user.refreshToken) {
+      return { success: false, message: 'Invalid refresh token' };
+    }
+
+    const isValidRefreshToken = await bcrypt.compare(refreshToken, user.refreshToken);
+
+    if (!isValidRefreshToken) {
+      return { success: false, message: 'Invalid refresh token' };
+    }
+
+    const { accessToken, refreshToken: newRefreshToken } = this.generateTokenPair(user, userType);
+    
+    await this.storeRefreshToken(user._id, newRefreshToken, userType);
+
+    return {
+      success: true,
+      message: 'Token refreshed successfully',
+      data: {
+        accessToken,
+        refreshToken: newRefreshToken,
+        user: {
+          id: user._id,
+          email: user.email,
+          role: userType,
+        }
+      }
+    };
+  } catch (error) {
+    console.error('❌ Refresh token error:', error);
+    return { success: false, message: 'Token refresh failed' };
   }
+}
+
 
   private async createGoogleUser(googleUserData: {
     googleId: string;

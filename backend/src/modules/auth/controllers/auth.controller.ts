@@ -56,12 +56,13 @@ export async function login(req: Request, res: Response, next: NextFunction) {
         })
       );
     }
+    
 
     res.cookie("accessToken", result.data.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 20 * 1000,
     });
 
     res.cookie("refreshToken", result.data.refreshToken, {
