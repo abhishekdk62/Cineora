@@ -1,14 +1,12 @@
-
-
 "use client";
 
 import { useState, useRef } from "react";
 import toast from "react-hot-toast";
-import ReactCrop, { 
-  Crop, 
-  PixelCrop, 
-  centerCrop, 
-  makeAspectCrop 
+import ReactCrop, {
+  Crop,
+  PixelCrop,
+  centerCrop,
+  makeAspectCrop
 } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 
@@ -24,11 +22,11 @@ import {
 } from "lucide-react";
 import { updateProfile } from "@/app/others/services/userServices/userServices";
 import { IUser } from "./MyAccountContent";
+import MapLocationPicker from "@/app/others/Leaflet/MapLocationPicker";
 
-/* ---------- fonts / class shorthands ---------- */
-const lexendBold   = { className: "font-bold" };
+const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
-const lexendSmall  = { className: "font-normal text-sm" };
+const lexendSmall = { className: "font-normal text-sm" };
 
 /* ---------- types ---------- */
 interface EditFormData {
@@ -38,6 +36,10 @@ interface EditFormData {
   language: string;
   gender: "male" | "female" | "other" | "";
   phone: string;
+  location?: {
+    type: "Point";
+    coordinates: [number, number];
+  };
   locationCity: string;
   locationState: string;
   profilePicture: string;
@@ -46,7 +48,7 @@ interface EditFormData {
 interface EditProfileModalProps {
   user: IUser;
   onClose: () => void;
-  onDataUpdate?: () => Promise<void>; 
+  onDataUpdate?: () => Promise<void>;
 }
 
 /* ---------- helper functions ---------- */
@@ -112,20 +114,21 @@ async function canvasPreview(
 }
 
 /* ---------- component ---------- */
-const EditProfileModal = ({ user, onClose ,onDataUpdate}: EditProfileModalProps) => {
+const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps) => {
   /* ----- state ----- */
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<EditFormData>({
-    firstName:      user.firstName      ?? "",
-    lastName:       user.lastName       ?? "",
-    dateOfBirth:    user.dateOfBirth
-                     ? new Date(user.dateOfBirth).toISOString().split("T")[0]
-                     : "",
-    language:       user.language       ?? "en",
-    gender:         user.gender         ?? "",
-    phone:          user.phone          ?? "",
-    locationCity:   user.locationCity   ?? "",
-    locationState:  user.locationState  ?? "",
+    firstName: user.firstName ?? "",
+    lastName: user.lastName ?? "",
+    dateOfBirth: user.dateOfBirth
+      ? new Date(user.dateOfBirth).toISOString().split("T")[0]
+      : "",
+    language: user.language ?? "en",
+    gender: user.gender ?? "",
+    phone: user.phone ?? "",
+    location: user.location, // ✅ Include existing location
+    locationCity: user.locationCity ?? "",
+    locationState: user.locationState ?? "",
     profilePicture: user.profilePicture ?? "",
   });
 
@@ -142,6 +145,11 @@ const EditProfileModal = ({ user, onClose ,onDataUpdate}: EditProfileModalProps)
   ) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  // ✅ Add updateFormData function
+  const updateFormData = (updates: Partial<EditFormData>) => {
+    setFormData(prev => ({ ...prev, ...updates }));
   };
 
   const onSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -168,7 +176,7 @@ const EditProfileModal = ({ user, onClose ,onDataUpdate}: EditProfileModalProps)
 
   const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const { width, height } = e.currentTarget;
-    setCrop(centerAspectCrop(width, height, 1)); 
+    setCrop(centerAspectCrop(width, height, 1));
   };
 
   const onCropComplete = (crop: PixelCrop) => {
@@ -215,17 +223,27 @@ const EditProfileModal = ({ user, onClose ,onDataUpdate}: EditProfileModalProps)
 
   /* ----- validation ----- */
   const validate = (d: EditFormData): string => {
-    if (!d.firstName.trim())      return "First name is required";
-    if (!d.lastName.trim())       return "Last name is required";
-    if (!d.dateOfBirth)           return "Date of birth is required";
-    if (!d.gender)                return "Please select a gender";
-    if (!d.phone.trim())          return "Phone number is required";
-    if (!d.locationCity.trim())   return "City is required";
-    if (!d.locationState.trim())  return "State is required";
+    if (!d.firstName.trim()) return "First name is required";
+    if (!d.lastName.trim()) return "Last name is required";
+    if (!d.dateOfBirth) return "Date of birth is required";
+    if (!d.gender) return "Please select a gender";
+    if (!d.phone.trim()) return "Phone number is required";
+    if (!d.locationCity.trim()) return "City is required";
+    if (!d.locationState.trim()) return "State is required";
     return "";
   };
 
   const isFormValid = !validate(formData);
+
+  // ✅ Fixed handleMapLocationSelect function
+  const handleMapLocationSelect = (lat: number, lng: number) => {
+    updateFormData({
+      location: {
+        type: "Point",
+        coordinates: [lng, lat], 
+      },
+    });
+  };
 
   const onSave = async () => {
     const errMsg = validate(formData);
@@ -238,10 +256,14 @@ const EditProfileModal = ({ user, onClose ,onDataUpdate}: EditProfileModalProps)
     try {
       await updateProfile(formData);
       toast.success("Profile updated");
+      if (onDataUpdate) await onDataUpdate(); // ✅ Refresh user data
       onClose();
-      
-    } catch (err) {
-      console.error(err);
+
+    } catch (err: any) {
+      if (err.response?.statusText?.includes('Payload Too Large')) {
+        toast.error('Image size too large');
+        return;
+      }
       toast.error("Update failed — try again.");
     } finally {
       setIsLoading(false);
@@ -430,6 +452,22 @@ const EditProfileModal = ({ user, onClose ,onDataUpdate}: EditProfileModalProps)
                 </label>
               </div>
             </div>
+
+            {/* ✅ Fixed map section */}
+            {formData.location && (
+              <div className="space-y-4">
+                <h3 className={`${lexendBold.className} text-lg text-white border-b border-white/10 pb-2`}>
+                  Location on Map
+                </h3>
+                <MapLocationPicker
+                  onLocationSelect={handleMapLocationSelect}
+                  initialPosition={[
+                    formData.location.coordinates[1] || 28.7041,
+                    formData.location.coordinates[0] || 77.1025  
+                  ]}
+                />
+              </div>
+            )}
           </div>
 
           {/* footer */}
@@ -463,7 +501,7 @@ const EditProfileModal = ({ user, onClose ,onDataUpdate}: EditProfileModalProps)
       {showCropModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-black/90 backdrop-blur-sm" />
-          
+
           <div className="relative w-full max-w-2xl bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/10 rounded-2xl backdrop-blur-xl">
             {/* crop header */}
             <div className="flex items-center justify-between p-6 border-b border-white/10">

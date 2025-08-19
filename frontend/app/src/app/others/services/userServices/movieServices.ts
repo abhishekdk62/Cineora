@@ -2,6 +2,7 @@ import axios from "axios";
 import apiClient from "../../Utils/apiClient"
 
 export const getMovieById = async (id:string) => {
+  
   const response = await apiClient.get(`/common/movies/${id}`);
   return response.data;
 };
@@ -21,6 +22,8 @@ export const getMoviesWithFilters = async (filters: {
   page?: number;
   limit?: number;
 }) => {
+  console.log('callimg /common/movies/${id}`) ');
+
   const params = new URLSearchParams();
   
   Object.entries(filters).forEach(([key, value]) => {
@@ -29,7 +32,7 @@ export const getMoviesWithFilters = async (filters: {
     }
   });
 
-  const response = await apiClient.get(`/users/movies/filter?${params.toString()}`);
+  const response = await apiClient.get(`/common/movies/filter?${params.toString()}`);
   return response.data;
 };
 

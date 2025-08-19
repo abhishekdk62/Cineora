@@ -30,6 +30,7 @@ export interface IMovieShowtime extends Document {
   language: string;
   rowPricing: IRowPricing[];
   totalSeats: number;
+   ageRestriction:number|null
   availableSeats: number;
   bookedSeats: string[];
   blockedSeats: ISeatBlock[];
@@ -80,7 +81,21 @@ export interface IShowtimeRepository {
     endTime: string,
     excludeId?: string
   ): Promise<boolean>;
-
+  updateStatus(
+    showtimeId: string,
+    isActive: boolean
+  ): Promise<IMovieShowtime | null>;
+  findAllPaginated(
+    page: number,
+    limit: number,
+    filters?: ShowtimeFilters
+  ): Promise<PaginatedShowtimeResult>;
+  findByScreenPaginated(
+    screenId: string,
+    page: number,
+    limit: number,
+    filters?: ShowtimeFilters
+  ): Promise<PaginatedShowtimeResult>;
   blockSeats(
     showtimeId: string,
     seatIds: string[],
@@ -105,4 +120,25 @@ export interface ServiceResponse {
   success: boolean;
   message: string;
   data?: any;
+}
+
+export interface ShowtimeFilters {
+  search?: string;
+  showDate?: string;
+  isActive?: boolean;
+  format?: string;
+  language?: string;
+  theaterId?: string;
+  screenId?: string;
+  movieId?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}
+
+export interface PaginatedShowtimeResult {
+  showtimes: IMovieShowtime[];
+  total: number;
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
 }

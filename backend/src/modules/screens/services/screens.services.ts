@@ -377,29 +377,29 @@ async deleteScreensByTheater(theaterId: string): Promise<ServiceResponse> {
     }
   }
 
-  async getAllScreens(
-    page: number,
-    limit: number,
-    filters?: any
-  ): Promise<ServiceResponse> {
-    try {
-      if (page < 1) page = 1;
-      if (limit < 1 || limit > 100) limit = 10;
+async getAllScreens(
+  page: number,
+  limit: number,
+  filters?: any
+): Promise<ServiceResponse> {
+  try {
+    if (page < 1) page = 1;
+    if (limit < 1 || limit > 100) limit = 10;
 
-      const result = await this.screenRepo.findAll(page, limit, filters);
+    const result = await this.screenRepo.findAll(page, limit, filters);
 
-      return {
-        success: true,
-        message: "Screens retrieved successfully",
-        data: result,
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Something went wrong",
-      };
-    }
+    return {
+      success: true,
+      message: "Screens retrieved successfully",
+      data: result, // result now has pagination fields!
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || "Something went wrong",
+    };
   }
+}
 
   async updateScreen(
     screenId: string,

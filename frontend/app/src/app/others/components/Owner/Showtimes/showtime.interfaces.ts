@@ -29,6 +29,7 @@ export interface IMovieShowtime {
   rowPricing: IRowPricing[];
   totalSeats: number;
   availableSeats: number;
+  ageRestriction:number|null;
   bookedSeats: string[];
   blockedSeats: ISeatBlock[];
   isActive: boolean;

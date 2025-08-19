@@ -4,10 +4,10 @@ import { ShowtimeController } from "../../showtimes/controllers/showtimes.contro
 const router = Router();
 const controller = new ShowtimeController();
 
-router.get("/showtime", (req, res) => controller.getAllShowtimes(req, res));
-router.get("/showtime/:showtimeId", (req, res) => controller.getShowtime(req, res));
-router.patch("/showtime/:showtimeId", (req, res) => controller.changeShowtimeStatus(req, res));
-router.delete("/showtime/:showtimeId", (req, res) => controller.deleteShowtime(req, res));
+router.get("/:screenId", (req, res) => controller.getShowtimesByScreenAdmin(req, res));
+router.get("/:showtimeId", (req, res) => controller.getShowtime(req, res));
+router.patch("/:showtimeId", (req, res) => controller.changeShowtimeStatus(req, res));
+router.delete("/:showtimeId", (req, res) => controller.deleteShowtime(req, res));
 
 export default router;
  

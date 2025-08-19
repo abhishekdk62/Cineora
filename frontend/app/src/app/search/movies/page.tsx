@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import MoviesPage from "../../others/components/Search/MoviesPage";
+import MoviesPage from "../../others/components/Search/Movies/MoviesPage";
 import { Footer, NavBar } from "../../others/components/Home";
 import Orb from "../../others/Utils/ReactBits/Orb";
 

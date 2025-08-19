@@ -54,11 +54,13 @@ const RowPricingSchema = new Schema<IRowPricing>({
     required: true,
     min: 0,
   },
+ 
   availableSeats: {
     type: Number,
     required: true,
     min: 0,
   },
+  
   bookedSeats: {
     type: [String],
     default: [],
@@ -139,6 +141,10 @@ const MovieShowtimeSchema = new Schema<IMovieShowtime>(
       type: Boolean,
       default: true,
     },
+    ageRestriction:{
+      type:Number,
+      default:null
+    }
   },
   {
     timestamps: true,

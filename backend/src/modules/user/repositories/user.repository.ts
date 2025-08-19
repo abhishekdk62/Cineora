@@ -30,6 +30,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async updateProfile(id: string, updateData: Partial<IUser>): Promise<IUser | null> {
+    
     return User.findByIdAndUpdate(
       id,
       { ...updateData, lastActive: new Date() },
@@ -62,6 +63,7 @@ export class UserRepository implements IUserRepository {
     const result = await User.updateOne({ _id: id }, { isActive: false });
     return result.modifiedCount > 0;
   }
+  
 
   async toggleStatus(id: string): Promise<IUser | null> {
     const user = await User.findById(id);

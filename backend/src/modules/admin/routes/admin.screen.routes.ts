@@ -19,7 +19,7 @@ router.get("/theater/:theaterId/count", screenController.getScreenCountByTheater
 router.get("/theater/:theaterId/name/:name", screenController.getScreenByTheaterAndName.bind(screenController));
 
 
-router.patch("/:id/toggle-status", screenController.toggleScreenStatus.bind(screenController));
+router.patch("/:id", screenController.toggleScreenStatus.bind(screenController));
 
 router.delete("/:id", screenController.deleteScreen.bind(screenController));
 

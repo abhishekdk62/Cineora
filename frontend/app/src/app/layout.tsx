@@ -26,14 +26,15 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
           <ReduxProvider>
-            <Toaster position="top-center" />
-            {children}
-            <ConfirmDialog title={''} message={''} />
+              <Toaster position="top-center" />
+              {children}
+              <ConfirmDialog title={''} message={''} />
           </ReduxProvider>
         </GoogleOAuthProvider>
       </body>

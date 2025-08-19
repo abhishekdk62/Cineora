@@ -501,6 +501,34 @@ export class TheaterService {
       };
     }
   }
+ async  getTheatersWithFilters(filters: any) {
+  const { 
+    search = "",
+    sortBy = "nearby",
+    page = 1,
+    limit = 6,
+    latitude,
+    longitude 
+  } = filters;
+
+  const result = await this.theaterRepo.findWithFilters({
+    search,
+    sortBy,
+    page,
+    limit,
+    latitude: latitude ? parseFloat(latitude) : undefined,
+    longitude: longitude ? parseFloat(longitude) : undefined,
+  });
+
+  return {
+    theaters: result.theaters,
+    total: result.total,
+    totalPages: result.totalPages,
+    currentPage: page,
+    hasNextPage: page < result.totalPages,
+    hasPrevPage: page > 1,
+  };
+}
 
   async getTheaterByOwnerAndName(
     ownerId: string,

@@ -8,6 +8,11 @@ import Aurora from "../others/Utils/ReactBits/Aurora";
 import { Lexend } from "next/font/google";
 import { Eye, EyeClosed } from "lucide-react";
 import { useRouter } from "next/navigation";
+import {
+  loginUser,
+  clearError,
+  googleLogin,
+} from "../others/redux/slices/authSlice";
 import AuthForm from "../others/components/Auth/AuthForm";
 import OTPStep from "../others/components/Auth/common/OTPStep";
 import {
@@ -125,6 +130,36 @@ export default function SignUp() {
     }
   };
 
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    dispatch(clearError());
+
+    try {
+
+      const resultAction = await dispatch(googleLogin(credentialResponse));
+
+      if (googleLogin.fulfilled.match(resultAction)) {
+        const data = resultAction.payload;
+        localStorage.setItem("role", data.user.role);
+        redirectBasedOnRole(data.user.role);
+      } else {
+        console.error("Google auth failed:", resultAction);
+      }
+    } catch (error) {
+      console.error("Google Sign-In error:", error);
+    }
+  };
+
+  const redirectBasedOnRole = (userRole: string) => {
+    if (userRole === "admin") {
+      router.push("/admin/dashboard");
+    } else if (userRole === "owner") {
+      router.push("/owner/dashboard");
+    } else {
+      router.push("/");
+    }
+  };
+
+
   return (
     <RouteGuard excludedRoles={["owner", "user", "admin"]}>
       <div className="min-h-screen relative flex items-center justify-center bg-black overflow-hidden p-4">
@@ -157,6 +192,7 @@ export default function SignUp() {
               isSignup
               onSubmit={handleSubmit}
               onSwitch={goToSignIn}
+              onGoogleSuccess={handleGoogleSuccess}
               error={error}
               loading={loading}
             />

@@ -20,6 +20,8 @@ import {
 import EditProfileModal from "./EditProfileModal";
 import ChangePasswordModal from "./ChangePasswordModal";
 import ChangeEmailModal from "./ChangeEmailModal";
+import LocationFields from "../../../Owner/Theatre/LocationFields";
+import MapLocationPicker from "@/app/others/Leaflet/MapLocationPicker";
 
 const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
@@ -38,7 +40,11 @@ export interface IUser {
   profilePicture?: string;
   locationCity?: string;
   locationState?: string;
-  coordinates?: [number, number];
+  location?: {
+    type: "Point";
+    coordinates: [number, number];
+  };
+
   isVerified: boolean;
   xpPoints: number;
   joinedAt: Date;
@@ -101,19 +107,19 @@ const MyAccountContent = ({
     userData.xpPoints >= 5_000
       ? "Premium"
       : userData.xpPoints >= 2_000
-      ? "Gold"
-      : userData.xpPoints >= 500
-      ? "Silver"
-      : "Bronze";
+        ? "Gold"
+        : userData.xpPoints >= 500
+          ? "Silver"
+          : "Bronze";
 
   const nextLevelPoints =
     userData.xpPoints >= 5_000
       ? 0
       : userData.xpPoints >= 2_000
-      ? 5_000 - userData.xpPoints
-      : userData.xpPoints >= 500
-      ? 2_000 - userData.xpPoints
-      : 500 - userData.xpPoints;
+        ? 5_000 - userData.xpPoints
+        : userData.xpPoints >= 500
+          ? 2_000 - userData.xpPoints
+          : 500 - userData.xpPoints;
 
   const progressPct = (() => {
     const tiers = { Bronze: 500, Silver: 1_500, Gold: 3_000, Premium: 1 };
@@ -159,15 +165,14 @@ const MyAccountContent = ({
             {/* badge */}
             <div className="mt-4 text-center">
               <div
-                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                  membershipLevel === "Premium"
-                    ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border border-purple-500/30"
-                    : membershipLevel === "Gold"
+                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${membershipLevel === "Premium"
+                  ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border border-purple-500/30"
+                  : membershipLevel === "Gold"
                     ? "bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-300 border border-yellow-500/30"
                     : membershipLevel === "Silver"
-                    ? "bg-gradient-to-r from-gray-400/20 to-gray-500/20 text-gray-300 border border-gray-400/30"
-                    : "bg-gradient-to-r from-amber-600/20 to-amber-700/20 text-amber-300 border border-amber-600/30"
-                }`}
+                      ? "bg-gradient-to-r from-gray-400/20 to-gray-500/20 text-gray-300 border border-gray-400/30"
+                      : "bg-gradient-to-r from-amber-600/20 to-amber-700/20 text-amber-300 border border-amber-600/30"
+                  }`}
               >
                 <Award className="w-3 h-3 mr-1" />
                 {membershipLevel} Member
@@ -287,9 +292,8 @@ const MyAccountContent = ({
             <InfoRow
               label="Location"
               icon={<MapPin className="w-4 h-4 inline mr-2" />}
-              value={`${userData.locationCity ?? ""}${
-                userData.locationCity && userData.locationState ? ", " : ""
-              }${userData.locationState ?? ""}`}
+              value={`${userData.locationCity ?? ""}${userData.locationCity && userData.locationState ? ", " : ""
+                }${userData.locationState ?? ""}`}
             />
           )}
 
@@ -311,6 +315,34 @@ const MyAccountContent = ({
               }
             />
           )}
+
+          {userData.location &&
+            <div>
+
+              <div className="flex items-center gap-3 p-3">
+                <h1>Your location</h1>
+                <button
+                  onClick={() => {
+                    const url = `https://www.google.com/maps?q=${userData?.location?.coordinates[1]},${userData?.location?.coordinates[0]}`;
+                    window.open(url, "_blank");
+                  }}
+                  className="text text-blue-400 hover:text-blue-700 underline"
+                >
+                  View on Google Maps
+                </button>
+              </div>
+              <MapLocationPicker
+                readOnly={true}
+                initialPosition={[
+                  userData.location.coordinates[1] || 28.7041,
+                  userData.location.coordinates[0] || 77.1025
+                ]}
+              />
+
+
+            </div>
+          }
+
         </div>
       </div>
 
@@ -369,15 +401,14 @@ const MyAccountContent = ({
                 </span>
               </div>
               <span
-                className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  membershipLevel === "Premium"
-                    ? "bg-white text-black border"
-                    : membershipLevel === "Gold"
+                className={`px-3 py-1 rounded-full text-sm font-medium ${membershipLevel === "Premium"
+                  ? "bg-white text-black border"
+                  : membershipLevel === "Gold"
                     ? "bg-white text-black border"
                     : membershipLevel === "Silver"
-                    ? "bg-white text-black border"
-                    : "bg-white text-black border"
-                }`}
+                      ? "bg-white text-black border"
+                      : "bg-white text-black border"
+                  }`}
               >
                 {membershipLevel}
               </span>

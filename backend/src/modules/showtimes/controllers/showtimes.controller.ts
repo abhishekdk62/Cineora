@@ -75,9 +75,9 @@ export class ShowtimeController {
   }
   async changeShowtimeStatus(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const { showtimeId } = req.params;
       const { isActive } = req.body;
-
+      let id = showtimeId;
       const result = await this.showtimeService.changeShowtimeStatus(
         id,
         isActive
@@ -131,6 +131,7 @@ export class ShowtimeController {
         req.body,
         ownerId
       );
+      
       if (result.success) {
         res.status(201).json(result);
       } else {
@@ -143,38 +144,38 @@ export class ShowtimeController {
       });
     }
   }
- async editShowtime(req: Request, res: Response): Promise<void> {
-  try {
-    const { ownerId } = req.owner;
-    const showtime = req.body; 
-
-  
-
-    if (!showtime || !showtime._id) {
-      res.status(400).json({
-        success: false,
-        message: "Showtime _id is required for updating.",
-      });
-      return;
-    }
-
-    const result = await this.showtimeService.updateShowtime(showtime._id, showtime, ownerId);
-
-    if (result.success) {
-      res.status(200).json(result);
-    } else {
-      
-      res.status(400).json(result);
-    }
-  } catch (error: any) {
+  async editShowtime(req: Request, res: Response): Promise<void> {
+    try {
+      const { ownerId } = req.owner;
+      const showtime = req.body;
     
-    res.status(500).json({
-      success: false,
-      message: error.message || "Internal server error",
-    });
-  }
-}
 
+      if (!showtime || !showtime._id) {
+        res.status(400).json({
+          success: false,
+          message: "Showtime _id is required for updating.",
+        });
+        return;
+      }
+
+      const result = await this.showtimeService.updateShowtime(
+        showtime._id,
+        showtime,
+        ownerId
+      );
+
+      if (result.success) {
+        res.status(200).json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Internal server error",
+      });
+    }
+  }
 
   async getShowtime(req: Request, res: Response): Promise<void> {
     try {
@@ -257,7 +258,6 @@ export class ShowtimeController {
     try {
       const { screenId } = req.params;
       const { date } = req.query;
-
       if (!date) {
         res.status(400).json({
           success: false,
@@ -367,6 +367,105 @@ export class ShowtimeController {
       const { seatIds } = req.body;
 
       const result = await this.showtimeService.bookSeats(showtimeId, seatIds);
+
+      if (result.success) {
+        res.status(200).json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Internal server error",
+      });
+    }
+  }
+  async getShowtimesByScreenAdmin(req: Request, res: Response): Promise<void> {
+    try {
+      const { screenId } = req.params;
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+
+      const filters = {
+        search: req.query.search as string,
+        showDate: req.query.showDate as string,
+        isActive: req.query.isActive
+          ? req.query.isActive === "true"
+          : undefined,
+        format: req.query.format as string,
+        language: req.query.language as string,
+        sortBy: (req.query.sortBy as string) || "showDate",
+        sortOrder: (req.query.sortOrder as "asc" | "desc") || "asc",
+      };
+
+      const result = await this.showtimeService.getShowtimesByScreenAdmin(
+        screenId,
+        page,
+        limit,
+        filters
+      );
+
+      if (result.success) {
+        res.status(200).json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Internal server error",
+      });
+    }
+  }
+
+  async getAllShowtimesAdmin(req: Request, res: Response): Promise<void> {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+
+      const filters = {
+        search: req.query.search as string,
+        showDate: req.query.showDate as string,
+        isActive: req.query.isActive
+          ? req.query.isActive === "true"
+          : undefined,
+        format: req.query.format as string,
+        language: req.query.language as string,
+        theaterId: req.query.theaterId as string,
+        screenId: req.query.screenId as string,
+        movieId: req.query.movieId as string,
+        sortBy: (req.query.sortBy as string) || "showDate",
+        sortOrder: (req.query.sortOrder as "asc" | "desc") || "asc",
+      };
+
+      const result = await this.showtimeService.getAllShowtimesAdmin(
+        page,
+        limit,
+        filters
+      );
+
+      if (result.success) {
+        res.status(200).json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Internal server error",
+      });
+    }
+  }
+
+  async updateShowtimeStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const { showtimeId } = req.params;
+      const { isActive } = req.body;
+
+      const result = await this.showtimeService.updateShowtimeStatus(
+        showtimeId,
+        isActive
+      );
 
       if (result.success) {
         res.status(200).json(result);

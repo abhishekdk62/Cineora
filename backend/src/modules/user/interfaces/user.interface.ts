@@ -68,10 +68,17 @@ export interface UpdateProfileData {
   locationCity?: string;
   locationState?: string;
   coordinates?: [number, number];
+  location?: {
+    type: "Point";
+    coordinates: [number, number];
+  };
 }
+
 
 export interface ServiceResponse {
   success: boolean;
   message: string;
   data?: any;
 }
+
+

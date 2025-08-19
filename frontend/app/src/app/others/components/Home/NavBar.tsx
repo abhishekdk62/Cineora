@@ -24,8 +24,8 @@ const lexendBold = Lexend({
 export default function NavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
-  
- 
+
+
   const user = useSelector((state: RootState) => state.auth.user);
   const role = useSelector((state: RootState) => state.auth.role);
   const isAuthenticated = useSelector(
@@ -33,13 +33,13 @@ export default function NavBar() {
   );
   const loading = useSelector((state: RootState) => state.auth.loading);
   const error = useSelector((state: RootState) => state.auth.error);
-  
+
   const handleClickAcc = () => {
     router.push("/user/account");
   };
 
   const dispatch = useDispatch<AppDispatch>();
-  
+
   const handleLogout = async () => {
     try {
       await dispatch(logoutUser()).unwrap();
@@ -77,6 +77,9 @@ export default function NavBar() {
               Movies
             </button>
             <button
+
+              onClick={() => { router.push('/search/theaters') }}
+
               className={`${lexendSmall.className} text-gray-300 hover:text-white transition-colors`}
             >
               Theaters
