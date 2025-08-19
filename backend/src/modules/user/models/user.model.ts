@@ -90,7 +90,6 @@ const userSchema = new Schema<IUser>(
     refreshToken: {
       type: String,
       required: false,
-      select: false,
       index: true,
     },
     profilePicture: {

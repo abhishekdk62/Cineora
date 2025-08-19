@@ -58,7 +58,7 @@ const ownerSchema = new Schema<IOwner>(
       type: String,
       required: true,
     },
-    refreshToken: { type: String, select: false },
+    refreshToken: { type: String },
 
     pan: {
       type: String,

@@ -87,7 +87,7 @@ export default function LandingPage() {
 
 
   return (
-    // <RouteGuard allowUnauthenticated={true} allowedRoles={["user"]}>
+    <RouteGuard allowUnauthenticated={true} allowedRoles={["user"]}>
     <div className="relative min-h-screen bg-black overflow-hidden">
       <div className="fixed inset-0 z-0 pointer-events-none">
         <Orb
@@ -108,6 +108,6 @@ export default function LandingPage() {
         <Footer />
       </div>
     </div>
-    // </RouteGuard>
+    </RouteGuard>
   );
 }

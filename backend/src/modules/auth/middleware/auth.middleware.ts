@@ -29,61 +29,7 @@ export const authenticateToken = async (
     const accessToken = req.cookies?.accessToken;
     const refreshToken = req.cookies?.refreshToken;
 
-
     if (!accessToken) {
-      
-      if (refreshToken) {
-        try {
-          const userRepo = new UserRepository();
-          const adminRepo = new AdminRepository();
-          const ownerRepo = new OwnerRepository();
-          const otpRepo = new OTPRepository();
-          const emailService = new EmailService();
-          const ownerRequestRepo = new OwnerRequestRepository();
-          const authService = new AuthService(
-            userRepo,
-            adminRepo,
-            ownerRepo,
-            otpRepo,
-            emailService,
-            ownerRequestRepo
-          );
-          const refreshResult = await authService.refreshAccessToken(
-            refreshToken
-          );
-          if (refreshResult.success) {
-
-
-         
-
-            res.cookie("accessToken", refreshResult.data.accessToken, {
-              httpOnly: true,
-              secure: process.env.NODE_ENV === "production",
-              sameSite: "strict",
-              maxAge: 15 * 60 * 1000,
-            });
-            res.cookie("refreshToken", refreshResult.data.refreshToken, {
-              httpOnly: true,
-              secure: process.env.NODE_ENV === "production",
-              sameSite: "strict",
-              maxAge: 7 * 24 * 60 * 60 * 1000,
-            });
-            const newDecoded: any = jwt.verify(
-              refreshResult.data.accessToken,
-              config.jwtAccessSecret
-            );
-            setUserFromDecoded(req, newDecoded);
-            return next();
-          }
-        } catch (err) {
-          return res.status(401).json(
-            createResponse({
-              success: false,
-              message: "Token refresh failed. Please login again.",
-            })
-          );
-        }
-      }
       return res.status(401).json(
         createResponse({
           success: false,
@@ -96,57 +42,6 @@ export const authenticateToken = async (
       setUserFromDecoded(req, decoded);
       return next();
     } catch (error: any) {
-      if (error.name === "TokenExpiredError" && refreshToken) {
-        try {
-          const userRepo = new UserRepository();
-          const adminRepo = new AdminRepository();
-          const ownerRepo = new OwnerRepository();
-          const otpRepo = new OTPRepository();
-          const emailService = new EmailService();
-          const ownerRequestRepo = new OwnerRequestRepository();
-          const authService = new AuthService(
-            userRepo,
-            adminRepo,
-            ownerRepo,
-            otpRepo,
-            emailService,
-            ownerRequestRepo
-          );
-          const refreshResult = await authService.refreshAccessToken(
-            refreshToken
-          );
-
-          if (refreshResult.success) {
-            res.cookie("accessToken", refreshResult.data.accessToken, {
-              httpOnly: true,
-              secure: process.env.NODE_ENV === "production",
-              sameSite: "strict",
-              maxAge: 15 * 60 * 1000,
-            });
-            res.cookie("refreshToken", refreshResult.data.refreshToken, {
-              httpOnly: true,
-              secure: process.env.NODE_ENV === "production",
-              sameSite: "strict",
-              maxAge: 7 * 24 * 60 * 60 * 1000,
-            });
-
-            const newDecoded: any = jwt.verify(
-              refreshResult.data.accessToken,
-              config.jwtAccessSecret
-            );
-            setUserFromDecoded(req, newDecoded);
-            return next();
-          }
-        } catch (err) {
-          return res.status(401).json(
-            createResponse({
-              success: false,
-              message: "Token refresh failed. Please login again.",
-            })
-          );
-        }
-      }
-
       return res.status(401).json(
         createResponse({
           success: false,

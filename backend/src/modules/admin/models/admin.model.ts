@@ -9,7 +9,7 @@ export interface IAdmin extends Document {
 const AdminSchema = new Schema<IAdmin>({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  refreshToken: { type: String, select: false },
+  refreshToken: { type: String },
 });
 
 export const Admin = mongoose.model<IAdmin>("Admin", AdminSchema);
