@@ -116,17 +116,14 @@ const handleRejectTheater = async () => {
 
       const theaterFilters: TheaterFilters = {
         ownerId,
-        status, // Use the dynamic status
+        status, 
         page: currentPage,
         limit: itemsPerPage,
         ...filters,
       };
 
       const response = await getTheatersByOwnerIdAdmin(ownerId, theaterFilters);
-      console.log(response.data);
-
       setTheaters(response.data?.theaters || response.theaters || []);
-
       if (response.data?.meta?.pagination) {
         setTotalPages(response.data.meta.pagination.totalPages);
         setTotalItems(response.data.meta.pagination.total);

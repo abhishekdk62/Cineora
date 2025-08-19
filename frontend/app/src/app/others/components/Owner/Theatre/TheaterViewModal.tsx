@@ -138,11 +138,12 @@ const TheaterViewModal: React.FC<TheaterViewModalProps> = ({ theaterData, onClos
 
               <div className="rounded-xl overflow-hidden border border-gray-500/30 h-60">
                 <MapLocationPicker
-                  onLocationSelect={() => {}} 
+                  readOnly={true}
                   initialPosition={[
-                    location?.coordinates?.[1] || 28.7041, 
-                    location?.coordinates?.[0] || 77.1025, 
+                    location?.coordinates?.[1] || 28.7041,
+                    location?.coordinates?.[0] || 77.1025,
                   ]}
+
                 />
               </div>
             </div>
@@ -151,7 +152,7 @@ const TheaterViewModal: React.FC<TheaterViewModalProps> = ({ theaterData, onClos
           {/* Facilities */}
           <section>
             <h3 className={`${lexendMedium.className} text-lg text-white mb-2 flex items-center gap-2`}>
-              <Film className="w-5 h-5 text-blue-400"/> Facilities & Screens
+              <Film className="w-5 h-5 text-blue-400" /> Facilities & Screens
             </h3>
             <div className="flex flex-wrap gap-2 mb-2">
               {facilities.length > 0 ? (

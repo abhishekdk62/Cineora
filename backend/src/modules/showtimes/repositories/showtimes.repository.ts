@@ -1,6 +1,8 @@
 import {
   IMovieShowtime,
   IShowtimeRepository,
+  PaginatedShowtimeResult,
+  ShowtimeFilters,
 } from "../interfaces/showtimes.interfaces";
 import MovieShowtime from "../models/showtimes.model";
 import mongoose, { Types } from "mongoose";
@@ -72,6 +74,7 @@ export class ShowtimeRepository implements IShowtimeRepository {
     id: string,
     updateData: Partial<IMovieShowtime>
   ): Promise<IMovieShowtime | null> {
+    
     return MovieShowtime.findByIdAndUpdate(id, updateData, { new: true });
   }
 
@@ -119,6 +122,163 @@ export class ShowtimeRepository implements IShowtimeRepository {
     });
 
     return result !== null;
+  }
+  async findByScreenPaginated(
+    screenId: string,
+    page: number,
+    limit: number,
+    filters?: ShowtimeFilters
+  ): Promise<PaginatedShowtimeResult> {
+    const query: any = { screenId: new mongoose.Types.ObjectId(screenId) };
+    this.applyFilters(query, filters);
+
+    const skip = (page - 1) * limit;
+    const sortOptions = this.getSortOptions(filters);
+
+    const [showtimes, total] = await Promise.all([
+      MovieShowtime.find(query)
+        .populate("movieId", "title duration language poster")
+        .populate("theaterId", "name city state")
+        .populate("screenId", "name totalSeats")
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      MovieShowtime.countDocuments(query)
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      showtimes: showtimes as IMovieShowtime[],
+      total,
+      currentPage: page,
+      totalPages,
+      pageSize: limit,
+    };
+  }
+
+  async findAllPaginated(
+    page: number,
+    limit: number,
+    filters?: ShowtimeFilters
+  ): Promise<PaginatedShowtimeResult> {
+    const query: any = {};
+    this.applyFilters(query, filters);
+
+    const skip = (page - 1) * limit;
+    const sortOptions = this.getSortOptions(filters);
+
+    const [showtimes, total] = await Promise.all([
+      MovieShowtime.find(query)
+        .populate("movieId", "title duration language poster")
+        .populate("theaterId", "name city state")
+        .populate("screenId", "name totalSeats")
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      MovieShowtime.countDocuments(query)
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      showtimes: showtimes as IMovieShowtime[],
+      total,
+      currentPage: page,
+      totalPages,
+      pageSize: limit,
+    };
+  }
+
+  async updateStatus(
+    showtimeId: string,
+    isActive: boolean
+  ): Promise<IMovieShowtime | null> {
+    return await MovieShowtime.findByIdAndUpdate(
+      showtimeId,
+      { isActive },
+      { new: true }
+    ).lean();
+  }
+
+  private applyFilters(query: any, filters?: ShowtimeFilters): void {
+    if (!filters) return;
+
+    // Search filter (movie title, format, language)
+    if (filters.search) {
+      const searchRegex = new RegExp(filters.search, 'i');
+      query.$or = [
+        { format: searchRegex },
+        { language: searchRegex },
+        { showTime: searchRegex },
+        // You might want to add movie title search via populate/lookup
+      ];
+    }
+
+    // Date filter
+    if (filters.showDate) {
+      const startDate = new Date(filters.showDate);
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + 1);
+      query.showDate = {
+        $gte: startDate,
+        $lt: endDate
+      };
+    }
+
+    // Status filter
+    if (filters.isActive !== undefined) {
+      query.isActive = filters.isActive;
+    }
+
+    // Format filter
+    if (filters.format) {
+      query.format = filters.format;
+    }
+
+    // Language filter
+    if (filters.language) {
+      query.language = filters.language;
+    }
+
+    // Theater filter
+    if (filters.theaterId) {
+      query.theaterId = new mongoose.Types.ObjectId(filters.theaterId);
+    }
+
+    // Screen filter (for general admin search)
+    if (filters.screenId) {
+      query.screenId = new mongoose.Types.ObjectId(filters.screenId);
+    }
+
+    // Movie filter
+    if (filters.movieId) {
+      query.movieId = new mongoose.Types.ObjectId(filters.movieId);
+    }
+  }
+
+  private getSortOptions(filters?: ShowtimeFilters): any {
+    const sortBy = filters?.sortBy || 'showDate';
+    const sortOrder = filters?.sortOrder === 'desc' ? -1 : 1;
+
+    switch (sortBy) {
+      case 'showTime':
+        return { showTime: sortOrder };
+      case 'format':
+        return { format: sortOrder };
+      case 'language':
+        return { language: sortOrder };
+      case 'availableSeats':
+        return { availableSeats: sortOrder };
+      case 'totalSeats':
+        return { totalSeats: sortOrder };
+      case 'createdAt':
+        return { createdAt: sortOrder };
+      default:
+        return { showDate: sortOrder, showTime: 1 };
+    }
   }
 
   async bookSeats(showtimeId: string, seatIds: string[]): Promise<boolean> {

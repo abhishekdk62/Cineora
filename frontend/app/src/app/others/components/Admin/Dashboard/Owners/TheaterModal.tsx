@@ -327,7 +327,10 @@ const TheaterDetailsModal: React.FC<TheaterDetailsModalProps> = ({
                   </button>
                 </div>
                 <div>
-                  <MapLocationPicker initialPosition={[latitude, longitude]} />
+                  <MapLocationPicker
+
+                    readOnly={true}
+                    initialPosition={[latitude, longitude]} />
                 </div>
               </div>
 
@@ -453,8 +456,8 @@ const TheaterDetailsModal: React.FC<TheaterDetailsModalProps> = ({
                 <button
                   onClick={handleToggleStatus}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors font-medium ${theater.isActive
-                      ? "bg-red-600 hover:bg-red-700 text-white"
-                      : "bg-green-600 hover:bg-green-700 text-white"
+                    ? "bg-red-600 hover:bg-red-700 text-white"
+                    : "bg-green-600 hover:bg-green-700 text-white"
                     }`}
                 >
                   <Power size={16} />

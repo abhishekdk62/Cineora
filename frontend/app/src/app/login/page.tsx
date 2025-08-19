@@ -57,6 +57,7 @@ export default function LoginPage() {
     dispatch(clearError());
 
     try {
+      
       const resultAction = await dispatch(googleLogin(credentialResponse));
 
       if (googleLogin.fulfilled.match(resultAction)) {
@@ -70,6 +71,9 @@ export default function LoginPage() {
       console.error("Google Sign-In error:", error);
     }
   };
+  const handleGuestLogin = () => {
+    router.push('/')
+  }
 
   const redirectBasedOnRole = (userRole: string) => {
     if (userRole === "admin") {
@@ -90,9 +94,7 @@ export default function LoginPage() {
   };
 
   return (
-
-    <RouteGuard excludedRoles={['admin','owner','user']}>
- 
+    <RouteGuard excludedRoles={['admin', 'owner', 'user']}>
       <div className="min-h-screen relative flex items-center justify-center bg-black overflow-hidden p-4">
         <div className="absolute inset-0 z-0">
           <Aurora
@@ -112,6 +114,7 @@ export default function LoginPage() {
               Sign in to your account
             </p>
           </div>
+
           <AuthForm
             error={error}
             loading={loading}
@@ -120,8 +123,18 @@ export default function LoginPage() {
             onSwitch={goToSignUp}
             onGoogleSuccess={handleGoogleSuccess}
           />
+
+          <div className="mt-6 text-center">
+            <button
+              onClick={handleGuestLogin} // define this function to redirect or set guest session
+              className="w-full py-2 px-4 rounded-xl bg-gray-700 hover:bg-gray-600 text-white font-medium transition"
+            >
+              Continue as Guest
+            </button>
+          </div>
         </div>
       </div>
-      </RouteGuard>
+    </RouteGuard>
   );
+
 }

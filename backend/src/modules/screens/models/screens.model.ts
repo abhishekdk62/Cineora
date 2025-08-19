@@ -19,7 +19,7 @@ const screenSchema = new Mongoose.Schema<IScreen>(
     },
     screenType: { type: String },
     features: [{ type: String }],
-    isActive: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true },
   },
   {
     timestamps: true,

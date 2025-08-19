@@ -41,7 +41,7 @@ const AccountPage = () => {
   async function getUeserDetails() {
     try {
       const result = await getUserProfile();
-      console.log(result);
+      console.log('suiiii',result);
       const dto = (await getUserProfile()).data;
 
       const parsed: IUser = {
@@ -52,6 +52,8 @@ const AccountPage = () => {
       };
 
       setUserData(parsed);
+      console.log(parsed);
+      
     } catch (error) {
       console.log(error);
     }

@@ -5,6 +5,7 @@ import {
   Users,
   User,
   BarChart3,
+  TvMinimal,
   Calendar,
   Ticket,
   Menu,
@@ -40,15 +41,16 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const sidebarItems = [
     { id: "movies", label: "Movies", icon: Film, count: 0 },
-    { id: "owners", label: "Owners", icon: User, count: 12 },
     { id: "users", label: "Users", icon: Users, count: 1247 },
+    { id: "owners", label: "Owners and Theaters", icon: User, count: 12 },
+    { id: "screens", label: "Screens and Showtimes", icon: TvMinimal, count: 1247 },
     { id: "analytics", label: "Analytics", icon: BarChart3 },
     { id: "bookings", label: "Bookings", icon: Calendar, count: 89 },
     { id: "coupons", label: "Coupons", icon: Ticket, count: 5 },
   ];
 
   const dispatch = useDispatch<AppDispatch>();
-const router=useRouter()
+  const router = useRouter()
   const handleLogout = async () => {
     try {
       await dispatch(logoutUser()).unwrap();
@@ -61,9 +63,8 @@ const router=useRouter()
 
   return (
     <div
-      className={`${
-        sidebarOpen ? "w-72" : "w-20"
-      } bg-[#0a0a0a] border-r border-gray-700 transition-all duration-300 flex flex-col shadow-lg`}
+      className={`${sidebarOpen ? "w-72" : "w-20"
+        } bg-[#0a0a0a] border-r border-gray-700 transition-all duration-300 flex flex-col shadow-lg`}
     >
       {/* Sidebar Header */}
       <div className="p-6 border-b border-gray-700">
@@ -99,11 +100,10 @@ const router=useRouter()
               <li key={item.id}>
                 <button
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 ${
-                    isActive
+                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 ${isActive
                       ? "bg-[#e78f03] text-black border-l-4 border-[#d17a02] shadow-lg font-medium"
                       : "text-gray-300 hover:text-white hover:bg-[#1a1a1a]"
-                  }`}
+                    }`}
                 >
                   <Icon size={20} />
                   {sidebarOpen && (

@@ -11,6 +11,7 @@ import {
   changeEmail,
   verifyChangeEmailOtp,
   getMoviesWithFilters,
+  updateUserLocation,
 } from "../controllers/user.controller";
 import { ShowtimeController } from "../../showtimes/controllers/showtimes.controller";
 const router = Router();
@@ -22,8 +23,7 @@ router.post("/email/change",changeEmail);
 router.post("/email/verify",verifyChangeEmailOtp);
 router.get("/nearby/:id", getNearbyUsers);
 router.post("/xp/:id", addXpPoints);
-router.get("/movies/filter", getMoviesWithFilters);
-
+router.patch('/location',updateUserLocation)
 
 
 

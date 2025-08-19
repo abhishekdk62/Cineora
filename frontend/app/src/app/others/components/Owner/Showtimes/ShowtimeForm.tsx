@@ -49,6 +49,7 @@ const ShowtimeForm: React.FC<ShowtimeFormProps> = ({
     screenId: "",
     format: "2D",
     language: "",
+    ageRestriction: null as number | null,
     rowPricing: [] as IRowPricing[],
   });
 
@@ -83,6 +84,10 @@ const ShowtimeForm: React.FC<ShowtimeFormProps> = ({
         screenId: getId(showtime.screenId),
         format: showtime.format,
         language: showtime.language,
+        ageRestriction:
+          showtime.ageRestriction === undefined ? null :
+            showtime.ageRestriction === null ? null :
+              typeof showtime.ageRestriction === "number" ? showtime.ageRestriction : null,
         rowPricing: showtime.rowPricing || [],
       });
 
@@ -195,138 +200,140 @@ const ShowtimeForm: React.FC<ShowtimeFormProps> = ({
     return showDateTime.toTimeString().slice(0, 5);
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (mode === "view") return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (mode === "view") return;
 
-  // Get today's date for validation
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+    // Get today's date for validation
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  // JS-only validation
-  if (!selectedMovie?._id || !selectedTheater?._id || !selectedScreen?._id) {
-    toast.error("Please select movie, theater, and screen.");
-    return;
-  }
-  if (!formData.theaterId) return toast.error("Please select a theater");
-  if (!formData.movieId) return toast.error("Please select a movie");
-  if (!formData.screenId) return toast.error("Please select a screen");
-  if (!formData.format) return toast.error("Please select a format");
-  if (!formData.language) return toast.error("Movie language is not set");
-  if (!formData.rowPricing || formData.rowPricing.length === 0)
-    return toast.error("Row pricing is not set");
+    // JS-only validation
+    if (!selectedMovie?._id || !selectedTheater?._id || !selectedScreen?._id) {
+      toast.error("Please select movie, theater, and screen.");
+      return;
+    }
+    if (!formData.theaterId) return toast.error("Please select a theater");
+    if (!formData.movieId) return toast.error("Please select a movie");
+    if (!formData.screenId) return toast.error("Please select a screen");
+    if (!formData.format) return toast.error("Please select a format");
+    if (!formData.language) return toast.error("Movie language is not set");
+    if (!formData.rowPricing || formData.rowPricing.length === 0)
+      return toast.error("Row pricing is not set");
 
-  for (let row of formData.rowPricing) {
-    const showtimePrice = Number(row.showtimePrice);
-    const basePrice = Number(row.basePrice);
-    if (isNaN(showtimePrice) || showtimePrice < basePrice)
-      return toast.error(
-        `Showtime price for row ${row.rowLabel} must be at least base price (${basePrice})`
-      );
-    if (row.totalSeats <= 0)
-      return toast.error(`Row ${row.rowLabel} must have at least one seat`);
-  }
-
-  if (mode === "edit") {
-    if (!singleDate) return toast.error("Please select a date");
-    if (!singleTime) return toast.error("Please select a time");
-
-    const selectedDate = new Date(singleDate);
-    selectedDate.setHours(0, 0, 0, 0);
-    if (selectedDate <= today) {
-      return toast.error("Show date must be at least from tomorrow");
+    for (let row of formData.rowPricing) {
+      const showtimePrice = Number(row.showtimePrice);
+      const basePrice = Number(row.basePrice);
+      if (isNaN(showtimePrice) || showtimePrice < basePrice)
+        return toast.error(
+          `Showtime price for row ${row.rowLabel} must be at least base price (${basePrice})`
+        );
+      if (row.totalSeats <= 0)
+        return toast.error(`Row ${row.rowLabel} must have at least one seat`);
     }
 
-    const endTime = calculateEndTime(singleTime, selectedMovie?.duration || 0);
-    const editData = {
-      ...formData,
-      _id: showtime?._id,
-      movieId: selectedMovie?._id,
-      theaterId: selectedTheater?._id,
-      screenId: selectedScreen?._id,
-      showDate: singleDate,
-      showTime: singleTime,
-      endTime,
-      totalSeats: calculateTotalSeats(),
-      availableSeats: calculateTotalSeats(),
-      bookedSeats: [],
-      blockedSeats: [],
-      isActive: true,
-    };
+    if (mode === "edit") {
+      if (!singleDate) return toast.error("Please select a date");
+      if (!singleTime) return toast.error("Please select a time");
 
-    onSubmit({ showtime: editData });
-  } else {
-    if (!dateRange.start || !dateRange.end)
-      return toast.error("Select start and end date");
-    if (timeSlots.length === 0)
-      return toast.error("Add at least one showtime slot");
-
-
-    const startDate = new Date(dateRange.start);
-    const endDate = new Date(dateRange.end);
-    startDate.setHours(0, 0, 0, 0);
-    endDate.setHours(0, 0, 0, 0);
-    if (startDate <= today || endDate <= today) {
-      return toast.error("Show dates must be at least tomorrow");
-    }
-
-    const dateList = getDatesInRange(dateRange.start, dateRange.end);
-    const minShowDate = new Date();
-    minShowDate.setHours(0, 0, 0, 0);
-    for (let d of dateList) {
-      if (new Date(d) < minShowDate)
-        return toast.error("Show dates must be in the future");
-    }
-
-    let bulkShowtimes: any[] = [];
-    for (const day of dateList) {
-      let daySlots = [...timeSlots].sort();
-      let lastEndTime = null;
-      for (const time of daySlots) {
-        const endTime = calculateEndTime(time, selectedMovie?.duration || 0);
-        if (lastEndTime) {
-          const gap = toMinutes(time) - toMinutes(lastEndTime);
-          if (gap < 30)
-            return toast.error(`Shows on ${day} have less than 30 min gap in between`);
-        }
-        bulkShowtimes.push({
-          ...formData,
-          movieId: selectedMovie?._id,
-          theaterId: selectedTheater?._id,
-          screenId: selectedScreen?._id,
-          showDate: day,
-          showTime: time,
-          endTime,
-          totalSeats: calculateTotalSeats(),
-          availableSeats: calculateTotalSeats(),
-          bookedSeats: [],
-          blockedSeats: [],
-          isActive: true,
-        });
-        lastEndTime = endTime;
+      const selectedDate = new Date(singleDate);
+      selectedDate.setHours(0, 0, 0, 0);
+      if (selectedDate <= today) {
+        return toast.error("Show date must be at least from tomorrow");
       }
+
+      const endTime = calculateEndTime(singleTime, selectedMovie?.duration || 0);
+      const editData = {
+        ...formData,
+        _id: showtime?._id,
+        movieId: selectedMovie?._id,
+        theaterId: selectedTheater?._id,
+        screenId: selectedScreen?._id,
+        showDate: singleDate,
+        showTime: singleTime,
+        endTime,
+        ageRestriction: formData.ageRestriction,
+        totalSeats: calculateTotalSeats(),
+        availableSeats: calculateTotalSeats(),
+        bookedSeats: [],
+        blockedSeats: [],
+        isActive: true,
+      };
+
+      onSubmit({ showtime: editData });
+    } else {
+      if (!dateRange.start || !dateRange.end)
+        return toast.error("Select start and end date");
+      if (timeSlots.length === 0)
+        return toast.error("Add at least one showtime slot");
+
+
+      const startDate = new Date(dateRange.start);
+      const endDate = new Date(dateRange.end);
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(0, 0, 0, 0);
+      if (startDate <= today || endDate <= today) {
+        return toast.error("Show dates must be at least tomorrow");
+      }
+
+      const dateList = getDatesInRange(dateRange.start, dateRange.end);
+      const minShowDate = new Date();
+      minShowDate.setHours(0, 0, 0, 0);
+      for (let d of dateList) {
+        if (new Date(d) < minShowDate)
+          return toast.error("Show dates must be in the future");
+      }
+
+      let bulkShowtimes: any[] = [];
+      for (const day of dateList) {
+        let daySlots = [...timeSlots].sort();
+        let lastEndTime = null;
+        for (const time of daySlots) {
+          const endTime = calculateEndTime(time, selectedMovie?.duration || 0);
+          if (lastEndTime) {
+            const gap = toMinutes(time) - toMinutes(lastEndTime);
+            if (gap < 30)
+              return toast.error(`Shows on ${day} have less than 30 min gap in between`);
+          }
+          bulkShowtimes.push({
+            ...formData,
+            movieId: selectedMovie?._id,
+            theaterId: selectedTheater?._id,
+            screenId: selectedScreen?._id,
+            showDate: day,
+            showTime: time,
+            endTime,
+            ageRestriction: formData.ageRestriction,
+            totalSeats: calculateTotalSeats(),
+            availableSeats: calculateTotalSeats(),
+            bookedSeats: [],
+            blockedSeats: [],
+            isActive: true,
+          });
+          lastEndTime = endTime;
+        }
+      }
+
+      if (bulkShowtimes.length === 0)
+        return toast.error("No valid showtimes to submit");
+
+      onSubmit({ showtimes: bulkShowtimes });
     }
-
-    if (bulkShowtimes.length === 0)
-      return toast.error("No valid showtimes to submit");
-
-    onSubmit({ showtimes: bulkShowtimes });
-  }
-};
+  };
 
   const headerLabel =
     mode === "edit"
       ? "Edit Showtime"
       : mode === "create"
-      ? "Add Bulk Showtimes"
-      : "View Showtime";
+        ? "Add Bulk Showtimes"
+        : "View Showtime";
 
   const submitLabel =
     submitting
       ? "Please wait"
       : mode === "edit"
-      ? "Update Showtime"
-      : "Create Bulk Showtimes";
+        ? "Update Showtime"
+        : "Create Bulk Showtimes";
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -427,6 +434,9 @@ const handleSubmit = async (e: React.FormEvent) => {
                     Add Time
                   </button>
                 </div>
+
+
+
                 <div className="mt-2">
                   {timeSlots.map(slot => (
                     <span key={slot} className="mr-2 px-2 py-1 bg-white/10 text-blue-300 rounded">
@@ -467,6 +477,27 @@ const handleSubmit = async (e: React.FormEvent) => {
               </div>
             </div>
           )}
+          <div>
+            <label className={`${lexendSmall.className} text-gray-300 text-sm block mb-2`}>
+              Age Restriction (optional)
+            </label>
+            <select
+              value={formData.ageRestriction === null ? "" : String(formData.ageRestriction)}
+              onChange={e => setFormData(prev => ({
+                ...prev,
+                ageRestriction: e.target.value === "" ? null : Number(e.target.value),
+              }))}
+              className="w-full p-3 bg-white/5 border border-gray-500/30 rounded-xl text-white"
+              disabled={mode === "view"}
+
+            >
+              <option value="">No Restriction</option>
+              <option value={7}>7+</option>
+              <option value={13}>13+</option>
+              <option value={16}>16+</option>
+              <option value={18}>18+</option>
+            </select>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

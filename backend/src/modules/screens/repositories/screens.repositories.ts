@@ -26,26 +26,42 @@ async deleteMany(theaterId: string): Promise<number> {
     );
   }
 
-  async findAll(
-    page: number,
-    limit: number,
-    filters?: any
-  ): Promise<{ screens: IScreen[]; total: number }> {
-    const query: any = {};
-    this.applyFilters(query, filters);
+async findAll(
+  page: number,
+  limit: number,
+  filters?: any
+): Promise<{ 
+  screens: IScreen[]; 
+  total: number;
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+}> {
+  const query: any = {};
+  this.applyFilters(query, filters);
 
-    const skip = (page - 1) * limit;
-    const sortOptions = this.getSortOptions(filters);
+  const skip = (page - 1) * limit;
+  const sortOptions = this.getSortOptions(filters);
 
-    const screens = await Screen.find(query)
-      .sort(sortOptions)
-      .skip(skip)
-      .limit(limit)
-      .populate("theaterId", "name city state");
+  const screens = await Screen.find(query)
+    .sort(sortOptions)
+    .skip(skip)
+    .limit(limit)
+    .populate("theaterId", "name city state");
 
-    const total = await Screen.countDocuments(query);
-    return { screens, total };
-  }
+  const total = await Screen.countDocuments(query);
+
+  const totalPages = Math.ceil(total / limit);
+
+  return { 
+    screens,
+    total,
+    currentPage: page,
+    totalPages,
+    pageSize: limit
+  };
+}
+
 async findByIdGetTheaterDetails(screenId: string): Promise<IScreen> {
   return await Screen.findById(screenId).populate('theaterId','name isActive')
 }

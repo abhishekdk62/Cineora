@@ -18,11 +18,13 @@ L.Icon.Default.mergeOptions({
 interface MapLocationPickerProps {
   onLocationSelect?: (lat: number, lng: number) => void;
   initialPosition?: [number, number];
+  readOnly?: boolean; 
 }
 
 const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
   onLocationSelect,
   initialPosition = [28.7041, 77.1025],
+  readOnly = false
 }) => {
   const [position, setPosition] = useState<[number, number] | null>(
     initialPosition[0] !== 0 && initialPosition[1] !== 0
@@ -30,18 +32,19 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
       : null
   );
 
-  function LocationMarker() {
+   function LocationMarker() {
     const map = useMapEvents({
       click(e) {
-        const { lat, lng } = e.latlng;
-        setPosition([lat, lng]);
-        if(onLocationSelect)
-        {
-
-          onLocationSelect(lat, lng);
+        if (!readOnly) {
+          const { lat, lng } = e.latlng;
+          setPosition([lat, lng]);
+          if (onLocationSelect) {
+            onLocationSelect(lat, lng);
+          }
         }
       },
     });
+
 
     useEffect(() => {
       if (position) {
@@ -59,7 +62,13 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
           center={initialPosition}
           zoom={13}
           style={{ height: "100%", width: "100%" }}
-          scrollWheelZoom={true}
+         scrollWheelZoom={!readOnly} 
+                    dragging={!readOnly} // ✅ Disable dragging in read-only mode
+          touchZoom={!readOnly} // ✅ Disable touch zoom in read-only mode
+          doubleClickZoom={!readOnly} // ✅ Disable double click zoom in read-only mode
+          boxZoom={!readOnly} // ✅ Disable box zoom in read-only mode
+          keyboard={!readOnly} // ✅ Disable keyboard controls in read-only mode
+
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

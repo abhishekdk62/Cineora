@@ -18,21 +18,17 @@ import {
 import { IOTPRepository } from "../../otp/interfaces/otp.interface";
 
 export class UserService implements IUserService {
-
   constructor(
     private userRepo: IUserRepository,
     private ownerRepo: IOwnerRepository,
     private ownerRequestRepo: IOwnerRequestRepository,
     private otpRepo: IOTPRepository,
     private emailService: IEmailService
-  ) {
-     
-  }
+  ) {}
 
   private generateOTP(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
-
 
   async signup(userData: SignupData): Promise<ServiceResponse> {
     try {
@@ -218,6 +214,7 @@ export class UserService implements IUserService {
     updateData: UpdateProfileData
   ): Promise<ServiceResponse> {
     try {
+      
       const updatedUser = await this.userRepo.updateProfile(id, updateData);
 
       if (!updatedUser) {
@@ -242,7 +239,7 @@ export class UserService implements IUserService {
     try {
       const user = await this.userRepo.findById(userId);
 
-      if (!user || !user.coordinates) {
+      if (!user || !user.location.coordinates) {
         return {
           success: false,
           message: "User not found or location not set",
@@ -250,10 +247,9 @@ export class UserService implements IUserService {
       }
 
       const nearbyUsers = await this.userRepo.findNearbyUsers(
-        user.coordinates,
+        user.location.coordinates,
         maxDistance
       );
-
       return {
         success: true,
         message: "Nearby users fetched successfully",
@@ -342,7 +338,8 @@ export class UserService implements IUserService {
       }
 
       const isRequestedOwner = await this.ownerRepo.findByEmail(email);
-      if (isRequestedOwner&&
+      if (
+        isRequestedOwner &&
         isRequestedOwner.status !== "rejected" &&
         isRequestedOwner.status !== "approved"
       ) {
@@ -436,7 +433,7 @@ export class UserService implements IUserService {
 
       const isRequestedOwner = await this.ownerRepo.findByEmail(email);
       if (
-        isRequestedOwner&&
+        isRequestedOwner &&
         isRequestedOwner.status !== "rejected" &&
         isRequestedOwner.status !== "approved"
       ) {

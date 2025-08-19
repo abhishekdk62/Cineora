@@ -15,7 +15,7 @@ const ownerRepo = new OwnerRepository();
 const ownerRequestRepo = new OwnerRequestRepository();
 const otpRepo = new OTPRepository();
 const emailService = new EmailService();
-const adminRepo=new AdminRepository()
+const adminRepo = new AdminRepository();
 
 const userService = new UserService(
   userRepo,
@@ -274,8 +274,78 @@ export async function updateProfile(
     next(err);
   }
 }
+export async function updateUserLocation(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const { id } = req.user;
+    const { latitude, longitude } = req.body;
 
+    if (!id) {
+      return res.status(400).json(
+        createResponse({
+          success: false,
+          message: "User ID is required",
+        })
+      );
+    }
 
+    if (latitude === undefined || longitude === undefined) {
+      return res.status(400).json(
+        createResponse({
+          success: false,
+          message: "Latitude and longitude are required",
+        })
+      );
+    }
+
+    if (
+      longitude < -180 ||
+      longitude > 180 ||
+      latitude < -90 ||
+      latitude > 90
+    ) {
+      return res.status(400).json(
+        createResponse({
+          success: false,
+          message: "Invalid coordinates range",
+        })
+      );
+    }
+
+    const locationData: {
+      location: { type: "Point"; coordinates: [number, number] };
+    } = {
+      location: {
+        type: "Point",
+        coordinates: [longitude, latitude], 
+      },
+    };
+
+    const result = await userService.updateProfile(id, locationData);
+
+    if (!result.success) {
+      return res.status(404).json(
+        createResponse({
+          success: false,
+          message: result.message,
+        })
+      );
+    }
+
+    return res.status(200).json(
+      createResponse({
+        success: true,
+        message: result.message,
+        data: result.data,
+      })
+    );
+  } catch (err) {
+    next(err);
+  }
+}
 
 export async function getNearbyUsers(
   req: Request,

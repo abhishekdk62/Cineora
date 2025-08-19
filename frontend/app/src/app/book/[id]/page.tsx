@@ -393,7 +393,6 @@ export default function BookTicketsPage() {
                 </div>
               </div>
 
-              {/* Date Selection */}
               <div className="pb-6">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                   <div className="backdrop-blur-sm bg-black/20 rounded-2xl p-4 border border-gray-500/30">
@@ -431,7 +430,6 @@ export default function BookTicketsPage() {
                 </div>
               </div>
 
-              {/* Theaters List */}
               <div className="pb-12">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                   <div className="space-y-4">

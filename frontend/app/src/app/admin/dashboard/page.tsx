@@ -9,6 +9,7 @@ import OwnersManager from "@/app/others/components/Admin/Dashboard/Owners/OwnerM
 import UsersManager from "@/app/others/components/Admin/Dashboard/User/UserManager";
 import RoleCheck from "@/app/others/components/Auth/common/RouteGuard";
 import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
+import ScreenAndShowManager from "@/app/others/components/Admin/Dashboard/Screens/ScreenAndShowManager";
 
 const lexend = Lexend({
   weight: "500",
@@ -27,6 +28,8 @@ const AdminDashboard = () => {
         return <OwnersManager />;
       case "users":
         return <UsersManager />;
+        case 'screens':
+          return <ScreenAndShowManager />
       default:
         return (
           <div className="flex items-center justify-center h-96">

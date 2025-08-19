@@ -3,6 +3,7 @@ import { ServiceResponse } from "../../admin/interfaces/admin.interface";
 import {
   IShowtimeInput,
   IShowtimeRepository,
+  ShowtimeFilters,
 } from "../interfaces/showtimes.interfaces";
 
 export class ShowtimeService {
@@ -134,6 +135,7 @@ export class ShowtimeService {
         };
       }
 
+
       const showtime = await this.showtimeRepo.create(ownerId, {
         ...showtimeData,
         availableSeats: showtimeData.totalSeats,
@@ -161,105 +163,116 @@ export class ShowtimeService {
       };
     }
   }
-async updateShowtime(
-  id: string,
-  updateData: any,
-  ownerId?: string
-): Promise<ServiceResponse> {
-  try {
-    if (!mongoose.isValidObjectId(id)) {
-      return {
-        success: false,
-        message: "Invalid showtime ID",
-      };
-    }
-
-    const allowedFields = [
-      "showDate",
-      "showTime",
-      "endTime",
-      "format",
-      "rowPricing",
-      "totalSeats",
-      "availableSeats",
-      "bookedSeats",
-      "blockedSeats",
-      "isActive",
-    ];
-    const updates: any = {};
-    allowedFields.forEach((field) => {
-      if (updateData[field] !== undefined) updates[field] = updateData[field];
-    });
-
-    if (updates.showDate || updates.showTime || updates.endTime) {
-      const currentShowtime = await this.showtimeRepo.findById(id);
-      if (!currentShowtime) {
+  async updateShowtime(
+    id: string,
+    updateData: any,
+    ownerId?: string
+  ): Promise<ServiceResponse> {
+    try {
+      if (!mongoose.isValidObjectId(id)) {
         return {
           success: false,
-          message: "Showtime not found",
+          message: "Invalid showtime ID",
         };
       }
 
-      const finalShowDate = updates.showDate || currentShowtime.showDate;
-      const finalShowTime = updates.showTime || currentShowtime.showTime;
-      const finalEndTime = updates.endTime || currentShowtime.endTime;
-      
-      // ✅ Change const to let
-      let finalScreenId = updates.screenId || currentShowtime.screenId;
+      const allowedFields = [
+        "showDate",
+        "showTime",
+        "endTime",
+        "format",
+        "rowPricing",
+        "totalSeats",
+        "availableSeats",
+        "bookedSeats",
+        "blockedSeats",
+        "isActive",
+        'ageRestriction'
+      ];
+      const updates: any = {};
+      allowedFields.forEach((field) => {
+        if (updateData[field] !== undefined) updates[field] = updateData[field];
+      });
 
-      // ✅ Extract _id if it's an object
-      if (typeof finalScreenId === "object" && finalScreenId !== null && finalScreenId._id) {
-        finalScreenId = typeof finalScreenId._id === "string"
-          ? finalScreenId._id
-          : finalScreenId._id.toString();
+      if (updates.showDate || updates.showTime || updates.endTime) {
+        const currentShowtime = await this.showtimeRepo.findById(id);
+        if (!currentShowtime) {
+          return {
+            success: false,
+            message: "Showtime not found",
+          };
+        }
+
+        const finalShowDate = updates.showDate || currentShowtime.showDate;
+        const finalShowTime = updates.showTime || currentShowtime.showTime;
+        const finalEndTime = updates.endTime || currentShowtime.endTime;
+
+       
+        let finalScreenId = updates.screenId || currentShowtime.screenId;
+
+        
+        if (
+          typeof finalScreenId === "object" &&
+          finalScreenId !== null &&
+          finalScreenId._id
+        ) {
+          finalScreenId =
+            typeof finalScreenId._id === "string"
+              ? finalScreenId._id
+              : finalScreenId._id.toString();
+        }
+
+        const bufferMinutes = 30;
+        const bufferedStartTime = this.subtractMinutes(
+          finalShowTime,
+          bufferMinutes
+        );
+        const bufferedEndTime = this.addMinutes(finalEndTime, bufferMinutes);
+
+        // ✅ Remove .toString() since finalScreenId is already a string
+        const hasOverlap = await this.showtimeRepo.checkTimeSlotOverlap(
+          finalScreenId,
+          new Date(finalShowDate),
+          bufferedStartTime,
+          bufferedEndTime,
+          id
+        );
+
+        if (hasOverlap) {
+          return {
+            success: false,
+            message: `Time slot ${finalShowTime}-${finalEndTime} conflicts with existing showtime (30-min buffer required)`,
+          };
+        }
       }
 
-      const bufferMinutes = 30;
-      const bufferedStartTime = this.subtractMinutes(finalShowTime, bufferMinutes);
-      const bufferedEndTime = this.addMinutes(finalEndTime, bufferMinutes);
+      const query: any = { _id: id };
+      if (ownerId) query.ownerId = ownerId;
 
-      // ✅ Remove .toString() since finalScreenId is already a string
-      const hasOverlap = await this.showtimeRepo.checkTimeSlotOverlap(
-        finalScreenId,
-        new Date(finalShowDate),
-        bufferedStartTime,
-        bufferedEndTime,
-        id
+      const updatedShowtime = await this.showtimeRepo.updateById(
+        query,
+        updates
       );
 
-      if (hasOverlap) {
+      if (!updatedShowtime) {
         return {
           success: false,
-          message: `Time slot ${finalShowTime}-${finalEndTime} conflicts with existing showtime (30-min buffer required)`,
+          message: "Showtime not found or update failed",
         };
       }
-    }
 
-    const query: any = { _id: id };
-    if (ownerId) query.ownerId = ownerId;
-
-    const updatedShowtime = await this.showtimeRepo.updateById(query, updates);
-
-    if (!updatedShowtime) {
+      return {
+        success: true,
+        message: "Showtime updated successfully",
+        data: updatedShowtime,
+      };
+    } catch (error: any) {
       return {
         success: false,
-        message: "Showtime not found or update failed",
+        message: error.message || "Something went wrong",
       };
     }
-
-    return {
-      success: true,
-      message: "Showtime updated successfully",
-      data: updatedShowtime,
-    };
-  } catch (error: any) {
-    return {
-      success: false,
-      message: error.message || "Something went wrong",
-    };
   }
-}
-
 
   async getShowtimeById(id: string): Promise<ServiceResponse> {
     try {
@@ -291,6 +304,93 @@ async updateShowtime(
       };
     }
   }
+  async getShowtimesByScreenAdmin(
+    screenId: string,
+    page: number,
+    limit: number,
+    filters?: ShowtimeFilters
+  ): Promise<ServiceResponse> {
+    try {
+      if (page < 1) page = 1;
+      if (limit < 1 || limit > 100) limit = 10;
+
+      const result = await this.showtimeRepo.findByScreenPaginated(
+        screenId,
+        page,
+        limit,
+        filters
+      );
+
+      return {
+        success: true,
+        message: "Showtimes retrieved successfully",
+        data: result,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || "Something went wrong",
+      };
+    }
+  }
+
+  async getAllShowtimesAdmin(
+    page: number,
+    limit: number,
+    filters?: ShowtimeFilters
+  ): Promise<ServiceResponse> {
+    try {
+      if (page < 1) page = 1;
+      if (limit < 1 || limit > 100) limit = 10;
+
+      const result = await this.showtimeRepo.findAllPaginated(
+        page,
+        limit,
+        filters
+      );
+
+      return {
+        success: true,
+        message: "Showtimes retrieved successfully",
+        data: result,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || "Something went wrong",
+      };
+    }
+  }
+
+  async updateShowtimeStatus(
+    showtimeId: string,
+    isActive: boolean
+  ): Promise<ServiceResponse> {
+    try {
+      const result = await this.showtimeRepo.updateStatus(showtimeId, isActive);
+
+      if (!result) {
+        return {
+          success: false,
+          message: "Showtime not found or update failed",
+        };
+      }
+
+      return {
+        success: true,
+        message: `Showtime ${
+          isActive ? "activated" : "deactivated"
+        } successfully`,
+        data: result,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || "Something went wrong",
+      };
+    }
+  }
+
   async getShowtimesByScreen(
     screenId: string,
     date: Date
@@ -617,6 +717,8 @@ async updateShowtime(
         };
       }
 
+      isActive = !isActive;
+
       const updatedShowtime = await this.showtimeRepo.updateById(id, {
         isActive,
       });
@@ -642,7 +744,7 @@ async updateShowtime(
       };
     }
   }
-  // Add these helper methods to your service class
+
   private addMinutes(time: string, minutes: number): string {
     const [hours, mins] = time.split(":").map(Number);
     const date = new Date();
