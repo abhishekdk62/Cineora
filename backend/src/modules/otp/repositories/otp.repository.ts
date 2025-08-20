@@ -1,5 +1,5 @@
-import { IOTPRepository } from '../interfaces/otp.interface';
 import { OTP, IOTP } from '../models/otp.model';
+import { IOTPRepository } from './IOtp.repository';
 
 export class OTPRepository implements IOTPRepository {
   async create(otpData: Partial<IOTP>): Promise<IOTP> {

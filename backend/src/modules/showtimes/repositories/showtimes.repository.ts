@@ -1,11 +1,11 @@
 import {
   IMovieShowtime,
-  IShowtimeRepository,
   PaginatedShowtimeResult,
   ShowtimeFilters,
 } from "../interfaces/showtimes.interfaces";
 import MovieShowtime from "../models/showtimes.model";
 import mongoose, { Types } from "mongoose";
+import { IShowtimeRepository } from "../interfaces/IShowtimes.repository";
 
 export class ShowtimeRepository implements IShowtimeRepository {
   async create(

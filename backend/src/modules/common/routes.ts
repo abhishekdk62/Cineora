@@ -1,12 +1,31 @@
-import { Router } from "express";
-import { getMovieById } from "../admin/controllers/admin.movie.controller";
-import { getMoviesWithFilters } from "../user/controllers/user.controller";
-import { getTheatersWithFilters } from "../theaters/controllers/theaters.controllers";
+import express from "express";
+import { TheaterController } from "../theaters/controllers/theaters.controller";
+import { MoviesController } from "../movies/controllers/movies.controllers";
 
-const router = Router();
+export class CommonRoutes {
+  constructor(
+    private router: express.Router = express.Router(),
+    private moviesController:MoviesController,
+    private theaterController: TheaterController
+  ) {
+    this.setRoutes();
+  }
 
-router.get("/movies/filter", getMoviesWithFilters);
-router.get("/movies/:movieId", getMovieById);
-router.get("/theaters/filter", getTheatersWithFilters);
+  private setRoutes() {
+    this.router.get("/movies/filter", (req, res) =>
+      this.moviesController.getMoviesWithFilters(req, res)
+    );
 
-export default router;
+    this.router.get("/movies/:movieId", (req, res) =>
+      this.moviesController.getMovieById(req, res)
+    );
+
+    this.router.get("/theaters/filter", (req, res) =>
+      this.theaterController.getTheatersWithFilters(req, res)
+    );
+  }
+
+  public getRouter() {
+    return this.router;
+  }
+}

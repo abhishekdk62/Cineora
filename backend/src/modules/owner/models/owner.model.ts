@@ -1,35 +1,7 @@
-import { Schema, model, Document, Types } from "mongoose";
+import { Schema, model } from "mongoose";
+import { IOwner } from "../interfaces/owner.interface";
 
-export interface IOwner extends Document {
-  _id: string;
-  ownerName: string;
-  phone: string;
-  email: string;
-  password?: string;
-  aadhaar: string;
-  pan: string;
-  accountHolder?: string;
-  refreshToken:string;
-  bankName?: string;
-  accountNumber?: string;
-  ifsc?: string;
-  aadhaarUrl: string;
-  panUrl: string;
-  ownerPhotoUrl?: string;
 
-  kycRequestId: Types.ObjectId; 
-  approvedAt: Date;
-  approvedBy: string;
-
-  isActive: boolean;
-  isVerified: boolean;
-
-  theatres: Types.ObjectId[]; 
-
-  lastLogin?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 const ownerSchema = new Schema<IOwner>(
   {

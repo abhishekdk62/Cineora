@@ -7,7 +7,7 @@ export const createScreen = async (data: FormData & any) => {
 };
 
 export const getScreensByTheaterId = async (theaterId: string) => {
-  const result = await apiClient.get(`/owner/screens/${theaterId}`);
+  const result = await apiClient.get(`/owner/screens/theater/${theaterId}`);
   return result;
 };
 

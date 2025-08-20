@@ -1,4 +1,5 @@
 import { Document, Types } from "mongoose";
+import { ServiceResponse } from "../../user/interfaces/user.interface";
 
 export interface IScreen extends Document {
   theaterId: Types.ObjectId | { name: string; isActive: boolean;_id:string };
@@ -51,6 +52,7 @@ export interface IScreenInput {
   isActive: boolean;
 }
 
+
 export interface IScreenRepository {
   create(screenData: Partial<IScreen>): Promise<IScreen | null>;
   findById(screenId: string): Promise<IScreen | null>;
@@ -100,4 +102,56 @@ export interface IScreenRepository {
   ): Promise<IScreen | null>;
   countByTheaterId(theaterId: string): Promise<number>;
   findActiveByTheaterId(theaterId: string): Promise<IScreen[]>;
+}
+
+
+export interface IScreenService {
+  createScreen(
+    screenData: IScreen & { theater: { _id: Types.ObjectId } }
+  ): Promise<ServiceResponse>;
+
+  deleteScreen(screenId: string): Promise<ServiceResponse>;
+
+  deleteScreensByTheater(theaterId: string): Promise<ServiceResponse>;
+
+  getScreensTheaterData(screenId: string): Promise<ServiceResponse>;
+
+  getScreenById(screenId: string): Promise<ServiceResponse>;
+
+  getScreensByTheaterId(theaterId: string): Promise<ServiceResponse>;
+
+  getScreenStats(theaterId: string): Promise<ServiceResponse>;
+
+  getScreensByTheaterIdWithFilters(
+    theaterId: string,
+    filters?: any
+  ): Promise<ServiceResponse>;
+
+  getAllScreens(
+    page: number,
+    limit: number,
+    filters?: any
+  ): Promise<ServiceResponse>;
+
+  updateScreen(
+    screenId: string,
+    updateData: Partial<IScreen>
+  ): Promise<ServiceResponse>;
+
+  toggleScreenStatus(screenId: string): Promise<ServiceResponse>;
+
+  checkScreenExists(
+    name: string,
+    theaterId: string,
+    excludedId?: string
+  ): Promise<ServiceResponse>;
+
+  getScreenByTheaterAndName(
+    theaterId: string,
+    name: string
+  ): Promise<ServiceResponse>;
+
+  getActiveScreensByTheaterId(theaterId: string): Promise<ServiceResponse>;
+
+  getScreenCountByTheaterId(theaterId: string): Promise<ServiceResponse>;
 }

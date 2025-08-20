@@ -1,20 +1,33 @@
-import { Router } from "express";
+import express from "express";
+import { UserController } from "../../user/controllers/user.controller";
 
-import {
-  getUserCounts,
-  getUserDetails,
-  getUsers,
-  toggleUserStatus,
-} from "../controllers/admin.user.controller";
+export class AdminUserRoutes {
+  constructor(
+    private router: express.Router = express.Router(),
+    private userController: UserController
+  ) {
+    this.setRoutes();
+  }
 
-const router = Router();
+  private setRoutes() {
+    this.router.get("/", (req, res) =>
+      this.userController.getUsers(req, res)
+    );
 
-router.get("/", getUsers);
+    this.router.get("/counts", (req, res) =>
+      this.userController.getUserCounts(req, res)
+    );
 
-router.get("/counts", getUserCounts);
+    this.router.patch("/:id/toggle-status", (req, res) =>
+      this.userController.toggleUserStatus(req, res)
+    );
 
-router.patch("/:id/toggle-status", toggleUserStatus);
+    this.router.get("/:id", (req, res) =>
+      this.userController.getUserDetails(req, res)
+    );
+  }
 
-router.get("/:id", getUserDetails);
-
-export default router;
+  public getRouter() {
+    return this.router;
+  }
+}

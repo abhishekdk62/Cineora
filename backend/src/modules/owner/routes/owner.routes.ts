@@ -1,99 +1,119 @@
-import { Router } from "express";
-
-import {
-  createTheater,
-  deleteTheater,
-  getOwnerProfile,
-  getTheatersByOwnerId,
-  resetOwnerPassword,
-  sendEmailChangeOtp,
-  toggleTheaterStatus,
-  updateOwner,
-  updateTheater,
-  verifyEmailChangeOtp,
-} from "../controllers/owner.controller";
+import express, { Router } from "express";
 import { ScreenController } from "../../screens/controllers/screens.controllers";
 import { ShowtimeController } from "../../showtimes/controllers/showtimes.controller";
-import { getMoviesWithFilters } from "../../user/controllers/user.controller";
+import { MoviesController } from "../../movies/controllers/movies.controllers";
+import { TheaterController } from "../../theaters/controllers/theaters.controller";
+import { OwnerController } from "../controllers/owner.controller";
 
-const router = Router();
 
-router.get("/profile", getOwnerProfile);
-router.put("/", updateOwner);
-router.post("/email/change", sendEmailChangeOtp);
-router.post("/email/verify", verifyEmailChangeOtp);
-router.patch("/reset-password", resetOwnerPassword);
-router.get("/theaters", getTheatersByOwnerId);
-router.put("/theaters/:theaterId", updateTheater);
-router.post("/theaters", createTheater);
-router.delete("/theaters/:theaterId", deleteTheater);
-router.patch("/theaters/:theaterId", toggleTheaterStatus);
-router.get('/movies/filter',getMoviesWithFilters)
-const screenController = new ScreenController();
-
-router.post("/screens", screenController.createScreen.bind(screenController));
-
-router.get(
-  "/screens/:theaterId",
-  screenController.getScreensByTheaterId.bind(screenController)
+export class OwnerRoute {
+  constructor(
+    private router: express.Router = express.Router(),
+    private screenController: ScreenController,
+    private showtimeController: ShowtimeController,
+    private movieController:MoviesController,
+    private theaterController:TheaterController,
+    private ownerController:OwnerController
+  ) {
+    this.setRoutes();
+  }
+  private setRoutes() {
+    this.router.get("/screen/:screenId", (req, res) =>
+      this.showtimeController.getShowtimesByScreen(req, res)
+    );
+    this.router.patch("/showtime/:id", (req, res) =>
+      this.showtimeController.changeShowtimeStatus(req, res)
+    );
+    this.router.get("/showtime", (req, res) =>
+      this.showtimeController.getShowTimes(req, res)
+    );
+    this.router.delete("/showtime/:showtimeId", (req, res) =>
+      this.showtimeController.deleteShowtime(req, res)
+    );
+    this.router.put("/showtime/:showtimeId", (req, res) =>
+      this.showtimeController.updateShowtime(req, res)
+    );
+    this.router.put("/showtime", (req, res) =>
+      this.showtimeController.editShowtime(req, res)
+    );
+    this.router.post("/showtime", (req, res) =>
+      this.showtimeController.createShowtime(req, res)
+    );
+    this.router.delete("/screens/:id", (req, res) =>
+      this.screenController.deleteScreen(req, res)
+    );
+    this.router.patch("/screens/:id", (req, res) =>
+      this.screenController.toggleScreenStatus(req, res)
+    );
+    this.router.put("/screens/:id", (req, res) =>
+      this.screenController.updateScreen(req, res)
+    );
+    this.router.get("/screens/:id", (req, res) =>
+      this.screenController.getScreenById(req, res)
+    );
+    this.router.get("/screens/theater/:theaterId/name/:name", (req, res) =>
+      this.screenController.getScreenByTheaterAndName(req, res)
+    );
+    this.router.get("/screens/stats/:theaterId", (req, res) =>
+      this.screenController.getScreenStats(req, res)
+    );
+    this.router.get("/screens/theater/:theaterId/count", (req, res) =>
+      this.screenController.getScreenCountByTheaterId(req, res)
+    );
+    this.router.get("/screens/theater/:theaterId/active", (req, res) =>
+      this.screenController.getActiveScreensByTheaterId(req, res)
+    );
+    this.router.get("/screens/theater/:theaterId", (req, res) =>
+      this.screenController.getScreensByTheaterId(req, res)
+    );
+ 
+    this.router.post("/screens", (req, res) =>
+      this.screenController.createScreen(req, res)
+    );
+    this.router.get("/movies/filter", (req, res) =>
+      this.movieController.getMoviesWithFilters(req, res)
+    );
+    this.router.patch("/theaters/:theaterId", (req, res) =>
+      this.theaterController.toggleTheaterStatus(req, res)
+    );
+    this.router.delete("/theaters/:theaterId", (req, res) =>
+      this.theaterController.deleteTheater(req, res)
+    );
+    this.router.post("/theaters", (req, res) =>
+      this.theaterController.createTheater(req, res)
+    );
+  
+    this.router.put("/theaters/:theaterId", (req, res) =>
+      this.theaterController.updateTheater(req, res)
+    );
+    this.router.get("/theaters", (req, res) =>
+      this.theaterController.getTheatersByOwnerId(req, res)
+    );
+    this.router.patch("/reset-password", (req, res) =>
+      this.ownerController.resetOwnerPassword(req, res)
+    );
+    this.router.post("/email/verify", (req, res) =>
+      this.ownerController.verifyEmailChangeOtp(req, res)
+    );
+    this.router.post("/email/change", (req, res) =>
+      this.ownerController.sendEmailChangeOtp(req, res)
+    );
+    this.router.get("/profile", (req, res) =>
+      this.ownerController.getOwnerProfile(req, res)
+    );
+    this.router.put("/", (req, res) =>
+      this.ownerController.updateOwner(req, res)
+    );
+    this.router.get("/screens/theater/:theaterId/filtered", (req, res) =>
+      this.screenController.getScreensByTheaterIdWithFilters(req, res)
+    );
+    this.router.post("/screens/check-exists", (req, res) =>
+  this.screenController.checkScreenExists(req, res)
 );
 
-router.get(
-  "/screens/theater/:theaterId/filtered",
-  screenController.getScreensByTheaterIdWithFilters.bind(screenController)
-);
+  }
+    public getRouter() {
+    return this.router;
+  }
 
-router.get(
-  "/screens/theater/:theaterId/active",
-  screenController.getActiveScreensByTheaterId.bind(screenController)
-);
-
-router.get(
-  "/screens/theater/:theaterId/count",
-  screenController.getScreenCountByTheaterId.bind(screenController)
-);
-router.get("/screens/stats/:theaterId", screenController.getScreenStats);
-
-router.get(
-  "/screens/theater/:theaterId/name/:name",
-  screenController.getScreenByTheaterAndName.bind(screenController)
-);
-
-router.get(
-  "/screens/:id",
-  screenController.getScreenById.bind(screenController)
-);
-
-router.put(
-  "/screens/:id",
-  screenController.updateScreen.bind(screenController)
-);
-
-router.patch(
-  "/screens/:id",
-  screenController.toggleScreenStatus.bind(screenController)
-);
-
-router.delete(
-  "/screens/:id",
-  screenController.deleteScreen.bind(screenController)
-);
-
-router.post(
-  "/screens/check-exists",
-  screenController.checkScreenExists.bind(screenController)
-);
-
-const controller = new ShowtimeController();
-
-router.post("/showtime", (req, res) => controller.createShowtime(req, res));
-router.put("/showtime", (req, res) => controller.editShowtime(req, res));
-router.put("/showtime/:showtimeId", (req, res) => controller.updateShowtime(req, res));
-router.delete("/showtime/:showtimeId", (req, res) =>
-  controller.deleteShowtime(req, res)
-);
-router.get('/showtime',(req,res)=>controller.getShowTimes(req,res))
-router.patch('/showtime/:id',(req,res)=>controller.changeShowtimeStatus(req,res))
-router.get("/screen/:screenId", (req, res) => controller.getShowtimesByScreen(req, res));
-
-export default router;
+}

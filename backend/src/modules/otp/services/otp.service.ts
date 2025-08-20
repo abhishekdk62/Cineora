@@ -1,8 +1,7 @@
-import { IOTPService, IOTPRepository, OTPType } from '../interfaces/otp.interface';
-import { IOTP } from '../models/otp.model';
+import { IOTPService, IOTPRepository, OTPType, IOTP } from '../interfaces/otp.interface';
 
 export class OTPService implements IOTPService { 
-  constructor(private otpRepo: IOTPRepository) {}
+  constructor(private readonly otpRepo: IOTPRepository) {}
 
   private generateOTP(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();

@@ -1,68 +1,49 @@
-import { Router } from "express";
-import {
-  signup,
-  verifyOTP,
-  resendOTP,
-  getUserProfile,
-  updateProfile,
-  getNearbyUsers,
-  addXpPoints,
-  resetPassword,
-  changeEmail,
-  verifyChangeEmailOtp,
-  getMoviesWithFilters,
-  updateUserLocation,
-} from "../controllers/user.controller";
-import { ShowtimeController } from "../../showtimes/controllers/showtimes.controller";
-const router = Router();
-router.get("/profile", getUserProfile);
-router.patch("/reset-password", resetPassword);
+import express from "express";
+import { UserController } from "../controllers/user.controller";
 
-router.put("/profile", updateProfile);
-router.post("/email/change",changeEmail);
-router.post("/email/verify",verifyChangeEmailOtp);
-router.get("/nearby/:id", getNearbyUsers);
-router.post("/xp/:id", addXpPoints);
-router.patch('/location',updateUserLocation)
+export class UserRoutes {
+  constructor(
+    private router: express.Router = express.Router(),
+    private userController: UserController
+  ) {
+    this.setRoutes();
+  }
 
+  private setRoutes() {
+    this.router.get("/profile", (req, res) =>
+      this.userController.getUserProfile(req, res)
+    );
 
+    this.router.patch("/reset-password", (req, res) =>
+      this.userController.resetPassword(req, res)
+    );
 
+    this.router.put("/profile", (req, res) =>
+      this.userController.updateProfile(req, res)
+    );
 
+    this.router.post("/email/change", (req, res) =>
+      this.userController.changeEmail(req, res)
+    );
 
- 
+    this.router.post("/email/verify", (req, res) =>
+      this.userController.verifyChangeEmailOtp(req, res)
+    );
 
-const controller = new ShowtimeController();
-// GET /user/movies/now-showing - Get all movies
+    this.router.get("/nearby/:id", (req, res) =>
+      this.userController.getNearbyUsers(req, res)
+    );
 
-// GET /user/theaters - Get all theaters
+    this.router.post("/xp/:id", (req, res) =>
+      this.userController.addXpPoints(req, res)
+    );
 
-// GET /user/showtimes - Get showtimes (with filters) -->?movieId=...&theaterId=...&date=...
+    this.router.patch("/location", (req, res) =>
+      this.userController.updateUserLocation(req, res)
+    );
+  }
 
-// GET /user/showtimes/:showtimeId - Get single showtime
-
-// POST /user/showtimes/:showtimeId/block-seats - Block seats
-
-// POST /user/showtimes/:showtimeId/book-seats - Book seats
-
-// POST /user/showtimes/:showtimeId/release-seats - Release seats
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-export default router;
+  public getRouter() {
+    return this.router;
+  }
+}

@@ -727,7 +727,6 @@ export default function OwnerKYCForm() {
           </div>
         )}
 
-        {/* Submit Button - Only show if OTP verified */}
         {otpVerified && (
           <button
             type="submit"

@@ -1,14 +1,11 @@
 import { Request, Response } from "express";
 import { ShowtimeService } from "../services/showtimes.services";
 import { ShowtimeRepository } from "../repositories/showtimes.repository";
+import { IShowtimeService } from "../interfaces/showtimes.interfaces";
 
 export class ShowtimeController {
-  private showtimeService: ShowtimeService;
 
-  constructor() {
-    const showtimeRepo = new ShowtimeRepository();
-    this.showtimeService = new ShowtimeService(showtimeRepo);
-  }
+  constructor(private readonly showtimeService: IShowtimeService) {}
   async updateShowtime(req: Request, res: Response): Promise<void> {
     try {
       const { showtimeId } = req.params;
@@ -131,7 +128,7 @@ export class ShowtimeController {
         req.body,
         ownerId
       );
-      
+
       if (result.success) {
         res.status(201).json(result);
       } else {
@@ -148,7 +145,6 @@ export class ShowtimeController {
     try {
       const { ownerId } = req.owner;
       const showtime = req.body;
-    
 
       if (!showtime || !showtime._id) {
         res.status(400).json({

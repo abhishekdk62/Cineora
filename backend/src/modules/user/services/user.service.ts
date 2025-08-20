@@ -1,8 +1,6 @@
 import * as bcrypt from "bcryptjs";
-import { OAuth2Client } from "google-auth-library";
-import * as jwt from "jsonwebtoken";
 
-import { EmailService, IEmailService } from "../../../services/email.service";
+import {  IEmailService } from "../../../services/email.service";
 import { config } from "../../../config";
 import {
   IUserService,
@@ -11,19 +9,17 @@ import {
   ServiceResponse,
   IUserRepository,
 } from "../interfaces/user.interface";
-import {
-  IOwnerRepository,
-  IOwnerRequestRepository,
-} from "../../owner/interfaces/owner.interface";
+import { IOwnerRepository, IOwnerRequestRepository } from "../../owner/interfaces/owner.interface";
 import { IOTPRepository } from "../../otp/interfaces/otp.interface";
+
 
 export class UserService implements IUserService {
   constructor(
-    private userRepo: IUserRepository,
-    private ownerRepo: IOwnerRepository,
-    private ownerRequestRepo: IOwnerRequestRepository,
-    private otpRepo: IOTPRepository,
-    private emailService: IEmailService
+    private readonly userRepo: IUserRepository,
+    private readonly ownerRepo: IOwnerRepository,
+    private readonly ownerRequestRepo: IOwnerRequestRepository,
+    private readonly otpRepo: IOTPRepository,
+    private readonly emailService: IEmailService
   ) {}
 
   private generateOTP(): string {
@@ -99,49 +95,45 @@ export class UserService implements IUserService {
     }
   }
 
-  async verifyOTP(email: string, otp: string): Promise<ServiceResponse> {
-    try {
-      const validOTP = await this.otpRepo.findValidOTP(email, otp, "signup");
+async verifyOTP(email: string, otp: string): Promise<ServiceResponse> {
+  try {
+    email = String(email || "").trim().toLowerCase(); // normalization
 
-      if (!validOTP || !validOTP.userData) {
-        return { success: false, message: "Invalid or expired OTP" };
-      }
-
-      const existingUser = await this.userRepo.findByEmail(email);
-      if (existingUser && existingUser.isVerified) {
-        return { success: false, message: "User already exists and verified" };
-      }
-
-      const newUser = await this.userRepo.create({
-        ...validOTP.userData,
-        isVerified: true,
-        xpPoints: 100,
-        joinedAt: new Date(),
-        lastActive: new Date(),
-        isActive: true,
-      });
-
-      await this.otpRepo.markAsUsed(validOTP._id as string);
-
-      return {
-        success: true,
-        message:
-          "Account created and verified successfully! Welcome bonus: 100 XP added.",
-        data: {
-          userId: newUser._id,
-          username: newUser.username,
-          isVerified: true,
-          xpBonus: 100,
-        },
-      };
-    } catch (error) {
-      console.error("OTP verification error:", error);
-      return {
-        success: false,
-        message: "Something went wrong during verification",
-      };
+    const validOTP = await this.otpRepo.findValidOTP(email, otp, "signup");
+    if (!validOTP || !validOTP.userData) {
+      return { success: false, message: "Invalid or expired OTP" };
     }
+
+    const existingUser = await this.userRepo.findByEmail(email);
+    if (existingUser && existingUser.isVerified) {
+      return { success: false, message: "User already exists and verified" };
+    }
+
+    const newUser = await this.userRepo.create({
+      ...validOTP.userData,
+      isVerified: true,
+      xpPoints: 100,
+      joinedAt: new Date(),
+      lastActive: new Date(),
+      isActive: true,
+    });
+
+    await this.otpRepo.markAsUsed(validOTP._id as string);
+
+    return {
+      success: true,
+      message: "Account created and verified successfully! Welcome bonus: 100 XP added.",
+      data: {
+        user: newUser,
+        xpBonus: 100,
+      },
+    };
+  } catch (error) {
+    console.error("OTP verification error:", error);
+    return { success: false, message: "Something went wrong during verification" };
   }
+}
+
 
   async resendOTP(email: string): Promise<ServiceResponse> {
     try {
@@ -187,6 +179,7 @@ export class UserService implements IUserService {
       return { success: false, message: "Something went wrong" };
     }
   }
+
 
   async getUserProfile(id: string): Promise<ServiceResponse> {
     try {
@@ -337,7 +330,7 @@ export class UserService implements IUserService {
         return { success: false, message: "Email already in use" };
       }
 
-      const isRequestedOwner = await this.ownerRepo.findByEmail(email);
+      const isRequestedOwner = await this.ownerRequestRepo.findByEmail(email);
       if (
         isRequestedOwner &&
         isRequestedOwner.status !== "rejected" &&
@@ -346,7 +339,7 @@ export class UserService implements IUserService {
         return { success: false, message: "Email already in use" };
       }
 
-      const existingOwner = await this.ownerRequestRepo.findByEmail(email);
+      const existingOwner = await this.ownerRepo.findByEmail(email);
       if (existingOwner) {
         return { success: false, message: "Email already in use" };
       }
@@ -431,7 +424,7 @@ export class UserService implements IUserService {
         return { success: false, message: "Email already in use" };
       }
 
-      const isRequestedOwner = await this.ownerRepo.findByEmail(email);
+      const isRequestedOwner = await this.ownerRequestRepo.findByEmail(email);
       if (
         isRequestedOwner &&
         isRequestedOwner.status !== "rejected" &&

@@ -1,4 +1,46 @@
-import { IOTP, OTPType } from '../models/otp.model'; 
+import { Document } from "mongoose";
+
+
+
+export interface IOTPService {
+  createOTP(email: string, type: OTPType, options?: { expiresAt?: Date }): Promise<{
+    success: boolean;
+    message?: string;
+    data?: { otp: string; id: string };
+  }>;
+  
+  verifyOTPWithResponse(email: string, otp: string, type: OTPType): Promise<{
+    success: boolean;
+    message?: string;
+    data?: any;
+  }>;
+  
+  verifyOTP(email: string, otp: string, type: string): Promise<IOTP | null>;
+  generateAndSaveOTP(email: string, type: OTPType, userData?: any): Promise<{ otp: string; expiresAt: Date }>;
+}
+export interface IOTP extends Document {
+  email: string;
+  otp: string;
+  type: string;
+  expiresAt: Date;
+  isUsed: boolean;
+  refreshToken: string;
+  userData?: any;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+
+export type OTPType =
+  | "signup"
+  | "password_reset"
+  | "login"
+  | "owner_verification"
+  | "owner_email_change"
+  | "email_change"
+  | "owner_password_reset";
+
+
 
 export interface IOTPRepository {
 
@@ -23,22 +65,3 @@ export interface IOTPRepository {
   countOTPsInTimeFrame(email: string, type: string, timeFrameMinutes: number): Promise<number>;
   getLastOTPTime(email: string, type: string): Promise<Date | null>;
 }
-
-export interface IOTPService {
-  createOTP(email: string, type: OTPType, options?: { expiresAt?: Date }): Promise<{
-    success: boolean;
-    message?: string;
-    data?: { otp: string; id: string };
-  }>;
-  
-  verifyOTPWithResponse(email: string, otp: string, type: OTPType): Promise<{
-    success: boolean;
-    message?: string;
-    data?: any;
-  }>;
-  
-  verifyOTP(email: string, otp: string, type: string): Promise<IOTP | null>;
-  generateAndSaveOTP(email: string, type: OTPType, userData?: any): Promise<{ otp: string; expiresAt: Date }>;
-}
-
-export { OTPType };
