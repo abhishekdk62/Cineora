@@ -1,21 +1,8 @@
-import { IMovieRepository } from "../interfaces/movies.interface";
-import { IMovie } from "../models/movies.model";
+import { IMovie, IMovieRepository, IMovieService } from "../interfaces/movies.interface";
 
-export interface IMovieService {
-  addMovie(movieData: Partial<IMovie>): Promise<IMovie>;
-  getMovies(): Promise<IMovie[]>;
-  getMoviesPaginated(page: number, limit: number): Promise<any>;
-  getMoviesWithFilters(filters: any): Promise<any>;
-  getMovieById(id: string): Promise<IMovie | null>;
-  updateMovie(id: string, movieData: Partial<IMovie>): Promise<IMovie | null>;
-  deleteMovie(id: string): Promise<boolean>;
-  toggleMovieStatus(id: string): Promise<IMovie | null>;
-  getMoviesForUser(filters?: any): Promise<any>;
-  getMoviesForOwner(ownerId: string, filters?: any): Promise<any>; 
-}
 
 export class MovieService implements IMovieService {
-  constructor(private movieRepo: IMovieRepository) {} 
+  constructor(private readonly movieRepo: IMovieRepository) {} 
   async addMovie(movieData: Partial<IMovie>): Promise<IMovie> {
     const existingMovie = await this.movieRepo.findByTmdbId(movieData.tmdbId!.toString());
     if (existingMovie) {

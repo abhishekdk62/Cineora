@@ -7,39 +7,50 @@ export interface UploadResult {
 
 export async function uploadKYCImage(
   file: File, 
-  folder: string
+  folder: string,
+  backendUrl: string = 'http://localhost:5000/api'
 ): Promise<UploadResult> {
   try {
-    const cloudName = 'dxa2aruhc';
-    const uploadPreset = 'kyc_uploads';
+    const timestamp = Math.round(Date.now() / 1000);
+    
+    const signResponse = await fetch(`${backendUrl}/sign-cloudinary`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        folder,
+        timestamp,
+      }),
+    });
+
+    if (!signResponse.ok) {
+      throw new Error('Failed to get upload signature');
+    }
+
+    const { signature, api_key, cloud_name } = await signResponse.json();
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', uploadPreset);
+    formData.append('api_key', api_key);
+    formData.append('timestamp', timestamp.toString());
+    formData.append('signature', signature);
     formData.append('folder', folder);
 
-    console.log('🚀 Uploading to:', `https://api.cloudinary.com/v1_1/${cloudName}/upload`);
-
     const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/upload`,
+      `https://api.cloudinary.com/v1_1/${cloud_name}/upload`,
       {
         method: 'POST',
         body: formData,
       }
     );
-    console.log("the respones is ",response);
-    
-
-    console.log('📡 Response status:', response.status);
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('❌ Upload error response:', errorData);
       throw new Error(errorData.error?.message || 'Upload failed');
     }
 
     const result = await response.json();
-    console.log(' Upload success:', result.secure_url);
 
     return {
       success: true,
@@ -48,7 +59,6 @@ export async function uploadKYCImage(
     };
 
   } catch (error) {
-    console.error(' Upload error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to upload file. Please try again.'
@@ -57,10 +67,11 @@ export async function uploadKYCImage(
 }
 
 export async function uploadMultipleKYCImages(
-  files: { file: File; type: string }[]
+  files: { file: File; type: string }[],
+  backendUrl: string = 'http://localhost:5000/api'
 ): Promise<UploadResult[]> {
   const uploadPromises = files.map(({ file, type }) => 
-    uploadKYCImage(file, `kyc/${type}`)
+    uploadKYCImage(file, `kyc/${type}`, backendUrl)
   );
   
   return Promise.all(uploadPromises);

@@ -1,5 +1,5 @@
-import { IMovieRepository } from "../interfaces/movies.interface";
-import { Movie, IMovie } from "../models/movies.model";
+import { IMovie, IMovieRepository } from "../interfaces/movies.interface";
+import { Movie } from "../models/movies.model";
 
 
 

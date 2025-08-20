@@ -2,12 +2,13 @@ import mongoose, { Types } from "mongoose";
 import { ServiceResponse } from "../../admin/interfaces/admin.interface";
 import {
   IShowtimeInput,
-  IShowtimeRepository,
+  IShowtimeService,
   ShowtimeFilters,
 } from "../interfaces/showtimes.interfaces";
+import { IShowtimeRepository } from "../interfaces/IShowtimes.repository";
 
-export class ShowtimeService {
-  constructor(private showtimeRepo: IShowtimeRepository) {}
+export class ShowtimeService implements IShowtimeService {
+  constructor(private readonly showtimeRepo: IShowtimeRepository) {}
   async createBulkShowtimes(
     showtimeList: IShowtimeInput[],
     ownerId: string
@@ -74,43 +75,8 @@ export class ShowtimeService {
     ownerId: string
   ): Promise<ServiceResponse> {
     try {
-      if (!ownerId) {
-        return {
-          success: false,
-          message: "Owner ID is required",
-        };
-      }
-
-      if (
-        !showtimeData.movieId ||
-        !showtimeData.theaterId ||
-        !showtimeData.screenId
-      ) {
-        return {
-          success: false,
-          message: "Movie ID, Theater ID, and Screen ID are required",
-        };
-      }
-      if (!showtimeData.showDate || !showtimeData.showTime) {
-        return {
-          success: false,
-          message: "Show date and time are required",
-        };
-      }
-      if (!showtimeData.endTime) {
-        return {
-          success: false,
-          message: "End time is required",
-        };
-      }
-      if (showtimeData.totalSeats <= 0) {
-        return {
-          success: false,
-          message: "Total seats must be greater than 0",
-        };
-      }
-
-      // Enhanced overlap validation with 30-minute buffer
+     
+ 
       const bufferMinutes = 30;
       const bufferedStartTime = this.subtractMinutes(
         showtimeData.showTime,

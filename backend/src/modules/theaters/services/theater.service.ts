@@ -2,13 +2,14 @@ import { IEmailService } from "../../../services/email.service";
 import {
   ITheater,
   ITheaterRepository,
+  ITheaterService,
   ServiceResponse,
 } from "../interfaces/theater.interface";
 
-export class TheaterService {
+export class TheaterService implements ITheaterService {
   constructor(
-    private theaterRepo: ITheaterRepository,
-    private emailService: IEmailService
+    private readonly theaterRepo: ITheaterRepository,
+    private readonly emailService: IEmailService
   ) {}
 
   async createTheater(
@@ -16,34 +17,6 @@ export class TheaterService {
     theaterData: ITheater
   ): Promise<ServiceResponse> {
     try {
-      if (!ownerId) {
-        return {
-          success: false,
-          message: "Owner ID is required",
-        };
-      }
-
-      if (
-        !theaterData.name ||
-        !theaterData.address ||
-        !theaterData.city ||
-        !theaterData.state
-      ) {
-        return {
-          success: false,
-          message: "Name, address, city, and state are required",
-        };
-      }
-
-      if (
-        !theaterData.location?.coordinates ||
-        theaterData.location.coordinates.length < 2
-      ) {
-        return {
-          success: false,
-          message: "Valid location coordinates are required",
-        };
-      }
       const exists = await this.theaterRepo.existsByNameAndCity(
         theaterData.name,
         theaterData.city,
@@ -124,12 +97,7 @@ export class TheaterService {
     filters?: any
   ): Promise<ServiceResponse> {
     try {
-      if (!ownerId) {
-        return {
-          success: false,
-          message: "Owner ID is required",
-        };
-      }
+     
 
       const result = await this.theaterRepo.findByOwnerId(ownerId, filters);
 
@@ -175,12 +143,6 @@ export class TheaterService {
     updateData: Partial<ITheater>
   ): Promise<ServiceResponse> {
     try {
-      if (!theaterId) {
-        return {
-          success: false,
-          message: "Theater ID is required",
-        };
-      }
       if (updateData.name || updateData.city || updateData.state) {
         const currentTheater = await this.theaterRepo.findById(theaterId);
         if (!currentTheater) {
@@ -501,46 +463,41 @@ export class TheaterService {
       };
     }
   }
- async  getTheatersWithFilters(filters: any) {
-  const { 
-    search = "",
-    sortBy = "nearby",
-    page = 1,
-    limit = 6,
-    latitude,
-    longitude 
-  } = filters;
+  async getTheatersWithFilters(filters: any) {
+    const {
+      search = "",
+      sortBy = "nearby",
+      page = 1,
+      limit = 6,
+      latitude,
+      longitude,
+    } = filters;
 
-  const result = await this.theaterRepo.findWithFilters({
-    search,
-    sortBy,
-    page,
-    limit,
-    latitude: latitude ? parseFloat(latitude) : undefined,
-    longitude: longitude ? parseFloat(longitude) : undefined,
-  });
+    const result = await this.theaterRepo.findWithFilters({
+      search,
+      sortBy,
+      page,
+      limit,
+      latitude: latitude ? parseFloat(latitude) : undefined,
+      longitude: longitude ? parseFloat(longitude) : undefined,
+    });
 
-  return {
-    theaters: result.theaters,
-    total: result.total,
-    totalPages: result.totalPages,
-    currentPage: page,
-    hasNextPage: page < result.totalPages,
-    hasPrevPage: page > 1,
-  };
-}
+    return {
+      theaters: result.theaters,
+      total: result.total,
+      totalPages: result.totalPages,
+      currentPage: page,
+      hasNextPage: page < result.totalPages,
+      hasPrevPage: page > 1,
+    };
+  }
 
   async getTheaterByOwnerAndName(
     ownerId: string,
     name: string
   ): Promise<ServiceResponse> {
     try {
-      if (!ownerId || !name) {
-        return {
-          success: false,
-          message: "Owner ID and name are required",
-        };
-      }
+    
 
       const theater = await this.theaterRepo.findByOwnerIdAndName(
         ownerId,

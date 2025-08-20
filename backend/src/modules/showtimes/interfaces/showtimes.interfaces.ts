@@ -54,67 +54,7 @@ export interface IShowtimeInput {
   isActive?: boolean;
 }
 
-export interface IShowtimeRepository {
-  create(
-    ownerId: string,
-    showtimeData: Partial<IMovieShowtime>
-  ): Promise<IMovieShowtime | null>;
-  findById(id: string): Promise<IMovieShowtime | null>;
-  findByMovieAndDate(movieId: string, date: Date): Promise<IMovieShowtime[]>;
-  findAll(page: number, limit: number, filter: any): Promise<IMovieShowtime[]>;
-  findByScreenAndDate(screenId: string, date: Date): Promise<IMovieShowtime[]>;
-  findByOwnerId(ownerId: string): Promise<IMovieShowtime[]>;
-  findByTheaterAndDate(
-    theaterId: string,
-    date: Date
-  ): Promise<IMovieShowtime[]>;
-  updateById(
-    id: string,
-    updateData: Partial<IMovieShowtime>
-  ): Promise<IMovieShowtime | null>;
-  deleteById(id: string): Promise<boolean>;
-  findTheatersByMovieWithShowtimes(movieId: string, date: Date): Promise<any>;
-  checkTimeSlotOverlap(
-    screenId: string,
-    showDate: Date,
-    startTime: string,
-    endTime: string,
-    excludeId?: string
-  ): Promise<boolean>;
-  updateStatus(
-    showtimeId: string,
-    isActive: boolean
-  ): Promise<IMovieShowtime | null>;
-  findAllPaginated(
-    page: number,
-    limit: number,
-    filters?: ShowtimeFilters
-  ): Promise<PaginatedShowtimeResult>;
-  findByScreenPaginated(
-    screenId: string,
-    page: number,
-    limit: number,
-    filters?: ShowtimeFilters
-  ): Promise<PaginatedShowtimeResult>;
-  blockSeats(
-    showtimeId: string,
-    seatIds: string[],
-    userId: string,
-    sessionId: string
-  ): Promise<boolean>;
-  releaseSeats(
-    showtimeId: string,
-    seatIds: string[],
-    userId: string,
-    sessionId: string
-  ): Promise<boolean>;
-  bookSeats(showtimeId: string, seatIds: string[]): Promise<boolean>;
-  existsByScreenAndTime(
-    screenId: string,
-    showDate: Date,
-    showTime: string
-  ): Promise<boolean>;
-}
+
 
 export interface ServiceResponse {
   success: boolean;
@@ -141,4 +81,80 @@ export interface PaginatedShowtimeResult {
   currentPage: number;
   totalPages: number;
   pageSize: number;
+}
+
+
+
+export interface IShowtimeService {
+  createBulkShowtimes(
+    showtimeList: IShowtimeInput[],
+    ownerId: string
+  ): Promise<ServiceResponse>;
+
+  createShowtime(
+    showtimeData: IShowtimeInput,
+    ownerId: string
+  ): Promise<ServiceResponse>;
+
+  updateShowtime(
+    id: string,
+    updateData: any,
+    ownerId?: string
+  ): Promise<ServiceResponse>;
+
+  getShowtimeById(id: string): Promise<ServiceResponse>;
+
+  getShowtimesByScreenAdmin(
+    screenId: string,
+    page: number,
+    limit: number,
+    filters?: ShowtimeFilters
+  ): Promise<ServiceResponse>;
+
+  getAllShowtimesAdmin(
+    page: number,
+    limit: number,
+    filters?: ShowtimeFilters
+  ): Promise<ServiceResponse>;
+
+  updateShowtimeStatus(
+    showtimeId: string,
+    isActive: boolean
+  ): Promise<ServiceResponse>;
+
+  getShowtimesByScreen(screenId: string, date: Date): Promise<ServiceResponse>;
+
+  getShowtimesByMovie(movieId: string, date: Date): Promise<ServiceResponse>;
+
+  getShowtimesByTheater(theaterId: string, date: Date): Promise<ServiceResponse>;
+
+  getShowtimesByOwnerId(ownerId: string): Promise<ServiceResponse>;
+
+  blockSeats(
+    showtimeId: string,
+    seatIds: string[],
+    userId: string,
+    sessionId: string
+  ): Promise<ServiceResponse>;
+
+  releaseSeats(
+    showtimeId: string,
+    seatIds: string[],
+    userId: string,
+    sessionId: string
+  ): Promise<ServiceResponse>;
+
+  bookSeats(showtimeId: string, seatIds: string[]): Promise<ServiceResponse>;
+
+  deleteShowtime(id: string): Promise<ServiceResponse>;
+
+  getAllShowtimes(
+    page?: number,
+    limit?: number,
+    filters?: any
+  ): Promise<ServiceResponse>;
+
+  getTheatersByMovie(movieId: string, date: Date): Promise<ServiceResponse>;
+
+  changeShowtimeStatus(id: string, isActive: boolean): Promise<ServiceResponse>;
 }

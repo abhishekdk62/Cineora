@@ -20,6 +20,19 @@ export interface ITheater extends Document {
   createdAt: Date;
   updatedAt: Date;
 }
+export interface ServiceResponse {
+  success: boolean;
+  message: string;
+  data?: any;
+}
+export interface FindWithFiltersArgs {
+  search?: string;
+  sortBy?: string;
+  page: number;
+  limit: number;
+  latitude?: number;
+  longitude?: number;
+}
 export interface ITheaterRepository {
   create(
     ownerId: string,
@@ -89,17 +102,52 @@ export interface ITheaterRepository {
   findByOwnerIdAndName(ownerId: string, name: string): Promise<ITheater | null>;
 }
 
-export interface ServiceResponse {
-  success: boolean;
-  message: string;
-  data?: any;
-}
 
-export interface FindWithFiltersArgs {
-  search?: string;
-  sortBy?: string;
-  page: number;
-  limit: number;
-  latitude?: number;
-  longitude?: number;
+
+
+export interface ITheaterService {
+  createTheater(ownerId: string, theaterData: ITheater): Promise<ServiceResponse>;
+
+  getTheaterById(theaterId: string): Promise<ServiceResponse>;
+
+  getTheatersByOwnerId(ownerId: string, filters?: any): Promise<ServiceResponse>;
+
+  getAllTheaters(page: number, limit: number, filters?: any): Promise<ServiceResponse>;
+
+  updateTheater(
+    theaterId: string,
+    updateData: Partial<ITheater>
+  ): Promise<ServiceResponse>;
+
+  toggleTheaterStatus(theaterId: string): Promise<ServiceResponse>;
+
+  verifyTheater(theaterId: string): Promise<ServiceResponse>;
+
+  rejectTheater(theaterId: string, rejectionReason?: string): Promise<ServiceResponse>;
+
+  deleteTheater(theaterId: string): Promise<ServiceResponse>;
+
+  getNearbyTheaters(
+    longitude: number,
+    latitude: number,
+    maxDistance: number
+  ): Promise<ServiceResponse>;
+
+  checkTheaterExists(
+    name: string,
+    city: string,
+    state: string,
+    excludeId?: string
+  ): Promise<ServiceResponse>;
+
+  getTheatersWithFilters(filters: any): Promise<{
+    theaters: ITheater[];
+    total: number;
+    totalPages: number;
+    currentPage: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  }>;
+
+  getTheaterByOwnerAndName(ownerId: string, name: string): Promise<ServiceResponse>;
 }

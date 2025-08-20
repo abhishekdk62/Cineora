@@ -1,25 +1,43 @@
-import {Router } from 'express';
-import {
-  getOwnerCounts,
-  getOwners,
-  getOwnerRequests,
-  toggleOwnerStatus,
-  acceptOwnerRequest,
-  rejectOwnerRequest
-} from '../controllers/admin.owner.controller';
+import express from "express";
+import { OwnerController } from "../../owner/controllers/owner.controller";
+import { OwnerRequestController } from "../../owner/controllers/ownerRequest.controller";
 
-const router = Router();
+export class AdminOwnerRoutes {
+  constructor(
+    private router: express.Router = express.Router(),
+    private ownerController: OwnerController,
+    private ownerRequestController:OwnerRequestController
+  ) {
+    this.setRoutes();
+  }
 
-router.get('/counts', getOwnerCounts);
+  private setRoutes() {
+    this.router.get("/counts", (req, res) =>
+      this.ownerController.getOwnerCounts(req, res)
+    );
 
-router.get('/', getOwners);
+    this.router.get("/", (req, res) =>
+      this.ownerController.getOwners(req, res)
+    );
 
-router.get('/requests', getOwnerRequests);
+    this.router.get("/requests", (req, res) =>
+      this.ownerRequestController.getOwnerRequests(req, res)
+    );
 
-router.patch('/:ownerId/toggle-status', toggleOwnerStatus);
+    this.router.patch("/:ownerId/toggle-status", (req, res) =>
+      this.ownerController.toggleOwnerStatus(req, res)
+    );
 
-router.patch('/requests/:requestId/accept', acceptOwnerRequest);
+    this.router.patch("/requests/:requestId/accept", (req, res) =>
+      this.ownerRequestController.acceptOwnerRequest(req, res)
+    );
 
-router.patch('/requests/:requestId/reject', rejectOwnerRequest);
+    this.router.patch("/requests/:requestId/reject", (req, res) =>
+      this.ownerRequestController.rejectOwnerRequest(req, res)
+    );
+  }
 
-export default router;
+  public getRouter() {
+    return this.router;
+  }
+}

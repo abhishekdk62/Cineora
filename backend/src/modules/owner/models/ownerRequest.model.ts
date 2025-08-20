@@ -1,29 +1,7 @@
 import { Schema, model, Document } from 'mongoose';
+import { IOwnerRequest } from '../interfaces/owner.interface';
 
-export interface IOwnerRequest extends Document {
-  _id: string;
-  ownerName: string;
-  phone: string;
-  email: string;
-  otp?: string;
-  aadhaar: string;
-  pan: string;
-  accountHolder?: string;  
-  bankName?: string;       
-  accountNumber?: string;  
-  ifsc?: string;        
-  aadhaarUrl: string;
-  panUrl: string;
-  ownerPhotoUrl?: string;
-  declaration: boolean;
-  agree: boolean;
-  status: 'pending' | 'under_review' | 'approved' | 'rejected';
-  submittedAt: Date;
-  reviewedAt?: Date;
-  reviewedBy?: string;
-  rejectionReason?: string;
-  emailVerified: boolean;
-}
+
 
 const ownerRequestSchema = new Schema<IOwnerRequest>({
   ownerName: {

@@ -2,21 +2,23 @@ import { Types } from "mongoose";
 import * as bcrypt from "bcryptjs";
 
 import {
+
   IOwnerRepository,
   IOwnerRequestRepository,
+  IOwnerRequestService,
   OwnerKYCData,
   ServiceResponse,
 } from "../interfaces/owner.interface";
+import {  IOTPRepository, OTPType } from "../../otp/interfaces/otp.interface"; 
 import { IUserRepository } from "../../user/interfaces/user.interface";
-import { IOTPRepository, OTPType } from "../../otp/interfaces/otp.interface"; 
 
-export class OwnerRequestService {
+export class OwnerRequestService implements IOwnerRequestService {
   constructor(
-    private ownerRequestRepo: IOwnerRequestRepository,
-    private ownerRepo: IOwnerRepository,
-    private otpRepo: IOTPRepository, 
-    private userRepo: IUserRepository,
-    private emailService: any
+    private readonly ownerRequestRepo: IOwnerRequestRepository,
+    private readonly ownerRepo: IOwnerRepository,
+    private readonly otpRepo: IOTPRepository, 
+    private readonly userRepo: IUserRepository,
+    private readonly emailService: any
   ) {}
 
   private generateOTP(): string {

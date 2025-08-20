@@ -1,17 +1,31 @@
-import { Router } from "express";
-import adminMovieRoutes from "./admin.movie.routes";
-import adminOwnerRoutes from "./admin.owner.routes";
-import userRoutes from "./admin.user.routes";
-import screenRoutes from "./admin.screen.routes";
-import theaterRoutes from "./admin.theater.routes";
-import showTimeRoutes from "./admin.showitme.routes";
+import express from "express";
+import { UserController } from "../../user/controllers/user.controller";
 
-const router = Router();
+export class AdminUserRoutes {
+  constructor(
+    private router: express.Router = express.Router(),
+    private userController: UserController
+  ) {
+    this.setRoutes();
+  }
 
-router.use("/movies", adminMovieRoutes);
-router.use("/owners", adminOwnerRoutes);
-router.use("/users", userRoutes);
-router.use("/screens", screenRoutes);
-router.use("/theaters", theaterRoutes);
-router.use("/showtimes", showTimeRoutes);
-export default router;
+  private setRoutes() {
+    this.router.get("/", (req, res) => this.userController.getUsers(req, res));
+
+    this.router.get("/counts", (req, res) =>
+      this.userController.getUserCounts(req, res)
+    );
+
+    this.router.patch("/:id/toggle-status", (req, res) =>
+      this.userController.toggleUserStatus(req, res)
+    );
+
+    this.router.get("/:id", (req, res) =>
+      this.userController.getUserDetails(req, res)
+    );
+  }
+
+  public getRouter() {
+    return this.router;
+  }
+}

@@ -1,11 +1,33 @@
-import { Router } from "express";
-import { rejectTheater, toggleTheaterStatus, verifyTheater } from "../controllers/admin.theater.controller";
-import { getTheatersByOwnerId } from "../../owner/controllers/owner.controller";
+import express from "express";
+import { TheaterController } from "../../theaters/controllers/theaters.controller";
 
-const router = Router();
+export class AdminTheaterRoutes {
+  constructor(
+    private router: express.Router = express.Router(),
+    private theaterController:TheaterController
+  ) {
+    this.setRoutes();
+  }
 
-router.patch('/:id',toggleTheaterStatus)
-router.get('/',getTheatersByOwnerId)
-router.patch('/verify/:theatreId',verifyTheater)
-router.patch('/reject/:theatreId',rejectTheater)
-export default router;
+  private setRoutes() {
+    this.router.get("/", (req, res) =>
+      this.theaterController.getTheatersByOwnerId(req, res)
+    );
+
+    this.router.patch("/verify/:theatreId", (req, res) =>
+      this.theaterController.verifyTheater(req, res)
+    );
+
+    this.router.patch("/reject/:theatreId", (req, res) =>
+      this.theaterController.rejectTheater(req, res)
+    );
+
+    this.router.patch("/:id", (req, res) =>
+      this.theaterController.toggleTheaterStatus(req, res)
+    );
+  }
+
+  public getRouter() {
+    return this.router;
+  }
+}

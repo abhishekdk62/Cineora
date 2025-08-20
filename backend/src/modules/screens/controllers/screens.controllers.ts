@@ -1,16 +1,16 @@
 import { Request, Response } from "express";
 import { ScreenService } from "../services/screens.services";
-import { ScreenRepository } from "../repositories/screens.repositories";
-import { TheaterRepository } from "../../theaters/repositories/theater.repository";
-import { TheaterService } from "../../theaters/services/theater.service";
+import { IScreenService } from "../interfaces/screens.interface";
 
 export class ScreenController {
-  private screenService: ScreenService;
 
-  constructor() {
-    const screenRepo = new ScreenRepository();
-    const theaterRepo=new TheaterRepository()
-    this.screenService = new ScreenService(screenRepo,theaterRepo);
+  constructor(
+
+  private screenService: IScreenService
+
+
+  ) {
+   
   }
 
   async createScreen(req: Request, res: Response): Promise<void> {

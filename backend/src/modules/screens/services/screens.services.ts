@@ -4,13 +4,15 @@ import {
   IScreen,
   IScreenInput,
   IScreenRepository,
+  IScreenService,
 } from "../interfaces/screens.interface";
 import { ITheaterRepository } from "../../theaters/interfaces/theater.interface";
 
-export class ScreenService {
+
+export class ScreenService implements IScreenService {
   constructor(
-    private screenRepo: IScreenRepository,
-    private theaterRepo: ITheaterRepository
+    private readonly screenRepo: IScreenRepository,
+    private readonly theaterRepo: ITheaterRepository
   ) {}
 
   async createScreen(

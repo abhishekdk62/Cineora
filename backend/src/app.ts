@@ -18,6 +18,7 @@ import {
   requireUser,
   requireOwner,
 } from "./modules/auth/middleware/auth.middleware";
+import { signCloudinaryUpload } from "./utils/signCloudinaryUpload";
 
 export const app = express();
 
@@ -42,7 +43,7 @@ app.use(
 );
 
 app.use(express.json());
-
+app.use('/api/sign-cloudinary',signCloudinaryUpload)
 app.use("/api/auth", authRoutes);
 app.use("/api/users", authenticateToken, requireUser, userRoutes);
 app.use("/api/owners", ownerReqRoutes);

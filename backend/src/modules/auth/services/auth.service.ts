@@ -9,6 +9,7 @@ import { config } from "../../../config";
 import { OAuth2Client } from "google-auth-library";
 import { OwnerRequestRepository } from "../../owner/repositories/ownerRequest.repository";
 import { ServiceResponse } from "../../user/interfaces/user.interface";
+import { IAuthService } from "../interfaces/auth.interface";
 
 interface LoginResponse {
   success: boolean;
@@ -22,7 +23,7 @@ interface LoginResponse {
   };
 }
 
-export class AuthService {
+export class AuthService implements IAuthService {
   private googleClient: OAuth2Client;
 
   constructor(
@@ -49,9 +50,16 @@ export class AuthService {
           return { success: false, message: "Invalid credentials" };
         }
 
-        const { accessToken, refreshToken } = this.generateTokenPair(admin, 'admin');
-        
-        await this.storeRefreshToken(admin._id as string, refreshToken, 'admin');
+        const { accessToken, refreshToken } = this.generateTokenPair(
+          admin,
+          "admin"
+        );
+
+        await this.storeRefreshToken(
+          admin._id as string,
+          refreshToken,
+          "admin"
+        );
 
         return {
           success: true,
@@ -92,9 +100,12 @@ export class AuthService {
           };
         }
 
-        const { accessToken, refreshToken } = this.generateTokenPair(owner, 'owner');
-        
-        await this.storeRefreshToken(owner._id, refreshToken, 'owner');
+        const { accessToken, refreshToken } = this.generateTokenPair(
+          owner,
+          "owner"
+        );
+
+        await this.storeRefreshToken(owner._id, refreshToken, "owner");
 
         await this.ownerRepo.updateLastLogin(owner._id);
 
@@ -141,9 +152,12 @@ export class AuthService {
           };
         }
 
-        const { accessToken, refreshToken } = this.generateTokenPair(user, 'user');
-        
-        await this.storeRefreshToken(user._id, refreshToken, 'user');
+        const { accessToken, refreshToken } = this.generateTokenPair(
+          user,
+          "user"
+        );
+
+        await this.storeRefreshToken(user._id, refreshToken, "user");
 
         await this.userRepo.updateLastActive(user._id);
 
@@ -184,22 +198,22 @@ export class AuthService {
       email: user.email,
       role,
     };
-    if (role === 'admin') {
+    if (role === "admin") {
       payload.adminId = user._id;
-    } else if (role === 'owner') {
+    } else if (role === "owner") {
       payload.ownerId = user._id;
-    } else if (role === 'user') {
+    } else if (role === "user") {
       payload.userId = user._id;
     }
 
     const accessToken = jwt.sign(payload, config.jwtAccessSecret, {
-      expiresIn: '20s'
+      expiresIn: "20s",
     });
 
     const refreshToken = jwt.sign(
-      { ...payload, tokenType: 'refresh' },
+      { ...payload, tokenType: "refresh" },
       config.jwtRefreshSecret,
-      { expiresIn: '7d' }
+      { expiresIn: "7d" }
     );
 
     return { accessToken, refreshToken };
@@ -210,41 +224,41 @@ export class AuthService {
       let user;
 
       switch (role) {
-        case 'user':
-          user = await this.userRepo.findById(userId)
+        case "user":
+          user = await this.userRepo.findById(userId);
           if (user) {
             return {
               _id: user._id,
               email: user.email,
-              role: 'user',
+              role: "user",
               name: user.name,
-              ownerName: null
+              ownerName: null,
             };
           }
           break;
 
-        case 'owner':
-          user = await this.ownerRepo.findById(userId)
+        case "owner":
+          user = await this.ownerRepo.findById(userId);
           if (user) {
             return {
               _id: user._id,
               email: user.email,
-              role: 'owner',
+              role: "owner",
               name: user.ownerName,
-              ownerName: user.ownerName
+              ownerName: user.ownerName,
             };
           }
           break;
 
-        case 'admin':
-          user = await this.adminRepo.findById(userId)
+        case "admin":
+          user = await this.adminRepo.findById(userId);
           if (user) {
             return {
               _id: user._id,
               email: user.email,
-              role: 'admin',
+              role: "admin",
               name: user.adminName || user.name,
-              ownerName: null
+              ownerName: null,
             };
           }
           break;
@@ -254,25 +268,24 @@ export class AuthService {
       }
 
       return null;
-      
     } catch (error) {
-      console.error('Auth service getUserByIdAndRole error:', error);
+      console.error("Auth service getUserByIdAndRole error:", error);
       return null;
     }
   }
 
-  async storeRefreshToken(userId: string, refreshToken: string, userType: 'user' | 'admin' | 'owner') {
-
-    
-    
+  async storeRefreshToken(
+    userId: string,
+    refreshToken: string,
+    userType: "user" | "admin" | "owner"
+  ) {
     const hashedToken = await bcrypt.hash(refreshToken, 10);
 
-    
-    if (userType === 'user') {
+    if (userType === "user") {
       await this.userRepo.updateRefreshToken(userId, hashedToken);
-    } else if (userType === 'owner') {
+    } else if (userType === "owner") {
       await this.ownerRepo.updateRefreshToken(userId, hashedToken);
-    } else if (userType === 'admin') {
+    } else if (userType === "admin") {
       await this.adminRepo.updateRefreshToken(userId, hashedToken);
     }
   }
@@ -402,7 +415,7 @@ export class AuthService {
 
       return {
         success: true,
-        message: "OTP verified successfully", 
+        message: "OTP verified successfully",
         data: {
           email,
           verified: true,
@@ -411,7 +424,7 @@ export class AuthService {
       };
     } catch (error) {
       console.error("Verify password reset OTP error:", error);
-      return { success: false, message: "Something went wrong" }; 
+      return { success: false, message: "Something went wrong" };
     }
   }
 
@@ -509,7 +522,7 @@ export class AuthService {
         },
       };
     } catch (error) {
-      console.error("Reset password with OTP error:", error); 
+      console.error("Reset password with OTP error:", error);
       return { success: false, message: "Something went wrong" };
     }
   }
@@ -573,9 +586,12 @@ export class AuthService {
         user = await this.updateExistingGoogleUser(user, googleUserData);
       }
 
-      const { accessToken, refreshToken } = this.generateTokenPair(user, 'user');
-      
-      await this.storeRefreshToken(user._id, refreshToken, 'user');
+      const { accessToken, refreshToken } = this.generateTokenPair(
+        user,
+        "user"
+      );
+
+      await this.storeRefreshToken(user._id, refreshToken, "user");
 
       return {
         success: true,
@@ -600,68 +616,65 @@ export class AuthService {
     }
   }
 
-async refreshAccessToken(refreshToken: string): Promise<{
-  success: boolean;
-  message: string;
-  data?: { accessToken: string; refreshToken: string, user?: any; };
-}> {
-  try {
-    
-    const decoded = jwt.verify(refreshToken, config.jwtRefreshSecret) as any;
+  async refreshAccessToken(refreshToken: string): Promise<{
+    success: boolean;
+    message: string;
+    data?: { accessToken: string; refreshToken: string; user?: any };
+  }> {
+    try {
+      const decoded = jwt.verify(refreshToken, config.jwtRefreshSecret) as any;
 
-    
-    if (decoded.tokenType !== 'refresh') {
-      return { success: false, message: 'Invalid token type' };
-    }
-
-    let user;
-    let userType = decoded.role;
-    
-    
-    if (userType === 'user') {
-      user = await this.userRepo.findById(decoded.userId);
-    } else if (userType === 'owner') {
-      user = await this.ownerRepo.findById(decoded.ownerId);
-    } else if (userType === 'admin') {
-      user = await this.adminRepo.findById(decoded.adminId);
-    }
-
-    
-    
-
-    if (!user || !user.refreshToken) {
-      return { success: false, message: 'Invalid refresh token' };
-    }
-
-    const isValidRefreshToken = await bcrypt.compare(refreshToken, user.refreshToken);
-
-    if (!isValidRefreshToken) {
-      return { success: false, message: 'Invalid refresh token' };
-    }
-
-    const { accessToken, refreshToken: newRefreshToken } = this.generateTokenPair(user, userType);
-    
-    await this.storeRefreshToken(user._id, newRefreshToken, userType);
-
-    return {
-      success: true,
-      message: 'Token refreshed successfully',
-      data: {
-        accessToken,
-        refreshToken: newRefreshToken,
-        user: {
-          id: user._id,
-          email: user.email,
-          role: userType,
-        }
+      if (decoded.tokenType !== "refresh") {
+        return { success: false, message: "Invalid token type" };
       }
-    };
-  } catch (error) {
-    console.error('❌ Refresh token error:', error);
-    return { success: false, message: 'Token refresh failed' };
-  }
-}
 
+      let user;
+      let userType = decoded.role;
+
+      if (userType === "user") {
+        user = await this.userRepo.findById(decoded.userId);
+      } else if (userType === "owner") {
+        user = await this.ownerRepo.findById(decoded.ownerId);
+      } else if (userType === "admin") {
+        user = await this.adminRepo.findById(decoded.adminId);
+      }
+
+      if (!user || !user.refreshToken) {
+        return { success: false, message: "Invalid refresh token" };
+      }
+
+      const isValidRefreshToken = await bcrypt.compare(
+        refreshToken,
+        user.refreshToken
+      );
+
+      if (!isValidRefreshToken) {
+        return { success: false, message: "Invalid refresh token" };
+      }
+
+      const { accessToken, refreshToken: newRefreshToken } =
+        this.generateTokenPair(user, userType);
+
+      await this.storeRefreshToken(user._id, newRefreshToken, userType);
+
+      return {
+        success: true,
+        message: "Token refreshed successfully",
+        data: {
+          accessToken,
+          refreshToken: newRefreshToken,
+          user: {
+            id: user._id,
+            email: user.email,
+            role: userType,
+          },
+        },
+      };
+    } catch (error) {
+      console.error("❌ Refresh token error:", error);
+      return { success: false, message: "Token refresh failed" };
+    }
+  }
 
   private async createGoogleUser(googleUserData: {
     googleId: string;
@@ -791,19 +804,19 @@ async refreshAccessToken(refreshToken: string): Promise<{
     };
   }
 
-  async logout(userId: string, userType: 'user' | 'admin' | 'owner') {
+  async logout(userId: string, userType: "user" | "admin" | "owner") {
     try {
-      if (userType === 'user') {
+      if (userType === "user") {
         await this.userRepo.clearRefreshToken(userId);
-      } else if (userType === 'owner') {
+      } else if (userType === "owner") {
         await this.ownerRepo.clearRefreshToken(userId);
-      } else if (userType === 'admin') {
+      } else if (userType === "admin") {
         await this.adminRepo.clearRefreshToken(userId);
       }
-      
-      return { success: true, message: 'Logged out successfully' };
+
+      return { success: true, message: "Logged out successfully" };
     } catch (error) {
-      return { success: false, message: 'Logout failed' };
+      return { success: false, message: "Logout failed" };
     }
   }
 

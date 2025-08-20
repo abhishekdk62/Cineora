@@ -1,10 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { IAdmin } from "../interfaces/admin.interface";
 
-export interface IAdmin extends Document {
-  email: string;
-  password: string;
-  refreshToken: string;
-}
 
 const AdminSchema = new Schema<IAdmin>({
   email: { type: String, required: true, unique: true },

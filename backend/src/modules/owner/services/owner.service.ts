@@ -1,22 +1,25 @@
 import * as bcrypt from "bcryptjs";
 import { EmailService } from "../../../services/email.service";
-import { IOTPRepository } from "../../otp/interfaces/otp.interface";
-import { IUserRepository } from "../../user/interfaces/user.interface";
+
 import {
   IOwnerRepository,
   IOwnerRequestRepository,
+  IOwnerService,
   ServiceResponse,
 } from "../interfaces/owner.interface";
 import { config } from "../../../config";
 
-const emailService = new EmailService();
+import { IUserRepository } from "../../user/interfaces/user.interface";
+import { IOTPRepository } from "../../otp/interfaces/otp.interface";
 
-export class OwnerService {
+
+export class OwnerService implements IOwnerService {
   constructor(
-    private ownerRepo: IOwnerRepository,
-    private ownerRequestRepo: IOwnerRequestRepository,
-    private otpRepo: IOTPRepository,
-    private userRepo: IUserRepository
+    private readonly emailService:EmailService,
+    private readonly ownerRepo: IOwnerRepository,
+    private readonly ownerRequestRepo: IOwnerRequestRepository,
+    private readonly otpRepo: IOTPRepository,
+    private readonly userRepo: IUserRepository
   ) {}
 
   async getOwnerProfile(requestId: string): Promise<ServiceResponse> {
@@ -338,7 +341,7 @@ export class OwnerService {
         },
       });
 
-      const emailSent = await emailService.sendEmailChangeOTP(
+      const emailSent = await this.emailService.sendEmailChangeOTP(
         newEmail,
         otp,
         owner.ownerName || "Owner"
@@ -422,7 +425,7 @@ export class OwnerService {
         };
       }
 
-      const emailSent = await emailService.sendEmailChangeSuccessNotification(
+      const emailSent = await this.emailService.sendEmailChangeSuccessNotification(
         updatedOwner.email,
         otpRecord.userData?.oldEmail || "Unknown"
       );

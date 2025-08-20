@@ -1,8 +1,5 @@
-import { IAdmin } from '../models/admin.model';
 
-export interface IAdminRepository {
-  findByEmail(email: string): Promise<IAdmin | null>;
-}
+
 
 export interface AdminUserFilters {
   search?: string;
@@ -32,6 +29,12 @@ export interface AdminOwnerFilters {
   page?: number;
   limit?: number;
 }
+export interface IAdmin extends Document {
+  _id:string;
+  email: string;
+  password: string;
+  refreshToken: string;
+}
 
 export interface AdminOwnerRequestFilters {
   search?: string;
@@ -46,8 +49,18 @@ export interface AdminUserFilters {
   search?: string;
   status?: 'active' | 'inactive';
   isVerified?: boolean;
-  sortBy?: string;
+  sortBy?: "username" | "email" | "joinedAt" | "lastActive"
   sortOrder?: 'asc' | 'desc';
   page?: number;
   limit?: number;
+}
+
+
+
+
+export interface IAdminRepository {
+  findByEmail(email: string): Promise<IAdmin | null>;
+  findById(id: string): Promise<IAdmin | null>;
+  updateRefreshToken(userId: string, hashedRefreshToken: string): Promise<IAdmin | null>;
+  clearRefreshToken(userId: string): Promise<IAdmin | null>;
 }

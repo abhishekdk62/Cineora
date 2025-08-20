@@ -1,95 +1,92 @@
-import { IOwnerRepository } from "../interfaces/owner.interface";
-import { Owner } from "../models/owner.model";
-
-
+import { IOwner, IOwnerRepository } from "../interfaces/owner.interface";
+import {  Owner } from "../models/owner.model";
 
 export class OwnerRepository implements IOwnerRepository {
-  async findByEmail(email: string) {
+  async findByEmail(email: string): Promise<IOwner | null> {
     return await Owner.findOne({ email });
   }
 
-  async findByKycRequestId(requestId: string) {
+  async findByKycRequestId(requestId: string): Promise<IOwner | null> {
     return await Owner.findOne({ kycRequestId: requestId });
   }
 
-  async findById(id: string) {
+  async findById(id: string): Promise<IOwner | null> {
     return await Owner.findById(id);
   }
 
-  async findAll(page: number = 1, limit: number = 10) {
+  async findAll(
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{ owners: IOwner[]; total: number }> {
     const skip = (page - 1) * limit;
-    
+
     const [owners, total] = await Promise.all([
-      Owner.find({})
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      Owner.countDocuments({})
+      Owner.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Owner.countDocuments({}),
     ]);
 
     return { owners, total };
   }
-async updateRefreshToken(userId: string, hashedRefreshToken: string) {
-  return await Owner.findByIdAndUpdate(
-    userId,
-    { 
-      refreshToken: hashedRefreshToken,
-      updatedAt: new Date()
-    },
-    { new: true }
-  );
-}
+  async updateRefreshToken(
+    userId: string,
+    hashedRefreshToken: string
+  ): Promise<IOwner | null> {
+    return await Owner.findByIdAndUpdate(
+      userId,
+      {
+        refreshToken: hashedRefreshToken,
+        updatedAt: new Date(),
+      },
+      { new: true }
+    );
+  }
 
-async clearRefreshToken(userId: string) {
-  return await Owner.findByIdAndUpdate(
-    userId,
-    { 
+  async clearRefreshToken(userId: string): Promise<IOwner | null> {
+    return await Owner.findByIdAndUpdate(userId, {
       $unset: { refreshToken: 1 },
-      updatedAt: new Date()
-    }
-  );
-}
-  async findByStatus(status: string, page: number = 1, limit: number = 10) {
+      updatedAt: new Date(),
+    });
+  }
+  async findByStatus(
+    status: string,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{ owners: IOwner[]; total: number }> {
     const skip = (page - 1) * limit;
-    
+
     let query: any = {};
-    
-    if (status === 'active') {
+
+    if (status === "active") {
       query = { isActive: true };
-    } else if (status === 'inactive' || status === 'blocked') {
+    } else if (status === "inactive" || status === "blocked") {
       query = { isActive: false };
-    } else if (status === 'verified') {
+    } else if (status === "verified") {
       query = { isVerified: true };
-    } else if (status === 'unverified') {
+    } else if (status === "unverified") {
       query = { isVerified: false };
     }
-    
+
     const [owners, total] = await Promise.all([
-      Owner.find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      Owner.countDocuments(query)
+      Owner.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Owner.countDocuments(query),
     ]);
 
     return { owners, total };
   }
 
-  async create(data: any) {
+  async create(data: Partial<IOwner>): Promise<IOwner> {
     const owner = new Owner({
       ...data,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     });
     return await owner.save();
   }
 
-  async toggleStatus(id: string) {
+  async toggleStatus(id: string): Promise<IOwner | null> {
     const owner = await Owner.findById(id);
     if (!owner) {
-      throw new Error('Owner not found');
+      throw new Error("Owner not found");
     }
 
     owner.isActive = !owner.isActive;
@@ -97,13 +94,13 @@ async clearRefreshToken(userId: string) {
     return await owner.save();
   }
 
-  async updateLastLogin(id: string) {
+  async updateLastLogin(id: string): Promise<IOwner | null> {
     return await Owner.findByIdAndUpdate(
-      id, 
-      { 
+      id,
+      {
         lastLogin: new Date(),
-        updatedAt: new Date()
-      }, 
+        updatedAt: new Date(),
+      },
       { new: true }
     );
   }
@@ -119,58 +116,67 @@ async clearRefreshToken(userId: string) {
     return result.modifiedCount > 0;
   }
 
-  async update(id: string, updateData: any): Promise<any> {
-    const { _id, createdAt, password, kycRequestId, ...safeUpdateData } = updateData;
-    
+  async update(
+    id: string,
+    updateData: Partial<IOwner>
+  ): Promise<IOwner | null> {
+    const { _id, createdAt, password, kycRequestId, ...safeUpdateData } =
+      updateData;
+
     return await Owner.findByIdAndUpdate(
       id,
       {
         ...safeUpdateData,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
-      { 
+      {
         new: true,
-        runValidators: true 
+        runValidators: true,
       }
     );
   }
 
-  async delete(id: string): Promise<any> {
+  async delete(id: string): Promise<IOwner | null> {
     return await Owner.findByIdAndUpdate(
       id,
       {
         isActive: false,
         isDeleted: true,
         deletedAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       { new: true }
     );
-
-
   }
 
-
-  async findByPhone(phone: string) {
+  async findByPhone(phone: string): Promise<IOwner | null> {
     return await Owner.findOne({ phone });
   }
 
-  async findByPan(pan: string) {
+  async findByPan(pan: string): Promise<IOwner | null> {
     return await Owner.findOne({ pan });
   }
 
-  async findByAadhaar(aadhaar: string) {
+  async findByAadhaar(aadhaar: string): Promise<IOwner | null> {
     return await Owner.findOne({ aadhaar });
   }
 
-  async updateProfile(id: string, profileData: any): Promise<any> {
+  async updateProfile(
+    id: string,
+    profileData: Partial<IOwner>
+  ): Promise<IOwner | null> {
     const allowedUpdates = [
-      'ownerName', 'phone', 'accountHolder', 'bankName', 
-      'accountNumber', 'ifsc', 'ownerPhotoUrl'
+      "ownerName",
+      "phone",
+      "accountHolder",
+      "bankName",
+      "accountNumber",
+      "ifsc",
+      "ownerPhotoUrl",
     ];
-    
+
     const filteredData = Object.keys(profileData)
-      .filter(key => allowedUpdates.includes(key))
+      .filter((key) => allowedUpdates.includes(key))
       .reduce((obj: any, key) => {
         obj[key] = profileData[key];
         return obj;
@@ -180,46 +186,53 @@ async clearRefreshToken(userId: string) {
       id,
       {
         ...filteredData,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
-      { 
+      {
         new: true,
-        runValidators: true 
+        runValidators: true,
       }
     );
   }
 
-  async addTheatre(ownerId: string, theatreId: string): Promise<any> {
+  async addTheatre(ownerId: string, theatreId: string): Promise<IOwner | null> {
     return await Owner.findByIdAndUpdate(
       ownerId,
-      { 
+      {
         $addToSet: { theatres: theatreId },
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       { new: true }
     );
   }
 
-  async removeTheatre(ownerId: string, theatreId: string): Promise<any> {
+  async removeTheatre(
+    ownerId: string,
+    theatreId: string
+  ): Promise<IOwner | null> {
     return await Owner.findByIdAndUpdate(
       ownerId,
-      { 
+      {
         $pull: { theatres: theatreId },
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       { new: true }
     );
   }
 
-  async searchOwners(searchTerm: string, page: number = 1, limit: number = 10) {
+  async searchOwners(
+    searchTerm: string,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{ owners: IOwner[]; total: number }> {
     const skip = (page - 1) * limit;
-    
+
     const searchQuery = {
       $or: [
-        { ownerName: { $regex: searchTerm, $options: 'i' } },
-        { email: { $regex: searchTerm, $options: 'i' } },
-        { phone: { $regex: searchTerm, $options: 'i' } }
-      ]
+        { ownerName: { $regex: searchTerm, $options: "i" } },
+        { email: { $regex: searchTerm, $options: "i" } },
+        { phone: { $regex: searchTerm, $options: "i" } },
+      ],
     };
 
     const [owners, total] = await Promise.all([
@@ -228,24 +241,27 @@ async clearRefreshToken(userId: string) {
         .skip(skip)
         .limit(limit)
         .lean(),
-      Owner.countDocuments(searchQuery)
+      Owner.countDocuments(searchQuery),
     ]);
 
     return { owners, total };
   }
 
-  async getOwnerStats(ownerId: string): Promise<any> {
+  async getOwnerStats(ownerId: string): Promise<IOwner | null> {
     return await Owner.findById(ownerId)
-      .populate('theatres')
-      .select('ownerName email phone theatres isActive isVerified createdAt');
+      .populate("theatres")
+      .select("ownerName email phone theatres isActive isVerified createdAt");
   }
 
-  async bulkUpdateStatus(ownerIds: string[], isActive: boolean): Promise<any> {
+  async bulkUpdateStatus(
+    ownerIds: string[],
+    isActive: boolean
+  ): Promise<{ modifiedCount: number }> {
     return await Owner.updateMany(
       { _id: { $in: ownerIds } },
-      { 
+      {
         isActive,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       }
     );
   }
