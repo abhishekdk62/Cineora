@@ -1,12 +1,11 @@
 import {
   IMovieShowtime,
-  PaginatedShowtimeResult,
-  ShowtimeFilters,
-} from "../interfaces/showtimes.interfaces";
+
+} from "../interfaces/showtimes.model.interfaces";
 import MovieShowtime from "../models/showtimes.model";
 import mongoose, { Types } from "mongoose";
-import { IShowtimeRepository } from "../interfaces/IShowtimes.repository";
-
+import { IShowtimeRepository } from "../interfaces/showtimes.repository.interface";
+import { PaginatedShowtimeResult, ShowtimeFilters } from "../dtos/dto";
 export class ShowtimeRepository implements IShowtimeRepository {
   async create(
     ownerId: string,
@@ -217,7 +216,6 @@ export class ShowtimeRepository implements IShowtimeRepository {
       ];
     }
 
-    // Date filter
     if (filters.showDate) {
       const startDate = new Date(filters.showDate);
       const endDate = new Date(startDate);
@@ -364,7 +362,7 @@ export class ShowtimeRepository implements IShowtimeRepository {
   async findAll(
     page: number = 1,
     limit: number = 10,
-    filters: any = {}
+    filters: ShowtimeFilters = {}
   ): Promise<any> {
     const skip = (page - 1) * limit;
     const query: any = {};

@@ -1,8 +1,31 @@
 import { Request, Response, NextFunction } from "express";
 import { createResponse } from "../../../utils/createResponse";
-import { IUserService } from "../interfaces/user.interface";
-import { IAuthService } from "../../auth/interfaces/auth.interface";
-import { IMovieService } from "../../movies/interfaces/movies.interface";
+import {
+  AddXpPointsDto,
+  ChangePasswordDto,
+  GetUsersFilterDto,
+  GetUsersResponseDto,
+  ResendOTPDto,
+  SendEmailChangeOTPDto,
+  SendEmailChangeOTPResponseDto,
+  SignupDto,
+  SignupResponseDto,
+  UpdateProfileDto,
+  UserCountsResponseDto,
+  UserResponseDto,
+  VerifyEmailChangeOTPDto,
+  VerifyEmailChangeOTPResponseDto,
+  VerifyOTPDto,
+  VerifyOTPResponseDto,
+} from "../dtos/dto";
+import {
+  RefreshTokenDto,
+  RefreshTokenResponseDto,
+  ServiceResponse,
+} from "../../../interfaces/interface";
+import { IUserService } from "../interfaces/user.service.interface";
+import { IAuthService } from "../../auth/interfaces/auth.service.interface";
+import { IMovieService } from "../../movies/interfaces/movies.service.interface";
 
 export class UserController {
   constructor(
@@ -11,9 +34,9 @@ export class UserController {
     private readonly movieService: IMovieService
   ) {}
 
-  async signup(req: Request, res: Response) {
+  async signup(req: Request, res: Response): Promise<any> {
     try {
-      const userData = req.body;
+      const userData: SignupDto = req.body;
       if (!userData.username || !userData.email || !userData.password) {
         return res.status(400).json(
           createResponse({
@@ -22,7 +45,8 @@ export class UserController {
           })
         );
       }
-      const result = await this.userService.signup(userData);
+      const result: ServiceResponse<SignupResponseDto> =
+        await this.userService.signup(userData);
       if (!result.success) {
         return res.status(400).json(
           createResponse({
@@ -40,34 +64,35 @@ export class UserController {
         })
       );
     } catch (err) {
-       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-  async verifyOTP(req: Request, res: Response) {
+  async verifyOTP(req: Request, res: Response): Promise<any> {
     try {
-      const email = String(req.body?.email || "")
-        .trim()
-        .toLowerCase();
-      const otp = String(req.body?.otp || "").trim();
+      const verifyOTPDto: VerifyOTPDto = {
+        email: String(req.body?.email || "")
+          .trim()
+          .toLowerCase(),
+        otp: String(req.body?.otp || "").trim(),
+      };
 
-      if (!email || !otp) {
-        return res
-          .status(400)
-          .json(
-            createResponse({
-              success: false,
-              message: "Email and OTP are required",
-            })
-          );
+      if (!verifyOTPDto.email || !verifyOTPDto.otp) {
+        return res.status(400).json(
+          createResponse({
+            success: false,
+            message: "Email and OTP are required",
+          })
+        );
       }
 
-      const result = await this.userService.verifyOTP(email, otp);
+      const result: ServiceResponse<VerifyOTPResponseDto> =
+        await this.userService.verifyOTP(verifyOTPDto.email, verifyOTPDto.otp);
       if (!result.success) {
         return res
           .status(400)
@@ -76,14 +101,12 @@ export class UserController {
 
       const user = result.data?.user;
       if (!user) {
-        return res
-          .status(500)
-          .json(
-            createResponse({
-              success: false,
-              message: "Verification succeeded but user is missing",
-            })
-          );
+        return res.status(500).json(
+          createResponse({
+            success: false,
+            message: "Verification succeeded but user is missing",
+          })
+        );
       }
 
       try {
@@ -130,19 +153,18 @@ export class UserController {
       }
     } catch (err) {
       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-  async resendOTP(req: Request, res: Response) {
+  async resendOTP(req: Request, res: Response): Promise<any> {
     try {
-      const { email } = req.body;
-
-      if (!email) {
+      const resendOTPDto: ResendOTPDto = req.body;
+      if (!resendOTPDto.email) {
         return res.status(400).json(
           createResponse({
             success: false,
@@ -150,8 +172,9 @@ export class UserController {
           })
         );
       }
-
-      const result = await this.userService.resendOTP(email);
+      const result: ServiceResponse<void> = await this.userService.resendOTP(
+        resendOTPDto.email
+      );
 
       if (!result.success) {
         return res.status(400).json(
@@ -169,19 +192,18 @@ export class UserController {
         })
       );
     } catch (err) {
-     res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-  async getUserProfile(req: Request, res: Response) {
+  async getUserProfile(req: Request, res: Response): Promise<any> {
     try {
       const { id } = req.user;
-
       if (!id) {
         return res.status(400).json(
           createResponse({
@@ -191,7 +213,8 @@ export class UserController {
         );
       }
 
-      const result = await this.userService.getUserProfile(id);
+      const result: ServiceResponse<UserResponseDto> =
+        await this.userService.getUserProfile(req.user.id);
 
       if (!result.success) {
         return res.status(404).json(
@@ -211,19 +234,21 @@ export class UserController {
       );
     } catch (err) {
       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
   refreshToken = async (req: Request, res: Response) => {
     try {
-      const refreshToken = req.cookies?.refreshToken;
+      const refreshTokenDto: RefreshTokenDto = {
+        refreshToken: req.cookies?.refreshToken,
+      };
 
-      if (!refreshToken) {
+      if (!refreshTokenDto.refreshToken) {
         return res.status(401).json(
           createResponse({
             success: false,
@@ -232,9 +257,8 @@ export class UserController {
         );
       }
 
-      const refreshResult = await this.authService.refreshAccessToken(
-        refreshToken
-      );
+      const refreshResult: ServiceResponse<RefreshTokenResponseDto> =
+        await this.authService.refreshAccessToken(refreshTokenDto.refreshToken);
 
       if (!refreshResult.success) {
         res.clearCookie("accessToken");
@@ -280,10 +304,10 @@ export class UserController {
     }
   };
 
-  async updateProfile(req: Request, res: Response) {
+  async updateProfile(req: Request, res: Response): Promise<any> {
     try {
       const { id } = req.user;
-      const updateData = req.body;
+      const updateData: UpdateProfileDto = req.body;
 
       if (!id) {
         return res.status(400).json(
@@ -293,8 +317,8 @@ export class UserController {
           })
         );
       }
-
-      const result = await this.userService.updateProfile(id, updateData);
+      const result: ServiceResponse<UserResponseDto> =
+        await this.userService.updateProfile(id, updateData);
 
       if (!result.success) {
         return res.status(404).json(
@@ -314,16 +338,20 @@ export class UserController {
       );
     } catch (err) {
       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
-  async updateUserLocation(req: Request, res: Response) {
+  async updateUserLocation(
+    req: Request,
+    res: Response
+  ): Promise<any> {
     try {
       const { id } = req.user;
+
       const { latitude, longitude } = req.body;
 
       if (!id) {
@@ -386,16 +414,15 @@ export class UserController {
         })
       );
     } catch (err) {
-     res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
-
-  async getNearbyUsers(req: Request, res: Response) {
+ async getNearbyUsers(req: Request, res: Response):Promise<any> {
     try {
       const { id } = req.params;
       const { maxDistance } = req.query;
@@ -440,12 +467,12 @@ export class UserController {
     }
   }
 
-  async addXpPoints(req: Request, res: Response) {
+  async addXpPoints(req: Request, res: Response): Promise<any> {
     try {
       const { id } = req.params;
-      const { points } = req.body;
+      const addXpDto: AddXpPointsDto = req.body;
 
-      if (!id || !points) {
+      if (!id || !addXpDto.points) {
         return res.status(400).json(
           createResponse({
             success: false,
@@ -453,8 +480,10 @@ export class UserController {
           })
         );
       }
-
-      const result = await this.userService.addXpPoints(id, points);
+      const result: ServiceResponse<void> = await this.userService.addXpPoints(
+        id,
+        addXpDto.points
+      );
 
       if (!result.success) {
         return res.status(404).json(
@@ -473,17 +502,22 @@ export class UserController {
       );
     } catch (err) {
       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-  async resetPassword(req: Request, res: Response) {
+  async resetPassword(req: Request, res: Response): Promise<any> {
     try {
       const { id } = req.user;
+      const changePasswordDto: ChangePasswordDto = {
+        oldPassword: req.body.oldpassword,
+        newPassword: req.body.newPassword,
+      };
+
       if (!id) {
         return res.status(400).json(
           createResponse({
@@ -492,10 +526,8 @@ export class UserController {
           })
         );
       }
-      const { oldpassword, newPassword } = req.body;
-      const oldPassword = oldpassword;
 
-      if (!oldPassword || !newPassword) {
+      if (!changePasswordDto.oldPassword || !changePasswordDto.newPassword) {
         return res.status(400).json(
           createResponse({
             success: false,
@@ -503,12 +535,13 @@ export class UserController {
           })
         );
       }
+      const result: ServiceResponse<void> =
+        await this.userService.changePassword(
+          req.user.id,
+          changePasswordDto.oldPassword,
+          changePasswordDto.newPassword
+        );
 
-      const result = await this.userService.changePassword(
-        id,
-        oldPassword,
-        newPassword
-      );
       if (!result.success) {
         return res.status(400).json(
           createResponse({
@@ -525,21 +558,24 @@ export class UserController {
         })
       );
     } catch (error) {
-       res.status(500).json(
-          createResponse({
-            success: false,
-            message: error.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: error.message,
+        })
+      );
     }
   }
 
-  async changeEmail(req: Request, res: Response) {
+  async changeEmail(req: Request, res: Response): Promise<any> {
     try {
       const { id } = req.user;
-      const { newEmail, password } = req.body;
+      const sendEmailOTPDto: SendEmailChangeOTPDto = {
+        email: req.body.newEmail,
+        password: req.body.password,
+      };
 
-      if (!newEmail || !password) {
+      if (!sendEmailOTPDto.email || !sendEmailOTPDto.password) {
         return res.status(400).json(
           createResponse({
             success: false,
@@ -547,11 +583,12 @@ export class UserController {
           })
         );
       }
-      const result = await this.userService.sendEmailChangeOTP(
-        id,
-        newEmail,
-        password
-      );
+      const result: ServiceResponse<SendEmailChangeOTPResponseDto> =
+        await this.userService.sendEmailChangeOTP(
+          req.user.id,
+          sendEmailOTPDto.email,
+          sendEmailOTPDto.password
+        );
       if (!result.success) {
         return res.status(400).json(
           createResponse({
@@ -568,18 +605,22 @@ export class UserController {
       );
     } catch (error) {
       res.status(500).json(
-          createResponse({
-            success: false,
-            message: error.message,
-          })
-        )
+        createResponse({
+          success: false,
+          message: error.message,
+        })
+      );
     }
   }
 
-  async verifyChangeEmailOtp(req: Request, res: Response) {
+  async verifyChangeEmailOtp(
+    req: Request,
+    res: Response
+  ): Promise<any> {
     try {
       const { id } = req.user;
-      const { email, otp } = req.body;
+      const verifyEmailOTPDto: VerifyEmailChangeOTPDto = req.body;
+
       if (!id) {
         return res.status(400).json(
           createResponse({
@@ -589,7 +630,7 @@ export class UserController {
         );
       }
 
-      if (!email || !otp) {
+      if (!verifyEmailOTPDto.email || !verifyEmailOTPDto.otp) {
         return res.status(400).json(
           createResponse({
             success: false,
@@ -598,11 +639,12 @@ export class UserController {
         );
       }
 
-      const result = await this.userService.verifyEmailChangeOTP(
-        id,
-        email,
-        otp
-      );
+      const result: ServiceResponse<VerifyEmailChangeOTPResponseDto> =
+        await this.userService.verifyEmailChangeOTP(
+          req.user.id,
+          verifyEmailOTPDto.email,
+          verifyEmailOTPDto.otp
+        );
 
       if (!result.success) {
         return res.status(400).json(
@@ -620,16 +662,20 @@ export class UserController {
         })
       );
     } catch (error) {
-    res.status(500).json(
-          createResponse({
-            success: false,
-            message: error.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: error.message,
+        })
+      );
     }
   }
 
-  setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
+  setAuthCookies(
+    res: Response,
+    accessToken: string,
+    refreshToken: string
+  ): void {
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -645,9 +691,10 @@ export class UserController {
     });
   }
 
-  async getUserCounts(req: Request, res: Response) {
+  async getUserCounts(req: Request, res: Response): Promise<any> {
     try {
-      const result = await this.userService.getUserCounts();
+      const result: ServiceResponse<UserCountsResponseDto> =
+        await this.userService.getUserCounts();
 
       if (!result.success) {
         return res.status(400).json(
@@ -667,18 +714,19 @@ export class UserController {
       );
     } catch (err) {
       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-  async getUsers(req: Request, res: Response) {
+  async getUsers(req: Request, res: Response): Promise<any> {
     try {
-      const filters = req.query;
-      const result = await this.userService.getUsers(filters);
+      const filters: GetUsersFilterDto = req.query;
+      const result: ServiceResponse<GetUsersResponseDto> =
+        await this.userService.getUsers(filters);
 
       if (!result.success) {
         return res.status(400).json(
@@ -698,15 +746,59 @@ export class UserController {
       );
     } catch (err) {
       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-  async toggleUserStatus(req: Request, res: Response) {
+  async toggleUserStatus(
+    req: Request,
+    res: Response
+  ): Promise<any> {
+    try {
+      const { id } = req.params;
+
+      if (!id) {
+        return res.status(400).json(
+          createResponse({
+            success: false,
+            message: "User ID is required",
+          })
+        );
+      }
+      const result: ServiceResponse<UserResponseDto> =
+        await this.userService.toggleUserStatus(id);
+
+      if (!result.success) {
+        return res.status(400).json(
+          createResponse({
+            success: false,
+            message: result.message,
+          })
+        );
+      }
+
+      return res.status(200).json(
+        createResponse({
+          success: true,
+          message: result.message,
+          data: result.data,
+        })
+      );
+    } catch (err) {
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
+    }
+  }
+
+  async getUserDetails(req: Request, res: Response): Promise< any> {
     try {
       const { id } = req.params;
 
@@ -719,48 +811,8 @@ export class UserController {
         );
       }
 
-      const result = await this.userService.toggleUserStatus(id);
-
-      if (!result.success) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: result.message,
-          })
-        );
-      }
-
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          message: result.message,
-          data: result.data,
-        })
-      );
-    } catch (err) {
-      res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
-    }
-  }
-
-  async getUserDetails(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-
-      if (!id) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "User ID is required",
-          })
-        );
-      }
-
-      const result = await this.userService.getUserDetails(id);
+      const result: ServiceResponse<UserResponseDto> =
+        await this.userService.getUserDetails(id);
 
       if (!result.success) {
         return res.status(404).json(
@@ -780,11 +832,11 @@ export class UserController {
       );
     } catch (err) {
       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 }

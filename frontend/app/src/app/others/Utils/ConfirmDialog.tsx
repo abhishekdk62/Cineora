@@ -10,7 +10,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from "@/app/others/components/utils/alert-dialog";
 
 interface ConfirmDialogProps {
   title: string;

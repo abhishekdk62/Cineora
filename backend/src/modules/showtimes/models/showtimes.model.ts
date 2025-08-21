@@ -3,7 +3,7 @@ import {
   IMovieShowtime,
   IRowPricing,
   ISeatBlock,
-} from "../interfaces/showtimes.interfaces";
+} from "../interfaces/showtimes.model.interfaces";
 
 const SeatBlockSchema = new Schema<ISeatBlock>({
   seatId: {

@@ -1,19 +1,19 @@
-import { IScreen, IScreenRepository } from "../interfaces/screens.interface";
-import { Screen } from "../models/screens.model";  
+import { AdvancedScreenFilters, PaginatedScreenResult, ScreenFilters, ScreenWithStatisticsResult } from "../dtos/dtos";
+import { IScreen } from "../interfaces/screens.model.interface";
+import { IScreenRepository } from "../interfaces/screens.repository.interface";
+import { Screen } from "../models/screens.model";
 
 import { Types } from "mongoose";
 
 export class ScreenRepository implements IScreenRepository {
   async create(screenData: Partial<IScreen>): Promise<IScreen | null> {
-    
-    
     const screen = new Screen(screenData);
     return screen.save();
   }
-async deleteMany(theaterId: string): Promise<number> {
-  const res = await Screen.deleteMany({ theaterId });
-  return res.deletedCount || 0;
-}
+  async deleteMany(theaterId: string): Promise<number> {
+    const res = await Screen.deleteMany({ theaterId });
+    return res.deletedCount || 0;
+  }
 
   async findById(screenId: string): Promise<IScreen | null> {
     return Screen.findById(screenId).populate("theaterId", "name city state");
@@ -26,75 +26,66 @@ async deleteMany(theaterId: string): Promise<number> {
     );
   }
 
-async findAll(
-  page: number,
-  limit: number,
-  filters?: any
-): Promise<{ 
-  screens: IScreen[]; 
-  total: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-}> {
-  const query: any = {};
-  this.applyFilters(query, filters);
+  async findAll(
+    page: number,
+    limit: number,
+    filters?: ScreenFilters
+  ): Promise<PaginatedScreenResult> {
+    const query: any = {};
+    this.applyFilters(query, filters);
 
-  const skip = (page - 1) * limit;
-  const sortOptions = this.getSortOptions(filters);
+    const skip = (page - 1) * limit;
+    const sortOptions = this.getSortOptions(filters);
 
-  const screens = await Screen.find(query)
-    .sort(sortOptions)
-    .skip(skip)
-    .limit(limit)
-    .populate("theaterId", "name city state");
+    const screens = await Screen.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limit)
+      .populate("theaterId", "name city state");
 
-  const total = await Screen.countDocuments(query);
+    const total = await Screen.countDocuments(query);
 
-  const totalPages = Math.ceil(total / limit);
+    const totalPages = Math.ceil(total / limit);
 
-  return { 
-    screens,
-    total,
-    currentPage: page,
-    totalPages,
-    pageSize: limit
-  };
-}
+    return {
+      screens,
+      total,
+      currentPage: page,
+      totalPages,
+      pageSize: limit,
+    };
+  }
 
-async findByIdGetTheaterDetails(screenId: string): Promise<IScreen> {
-  return await Screen.findById(screenId).populate('theaterId','name isActive')
-}
+  async findByIdGetTheaterDetails(screenId: string): Promise<IScreen> {
+    return await Screen.findById(screenId).populate(
+      "theaterId",
+      "name isActive"
+    );
+  }
   async findByTheaterIdWithFilters(
     theaterId: string,
-    filters?: {
-      isActive?: boolean;
-      screenType?: string;
-      search?: string;
-      page?: number;
-      limit?: number;
-      sortBy?: string;
-      sortOrder?: "asc" | "desc";
-    }
-  ): Promise<{
-    screens: IScreen[];
-    totalFiltered: number;
-    activeAll: number;
-    inactiveAll: number;
-    totalAll: number;
-  }> {
+    filters?: AdvancedScreenFilters
+  ): Promise<ScreenWithStatisticsResult> {
     const theaterObjId = new Types.ObjectId(theaterId);
     const query: any = { theaterId: theaterObjId };
 
     if (filters?.isActive !== undefined) query.isActive = filters.isActive;
 
     if (filters?.screenType)
-      query.screenType = { $exists: true, $regex: new RegExp(filters.screenType, "i") };
+      query.screenType = {
+        $exists: true,
+        $regex: new RegExp(filters.screenType, "i"),
+      };
 
     if (filters?.search)
       query.$or = [
         { name: new RegExp(filters.search, "i") },
-        { screenType: { $exists: true, $regex: new RegExp(filters.search, "i") } },
+        {
+          screenType: {
+            $exists: true,
+            $regex: new RegExp(filters.search, "i"),
+          },
+        },
       ];
 
     const page = filters?.page || 1;
@@ -130,10 +121,11 @@ async findByIdGetTheaterDetails(screenId: string): Promise<IScreen> {
       updateData.theaterId = new Types.ObjectId(updateData.theaterId) as any;
     }
 
-    return Screen.findByIdAndUpdate(screenId, { $set: updateData }, { new: true, runValidators: true }).populate(
-      "theaterId",
-      "name city state"
-    );
+    return Screen.findByIdAndUpdate(
+      screenId,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    ).populate("theaterId", "name city state");
   }
 
   async toggleStatus(screenId: string): Promise<IScreen | null> {
@@ -176,31 +168,40 @@ async findByIdGetTheaterDetails(screenId: string): Promise<IScreen> {
   }
 
   async findActiveByTheaterId(theaterId: string): Promise<IScreen[]> {
-    return Screen.find({ theaterId: new Types.ObjectId(theaterId), isActive: true }).populate(
-      "theaterId",
-      "name city state"
-    );
+    return Screen.find({
+      theaterId: new Types.ObjectId(theaterId),
+      isActive: true,
+    }).populate("theaterId", "name city state");
   }
 
-  /* ---------- Helpers ---------- */
-
-  private applyFilters(query: any, filters?: any): void {
+  
+  private applyFilters(query: any, filters?: ScreenFilters): void {
     if (filters?.isActive !== undefined) query.isActive = filters.isActive;
 
     if (filters?.screenType)
-      query.screenType = { $exists: true, $regex: new RegExp(filters.screenType, "i") };
+      query.screenType = {
+        $exists: true,
+        $regex: new RegExp(filters.screenType, "i"),
+      };
 
-    if (filters?.theaterId) query.theaterId = new Types.ObjectId(filters.theaterId);
+    if (filters?.theaterId)
+      query.theaterId = new Types.ObjectId(filters.theaterId);
 
     if (filters?.search)
       query.$or = [
         { name: new RegExp(filters.search, "i") },
-        { screenType: { $exists: true, $regex: new RegExp(filters.search, "i") } },
+        {
+          screenType: {
+            $exists: true,
+            $regex: new RegExp(filters.search, "i"),
+          },
+        },
       ];
   }
 
-  private getSortOptions(filters?: any): any {
-    if (filters?.sortBy) return { [filters.sortBy]: filters.sortOrder === "asc" ? 1 : -1 };
+  private getSortOptions(filters?: ScreenFilters): any {
+    if (filters?.sortBy)
+      return { [filters.sortBy]: filters.sortOrder === "asc" ? 1 : -1 };
     return { createdAt: -1 };
   }
 }

@@ -1,17 +1,29 @@
 import * as bcrypt from "bcryptjs";
 
-import {  IEmailService } from "../../../services/email.service";
+import { IEmailService } from "../../../services/email.service";
 import { config } from "../../../config";
-import {
-  IUserService,
-  SignupData,
-  UpdateProfileData,
-  ServiceResponse,
-  IUserRepository,
-} from "../interfaces/user.interface";
-import { IOwnerRepository, IOwnerRequestRepository } from "../../owner/interfaces/owner.interface";
-import { IOTPRepository } from "../../otp/interfaces/otp.interface";
 
+import {
+  GetUsersResponseDto,
+  SendEmailChangeOTPResponseDto,
+  SignupDto,
+  SignupResponseDto,
+  UpdateProfileDto,
+  UserCountsResponseDto,
+  UserResponseDto,
+  UserResponseDtoWithUrl,
+  VerifyEmailChangeOTPResponseDto,
+  VerifyOTPResponseDto,
+} from "../dtos/dto";
+import { ServiceResponse } from "../../../interfaces/interface";
+import { IUserRepository } from "../interfaces/user.repository.interface";
+import { IUserService } from "../interfaces/user.service.interface";
+import { IOTPRepository } from "../../otp/interfaces/otp.repository.interface";
+import {
+  IOwnerRepository,
+  IOwnerRequestRepository,
+} from "../../owner/interfaces/owner.repository.interface";
+import { generateSignedUrl, uploadToCloudinary } from "../../../utils/cloudinaryUtil";
 
 export class UserService implements IUserService {
   constructor(
@@ -26,7 +38,9 @@ export class UserService implements IUserService {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
-  async signup(userData: SignupData): Promise<ServiceResponse> {
+  async signup(
+    userData: SignupDto
+  ): Promise<ServiceResponse<SignupResponseDto>> {
     try {
       const { username, email, password, ...otherData } = userData;
 
@@ -95,47 +109,55 @@ export class UserService implements IUserService {
     }
   }
 
-async verifyOTP(email: string, otp: string): Promise<ServiceResponse> {
-  try {
-    email = String(email || "").trim().toLowerCase(); // normalization
+  async verifyOTP(
+    email: string,
+    otp: string
+  ): Promise<ServiceResponse<VerifyOTPResponseDto>> {
+    try {
+      email = String(email || "")
+        .trim()
+        .toLowerCase(); // normalization
 
-    const validOTP = await this.otpRepo.findValidOTP(email, otp, "signup");
-    if (!validOTP || !validOTP.userData) {
-      return { success: false, message: "Invalid or expired OTP" };
+      const validOTP = await this.otpRepo.findValidOTP(email, otp, "signup");
+      if (!validOTP || !validOTP.userData) {
+        return { success: false, message: "Invalid or expired OTP" };
+      }
+
+      const existingUser = await this.userRepo.findByEmail(email);
+      if (existingUser && existingUser.isVerified) {
+        return { success: false, message: "User already exists and verified" };
+      }
+
+      const newUser = await this.userRepo.create({
+        ...validOTP.userData,
+        isVerified: true,
+        xpPoints: 100,
+        joinedAt: new Date(),
+        lastActive: new Date(),
+        isActive: true,
+      });
+
+      await this.otpRepo.markAsUsed(validOTP._id as string);
+
+      return {
+        success: true,
+        message:
+          "Account created and verified successfully! Welcome bonus: 100 XP added.",
+        data: {
+          user: newUser,
+          xpBonus: 100,
+        },
+      };
+    } catch (error) {
+      console.error("OTP verification error:", error);
+      return {
+        success: false,
+        message: "Something went wrong during verification",
+      };
     }
-
-    const existingUser = await this.userRepo.findByEmail(email);
-    if (existingUser && existingUser.isVerified) {
-      return { success: false, message: "User already exists and verified" };
-    }
-
-    const newUser = await this.userRepo.create({
-      ...validOTP.userData,
-      isVerified: true,
-      xpPoints: 100,
-      joinedAt: new Date(),
-      lastActive: new Date(),
-      isActive: true,
-    });
-
-    await this.otpRepo.markAsUsed(validOTP._id as string);
-
-    return {
-      success: true,
-      message: "Account created and verified successfully! Welcome bonus: 100 XP added.",
-      data: {
-        user: newUser,
-        xpBonus: 100,
-      },
-    };
-  } catch (error) {
-    console.error("OTP verification error:", error);
-    return { success: false, message: "Something went wrong during verification" };
   }
-}
 
-
-  async resendOTP(email: string): Promise<ServiceResponse> {
+  async resendOTP(email: string): Promise<ServiceResponse<void>> {
     try {
       const existingUser = await this.userRepo.findByEmail(email);
       if (existingUser && existingUser.isVerified) {
@@ -180,7 +202,6 @@ async verifyOTP(email: string, otp: string): Promise<ServiceResponse> {
     }
   }
 
-
   async getUserProfile(id: string): Promise<ServiceResponse> {
     try {
       const user = await this.userRepo.findById(id);
@@ -190,11 +211,39 @@ async verifyOTP(email: string, otp: string): Promise<ServiceResponse> {
       }
 
       await this.userRepo.updateLastActive(id);
-
+    let profilePicUrl = null;
+    if (user.profilePicture && !user.profilePicture.startsWith('http')) {
+      profilePicUrl = generateSignedUrl(user.profilePicture, {
+        width: 200,
+        height: 200,
+        crop: 'fill'
+      });
+    }
+  
+const userResponse = {
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      dateOfBirth: user.dateOfBirth,
+      language: user.language,
+      gender: user.gender,
+      phone: user.phone,
+      locationCity: user.locationCity,
+      locationState: user.locationState,
+      location: user.location,
+      isVerified: user.isVerified,
+      xpPoints: user.xpPoints,
+      joinedAt: user.joinedAt,
+      lastActive: user.lastActive,
+      isActive: user.isActive,
+      profilePicture: profilePicUrl 
+    };
       return {
         success: true,
         message: "Profile fetched successfully",
-        data: user,
+        data: userResponse,
       };
     } catch (error) {
       console.error("Get profile error:", error);
@@ -204,10 +253,42 @@ async verifyOTP(email: string, otp: string): Promise<ServiceResponse> {
 
   async updateProfile(
     id: string,
-    updateData: UpdateProfileData
-  ): Promise<ServiceResponse> {
+    updateData: UpdateProfileDto,
+    file?: Express.Multer.File
+  ): Promise<ServiceResponse<UserResponseDto>> {
     try {
-      
+      if (updateData.profilePicture?.startsWith("data:image") || file) {
+        try {
+          let uploadResult;
+          if (file) {
+            uploadResult = await uploadToCloudinary(file, {
+              folder: "users/profile-pictures",
+              width: 500,
+              height: 500,
+              crop: "fill",
+              quality: "auto:good",
+            });
+          } else if (updateData.profilePicture) {
+            uploadResult = await uploadToCloudinary(updateData.profilePicture, {
+              folder: "users/profile-pictures",
+              width: 500,
+              height: 500,
+              crop: "fill",
+              quality: "auto:good",
+            });
+          }
+          if (uploadResult) {
+            updateData.profilePicture = uploadResult.public_id;
+          }
+        } catch (uploadError) {
+          console.error("Image upload failed:", uploadError);
+          return {
+            success: false,
+            message: "Failed to upload profile picture. Please try again.",
+          };
+        }
+      }
+
       const updatedUser = await this.userRepo.updateProfile(id, updateData);
 
       if (!updatedUser) {
@@ -228,7 +309,7 @@ async verifyOTP(email: string, otp: string): Promise<ServiceResponse> {
   async getNearbyUsers(
     userId: string,
     maxDistance: number = 5000
-  ): Promise<ServiceResponse> {
+  ): Promise<ServiceResponse<UserResponseDto[]>> {
     try {
       const user = await this.userRepo.findById(userId);
 
@@ -254,7 +335,10 @@ async verifyOTP(email: string, otp: string): Promise<ServiceResponse> {
     }
   }
 
-  async addXpPoints(userId: string, points: number): Promise<ServiceResponse> {
+  async addXpPoints(
+    userId: string,
+    points: number
+  ): Promise<ServiceResponse<void>> {
     try {
       const success = await this.userRepo.addXpPoints(userId, points);
 
@@ -276,7 +360,7 @@ async verifyOTP(email: string, otp: string): Promise<ServiceResponse> {
     userId: string,
     oldPassword: string,
     newPassword: string
-  ): Promise<ServiceResponse> {
+  ): Promise<ServiceResponse<void>> {
     try {
       const user = await this.userRepo.findByIdWithPassword(userId);
       if (!user) {
@@ -306,7 +390,7 @@ async verifyOTP(email: string, otp: string): Promise<ServiceResponse> {
     id: string,
     email: string,
     password: string
-  ): Promise<ServiceResponse> {
+  ): Promise<ServiceResponse<SendEmailChangeOTPResponseDto>> {
     try {
       const user = await this.userRepo.findByIdWithPassword(id);
       if (!user) {
@@ -389,7 +473,7 @@ async verifyOTP(email: string, otp: string): Promise<ServiceResponse> {
     id: string,
     email: string,
     otp: string
-  ): Promise<ServiceResponse> {
+  ): Promise<ServiceResponse<VerifyEmailChangeOTPResponseDto>> {
     try {
       const otpRecord = await this.otpRepo.findValidOTP(
         email,
@@ -480,7 +564,7 @@ async verifyOTP(email: string, otp: string): Promise<ServiceResponse> {
     }
   }
 
-  async getUserCounts(): Promise<ServiceResponse> {
+  async getUserCounts(): Promise<ServiceResponse<UserCountsResponseDto>> {
     try {
       const [activeUsers, inactiveUsers, verifiedUsers, unverifiedUsers] =
         await Promise.all([
@@ -516,7 +600,7 @@ async verifyOTP(email: string, otp: string): Promise<ServiceResponse> {
     }
   }
 
-  async getUsers(filters: any): Promise<ServiceResponse> {
+  async getUsers(filters: any): Promise<ServiceResponse<GetUsersResponseDto>> {
     try {
       const {
         search,
@@ -599,7 +683,9 @@ async verifyOTP(email: string, otp: string): Promise<ServiceResponse> {
     }
   }
 
-  async toggleUserStatus(userId: string): Promise<ServiceResponse> {
+  async toggleUserStatus(
+    userId: string
+  ): Promise<ServiceResponse<UserResponseDto>> {
     try {
       if (!userId) {
         return { success: false, message: "User ID is required" };
@@ -624,7 +710,9 @@ async verifyOTP(email: string, otp: string): Promise<ServiceResponse> {
     }
   }
 
-  async getUserDetails(userId: string): Promise<ServiceResponse> {
+  async getUserDetails(
+    userId: string
+  ): Promise<ServiceResponse<UserResponseDto>> {
     try {
       if (!userId) {
         return { success: false, message: "User ID is required" };

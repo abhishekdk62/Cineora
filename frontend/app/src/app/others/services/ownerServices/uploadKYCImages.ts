@@ -66,13 +66,3 @@ export async function uploadKYCImage(
   }
 }
 
-export async function uploadMultipleKYCImages(
-  files: { file: File; type: string }[],
-  backendUrl: string = 'http://localhost:5000/api'
-): Promise<UploadResult[]> {
-  const uploadPromises = files.map(({ file, type }) => 
-    uploadKYCImage(file, `kyc/${type}`, backendUrl)
-  );
-  
-  return Promise.all(uploadPromises);
-}

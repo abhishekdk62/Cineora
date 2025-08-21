@@ -1,24 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Lexend } from "next/font/google";
-import {
-  X,
-  Save,
-  Loader2,
-  Film,
-  Star,
-  Calendar,
-  Clock,
-  Users,
-  Play,
-} from "lucide-react";
+import { X, Save, Loader2, Film } from "lucide-react";
+import MoviePosterSection from "./MoviePosterSection";
+import MovieDetailsSection from "./MovieDetailsSection";
+import MovieFormFields from "./MovieFormFields";
+import GenreSelector from "./GenreSelector";
+import CastManager from "./CastManager";
+
 
 const lexend = Lexend({
   weight: "500",
-  subsets: ["latin"],
-});
-
-const lexendSmall = Lexend({
-  weight: "300",
   subsets: ["latin"],
 });
 
@@ -72,43 +63,6 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({
 
   const [loading, setLoading] = useState(false);
   const [castInput, setCastInput] = useState("");
-  const [genreInput, setGenreInput] = useState("");
-
-  const ratings = ["G", "PG", "PG-13", "R", "NC-17"];
-  const languages = [
-    { code: "en", name: "English" },
-    { code: "es", name: "Spanish" },
-    { code: "fr", name: "French" },
-    { code: "de", name: "German" },
-    { code: "it", name: "Italian" },
-    { code: "ja", name: "Japanese" },
-    { code: "ko", name: "Korean" },
-    { code: "zh", name: "Chinese" },
-    { code: "hi", name: "Hindi" },
-    { code: "ar", name: "Arabic" },
-  ];
-
-  const genres = [
-    "Action",
-    "Adventure",
-    "Animation",
-    "Comedy",
-    "Crime",
-    "Documentary",
-    "Drama",
-    "Family",
-    "Fantasy",
-    "History",
-    "Horror",
-    "Music",
-    "Mystery",
-    "Romance",
-    "Science Fiction",
-    "TV Movie",
-    "Thriller",
-    "War",
-    "Western",
-  ];
 
   useEffect(() => {
     if (tmdbMovie) {
@@ -130,13 +84,9 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({
       setCastInput(
         Array.isArray(tmdbMovie.cast) ? tmdbMovie.cast.join(", ") : ""
       );
-      setGenreInput(
-        Array.isArray(tmdbMovie.genre) ? tmdbMovie.genre.join(", ") : ""
-      );
     } else if (editingMovie) {
       setFormData(editingMovie);
       setCastInput(editingMovie.cast.join(", "));
-      setGenreInput(editingMovie.genre.join(", "));
     }
   }, [tmdbMovie, editingMovie]);
 
@@ -209,294 +159,34 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({
 
         <form className="p-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Movie Poster & Basic Info */}
+            {/* Left Column */}
             <div className="space-y-6">
-              <div className="bg-[#1a1a1a] border border-gray-600 rounded-lg p-4">
-                <h3 className={`${lexend.className} text-lg text-white mb-4`}>
-                  Movie Poster
-                </h3>
-                <div className="space-y-4">
-                  <img
-                    src={formData.poster || "/placeholder.svg"}
-                    alt="Movie Poster"
-                    className="w-full h-80 object-cover rounded-lg border border-gray-500"
-                  />
-                  <div className="space-y-2">
-                    <label
-                      className={`${lexendSmall.className} block text-sm text-gray-300 font-medium`}
-                    >
-                      Poster URL
-                    </label>
-                    <input
-                      type="url"
-                      name="poster"
-                      value={formData.poster || ""}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 bg-[#2a2a2a] border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#e78f03] focus:ring-1 focus:ring-[#e78f03]"
-                      placeholder="https://example.com/poster.jpg"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-[#1a1a1a] border border-gray-600 rounded-lg p-4">
-                <h3 className={`${lexend.className} text-lg text-white mb-4`}>
-                  Movie Details
-                </h3>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <Star className="h-4 w-4 text-yellow-400" />
-                    <span className="text-sm">
-                      TMDB ID: {formData.tmdbId || "N/A"}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <Calendar className="h-4 w-4 text-blue-400" />
-                    <span className="text-sm">
-                      Release:{" "}
-                      {formData.releaseDate
-                        ? new Date(formData.releaseDate).getFullYear()
-                        : "N/A"}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <Clock className="h-4 w-4 text-green-400" />
-                    <span className="text-sm">
-                      Duration: {formData.duration || 0} minutes
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <Users className="h-4 w-4 text-purple-400" />
-                    <span className="text-sm">
-                      Cast: {formData.cast?.length || 0} actors
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <MoviePosterSection
+                poster={formData.poster || ""}
+                onPosterChange={handleInputChange}
+              />
+              <MovieDetailsSection formData={formData} />
             </div>
 
-            {/* Middle Column - Main Details */}
+            {/* Middle Column */}
             <div className="space-y-6">
-              <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-2">
-                  <label
-                    className={`${lexendSmall.className} block text-sm text-gray-300 font-medium`}
-                  >
-                    Title <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="title"
-                    value={formData.title || ""}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 bg-[#2a2a2a] border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#e78f03] focus:ring-1 focus:ring-[#e78f03]"
-                    placeholder="Enter movie title"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label
-                      className={`${lexendSmall.className} block text-sm text-gray-300 font-medium`}
-                    >
-                      Duration (minutes)
-                    </label>
-                    <input
-                      type="number"
-                      name="duration"
-                      value={formData.duration || ""}
-                      onChange={handleInputChange}
-                      min="1"
-                      className="w-full px-3 py-2 bg-[#2a2a2a] border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#e78f03] focus:ring-1 focus:ring-[#e78f03]"
-                      placeholder="120"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label
-                      className={`${lexendSmall.className} block text-sm text-gray-300 font-medium`}
-                    >
-                      Rating
-                    </label>
-                    <select
-                      name="rating"
-                      value={formData.rating || ""}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 bg-[#2a2a2a] border border-gray-500 rounded-lg text-white focus:outline-none focus:border-[#e78f03] focus:ring-1 focus:ring-[#e78f03]"
-                    >
-                      <option value="">Select rating</option>
-                      {ratings.map((rating) => (
-                        <option key={rating} value={rating}>
-                          {rating}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label
-                      className={`${lexendSmall.className} block text-sm text-gray-300 font-medium`}
-                    >
-                      Release Date <span className="text-red-400">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      name="releaseDate"
-                      value={formData.releaseDate || ""}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 bg-[#2a2a2a] border border-gray-500 rounded-lg text-white focus:outline-none focus:border-[#e78f03] focus:ring-1 focus:ring-[#e78f03]"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label
-                      className={`${lexendSmall.className} block text-sm text-gray-300 font-medium`}
-                    >
-                      Language
-                    </label>
-                    <select
-                      name="language"
-                      value={formData.language || ""}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 bg-[#2a2a2a] border border-gray-500 rounded-lg text-white focus:outline-none focus:border-[#e78f03] focus:ring-1 focus:ring-[#e78f03]"
-                    >
-                      <option value="">Select language</option>
-                      {languages.map((lang) => (
-                        <option key={lang.code} value={lang.code}>
-                          {lang.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label
-                    className={`${lexendSmall.className} block text-sm text-gray-300 font-medium`}
-                  >
-                    Director
-                  </label>
-                  <input
-                    type="text"
-                    name="director"
-                    value={formData.director || ""}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 bg-[#2a2a2a] border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#e78f03] focus:ring-1 focus:ring-[#e78f03]"
-                    placeholder="Director name"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label
-                    className={`${lexendSmall.className} block text-sm text-gray-300 font-medium`}
-                  >
-                    Trailer URL
-                  </label>
-                  <input
-                    type="url"
-                    name="trailer"
-                    value={formData.trailer || ""}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 bg-[#2a2a2a] border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#e78f03] focus:ring-1 focus:ring-[#e78f03]"
-                    placeholder="https://youtube.com/watch?v=..."
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label
-                    className={`${lexendSmall.className} block text-sm text-gray-300 font-medium`}
-                  >
-                    Description <span className="text-red-400">*</span>
-                  </label>
-                  <textarea
-                    name="description"
-                    value={formData.description || ""}
-                    onChange={handleInputChange}
-                    rows={4}
-                    required
-                    className="w-full px-3 py-2 bg-[#2a2a2a] border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#e78f03] focus:ring-1 focus:ring-[#e78f03] resize-none"
-                    placeholder="Enter movie description..."
-                  />
-                </div>
-              </div>
+              <MovieFormFields 
+                formData={formData}
+                onInputChange={handleInputChange}
+              />
             </div>
 
-            {/* Right Column - Genres & Cast */}
+            {/* Right Column */}
             <div className="space-y-6">
-              <div className="bg-[#1a1a1a] border border-gray-600 rounded-lg p-4">
-                <h3 className={`${lexend.className} text-lg text-white mb-4`}>
-                  Genres
-                </h3>
-                <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">
-                  {genres.map((genre) => (
-                    <label
-                      key={genre}
-                      className="flex items-center space-x-2 cursor-pointer hover:bg-[#2a2a2a] p-2 rounded-md transition-colors"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={formData.genre?.includes(genre) || false}
-                        onChange={() => handleGenreChange(genre)}
-                        className="rounded border-gray-400 text-[#e78f03] focus:ring-[#e78f03] focus:ring-2"
-                      />
-                      <span
-                        className={`${lexendSmall.className} text-gray-300 text-sm`}
-                      >
-                        {genre}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {formData.genre?.map((genre, index) => (
-                    <span
-                      key={index}
-                      className="bg-[#e78f03] text-black px-2 py-1 rounded-full text-xs font-medium"
-                    >
-                      {genre}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-[#1a1a1a] border border-gray-600 rounded-lg p-4">
-                <h3 className={`${lexend.className} text-lg text-white mb-4`}>
-                  Cast
-                </h3>
-                <div className="space-y-2">
-                  <label
-                    className={`${lexendSmall.className} block text-sm text-gray-300 font-medium`}
-                  >
-                    Cast Members (comma-separated)
-                  </label>
-                  <textarea
-                    value={castInput}
-                    onChange={(e) => handleCastInputChange(e.target.value)}
-                    rows={6}
-                    className="w-full px-3 py-2 bg-[#2a2a2a] border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#e78f03] focus:ring-1 focus:ring-[#e78f03] resize-none"
-                    placeholder="Actor 1, Actor 2, Actor 3..."
-                  />
-                </div>
-                <div className="mt-4 space-y-2 max-h-40 overflow-y-auto">
-                  {formData.cast?.map((actor, index) => (
-                    <div
-                      key={index}
-                      className="bg-[#2a2a2a] border border-gray-500 rounded-md p-2 flex items-center gap-2"
-                    >
-                      <Users className="h-4 w-4 text-purple-400" />
-                      <span
-                        className={`${lexendSmall.className} text-gray-300 text-sm`}
-                      >
-                        {actor}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <GenreSelector
+                selectedGenres={formData.genre || []}
+                onGenreChange={handleGenreChange}
+              />
+              <CastManager
+                cast={formData.cast || []}
+                castInput={castInput}
+                onCastInputChange={handleCastInputChange}
+              />
             </div>
           </div>
 

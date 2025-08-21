@@ -1,21 +1,21 @@
 import * as bcrypt from "bcryptjs";
-import { EmailService } from "../../../services/email.service";
+import { IEmailService } from "../../../services/email.service";
 
+import { config } from "../../../config";
+
+import { IUserRepository } from "../../user/interfaces/user.repository.interface";
+import { IOwnerService } from "../interfaces/owner.services.interfaces";
 import {
   IOwnerRepository,
   IOwnerRequestRepository,
-  IOwnerService,
-  ServiceResponse,
-} from "../interfaces/owner.interface";
-import { config } from "../../../config";
-
-import { IUserRepository } from "../../user/interfaces/user.interface";
-import { IOTPRepository } from "../../otp/interfaces/otp.interface";
-
+} from "../interfaces/owner.repository.interface";
+import { ServiceResponse } from "../../../interfaces/interface";
+import { OwnerFilterDto, UpdateOwnerProfileDto } from "../dtos/owner.dtos";
+import { IOTPRepository } from "../../otp/interfaces/otp.repository.interface";
 
 export class OwnerService implements IOwnerService {
   constructor(
-    private readonly emailService:EmailService,
+    private readonly emailService: IEmailService,
     private readonly ownerRepo: IOwnerRepository,
     private readonly ownerRequestRepo: IOwnerRequestRepository,
     private readonly otpRepo: IOTPRepository,
@@ -120,7 +120,7 @@ export class OwnerService implements IOwnerService {
     }
   }
 
-  async getOwners(filters: any): Promise<ServiceResponse> {
+  async getOwners(filters: OwnerFilterDto): Promise<ServiceResponse> {
     try {
       const {
         search,
@@ -228,7 +228,7 @@ export class OwnerService implements IOwnerService {
 
   async updateOwner(
     ownerId: string,
-    updateData: any
+    updateData: UpdateOwnerProfileDto
   ): Promise<ServiceResponse> {
     try {
       const updatedOwner = await this.ownerRepo.update(ownerId, updateData);
@@ -320,7 +320,8 @@ export class OwnerService implements IOwnerService {
       const existingOwnerRequest = await this.ownerRequestRepo.findByEmail(
         newEmail
       );
-      if (existingOwnerRequest&&
+      if (
+        existingOwnerRequest &&
         existingOwnerRequest.status !== "rejected" &&
         existingOwnerRequest.status !== "approved"
       ) {
@@ -425,10 +426,11 @@ export class OwnerService implements IOwnerService {
         };
       }
 
-      const emailSent = await this.emailService.sendEmailChangeSuccessNotification(
-        updatedOwner.email,
-        otpRecord.userData?.oldEmail || "Unknown"
-      );
+      const emailSent =
+        await this.emailService.sendEmailChangeSuccessNotification(
+          updatedOwner.email,
+          otpRecord.userData?.oldEmail || "Unknown"
+        );
 
       if (!emailSent) {
         return { success: false, message: "Failed to send success email" };
@@ -457,7 +459,7 @@ export class OwnerService implements IOwnerService {
     userId: string,
     oldPassword: string,
     newPassword: string
-  ) {
+  ): Promise<ServiceResponse> {
     try {
       const owner = await this.ownerRepo.findById(userId);
       if (!owner) {

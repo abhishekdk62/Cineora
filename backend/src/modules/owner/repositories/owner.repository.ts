@@ -1,4 +1,5 @@
-import { IOwner, IOwnerRepository } from "../interfaces/owner.interface";
+import { IOwner } from "../interfaces/owner.model.interface";
+import { IOwnerRepository } from "../interfaces/owner.repository.interface";
 import {  Owner } from "../models/owner.model";
 
 export class OwnerRepository implements IOwnerRepository {
@@ -21,7 +22,8 @@ export class OwnerRepository implements IOwnerRepository {
     const skip = (page - 1) * limit;
 
     const [owners, total] = await Promise.all([
-      Owner.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Owner.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).lean() as Promise<IOwner[]>
+,
       Owner.countDocuments({}),
     ]);
 
@@ -67,7 +69,8 @@ export class OwnerRepository implements IOwnerRepository {
     }
 
     const [owners, total] = await Promise.all([
-      Owner.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Owner.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).lean()  as Promise<IOwner[]>
+,
       Owner.countDocuments(query),
     ]);
 
@@ -240,7 +243,7 @@ export class OwnerRepository implements IOwnerRepository {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .lean(),
+        .lean()  as Promise<IOwner[]>,
       Owner.countDocuments(searchQuery),
     ]);
 

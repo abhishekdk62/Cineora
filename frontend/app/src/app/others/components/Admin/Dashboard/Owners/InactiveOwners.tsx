@@ -29,6 +29,8 @@ interface InactiveOwnersProps {
   onFiltersChange: (filters: OwnerFilters, resetPage?: boolean) => void;
   onViewDetails: (owner: Owner) => void;
   onToggleStatus: (owner: Owner) => void;
+  setViewThaeter: (id: string) => void
+
 }
 
 const InactiveOwners: React.FC<InactiveOwnersProps> = ({
@@ -42,6 +44,7 @@ const InactiveOwners: React.FC<InactiveOwnersProps> = ({
   onFiltersChange,
   onViewDetails,
   onToggleStatus,
+  setViewThaeter
 }) => {
   const handleSearch = (searchTerm: string) => {
     onFiltersChange({
@@ -77,9 +80,8 @@ const InactiveOwners: React.FC<InactiveOwnersProps> = ({
           </div>
 
           <select
-            value={`${currentFilters.sortBy || "createdAt"}-${
-              currentFilters.sortOrder || "desc"
-            }`}
+            value={`${currentFilters.sortBy || "createdAt"}-${currentFilters.sortOrder || "desc"
+              }`}
             onChange={(e) => {
               const [sortBy, sortOrder] = e.target.value.split("-");
               handleSortChange(sortBy, sortOrder as "asc" | "desc");
@@ -125,6 +127,7 @@ const InactiveOwners: React.FC<InactiveOwnersProps> = ({
               {/* Owner Card */}
               <div className="border-t-0 rounded-t-none">
                 <OwnerCard
+                  setViewThaeter={setViewThaeter}
                   owner={owner}
                   actions={[
                     {
@@ -180,11 +183,10 @@ const InactiveOwners: React.FC<InactiveOwnersProps> = ({
                   <button
                     key={page}
                     onClick={() => onPageChange(page)}
-                    className={`px-3 py-2 rounded-lg ${
-                      isActive
+                    className={`px-3 py-2 rounded-lg ${isActive
                         ? "bg-[#e78f03] text-black"
                         : "bg-[#2a2a2a] border border-gray-500 text-white hover:bg-[#3a3a3a]"
-                    }`}
+                      }`}
                   >
                     {page}
                   </button>

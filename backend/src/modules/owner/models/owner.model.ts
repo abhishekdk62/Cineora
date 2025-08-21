@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { IOwner } from "../interfaces/owner.interface";
+import { IOwner } from "../interfaces/owner.model.interface";
 
 
 

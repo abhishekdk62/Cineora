@@ -1,17 +1,23 @@
 import { Request, Response, NextFunction } from "express";
 
 import { createResponse } from "../../../utils/createResponse";
-import { OwnerRequestService } from "../services/ownerRequest.service";
-import { IOwnerRequestService } from "../interfaces/owner.interface";
+import { IOwnerRequestService } from "../interfaces/owner.services.interfaces";
+import {
+  GetAllRequestsDto,
+  SendOTPDto,
+  SubmitKYCDto,
+  UpdateRequestStatusDto,
+  VerifyOTPDto,
+} from "../dtos/owner.dtos";
 
 export class OwnerRequestController {
   constructor(private readonly ownerRequestService: IOwnerRequestService) {}
 
-  async sendOTP(req: Request, res: Response, ) {
+  async sendOTP(req: Request, res: Response): Promise<any> {
     try {
-      const { email } = req.body;
+      const sendOTPDto: SendOTPDto = req.body;
 
-      if (!email) {
+      if (!sendOTPDto.email) {
         return res.status(400).json(
           createResponse({
             success: false,
@@ -21,7 +27,7 @@ export class OwnerRequestController {
       }
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
+      if (!emailRegex.test(sendOTPDto.email)) {
         return res.status(400).json(
           createResponse({
             success: false,
@@ -29,8 +35,7 @@ export class OwnerRequestController {
           })
         );
       }
-
-      const result = await this.ownerRequestService.sendOTP(email);
+      const result = await this.ownerRequestService.sendOTP(sendOTPDto.email);
 
       if (!result.success) {
         return res.status(400).json(
@@ -49,19 +54,19 @@ export class OwnerRequestController {
       );
     } catch (err) {
       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-  async verifyOTP(req: Request, res: Response) {
+  async verifyOTP(req: Request, res: Response): Promise<any> {
     try {
-      const { email, otp } = req.body;
+      const verifyOTPDto: VerifyOTPDto = req.body;
 
-      if (!email || !otp) {
+      if (!verifyOTPDto.email || !verifyOTPDto.otp) {
         return res.status(400).json(
           createResponse({
             success: false,
@@ -70,7 +75,7 @@ export class OwnerRequestController {
         );
       }
 
-      if (!/^\d{6}$/.test(otp)) {
+      if (!/^\d{6}$/.test(verifyOTPDto.otp)) {
         return res.status(400).json(
           createResponse({
             success: false,
@@ -78,8 +83,10 @@ export class OwnerRequestController {
           })
         );
       }
-
-      const result = await this.ownerRequestService.verifyOTP(email, otp);
+      const result = await this.ownerRequestService.verifyOTP(
+        verifyOTPDto.email,
+        verifyOTPDto.otp
+      );
 
       if (!result.success) {
         return res.status(400).json(
@@ -98,17 +105,18 @@ export class OwnerRequestController {
       );
     } catch (err) {
       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-  async submitKYC(req: Request, res: Response) {
+  async submitKYC(req: Request, res: Response): Promise<any> {
     try {
       const ownerData = req.body;
+      const submitKYCDto: SubmitKYCDto = req.body;
 
       const requiredFields = [
         "ownerName",
@@ -141,8 +149,7 @@ export class OwnerRequestController {
           })
         );
       }
-
-      const result = await this.ownerRequestService.submitKYC(ownerData);
+      const result = await this.ownerRequestService.submitKYC(submitKYCDto);
 
       if (!result.success) {
         return res.status(400).json(
@@ -161,16 +168,16 @@ export class OwnerRequestController {
         })
       );
     } catch (err) {
-    res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-  async getRequestStatus(req: Request, res: Response) {
+  async getRequestStatus(req: Request, res: Response): Promise<any> {
     try {
       const { requestId } = req.params;
 
@@ -203,78 +210,25 @@ export class OwnerRequestController {
       );
     } catch (err) {
       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
-    }
-  }
-
-  async getAllRequests(req: Request, res: Response) {
-    try {
-      const { page = 1, limit = 10, status } = req.query;
-
-      const result = await this.ownerRequestService.getAllRequests(
-        Number(page),
-        Number(limit),
-        status as string
-      );
-
-      if (!result.success) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: result.message,
-          })
-        );
-      }
-
-      return res.status(200).json(
         createResponse({
-          success: true,
-          message: result.message,
-          data: result.data,
+          success: false,
+          message: err.message,
         })
       );
-    } catch (err) {
-     res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
     }
   }
 
-  async updateRequestStatus(req: Request, res: Response) {
+  async getAllRequests(req: Request, res: Response): Promise<any> {
     try {
-      const { requestId } = req.params;
-      const { status, reviewedBy, rejectionReason } = req.body;
-
-      if (!requestId) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "Request ID is required",
-          })
-        );
-      }
-
-      if (!status) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "Status is required",
-          })
-        );
-      }
-
-      const result = await this.ownerRequestService.updateRequestStatus(
-        requestId,
-        status,
-        reviewedBy,
-        rejectionReason
+      const getAllRequestsDto: GetAllRequestsDto = {
+        page: Number(req.query.page) || 1,
+        limit: Number(req.query.limit) || 10,
+        status: req.query.status as string,
+      };
+      const result = await this.ownerRequestService.getAllRequests(
+        getAllRequestsDto.page,
+        getAllRequestsDto.limit,
+        getAllRequestsDto.status
       );
 
       if (!result.success) {
@@ -295,15 +249,70 @@ export class OwnerRequestController {
       );
     } catch (err) {
       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-  async getOwnerRequests(req: Request, res: Response) {
+  async updateRequestStatus(req: Request, res: Response): Promise<any> {
+    try {
+      const { requestId } = req.params;
+      const updateRequestStatusDto: UpdateRequestStatusDto = req.body;
+
+      if (!requestId) {
+        return res.status(400).json(
+          createResponse({
+            success: false,
+            message: "Request ID is required",
+          })
+        );
+      }
+
+      if (!updateRequestStatusDto.status) {
+        return res.status(400).json(
+          createResponse({
+            success: false,
+            message: "Status is required",
+          })
+        );
+      }
+      const result = await this.ownerRequestService.updateRequestStatus(
+        requestId,
+        updateRequestStatusDto.status,
+        updateRequestStatusDto.reviewedBy,
+        updateRequestStatusDto.rejectionReason
+      );
+
+      if (!result.success) {
+        return res.status(400).json(
+          createResponse({
+            success: false,
+            message: result.message,
+          })
+        );
+      }
+
+      return res.status(200).json(
+        createResponse({
+          success: true,
+          message: result.message,
+          data: result.data,
+        })
+      );
+    } catch (err) {
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
+    }
+  }
+
+  async getOwnerRequests(req: Request, res: Response): Promise<any> {
     try {
       const filters = req.query;
       const result = await this.ownerRequestService.getOwnerRequests(filters);
@@ -325,16 +334,16 @@ export class OwnerRequestController {
         })
       );
     } catch (err) {
-   res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-  async acceptOwnerRequest(req: Request, res: Response) {
+  async acceptOwnerRequest(req: Request, res: Response): Promise<any> {
     try {
       const { requestId } = req.params;
       const adminId = req.admin.adminId;
@@ -380,16 +389,16 @@ export class OwnerRequestController {
         })
       );
     } catch (err) {
-     res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-  async rejectOwnerRequest(req: Request, res: Response) {
+  async rejectOwnerRequest(req: Request, res: Response): Promise<any> {
     try {
       const { requestId } = req.params;
       const { rejectionReason } = req.body;
@@ -446,12 +455,12 @@ export class OwnerRequestController {
         })
       );
     } catch (err) {
-       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 }

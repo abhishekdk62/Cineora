@@ -1,10 +1,18 @@
+import { ServiceResponse } from "../../../interfaces/interface";
 import { IEmailService } from "../../../services/email.service";
 import {
-  ITheater,
-  ITheaterRepository,
-  ITheaterService,
-  ServiceResponse,
-} from "../interfaces/theater.interface";
+  CreateTheaterDto,
+  PaginatedTheatersDto,
+  TheaterFilters,
+  TheaterResponseDto,
+  TheatersByOwnerDto,
+  UpdateTheaterDto,
+} from "../dtos/dto";
+import {
+
+} from "../interfaces/theater.model.interface";
+import { ITheaterRepository } from "../interfaces/theater.repository.interface";
+import { ITheaterService } from "../interfaces/theater.service.interface";
 
 export class TheaterService implements ITheaterService {
   constructor(
@@ -14,7 +22,7 @@ export class TheaterService implements ITheaterService {
 
   async createTheater(
     ownerId: string,
-    theaterData: ITheater
+    theaterData: CreateTheaterDto
   ): Promise<ServiceResponse> {
     try {
       const exists = await this.theaterRepo.existsByNameAndCity(
@@ -61,7 +69,7 @@ export class TheaterService implements ITheaterService {
     }
   }
 
-  async getTheaterById(theaterId: string): Promise<ServiceResponse> {
+  async getTheaterById(theaterId: string): Promise<ServiceResponse<TheaterResponseDto>> {
     try {
       if (!theaterId) {
         return {
@@ -94,11 +102,9 @@ export class TheaterService implements ITheaterService {
 
   async getTheatersByOwnerId(
     ownerId: string,
-    filters?: any
-  ): Promise<ServiceResponse> {
+    filters?: TheaterFilters
+  ): Promise<ServiceResponse<TheatersByOwnerDto>> {
     try {
-     
-
       const result = await this.theaterRepo.findByOwnerId(ownerId, filters);
 
       return {
@@ -117,7 +123,7 @@ export class TheaterService implements ITheaterService {
   async getAllTheaters(
     page: number,
     limit: number,
-    filters?: any
+    filters?: TheaterFilters
   ): Promise<ServiceResponse> {
     try {
       if (page < 1) page = 1;
@@ -140,8 +146,8 @@ export class TheaterService implements ITheaterService {
 
   async updateTheater(
     theaterId: string,
-    updateData: Partial<ITheater>
-  ): Promise<ServiceResponse> {
+    updateData: UpdateTheaterDto
+  ): Promise<ServiceResponse<TheaterResponseDto>> {
     try {
       if (updateData.name || updateData.city || updateData.state) {
         const currentTheater = await this.theaterRepo.findById(theaterId);
@@ -198,7 +204,7 @@ export class TheaterService implements ITheaterService {
     }
   }
 
-  async toggleTheaterStatus(theaterId: string): Promise<ServiceResponse> {
+  async toggleTheaterStatus(theaterId: string): Promise<ServiceResponse<TheaterResponseDto>> {
     try {
       if (!theaterId) {
         return {
@@ -230,7 +236,7 @@ export class TheaterService implements ITheaterService {
       };
     }
   }
-  async verifyTheater(theaterId: string): Promise<ServiceResponse> {
+  async verifyTheater(theaterId: string): Promise<ServiceResponse<TheaterResponseDto>> {
     try {
       if (!theaterId) {
         return {
@@ -267,7 +273,7 @@ export class TheaterService implements ITheaterService {
           );
         } catch (emailError) {
           console.error(
-            "❌ Failed to send theater verification email:",
+            " Failed to send theater verification email:",
             emailError
           );
         }
@@ -290,7 +296,7 @@ export class TheaterService implements ITheaterService {
   async rejectTheater(
     theaterId: string,
     rejectionReason?: string
-  ): Promise<ServiceResponse> {
+  ): Promise<ServiceResponse<{ deleted: boolean }>> {
     try {
       if (!theaterId) {
         return {
@@ -338,7 +344,8 @@ export class TheaterService implements ITheaterService {
       return {
         success: true,
         message: "Theater rejected successfully",
-        data: theater,
+        data: {deleted: true,
+},
       };
     } catch (error: any) {
       console.error("Reject theater error:", error);
@@ -349,7 +356,7 @@ export class TheaterService implements ITheaterService {
     }
   }
 
-  async deleteTheater(theaterId: string): Promise<ServiceResponse> {
+  async deleteTheater(theaterId: string): Promise<ServiceResponse<void>> {
     try {
       if (!theaterId) {
         return {
@@ -383,7 +390,7 @@ export class TheaterService implements ITheaterService {
     longitude: number,
     latitude: number,
     maxDistance: number
-  ): Promise<ServiceResponse> {
+  ): Promise<ServiceResponse<TheaterResponseDto[]>> {
     try {
       if (typeof longitude !== "number" || typeof latitude !== "number") {
         return {
@@ -430,40 +437,9 @@ export class TheaterService implements ITheaterService {
     }
   }
 
-  async checkTheaterExists(
-    name: string,
-    city: string,
-    state: string,
-    excludeId?: string
-  ): Promise<ServiceResponse> {
-    try {
-      if (!name || !city || !state) {
-        return {
-          success: false,
-          message: "Name, city, and state are required",
-        };
-      }
 
-      const exists = await this.theaterRepo.existsByNameAndCity(
-        name,
-        city,
-        state,
-        excludeId
-      );
-
-      return {
-        success: true,
-        message: "Check completed successfully",
-        data: { exists },
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Something went wrong",
-      };
-    }
-  }
-  async getTheatersWithFilters(filters: any) {
+  async getTheatersWithFilters(filters: TheaterFilters):Promise<PaginatedTheatersDto>
+ {
     const {
       search = "",
       sortBy = "nearby",
@@ -478,27 +454,25 @@ export class TheaterService implements ITheaterService {
       sortBy,
       page,
       limit,
-      latitude: latitude ? parseFloat(latitude) : undefined,
-      longitude: longitude ? parseFloat(longitude) : undefined,
+      latitude: latitude ? parseFloat(latitude as string) : undefined,
+      longitude: longitude ? parseFloat(longitude as string) : undefined,
     });
 
     return {
       theaters: result.theaters,
       total: result.total,
       totalPages: result.totalPages,
-      currentPage: page,
-      hasNextPage: page < result.totalPages,
-      hasPrevPage: page > 1,
+      currentPage: page as number,
+      hasNextPage: page as number < result.totalPages,
+      hasPrevPage: page as number > 1,
     };
   }
 
   async getTheaterByOwnerAndName(
     ownerId: string,
     name: string
-  ): Promise<ServiceResponse> {
+  ): Promise<ServiceResponse<TheaterResponseDto>> {
     try {
-    
-
       const theater = await this.theaterRepo.findByOwnerIdAndName(
         ownerId,
         name

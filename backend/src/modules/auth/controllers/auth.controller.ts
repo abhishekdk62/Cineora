@@ -1,15 +1,23 @@
 import { Request, Response } from "express";
 import { createResponse } from "../../../utils/createResponse";
-import { IAuthService } from "../interfaces/auth.interface";
+import { IAuthService } from "../interfaces/auth.service.interface";
+import {
+  CheckAuthProviderParamsDto,
+  GoogleAuthRequestDto,
+  LoginRequestDto,
+  ResetPasswordRequestDto,
+  SendPasswordResetOtpRequestDto,
+  VerifyPasswordResetOtpRequestDto,
+} from "../dtos/dtos";
 
 export class AuthController {
   constructor(private readonly authService: IAuthService) {}
 
-  async login(req: Request, res: Response) {
+  async login(req: Request, res: Response): Promise<void> {
     try {
-      const { email, password } = req.body;
+      const loginData: LoginRequestDto = req.body;
 
-      if (!email || !password) {
+      if (!loginData.email || !loginData.password) {
         return res.status(400).json(
           createResponse({
             success: false,
@@ -19,7 +27,7 @@ export class AuthController {
       }
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
+      if (!emailRegex.test(loginData.email)) {
         return res.status(400).json(
           createResponse({
             success: false,
@@ -28,7 +36,10 @@ export class AuthController {
         );
       }
 
-      const result = await this.authService.login(email, password);
+      const result = await this.authService.login(
+        loginData.email,
+        loginData.password
+      );
 
       if (!result.success) {
         return res.status(401).json(
@@ -43,7 +54,7 @@ export class AuthController {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
-        maxAge: 20 * 1000,
+        maxAge: 15 * 60 * 1000,
       });
 
       res.cookie("refreshToken", result.data.refreshToken, {
@@ -64,18 +75,19 @@ export class AuthController {
       );
     } catch (err) {
       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-  async sendPasswordResetOTP(req: Request, res: Response) {
+  async sendPasswordResetOTP(req: Request, res: Response): Promise<void> {
     try {
-      const { email } = req.body;
-      if (!email) {
+      const requestData: SendPasswordResetOtpRequestDto = req.body;
+
+      if (!requestData.email) {
         return res.status(400).json(
           createResponse({
             success: false,
@@ -84,7 +96,9 @@ export class AuthController {
         );
       }
 
-      const result = await this.authService.sendPasswordResetOTP(email);
+      const result = await this.authService.sendPasswordResetOTP(
+        requestData.email
+      );
       if (!result.success) {
         return res.status(400).json(
           createResponse({
@@ -102,22 +116,20 @@ export class AuthController {
         })
       );
     } catch (error) {
-         res.status(500).json(
-          createResponse({
-            success: false,
-            message: error.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: error.message,
+        })
+      );
     }
   }
 
-  async verifyPasswordResetOtp(
-    req: Request,
-    res: Response,
-  ) {
+  async verifyPasswordResetOtp(req: Request, res: Response): Promise<void> {
     try {
-      const { email, otp } = req.body;
-      if (!email || !otp) {
+      const requestData: VerifyPasswordResetOtpRequestDto = req.body;
+
+      if (!requestData.email || !requestData.otp) {
         return res.status(400).json(
           createResponse({
             success: false,
@@ -125,7 +137,10 @@ export class AuthController {
           })
         );
       }
-      const result = await this.authService.verifyPasswordResetOtp(email, otp);
+      const result = await this.authService.verifyPasswordResetOtp(
+        requestData.email,
+        requestData.otp
+      );
 
       if (!result.success) {
         return res.status(400).json(
@@ -143,19 +158,20 @@ export class AuthController {
         })
       );
     } catch (error) {
-         res.status(500).json(
-          createResponse({
-            success: false,
-            message: error.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: error.message,
+        })
+      );
     }
   }
 
-  async resetPasswordWithOTP(req: Request, res: Response) {
+  async resetPasswordWithOTP(req: Request, res: Response): Promise<void> {
     try {
-      const { email, otp, newPassword } = req.body;
-      if (!email || !otp || !newPassword) {
+      const requestData: ResetPasswordRequestDto = req.body;
+
+      if (!requestData.email || !requestData.otp || !requestData.newPassword) {
         return res.status(400).json(
           createResponse({
             success: false,
@@ -165,9 +181,9 @@ export class AuthController {
       }
 
       const result = await this.authService.resetPasswordWithOTP(
-        email,
-        otp,
-        newPassword
+        requestData.email,
+        requestData.otp,
+        requestData.newPassword
       );
       if (!result.success) {
         return res.status(400).json(
@@ -185,26 +201,27 @@ export class AuthController {
         })
       );
     } catch (error) {
-         res.status(500).json(
-          createResponse({
-            success: false,
-            message: error.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: error.message,
+        })
+      );
     }
   }
 
   async googleAuthenticate(req: Request, res: Response): Promise<void> {
     try {
-      const { credential } = req.body;
-      if (!credential) {
+      const requestData: GoogleAuthRequestDto = req.body;
+
+      if (!requestData.credential) {
         res.status(400).json({
           success: false,
           message: "Google credential is required",
         });
         return;
       }
-      const result = await this.authService.googleAuth(credential);
+      const result = await this.authService.googleAuth(requestData.credential);
       if (result.success) {
         res.cookie("accessToken", result.data.accessToken, {
           httpOnly: true,
@@ -249,15 +266,17 @@ export class AuthController {
 
   async checkAuthProvider(req: Request, res: Response): Promise<void> {
     try {
-      const { email } = req.params;
-      if (!email) {
+      const params: CheckAuthProviderParamsDto =
+        req.params as CheckAuthProviderParamsDto;
+
+      if (!params.email) {
         res.status(400).json({
           success: false,
           message: "Email is required",
         });
         return;
       }
-      const result = await this.authService.checkAuthProvider(email);
+      const result = await this.authService.checkAuthProvider(params.email);
       if (result.success) {
         res.status(200).json(result);
       } else {
@@ -272,7 +291,7 @@ export class AuthController {
     }
   }
 
-  async logout(req: Request, res: Response) {
+  async logout(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user?.userId || req.user?.adminId || req.user?.ownerId;
       const userType = req.user?.role;
@@ -304,7 +323,7 @@ export class AuthController {
       );
     }
   }
-  getCurrentUser = async (req: Request, res: Response) => {
+  getCurrentUser = async (req: Request, res: Response): Promise<void> => {
     try {
       let userId: string | undefined;
       let userRole: string | undefined;
@@ -355,12 +374,12 @@ export class AuthController {
       );
     } catch (error) {
       console.error("Get current user controller error:", error);
-         res.status(500).json(
-          createResponse({
-            success: false,
-            message: error.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: error.message,
+        })
+      );
     }
   };
 }

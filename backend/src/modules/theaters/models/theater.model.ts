@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { ITheater } from "../interfaces/theater.interface";
+import { ITheater } from "../interfaces/theater.model.interface";
 
 const TheaterSchema: Schema = new Schema<ITheater>(
   {

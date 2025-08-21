@@ -1,11 +1,19 @@
 import { Request, Response, NextFunction } from "express";
 import { createResponse } from "../../../utils/createResponse";
-import { IOwnerService } from "../interfaces/owner.interface";
+import { IOwnerService } from "../interfaces/owner.services.interfaces";
+import {
+  EmailChangeRequestDto,
+  EmailChangeVerificationDto,
+  OwnerFilterDto,
+  UpdateOwnerProfileDto,
+  UpdateToNewPasswordDto,
+} from "../dtos/owner.dtos";
+import { ServiceResponse } from "../../../interfaces/interface";
 
 export class OwnerController {
   constructor(private readonly ownerService: IOwnerService) {}
 
-  async getOwnerProfile(req: Request, res: Response) {
+  async getOwnerProfile(req: Request, res: Response): Promise<any> {
     try {
       const owner = req.owner;
       const requestId = owner.ownerId;
@@ -37,17 +45,16 @@ export class OwnerController {
         })
       );
     } catch (err) {
-       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-
-  async getOwnerById(req: Request, res: Response) {
+  async getOwnerById(req: Request, res: Response): Promise<any> {
     try {
       const { ownerId } = req.params;
 
@@ -79,19 +86,19 @@ export class OwnerController {
         })
       );
     } catch (err) {
-    res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-  async updateOwner(req: Request, res: Response) {
+  async updateOwner(req: Request, res: Response): Promise<any> {
     try {
       const { ownerId } = req.owner;
-      const updateData = req.body;
+      const updateOwnerProfileDto: UpdateOwnerProfileDto = req.body;
 
       if (!ownerId) {
         return res.status(400).json(
@@ -101,8 +108,10 @@ export class OwnerController {
           })
         );
       }
-
-      const result = await this.ownerService.updateOwner(ownerId, updateData);
+      const result = await this.ownerService.updateOwner(
+        ownerId,
+        updateOwnerProfileDto
+      );
 
       if (!result.success) {
         return res.status(400).json(
@@ -122,15 +131,15 @@ export class OwnerController {
       );
     } catch (err) {
       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-  async deleteOwner(req: Request, res: Response) {
+  async deleteOwner(req: Request, res: Response): Promise<any> {
     try {
       const { ownerId } = req.params;
 
@@ -162,20 +171,20 @@ export class OwnerController {
       );
     } catch (err) {
       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-  async sendEmailChangeOtp(req: Request, res: Response) {
+  async sendEmailChangeOtp(req: Request, res: Response): Promise<any> {
     try {
       const { ownerId } = req.owner;
-      const { newEmail, password } = req.body;
+      const emailChangeRequestDto: EmailChangeRequestDto = req.body; // ✅ DTO validation
 
-      if (!newEmail || !password) {
+      if (!emailChangeRequestDto.newEmail || !emailChangeRequestDto.password) {
         return res.status(400).json(
           createResponse({
             success: false,
@@ -183,57 +192,10 @@ export class OwnerController {
           })
         );
       }
-
       const result = await this.ownerService.sendEmailChangeOtp(
         ownerId,
-        newEmail,
-        password
-      );
-
-      if (!result.success) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: result.message,
-          })
-        );
-      }
-
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          message: result.message,
-          data: result.data,
-        })
-      );
-    } catch (error) {
-       res.status(500).json(
-          createResponse({
-            success: false,
-            message: error.message,
-          })
-        )
-    }
-  }
-
-  async verifyEmailChangeOtp(req: Request, res: Response) {
-    try {
-      const { ownerId } = req.owner;
-      const { email, otp } = req.body;
-
-      if (!email || !otp) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "Email and OTP are required",
-          })
-        );
-      }
-
-      const result = await this.ownerService.verifyEmailChangeOtp(
-        ownerId,
-        email,
-        otp
+        emailChangeRequestDto.newEmail,
+        emailChangeRequestDto.password
       );
 
       if (!result.success) {
@@ -254,18 +216,67 @@ export class OwnerController {
       );
     } catch (error) {
       res.status(500).json(
-          createResponse({
-            success: false,
-            message: error.message,
-          })
-        )
+        createResponse({
+          success: false,
+          message: error.message,
+        })
+      );
     }
   }
 
-  async resetOwnerPassword(req: Request, res: Response) {
+  async verifyEmailChangeOtp(req: Request, res: Response): Promise<any> {
     try {
-      const { newPassword, oldPassword } = req.body;
       const { ownerId } = req.owner;
+      const emailChangeVerificationDto: EmailChangeVerificationDto = req.body; // ✅ DTO validation
+
+      if (
+        !emailChangeVerificationDto.email ||
+        !emailChangeVerificationDto.otp
+      ) {
+        return res.status(400).json(
+          createResponse({
+            success: false,
+            message: "Email and OTP are required",
+          })
+        );
+      }
+      const result = await this.ownerService.verifyEmailChangeOtp(
+        ownerId,
+        emailChangeVerificationDto.email,
+        emailChangeVerificationDto.otp
+      );
+
+      if (!result.success) {
+        return res.status(400).json(
+          createResponse({
+            success: false,
+            message: result.message,
+          })
+        );
+      }
+
+      return res.status(200).json(
+        createResponse({
+          success: true,
+          message: result.message,
+          data: result.data,
+        })
+      );
+    } catch (error) {
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: error.message,
+        })
+      );
+    }
+  }
+
+  async resetOwnerPassword(req: Request, res: Response): Promise<any> {
+    try {
+      const { ownerId } = req.owner;
+      const updatePasswordDto: UpdateToNewPasswordDto = req.body;
+
       if (!ownerId) {
         return res.status(400).json(
           createResponse({
@@ -274,7 +285,7 @@ export class OwnerController {
           })
         );
       }
-      if (!newPassword || !oldPassword) {
+      if (!updatePasswordDto.newPassword || !updatePasswordDto.oldPassword) {
         return res.status(400).json(
           createResponse({
             success: false,
@@ -282,12 +293,12 @@ export class OwnerController {
           })
         );
       }
-
       const result = await this.ownerService.changeOwnerPassword(
         ownerId,
-        oldPassword,
-        newPassword
+        updatePasswordDto.oldPassword,
+        updatePasswordDto.newPassword
       );
+
       if (!result.success) {
         return res.status(400).json(
           createResponse({
@@ -304,16 +315,16 @@ export class OwnerController {
         })
       );
     } catch (error) {
-     res.status(500).json(
-          createResponse({
-            success: false,
-            message: error.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: error.message,
+        })
+      );
     }
   }
 
-  async getOwnerCounts(req: Request, res: Response) {
+  async getOwnerCounts(req: Request, res: Response): Promise<any> {
     try {
       const result = await this.ownerService.getOwnerCounts();
 
@@ -326,17 +337,17 @@ export class OwnerController {
       );
     } catch (err) {
       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-  async getOwners(req: Request, res: Response) {
+  async getOwners(req: Request, res: Response): Promise<any> {
     try {
-      const filters = req.query;
+      const filters = req.query as unknown as OwnerFilterDto
       const result = await this.ownerService.getOwners(filters);
       return res.status(200).json(
         createResponse({
@@ -347,15 +358,15 @@ export class OwnerController {
       );
     } catch (err) {
       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-  async toggleOwnerStatus(req: Request, res: Response) {
+  async toggleOwnerStatus(req: Request, res: Response): Promise<any> {
     try {
       const { ownerId } = req.params;
 
@@ -387,15 +398,12 @@ export class OwnerController {
         })
       );
     } catch (err) {
-     res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
-
-
-  
 }
