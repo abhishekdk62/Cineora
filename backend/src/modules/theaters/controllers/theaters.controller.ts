@@ -1,8 +1,16 @@
 import { Request, Response, NextFunction } from "express";
-import { ITheaterService } from "../interfaces/theater.interface";
 import { createResponse } from "../../../utils/createResponse";
-import { ScreenService } from "../../screens/services/screens.services";
-import { IScreenService } from "../../screens/interfaces/screens.interface";
+import { ScreenService } from "../../screens/services/screens.service";
+import { ITheaterService } from "../interfaces/theater.service.interface";
+import {
+  CreateTheaterDto,
+  PaginatedTheatersDto,
+  TheaterFilters,
+  TheatersByOwnerDto,
+  UpdateTheaterDto,
+} from "../dtos/dto";
+import { ServiceResponse } from "../../../interfaces/interface";
+import { IScreenService } from "../../screens/interfaces/screens.services.interface";
 
 export class TheaterController {
   constructor(
@@ -12,11 +20,10 @@ export class TheaterController {
 
   async getTheatersWithFilters(
     req: Request,
-    res: Response,
-    
-  ) {
+    res: Response
+  ): Promise<any> {
     try {
-      const filters = {
+      const filters: TheaterFilters = {
         search: req.query.search as string,
         sortBy: req.query.sortBy as string,
         page: req.query.page ? parseInt(req.query.page as string) : 1,
@@ -29,7 +36,8 @@ export class TheaterController {
           : undefined,
       };
 
-      const result = await this.theaterService.getTheatersWithFilters(filters);
+      const result: PaginatedTheatersDto =
+        await this.theaterService.getTheatersWithFilters(filters);
 
       return res.status(200).json({
         theaters: result.theaters,
@@ -40,19 +48,19 @@ export class TheaterController {
         hasPrevPage: result.hasPrevPage,
       });
     } catch (err) {
-     res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-  async createTheater(req: Request, res: Response) {
+  async createTheater(req: Request, res: Response): Promise<any> {
     try {
       const { ownerId } = req.owner;
-      const theaterData = req.body;
+      const createTheaterDto: CreateTheaterDto = req.body;
 
       if (!ownerId) {
         res.status(400).json(
@@ -63,7 +71,7 @@ export class TheaterController {
         );
         return;
       }
-      if (!theaterData) {
+      if (!createTheaterDto) {
         res.status(400).json(
           createResponse({
             success: false,
@@ -75,7 +83,7 @@ export class TheaterController {
 
       const result = await this.theaterService.createTheater(
         ownerId,
-        theaterData
+        createTheaterDto
       );
 
       if (!result.success) {
@@ -96,20 +104,22 @@ export class TheaterController {
       );
     } catch (error) {
       res.status(500).json(
-          createResponse({
-            success: false,
-            message: error.message,
-          })
-        )
+        createResponse({
+          success: false,
+          message: error.message,
+        })
+      );
     }
   }
 
-  async getTheatersByOwnerId(req: Request, res: Response) {
+  async getTheatersByOwnerId(
+    req: Request,
+    res: Response
+  ): Promise<any> {
     try {
-      let ownerId = req.query.ownerId as string;
-      if (!ownerId) {
-        ownerId = req.owner.ownerId as string;
-      }
+      const ownerId = req.query.ownerId || req.owner.ownerId;
+      const filters: TheaterFilters = req.query;
+
       if (!ownerId) {
         return res.status(400).json(
           createResponse({
@@ -118,11 +128,9 @@ export class TheaterController {
           })
         );
       }
+      const result: ServiceResponse<TheatersByOwnerDto> =
+        await this.theaterService.getTheatersByOwnerId(ownerId, filters);
 
-      const result = await this.theaterService.getTheatersByOwnerId(
-        ownerId,
-        req.query
-      );
       if (!result.success) {
         return res.status(400).json(
           createResponse({
@@ -140,20 +148,19 @@ export class TheaterController {
         })
       );
     } catch (error) {
-   res.status(500).json(
-          createResponse({
-            success: false,
-            message: error.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: error.message,
+        })
+      );
     }
   }
 
-  async updateTheater(req: Request, res: Response) {
+  async updateTheater(req: Request, res: Response): Promise<any> {
     try {
       const { theaterId } = req.params;
-      const updateData = req.body;
-      const { ownerId } = req.owner;
+      const updateData: UpdateTheaterDto = req.body;
 
       if (!theaterId) {
         return res.status(400).json(
@@ -209,15 +216,15 @@ export class TheaterController {
       );
     } catch (error) {
       res.status(500).json(
-          createResponse({
-            success: false,
-            message: error.message,
-          })
-        )
+        createResponse({
+          success: false,
+          message: error.message,
+        })
+      );
     }
   }
 
-  async deleteTheater(req: Request, res: Response) {
+  async deleteTheater(req: Request, res: Response): Promise<any> {
     try {
       const { theaterId } = req.params;
 
@@ -256,12 +263,12 @@ export class TheaterController {
         })
       );
     } catch (error) {
-     res.status(500).json(
-          createResponse({
-            success: false,
-            message: error.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: error.message,
+        })
+      );
     }
   }
 
@@ -310,7 +317,10 @@ export class TheaterController {
   //   }
   // }
 
-  async toggleTheaterStatus(req: Request, res: Response) {
+  async toggleTheaterStatus(
+    req: Request,
+    res: Response
+  ): Promise<any> {
     try {
       const { id } = req.params;
       if (!id) {
@@ -338,7 +348,7 @@ export class TheaterController {
       });
     }
   }
-  async verifyTheater(req: Request, res: Response) {
+  async verifyTheater(req: Request, res: Response): Promise<any> {
     try {
       const { theatreId } = req.params;
 
@@ -370,7 +380,7 @@ export class TheaterController {
       });
     }
   }
-  async rejectTheater(req: Request, res: Response) {
+  async rejectTheater(req: Request, res: Response): Promise<any> {
     try {
       const { theatreId } = req.params;
 

@@ -1,17 +1,31 @@
 import { Request, Response } from "express";
-import { ShowtimeService } from "../services/showtimes.services";
+import { ShowtimeService } from "../services/showtimes.service";
 import { ShowtimeRepository } from "../repositories/showtimes.repository";
-import { IShowtimeService } from "../interfaces/showtimes.interfaces";
+import { IShowtimeService } from "../interfaces/showtimes.service.interface";
+import {
+  AdminFiltersDto,
+  BlockSeatsDto,
+  BookSeatsDto,
+  CreateBulkShowtimesDto,
+  CreateShowtimeDto,
+  DateQueryDto,
+  EditShowtimeDto,
+  GetAllShowtimesFiltersDto,
+  ReleaseSeatsDto,
+  UpdateShowtimeDto,
+  UpdateStatusDto,
+} from "../dtos/dto";
 
 export class ShowtimeController {
-
   constructor(private readonly showtimeService: IShowtimeService) {}
-  async updateShowtime(req: Request, res: Response): Promise<void> {
+  async updateShowtime(req: Request, res: Response): Promise<any> {
     try {
       const { showtimeId } = req.params;
+      const updateShowtimeDto: UpdateShowtimeDto = req.body;
+
       const result = await this.showtimeService.updateShowtime(
         showtimeId,
-        req.body
+        updateShowtimeDto
       );
 
       if (result.success) {
@@ -26,7 +40,7 @@ export class ShowtimeController {
       });
     }
   }
-  async deleteShowtime(req: Request, res: Response): Promise<void> {
+  async deleteShowtime(req: Request, res: Response): Promise<any> {
     try {
       const { showtimeId } = req.params;
       const result = await this.showtimeService.deleteShowtime(showtimeId);
@@ -43,10 +57,10 @@ export class ShowtimeController {
       });
     }
   }
-  async getAllShowtimes(req: Request, res: Response): Promise<void> {
+  async getAllShowtimes(req: Request, res: Response): Promise<any> {
     try {
       const { page = 1, limit = 10, theaterId, movieId, date } = req.query;
-      const filters = {
+      const filters: GetAllShowtimesFiltersDto = {
         theaterId: theaterId as string,
         movieId: movieId as string,
         date: date ? new Date(date as string) : undefined,
@@ -70,14 +84,14 @@ export class ShowtimeController {
       });
     }
   }
-  async changeShowtimeStatus(req: Request, res: Response): Promise<void> {
+  async changeShowtimeStatus(req: Request, res: Response): Promise<any> {
     try {
       const { showtimeId } = req.params;
-      const { isActive } = req.body;
+      const updateStatusDto: UpdateStatusDto = req.body;
       let id = showtimeId;
       const result = await this.showtimeService.changeShowtimeStatus(
         id,
-        isActive
+        updateStatusDto.isActive
       );
 
       if (result.success) {
@@ -92,7 +106,7 @@ export class ShowtimeController {
       });
     }
   }
-  async getShowTimes(req: Request, res: Response): Promise<void> {
+  async getShowTimes(req: Request, res: Response): Promise<any> {
     try {
       const { ownerId } = req.owner;
       if (!ownerId) {
@@ -111,21 +125,25 @@ export class ShowtimeController {
       console.log(error);
     }
   }
-  async createShowtime(req: Request, res: Response): Promise<void> {
+  async createShowtime(req: Request, res: Response): Promise<any> {
     try {
       const { ownerId } = req.owner;
+      const createBulkDto: CreateBulkShowtimesDto = {
+        showtimeList: req.body.showtimes,
+      };
 
       if (Array.isArray(req.body.showtimes)) {
         const results = await this.showtimeService.createBulkShowtimes(
-          req.body.showtimes,
+          createBulkDto.showtimeList,
           ownerId
         );
+
         res.status(results.success ? 201 : 400).json(results);
         return;
       }
-
+      const createShowtimeDto: CreateShowtimeDto = req.body;
       const result = await this.showtimeService.createShowtime(
-        req.body,
+        createShowtimeDto,
         ownerId
       );
 
@@ -141,12 +159,12 @@ export class ShowtimeController {
       });
     }
   }
-  async editShowtime(req: Request, res: Response): Promise<void> {
+  async editShowtime(req: Request, res: Response): Promise<any> {
     try {
       const { ownerId } = req.owner;
-      const showtime = req.body;
+      const editShowtimeDto: EditShowtimeDto = req.body;
 
-      if (!showtime || !showtime._id) {
+      if (!editShowtimeDto || !editShowtimeDto._id) {
         res.status(400).json({
           success: false,
           message: "Showtime _id is required for updating.",
@@ -155,8 +173,8 @@ export class ShowtimeController {
       }
 
       const result = await this.showtimeService.updateShowtime(
-        showtime._id,
-        showtime,
+        editShowtimeDto._id,
+        editShowtimeDto,
         ownerId
       );
 
@@ -173,7 +191,7 @@ export class ShowtimeController {
     }
   }
 
-  async getShowtime(req: Request, res: Response): Promise<void> {
+  async getShowtime(req: Request, res: Response): Promise<any> {
     try {
       const { id } = req.params;
       const result = await this.showtimeService.getShowtimeById(id);
@@ -190,7 +208,7 @@ export class ShowtimeController {
       });
     }
   }
-  async getShowtimesByMovie(req: Request, res: Response): Promise<void> {
+  async getShowtimesByMovie(req: Request, res: Response): Promise<any> {
     try {
       const { movieId } = req.params;
       const { date } = req.query;
@@ -220,10 +238,11 @@ export class ShowtimeController {
       });
     }
   }
-  async getTheatersByMovie(req: Request, res: Response): Promise<void> {
+  async getTheatersByMovie(req: Request, res: Response): Promise<any> {
     try {
       const { movieId } = req.params;
       const { date } = req.query;
+      const dateQueryDto: DateQueryDto = { date: date as string };
 
       if (!date) {
         res.status(400).json({
@@ -232,10 +251,9 @@ export class ShowtimeController {
         });
         return;
       }
-
       const result = await this.showtimeService.getTheatersByMovie(
         movieId,
-        new Date(date as string)
+        new Date(dateQueryDto.date)
       );
 
       if (result.success) {
@@ -250,10 +268,12 @@ export class ShowtimeController {
       });
     }
   }
-  async getShowtimesByScreen(req: Request, res: Response): Promise<void> {
+  async getShowtimesByScreen(req: Request, res: Response): Promise<any> {
     try {
       const { screenId } = req.params;
       const { date } = req.query;
+      const dateQueryDto: DateQueryDto = { date: date as string };
+
       if (!date) {
         res.status(400).json({
           success: false,
@@ -261,10 +281,9 @@ export class ShowtimeController {
         });
         return;
       }
-
       const result = await this.showtimeService.getShowtimesByScreen(
         screenId,
-        new Date(date as string)
+        new Date(dateQueryDto.date)
       );
 
       if (result.success) {
@@ -279,10 +298,12 @@ export class ShowtimeController {
       });
     }
   }
-  async getShowtimesByTheater(req: Request, res: Response): Promise<void> {
+  async getShowtimesByTheater(req: Request, res: Response): Promise<any> {
     try {
       const { theaterId } = req.params;
       const { date } = req.query;
+      const dateQueryDto: DateQueryDto = { date: date as string };
+
 
       if (!date) {
         res.status(400).json({
@@ -291,10 +312,9 @@ export class ShowtimeController {
         });
         return;
       }
-
       const result = await this.showtimeService.getShowtimesByTheater(
         theaterId,
-        new Date(date as string)
+        new Date(dateQueryDto.date)
       );
 
       if (result.success) {
@@ -309,16 +329,15 @@ export class ShowtimeController {
       });
     }
   }
-  async blockSeats(req: Request, res: Response): Promise<void> {
+  async blockSeats(req: Request, res: Response): Promise<any> {
     try {
       const { showtimeId } = req.params;
-      const { seatIds, userId, sessionId } = req.body;
-
+      const blockSeatsDto: BlockSeatsDto = req.body;
       const result = await this.showtimeService.blockSeats(
         showtimeId,
-        seatIds,
-        userId,
-        sessionId
+        blockSeatsDto.seatIds,
+        blockSeatsDto.userId,
+        blockSeatsDto.sessionId
       );
 
       if (result.success) {
@@ -333,18 +352,13 @@ export class ShowtimeController {
       });
     }
   }
-  async releaseSeats(req: Request, res: Response): Promise<void> {
+  async releaseSeats(req: Request, res: Response): Promise<any> {
     try {
       const { showtimeId } = req.params;
-      const { seatIds, userId, sessionId } = req.body;
+const releaseSeatsDto: ReleaseSeatsDto = req.body;
+const result = await this.showtimeService.releaseSeats(showtimeId, releaseSeatsDto.seatIds, releaseSeatsDto.userId, releaseSeatsDto.sessionId);
 
-      const result = await this.showtimeService.releaseSeats(
-        showtimeId,
-        seatIds,
-        userId,
-        sessionId
-      );
-
+    
       if (result.success) {
         res.status(200).json(result);
       } else {
@@ -357,12 +371,14 @@ export class ShowtimeController {
       });
     }
   }
-  async bookSeats(req: Request, res: Response): Promise<void> {
+  async bookSeats(req: Request, res: Response): Promise<any> {
     try {
       const { showtimeId } = req.params;
       const { seatIds } = req.body;
+const bookSeatsDto: BookSeatsDto = req.body;
+const result = await this.showtimeService.bookSeats(showtimeId, bookSeatsDto.seatIds);
 
-      const result = await this.showtimeService.bookSeats(showtimeId, seatIds);
+
 
       if (result.success) {
         res.status(200).json(result);
@@ -376,13 +392,13 @@ export class ShowtimeController {
       });
     }
   }
-  async getShowtimesByScreenAdmin(req: Request, res: Response): Promise<void> {
+  async getShowtimesByScreenAdmin(req: Request, res: Response): Promise<any> {
     try {
       const { screenId } = req.params;
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
 
-      const filters = {
+      const filters:AdminFiltersDto = {
         search: req.query.search as string,
         showDate: req.query.showDate as string,
         isActive: req.query.isActive
@@ -414,12 +430,12 @@ export class ShowtimeController {
     }
   }
 
-  async getAllShowtimesAdmin(req: Request, res: Response): Promise<void> {
+  async getAllShowtimesAdmin(req: Request, res: Response): Promise<any> {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
 
-      const filters = {
+      const filters:AdminFiltersDto = {
         search: req.query.search as string,
         showDate: req.query.showDate as string,
         isActive: req.query.isActive
@@ -453,15 +469,13 @@ export class ShowtimeController {
     }
   }
 
-  async updateShowtimeStatus(req: Request, res: Response): Promise<void> {
+  async updateShowtimeStatus(req: Request, res: Response): Promise<any> {
     try {
       const { showtimeId } = req.params;
       const { isActive } = req.body;
+const updateStatusDto: UpdateStatusDto = req.body;
+const result = await this.showtimeService.updateShowtimeStatus(showtimeId, updateStatusDto.isActive);
 
-      const result = await this.showtimeService.updateShowtimeStatus(
-        showtimeId,
-        isActive
-      );
 
       if (result.success) {
         res.status(200).json(result);

@@ -1,37 +1,20 @@
 import { Request, Response, NextFunction } from "express";
 import { createResponse } from "../../../utils/createResponse";
-import { IMovieService } from "../interfaces/movies.interface";
+import { IMovieService } from "../interfaces/movies.service.interface";
+import {
+  CreateMovieDto,
+  MovieFiltersDto,
+  PaginationQueryDto,
+  UpdateMovieDto,
+  UpdateMovieParamsDto,
+} from "../dtos/dtos";
 
 export class MoviesController {
   constructor(private readonly movieService: IMovieService) {}
 
-  async getMoviesWithFilters(req: Request, res: Response) {
+  async getMoviesWithFilters(req: Request, res: Response): Promise<any> {
     try {
-      const filters = {
-        search: req.query.search as string,
-        isActive: req.query.isActive
-          ? req.query.isActive === "true"
-          : undefined,
-        rating: req.query.rating as string,
-        minDuration: req.query.minDuration
-          ? parseInt(req.query.minDuration as string)
-          : undefined,
-        maxDuration: req.query.maxDuration
-          ? parseInt(req.query.maxDuration as string)
-          : undefined,
-        releaseYearStart: req.query.releaseYearStart
-          ? parseInt(req.query.releaseYearStart as string)
-          : undefined,
-        releaseYearEnd: req.query.releaseYearEnd
-          ? parseInt(req.query.releaseYearEnd as string)
-          : undefined,
-        language: req.query.language as string,
-        genre: req.query.genre as string,
-        sortBy: (req.query.sortBy as string) || "title",
-        sortOrder: (req.query.sortOrder as "asc" | "desc") || "asc",
-        page: req.query.page ? parseInt(req.query.page as string) : 1,
-        limit: req.query.limit ? parseInt(req.query.limit as string) : 20,
-      };
+      const filters: MovieFiltersDto = req.query as unknown as MovieFiltersDto;
 
       const result = await this.movieService.getMoviesWithFilters(filters);
 
@@ -60,18 +43,19 @@ export class MoviesController {
         })
       );
     } catch (err) {
-        res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-  async addMovie(req: Request, res: Response) {
+  async addMovie(req: Request, res: Response): Promise<any> {
     try {
-      const movieData = req.body;
+      const movieData: CreateMovieDto = req.body;
+
       if (!movieData.title || !movieData.tmdbId) {
         return res.status(400).json(
           createResponse({
@@ -96,21 +80,24 @@ export class MoviesController {
           .status(409)
           .json(createResponse({ success: false, message: err.message }));
       }
-         res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-  async getMovies(req: Request, res: Response) {
+  async getMovies(req: Request, res: Response): Promise<any> {
     try {
-      const page = req.query.page ? parseInt(req.query.page as string) : 1;
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
+      const paginationQuery: PaginationQueryDto =
+        req.query as unknown as PaginationQueryDto;
 
-      const result = await this.movieService.getMoviesPaginated(page, limit);
+      const result = await this.movieService.getMoviesPaginated(
+        paginationQuery.page,
+        paginationQuery.limit
+      );
 
       return res.status(200).json(
         createResponse({
@@ -121,7 +108,7 @@ export class MoviesController {
               currentPage: result.currentPage,
               totalPages: result.totalPages,
               total: result.total,
-              limit: limit,
+              limit: paginationQuery.limit,
               hasNextPage: result.hasNextPage,
               hasPrevPage: result.hasPrevPage,
             },
@@ -129,16 +116,16 @@ export class MoviesController {
         })
       );
     } catch (err) {
-       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-  async toggleMovieStatus(req: Request, res: Response) {
+  async toggleMovieStatus(req: Request, res: Response): Promise<any> {
     try {
       const { movieId } = req.params;
 
@@ -151,45 +138,56 @@ export class MoviesController {
         })
       );
     } catch (err) {
-       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
-    }
-  }
-
-  async updateMovie(req: Request, res: Response) {
-    try {
-      const { movieId } = req.params;
-      const movieData = req.body;
-      const updated = await this.movieService.updateMovie(movieId, movieData);
-
-      if (!updated) {
-        return res
-          .status(404)
-          .json(createResponse({ success: false, message: "Movie not found" }));
-      }
-
-      return res.status(200).json(
+      res.status(500).json(
         createResponse({
-          success: true,
-          data: updated,
-          message: "Movie updated successfully",
+          success: false,
+          message: err.message,
         })
       );
-    } catch (err) {
-      res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
     }
   }
 
-  async getMovieById(req: Request, res: Response) {
+ async updateMovie(req: Request, res: Response) { // ✅ Remove Promise<void>
+  try {
+    const { movieId } = req.params;
+    if (!movieId) {
+      return res.status(400).json({ error: "Movie ID is required" });
+    }
+
+    const movieData: UpdateMovieDto = req.body;
+
+    // ✅ Use movieId (not params.movieId)
+    const updated = await this.movieService.updateMovie(
+      movieId, // ✅ Fixed - was params.movieId
+      movieData
+    );
+
+    if (!updated) {
+      return res
+        .status(404)
+        .json(createResponse({ success: false, message: "Movie not found" }));
+    }
+
+    return res.status(200).json(
+      createResponse({
+        success: true,
+        data: updated,
+        message: "Movie updated successfully",
+      })
+    );
+  } catch (err) {
+    // ✅ Add return for consistency
+    return res.status(500).json(
+      createResponse({
+        success: false,
+        message: err.message,
+      })
+    );
+  }
+}
+
+
+  async getMovieById(req: Request, res: Response): Promise<any> {
     try {
       const { movieId } = req.params;
 
@@ -210,15 +208,15 @@ export class MoviesController {
       );
     } catch (err) {
       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
-  async deleteMovie(req: Request, res: Response) {
+  async deleteMovie(req: Request, res: Response): Promise<any> {
     try {
       const { movieId } = req.params;
 
@@ -228,21 +226,19 @@ export class MoviesController {
           .status(404)
           .json(createResponse({ success: false, message: "Movie not found" }));
       }
-      return res
-        .status(200)
-        .json(
-          createResponse({
-            success: true,
-            message: "Movie deleted successfully",
-          })
-        );
+      return res.status(200).json(
+        createResponse({
+          success: true,
+          message: "Movie deleted successfully",
+        })
+      );
     } catch (err) {
-       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 }

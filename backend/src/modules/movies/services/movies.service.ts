@@ -1,66 +1,62 @@
-import { IMovie, IMovieRepository, IMovieService } from "../interfaces/movies.interface";
-
+import { CreateMovieDto, MovieFiltersDto, MovieResponseDto, PaginatedMoviesResponseDto, UpdateMovieDto } from "../dtos/dtos";
+import { IMovie } from "../interfaces/movies.model.interface";
+import { IMovieRepository } from "../interfaces/movies.repository.interface";
+import { IMovieService } from "../interfaces/movies.service.interface";
 
 export class MovieService implements IMovieService {
-  constructor(private readonly movieRepo: IMovieRepository) {} 
-  async addMovie(movieData: Partial<IMovie>): Promise<IMovie> {
-    const existingMovie = await this.movieRepo.findByTmdbId(movieData.tmdbId!.toString());
+  constructor(private readonly movieRepo: IMovieRepository) {}
+  async addMovie(movieData: CreateMovieDto): Promise<MovieResponseDto> {
+    const existingMovie = await this.movieRepo.findByTmdbId(
+      movieData.tmdbId!.toString()
+    );
     if (existingMovie) {
       throw new Error(`Movie with TMDB ID ${movieData.tmdbId} already exists`);
     }
     return this.movieRepo.create(movieData);
   }
 
-  async getMovies(): Promise<IMovie[]> {
+  async getMovies(): Promise<MovieResponseDto[]> {
     return this.movieRepo.findAll();
   }
 
-  async getMoviesPaginated(page: number = 1, limit: number = 20): Promise<{
-    movies: IMovie[], 
-    total: number, 
-    totalPages: number,
-    currentPage: number,
-    hasNextPage: boolean,
-    hasPrevPage: boolean 
-  }> {
+  async getMoviesPaginated(
+    page: number = 1,
+    limit: number = 20
+  ): Promise<PaginatedMoviesResponseDto> {
     const result = await this.movieRepo.findPaginated(page, limit);
-    
+
     return {
       movies: result.movies,
       total: result.total,
       totalPages: result.totalPages,
       currentPage: page,
       hasNextPage: page < result.totalPages,
-      hasPrevPage: page > 1
+      hasPrevPage: page > 1,
     };
   }
 
-  async getMoviesWithFilters(filters: any): Promise<{ 
-    movies: IMovie[], 
-    total: number, 
-    totalPages: number,
-    currentPage: number,
-    hasNextPage: boolean,
-    hasPrevPage: boolean 
-  }> {
+  async getMoviesWithFilters(filters: MovieFiltersDto): Promise<PaginatedMoviesResponseDto> {
     const result = await this.movieRepo.findWithFilters(filters);
     const currentPage = filters.page || 1;
-    
+
     return {
       movies: result.movies,
       total: result.total,
       totalPages: result.totalPages,
       currentPage,
       hasNextPage: currentPage < result.totalPages,
-      hasPrevPage: currentPage > 1
+      hasPrevPage: currentPage > 1,
     };
   }
 
-  async getMovieById(id: string): Promise<IMovie | null> {
+  async getMovieById(id: string): Promise<MovieResponseDto | null> {
     return this.movieRepo.findById(id);
   }
 
-  async updateMovie(id: string, movieData: Partial<IMovie>): Promise<IMovie | null> {
+  async updateMovie(
+    id: string,
+    movieData: UpdateMovieDto
+  ): Promise<MovieResponseDto | null> {
     return this.movieRepo.update(id, movieData);
   }
 
@@ -68,24 +64,24 @@ export class MovieService implements IMovieService {
     return this.movieRepo.delete(id);
   }
 
-  async toggleMovieStatus(id: string): Promise<IMovie | null> {
+  async toggleMovieStatus(id: string): Promise<MovieResponseDto | null> {
     if (!id) {
       throw new Error("Please provide movie id");
     }
     return this.movieRepo.toggleStatus(id);
   }
 
-  async getMoviesForUser(filters: any = {}): Promise<any> {
+  async getMoviesForUser(filters: MovieFiltersDto = {}): Promise<PaginatedMoviesResponseDto> {
     const userFilters = { ...filters, isActive: true };
     return this.getMoviesWithFilters(userFilters);
   }
 
-  async getMoviesForOwner(ownerId: string, filters: any = {}): Promise<any> {
+  async getMoviesForOwner(ownerId: string, filters: MovieFiltersDto = {}): Promise<PaginatedMoviesResponseDto> {
     const ownerFilters = { ...filters, ownerId };
     return this.getMoviesWithFilters(ownerFilters);
   }
 
-  async getMoviesForAdmin(filters: any = {}): Promise<any> {
+  async getMoviesForAdmin(filters: MovieFiltersDto = {}): Promise<PaginatedMoviesResponseDto> {
     return this.getMoviesWithFilters(filters);
   }
 }

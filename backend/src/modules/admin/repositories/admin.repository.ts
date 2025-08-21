@@ -1,4 +1,6 @@
-import { IAdmin, IAdminRepository } from "../interfaces/admin.interface";
+import { AdminResponseDto } from "../dtos/dtos";
+import { IAdmin } from "../interfaces/admin.model.interface";
+import { IAdminRepository } from "../interfaces/admin.repository.interface";
 import { Admin } from "../models/admin.model";
 
 export class AdminRepository implements IAdminRepository {
@@ -6,10 +8,11 @@ export class AdminRepository implements IAdminRepository {
     return Admin.findOne({ email }).exec();
   }
 
-  async findById(id: string) {
+  async findById(id: string):Promise<IAdmin | null> {
     return await Admin.findById(id);
   }
-  async updateRefreshToken(userId: string, hashedRefreshToken: string) {
+  async updateRefreshToken(userId: string, hashedRefreshToken: string):Promise<AdminResponseDto | null>
+ {
     return await Admin.findByIdAndUpdate(
       userId,
       { 
@@ -20,7 +23,8 @@ export class AdminRepository implements IAdminRepository {
     );
   }
   
-  async clearRefreshToken(userId: string) {
+  async clearRefreshToken(userId: string): Promise<AdminResponseDto | null>
+{
     return await Admin.findByIdAndUpdate(
       userId,
       { 

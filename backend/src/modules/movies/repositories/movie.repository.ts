@@ -1,4 +1,7 @@
-import { IMovie, IMovieRepository } from "../interfaces/movies.interface";
+import { ShowtimeFilters } from "../../showtimes/dtos/dto";
+import { MovieFiltersDto, MovieRepositoryFindResult } from "../dtos/dtos";
+import { IMovie } from "../interfaces/movies.model.interface";
+import { IMovieRepository } from "../interfaces/movies.repository.interface";
 import { Movie } from "../models/movies.model";
 
 
@@ -16,11 +19,7 @@ export class MovieRepository implements IMovieRepository {
     return Movie.find().exec();
   }
 
-  async findWithFilters(filters: any): Promise<{
-    movies: IMovie[];
-    total: number;
-    totalPages: number;
-  }> {
+  async findWithFilters(filters: MovieFiltersDto): Promise<MovieRepositoryFindResult> {
     let query: any = {};
     if (filters.search) {
       query.$or = [
@@ -105,11 +104,7 @@ export class MovieRepository implements IMovieRepository {
   async findPaginated(
     page: number = 1,
     limit: number = 20
-  ): Promise<{
-    movies: IMovie[];
-    total: number;
-    totalPages: number;
-  }> {
+  ): Promise<MovieRepositoryFindResult> {
     const validPage = Math.max(1, page);
     const validLimit = Math.min(100, Math.max(1, limit));
     const skip = (validPage - 1) * validLimit;

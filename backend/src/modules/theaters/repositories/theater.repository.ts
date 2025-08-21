@@ -1,8 +1,10 @@
+import { TheaterFilters } from "../dtos/dto";
 import {
-  FindWithFiltersArgs,
+
   ITheater,
-  ITheaterRepository,
-} from "../interfaces/theater.interface";
+
+} from "../interfaces/theater.model.interface";
+import { ITheaterRepository } from "../interfaces/theater.repository.interface";
 import { Theater } from "../models/theater.model";
 
 export class TheaterRepository implements ITheaterRepository {
@@ -23,18 +25,7 @@ export class TheaterRepository implements ITheaterRepository {
 
   async findByOwnerId(
     ownerId: string,
-    filters?: {
-      status: string;
-      isActive?: string;
-      isVerified?: string;
-      city?: string;
-      state?: string;
-      search?: string;
-      page?: string | number;
-      limit?: string | number;
-      sortBy?: string;
-      sortOrder?: "asc" | "desc";
-    }
+    filters?: TheaterFilters
   ): Promise<{
     theaters: ITheater[];
     totalFiltered: number;
@@ -116,7 +107,7 @@ export class TheaterRepository implements ITheaterRepository {
     }
   }
 
-  private applyFilters(query: any, filters?: any): void {
+  private applyFilters(query: any, filters?: TheaterFilters): void {
     if (filters?.isActive !== undefined) {
       query.isActive = filters.isActive === "true";
     }
@@ -141,7 +132,7 @@ export class TheaterRepository implements ITheaterRepository {
   async findAll(
     page: number,
     limit: number,
-    filters?: any
+    filters?: TheaterFilters
   ): Promise<{ theaters: ITheater[]; total: number }> {
     const query: any = {};
 
@@ -162,7 +153,7 @@ export class TheaterRepository implements ITheaterRepository {
   }
 
   async findByFilters(
-    filters: any,
+    filters: TheaterFilters,
     page: number,
     limit: number
   ): Promise<{ theaters: ITheater[]; total: number }> {
@@ -258,98 +249,96 @@ export class TheaterRepository implements ITheaterRepository {
     }).populate("ownerId", "ownerName email");
   }
 
- async findWithFilters({
+async findWithFilters({
   search,
   sortBy = "nearby",
   page,
   limit,
   latitude,
   longitude,
-}: FindWithFiltersArgs) {
-  // Handle nearby sorting with geospatial aggregation
-  if (sortBy === "nearby" && latitude != null && longitude != null) {
-    // Use $geoNear aggregation for nearby sorting
+}: TheaterFilters) {
+  const pageNum = typeof page === "string" ? parseInt(page, 10) : page || 1;
+  const limitNum = typeof limit === "string" ? parseInt(limit, 10) : limit || 10;
+  const lat = typeof latitude === "string" ? parseFloat(latitude) : latitude;
+  const lon = typeof longitude === "string" ? parseFloat(longitude) : longitude;
+
+  if (sortBy === "nearby" && lat != null && lon != null) {
     const pipeline: any[] = [
       {
         $geoNear: {
           near: {
             type: "Point",
-            coordinates: [longitude, latitude]
+            coordinates: [lon, lat],    // <-- use parsed lon and lat
           },
           distanceField: "distance",
-          maxDistance: 50000, // 50km radius
+          maxDistance: 50000,
           spherical: true,
-          distanceMultiplier: 0.001, // Convert to km
+          distanceMultiplier: 0.001,
           query: {
             isActive: true,
-            isVerified: true
-          }
-        }
-      }
+            isVerified: true,
+          },
+        },
+      },
     ];
 
-    // Add search filter if provided
     if (search) {
       pipeline.push({
         $match: {
           $or: [
             { name: { $regex: search, $options: "i" } },
             { city: { $regex: search, $options: "i" } },
-            { state: { $regex: search, $options: "i" } }
-          ]
-        }
+            { state: { $regex: search, $options: "i" } },
+          ],
+        },
       });
     }
 
-    // Add distance formatting
     pipeline.push({
       $addFields: {
         distance: {
           $concat: [
             { $toString: { $round: ["$distance", 1] } },
-            " km"
-          ]
-        }
-      }
+            " km",
+          ],
+        },
+      },
     });
 
-    // Get total count for pagination
-    const countPipeline = [...pipeline];
-    countPipeline.push({ $count: "total" });
+    const countPipeline = [...pipeline, { $count: "total" }];
 
-    // Add pagination to main pipeline
-    const skip = (page - 1) * limit;
+    // Use parsed pageNum and limitNum
+    const skip = (pageNum - 1) * limitNum;
     pipeline.push({ $skip: skip });
-    pipeline.push({ $limit: limit });
+    pipeline.push({ $limit: limitNum }); // <-- corrected to limitNum
 
     const [theaters, totalCount] = await Promise.all([
       Theater.aggregate(pipeline),
-      Theater.aggregate(countPipeline)
+      Theater.aggregate(countPipeline),
     ]);
 
     const total = totalCount[0]?.total || 0;
-    const totalPages = Math.ceil(total / limit);
+    const totalPages = Math.ceil(total / limitNum);
 
     return { theaters, total, totalPages };
   }
 
-  // Handle non-geospatial queries (regular filtering and sorting)
+  // Non-geospatial queries
   const query: any = {
     isActive: true,
-    isVerified: true
+    isVerified: true,
   };
-  
+
   if (search) {
     query.$or = [
       { name: { $regex: search, $options: "i" } },
       { city: { $regex: search, $options: "i" } },
-      { state: { $regex: search, $options: "i" } }
+      { state: { $regex: search, $options: "i" } },
     ];
   }
 
   let mongooseQuery = Theater.find(query);
 
-  // Apply sorting for non-geospatial queries
   switch (sortBy) {
     case "a-z":
       mongooseQuery = mongooseQuery.sort({ name: 1 });
@@ -368,30 +357,27 @@ export class TheaterRepository implements ITheaterRepository {
       break;
   }
 
-  // Pagination
-  const skip = (page - 1) * limit;
+  const skip = (pageNum - 1) * limitNum;
   const [total, theaters] = await Promise.all([
     Theater.countDocuments(query),
-    mongooseQuery.skip(skip).limit(limit).lean()
+    mongooseQuery.skip(skip).limit(limitNum).lean(), // <-- always limitNum
   ]);
 
-  // Calculate distance manually for non-nearby sorts if coordinates provided
+  // Manual distance calculation if lat/lon provided
   const theatersWithDistance = theaters.map((theater: any) => {
     let distance = undefined;
-    
-    if (latitude && longitude && theater.location?.coordinates) {
-      const [lon, lat] = theater.location.coordinates;
-      const calculatedDistance = this.getDistanceFromLatLonInKm(latitude, longitude, lat, lon);
+    if (lat != null && lon != null && theater.location?.coordinates) {
+      const [tLon, tLat] = theater.location.coordinates;
+      const calculatedDistance = this.getDistanceFromLatLonInKm(lat, lon, tLat, tLon);
       distance = `${calculatedDistance.toFixed(1)} km`;
     }
-    
     return {
       ...theater,
-      distance
+      distance,
     };
   });
 
-  const totalPages = Math.ceil(total / limit);
+  const totalPages = Math.ceil(total / limitNum);
 
   return { theaters: theatersWithDistance, total, totalPages };
 }
@@ -417,7 +403,7 @@ export class TheaterRepository implements ITheaterRepository {
     return deg * (Math.PI / 180);
   }
 
-  private getSortOptions(filters?: any): any {
+  private getSortOptions(filters?: TheaterFilters): any {
     if (filters?.sortBy) {
       const sortOrder = filters?.sortOrder === "asc" ? 1 : -1;
       return { [filters.sortBy]: sortOrder };

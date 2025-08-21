@@ -8,8 +8,9 @@ import { EmailService } from "../../../services/email.service";
 import { config } from "../../../config";
 import { OAuth2Client } from "google-auth-library";
 import { OwnerRequestRepository } from "../../owner/repositories/ownerRequest.repository";
-import { ServiceResponse } from "../../user/interfaces/user.interface";
-import { IAuthService } from "../interfaces/auth.interface";
+import { IAuthService } from "../interfaces/auth.service.interface";
+import { ServiceResponse } from "../../../interfaces/interface";
+import { AuthErrorResponseDto, AuthSuccessResponseDto, CheckAuthProviderResponseDto, GoogleAuthResponseDto, GoogleUserDataDto, LoginResponseDto, RefreshTokenResponseDto, ResetPasswordWithOtpResponseDto, SendPasswordResetOtpResponseDto, TokenPairDto, UserDataDto, UserLookupResponseDto, VerifyPasswordResetOtpResponseDto } from "../dtos/dtos";
 
 interface LoginResponse {
   success: boolean;
@@ -41,7 +42,7 @@ export class AuthService implements IAuthService {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
-  async login(email: string, password: string): Promise<LoginResponse> {
+  async login(email: string, password: string): Promise<LoginResponseDto> {
     try {
       const admin = await this.adminRepo.findByEmail(email);
       if (admin) {
@@ -66,7 +67,7 @@ export class AuthService implements IAuthService {
           message: "Admin login successful",
           data: {
             user: {
-              id: admin._id,
+              id: admin._id as string,
               email: admin.email,
               role: "admin",
             },
@@ -193,7 +194,7 @@ export class AuthService implements IAuthService {
     }
   }
 
-  generateTokenPair(user: any, role: string) {
+  generateTokenPair(user: any, role: string):TokenPairDto {
     let payload: any = {
       email: user.email,
       role,
@@ -207,7 +208,7 @@ export class AuthService implements IAuthService {
     }
 
     const accessToken = jwt.sign(payload, config.jwtAccessSecret, {
-      expiresIn: "20s",
+      expiresIn: "15m",
     });
 
     const refreshToken = jwt.sign(
@@ -219,7 +220,7 @@ export class AuthService implements IAuthService {
     return { accessToken, refreshToken };
   }
 
-  async getUserByIdAndRole(userId: string, role: string) {
+  async getUserByIdAndRole(userId: string, role: string) :Promise<UserLookupResponseDto>{
     try {
       let user;
 
@@ -278,7 +279,8 @@ export class AuthService implements IAuthService {
     userId: string,
     refreshToken: string,
     userType: "user" | "admin" | "owner"
-  ) {
+  ) :Promise<void>
+{
     const hashedToken = await bcrypt.hash(refreshToken, 10);
 
     if (userType === "user") {
@@ -290,7 +292,7 @@ export class AuthService implements IAuthService {
     }
   }
 
-  async sendPasswordResetOTP(email: string) {
+  async sendPasswordResetOTP(email: string) :Promise<SendPasswordResetOtpResponseDto>{
     try {
       let user: any = null;
       let userName = "User";
@@ -390,7 +392,7 @@ export class AuthService implements IAuthService {
     }
   }
 
-  async verifyPasswordResetOtp(email: string, otp: string) {
+  async verifyPasswordResetOtp(email: string, otp: string):Promise<VerifyPasswordResetOtpResponseDto> {
     try {
       let otpRecord = await this.otpRepo.findValidOTP(
         email,
@@ -428,7 +430,7 @@ export class AuthService implements IAuthService {
     }
   }
 
-  async resetPasswordWithOTP(email: string, otp: string, newPassword: string) {
+  async resetPasswordWithOTP(email: string, otp: string, newPassword: string):Promise<ResetPasswordWithOtpResponseDto> {
     try {
       let otpRecord = await this.otpRepo.findValidOTP(
         email,
@@ -527,13 +529,8 @@ export class AuthService implements IAuthService {
     }
   }
 
-  private async verifyGoogleToken(credential: string): Promise<{
-    googleId: string;
-    email: string;
-    name: string;
-    avatar: string;
-    emailVerified: boolean;
-  }> {
+  private async verifyGoogleToken(credential: string): Promise<GoogleUserDataDto>
+ {
     try {
       if (!config.googleClientId) {
         throw new Error("Google Client ID not configured");
@@ -561,7 +558,7 @@ export class AuthService implements IAuthService {
     }
   }
 
-  async googleAuth(credential: string): Promise<ServiceResponse> {
+  async googleAuth(credential: string): Promise<GoogleAuthResponseDto> {
     try {
       if (!config.googleClientId || !config.googleClientSecret) {
         return {
@@ -616,11 +613,7 @@ export class AuthService implements IAuthService {
     }
   }
 
-  async refreshAccessToken(refreshToken: string): Promise<{
-    success: boolean;
-    message: string;
-    data?: { accessToken: string; refreshToken: string; user?: any };
-  }> {
+  async refreshAccessToken(refreshToken: string): Promise<RefreshTokenResponseDto> {
     try {
       const decoded = jwt.verify(refreshToken, config.jwtRefreshSecret) as any;
 
@@ -676,13 +669,7 @@ export class AuthService implements IAuthService {
     }
   }
 
-  private async createGoogleUser(googleUserData: {
-    googleId: string;
-    email: string;
-    name: string;
-    avatar: string;
-    emailVerified: boolean;
-  }): Promise<any> {
+  private async createGoogleUser(googleUserData: GoogleUserDataDto): Promise<any> {
     try {
       const existingUser = await this.userRepo.findByEmail(
         googleUserData.email
@@ -735,13 +722,7 @@ export class AuthService implements IAuthService {
 
   private async updateExistingGoogleUser(
     user: any,
-    googleUserData: {
-      googleId: string;
-      email: string;
-      name: string;
-      avatar: string;
-      emailVerified: boolean;
-    }
+    googleUserData: GoogleUserDataDto
   ): Promise<any> {
     try {
       if (!user.googleId) {
@@ -784,7 +765,7 @@ export class AuthService implements IAuthService {
     }
   }
 
-  private sanitizeUserData(user: any): any {
+  private sanitizeUserData(user: any): UserDataDto {
     const { password, __v, ...sanitizedUser } = user.toObject
       ? user.toObject()
       : user;
@@ -797,14 +778,13 @@ export class AuthService implements IAuthService {
       lastName: sanitizedUser.lastName,
       avatar: sanitizedUser.avatar,
       isVerified: sanitizedUser.isVerified,
-      authProvider: sanitizedUser.authProvider,
       xpPoints: sanitizedUser.xpPoints,
       role: sanitizedUser.role || "user",
       lastActive: sanitizedUser.lastActive,
     };
   }
 
-  async logout(userId: string, userType: "user" | "admin" | "owner") {
+  async logout(userId: string, userType: "user" | "admin" | "owner"):Promise<AuthSuccessResponseDto | AuthErrorResponseDto> {
     try {
       if (userType === "user") {
         await this.userRepo.clearRefreshToken(userId);
@@ -820,7 +800,7 @@ export class AuthService implements IAuthService {
     }
   }
 
-  async checkAuthProvider(email: string): Promise<ServiceResponse> {
+  async checkAuthProvider(email: string): Promise<CheckAuthProviderResponseDto> {
     try {
       const user = await this.userRepo.findByEmail(email);
 

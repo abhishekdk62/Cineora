@@ -1,6 +1,6 @@
 import Mongoose from "mongoose";
-import { IScreen } from "../interfaces/screens.interface";
-import mongoose from "mongoose";  // Use this everywhere
+import mongoose from "mongoose";  
+import { IScreen } from "../interfaces/screens.model.interface";
 
 const screenSchema = new Mongoose.Schema<IScreen>(
   {

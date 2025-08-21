@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import { ScreenController } from "../../screens/controllers/screens.controllers";
+import { ScreenController } from "../../screens/controllers/screens.controller";
 import { ShowtimeController } from "../../showtimes/controllers/showtimes.controller";
 import { MoviesController } from "../../movies/controllers/movies.controllers";
 import { TheaterController } from "../../theaters/controllers/theaters.controller";

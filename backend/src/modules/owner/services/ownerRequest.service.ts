@@ -1,24 +1,30 @@
 import { Types } from "mongoose";
 import * as bcrypt from "bcryptjs";
 
+import { IOwnerRequestService } from "../interfaces/owner.services.interfaces";
 import {
-
   IOwnerRepository,
   IOwnerRequestRepository,
-  IOwnerRequestService,
-  OwnerKYCData,
-  ServiceResponse,
-} from "../interfaces/owner.interface";
-import {  IOTPRepository, OTPType } from "../../otp/interfaces/otp.interface"; 
-import { IUserRepository } from "../../user/interfaces/user.interface";
+} from "../interfaces/owner.repository.interface";
+import { IUserRepository } from "../../user/interfaces/user.repository.interface";
+import { ServiceResponse } from "../../../interfaces/interface";
+import {
+  GetOwnerRequestsFiltersDto,
+  KYCSubmissionResponseDataDto,
+  OwnerKYCDataDto,
+} from "../dtos/ownerReq.dtos";
+import { IOwnerRequest } from "../interfaces/owner.model.interface";
+import { IOTPRepository } from "../../otp/interfaces/otp.repository.interface";
+import { OTPType } from "../../otp/interfaces/otp.model.interface";
+import { IEmailService } from "../../../services/email.service";
 
 export class OwnerRequestService implements IOwnerRequestService {
   constructor(
     private readonly ownerRequestRepo: IOwnerRequestRepository,
     private readonly ownerRepo: IOwnerRepository,
-    private readonly otpRepo: IOTPRepository, 
+    private readonly otpRepo: IOTPRepository,
     private readonly userRepo: IUserRepository,
-    private readonly emailService: any
+    private readonly emailService: IEmailService
   ) {}
 
   private generateOTP(): string {
@@ -129,7 +135,9 @@ export class OwnerRequestService implements IOwnerRequestService {
     }
   }
 
-  async submitKYC(ownerData: OwnerKYCData): Promise<ServiceResponse> {
+  async submitKYC(
+    ownerData: OwnerKYCDataDto
+  ): Promise<ServiceResponse<KYCSubmissionResponseDataDto>> {
     try {
       const existingRequest =
         await this.ownerRequestRepo.findExistingNonRejected({
@@ -273,7 +281,6 @@ export class OwnerRequestService implements IOwnerRequestService {
           kycRequest.ownerName,
           randomPassword
         );
-
       }
 
       if (status === "rejected") {
@@ -310,7 +317,9 @@ export class OwnerRequestService implements IOwnerRequestService {
     }
   }
 
-  async getRequestStatus(requestId: string): Promise<ServiceResponse> {
+  async getRequestStatus(
+    requestId: string
+  ): Promise<ServiceResponse<IOwnerRequest>> {
     try {
       const request = await this.ownerRequestRepo.findById(requestId);
 
@@ -371,7 +380,9 @@ export class OwnerRequestService implements IOwnerRequestService {
     }
   }
 
-  async getOwnerRequests(filters: any): Promise<ServiceResponse> {
+  async getOwnerRequests(
+    filters: GetOwnerRequestsFiltersDto
+  ): Promise<ServiceResponse> {
     try {
       const {
         search,
@@ -398,7 +409,7 @@ export class OwnerRequestService implements IOwnerRequestService {
 
       if (search) {
         result.requests = result.requests.filter(
-          (request: any) =>
+          (request: IOwnerRequest) =>
             request.ownerName.toLowerCase().includes(search.toLowerCase()) ||
             request.email.toLowerCase().includes(search.toLowerCase()) ||
             request.phone.includes(search)

@@ -1,4 +1,5 @@
-import { IOwnerRequest, IOwnerRequestRepository } from "../interfaces/owner.interface";
+import { IOwnerRequest } from "../interfaces/owner.model.interface";
+import { IOwnerRequestRepository } from "../interfaces/owner.repository.interface";
 import {  Owner } from "../models/owner.model";
 import {  OwnerRequest } from "../models/ownerRequest.model";
 
@@ -63,7 +64,7 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
         .sort({ submittedAt: -1 })
         .skip(skip)
         .limit(limit)
-        .lean(),
+        .lean() as Promise<IOwnerRequest[]>,,
       OwnerRequest.countDocuments(statusQuery),
     ]);
 
@@ -81,7 +82,7 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
         .sort({ submittedAt: -1 })
         .skip(skip)
         .limit(limit)
-        .lean(),
+        .lean() as Promise<IOwnerRequest[]>,,
       OwnerRequest.countDocuments({}),
     ]);
 
@@ -182,7 +183,7 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
         .sort({ submittedAt: -1 })
         .skip(skip)
         .limit(limit)
-        .lean(),
+        .lean() as Promise<IOwnerRequest[]>,,
       OwnerRequest.countDocuments(searchQuery),
     ]);
 
@@ -209,7 +210,7 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
         .sort({ submittedAt: -1 })
         .skip(skip)
         .limit(limit)
-        .lean(),
+        .lean() as Promise<IOwnerRequest[]>,,
       OwnerRequest.countDocuments(dateQuery),
     ]);
 

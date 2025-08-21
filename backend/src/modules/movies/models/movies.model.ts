@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
-import { IMovie } from "../interfaces/movies.interface";
+import { IMovie } from "../interfaces/movies.model.interface";
 
 
 const MovieSchema = new Schema<IMovie>(

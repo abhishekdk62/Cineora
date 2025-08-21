@@ -501,9 +501,7 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
       {showCropModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-black/90 backdrop-blur-sm" />
-
           <div className="relative w-full max-w-2xl bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/10 rounded-2xl backdrop-blur-xl">
-            {/* crop header */}
             <div className="flex items-center justify-between p-6 border-b border-white/10">
               <div>
                 <h3 className={`${lexendBold.className} text-xl text-white`}>

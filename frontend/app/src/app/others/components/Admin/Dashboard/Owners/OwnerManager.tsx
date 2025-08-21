@@ -526,6 +526,7 @@ const OwnersManager: React.FC = () => {
             {...ownerCommonProps}
             owners={owners}
             onToggleStatus={handleToggleOwnerStatus}
+                setViewThaeter={setViewThaeter}
           />
         );
       case "pending":
