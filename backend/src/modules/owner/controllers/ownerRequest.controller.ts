@@ -218,6 +218,8 @@ export class OwnerRequestController {
     }
   }
 
+
+
   async getAllRequests(req: Request, res: Response): Promise<any> {
     try {
       const getAllRequestsDto: GetAllRequestsDto = {
@@ -463,4 +465,164 @@ export class OwnerRequestController {
       );
     }
   }
+
+    async uploadFile(req: Request, res: Response): Promise<any> {
+    try {
+      if (!req.file) {
+        return res.status(400).json(
+          createResponse({
+            success: false,
+            message: "No file uploaded",
+          })
+        );
+      }
+
+      const { folder } = req.body;
+      
+      if (!folder) {
+        return res.status(400).json(
+          createResponse({
+            success: false,
+            message: "Folder parameter is required",
+          })
+        );
+      }
+
+      const uploadFileDto = {
+        file: req.file,
+        folder: folder,
+      };
+
+      const result = await this.ownerRequestService.uploadFile(uploadFileDto);
+
+      if (!result.success) {
+        return res.status(400).json(
+          createResponse({
+            success: false,
+            message: result.message,
+          })
+        );
+      }
+
+      return res.status(200).json(
+        createResponse({
+          success: true,
+          message: result.message,
+          data: result.data,
+        })
+      );
+    } catch (err) {
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: err.message || "File upload failed",
+        })
+      );
+    }
+  }
+
+  async uploadMultipleFiles(req: Request, res: Response): Promise<any> {
+    try {
+      if (!req.files || (req.files as Express.Multer.File[]).length === 0) {
+        return res.status(400).json(
+          createResponse({
+            success: false,
+            message: "No files uploaded",
+          })
+        );
+      }
+
+      const { folder } = req.body;
+      
+      if (!folder) {
+        return res.status(400).json(
+          createResponse({
+            success: false,
+            message: "Folder parameter is required",
+          })
+        );
+      }
+
+      const uploadMultipleDto = {
+        files: req.files as Express.Multer.File[],
+        folder: folder,
+      };
+
+      const result = await this.ownerRequestService.uploadMultipleFiles(uploadMultipleDto);
+
+      if (!result.success) {
+        return res.status(400).json(
+          createResponse({
+            success: false,
+            message: result.message,
+          })
+        );
+      }
+
+      return res.status(200).json(
+        createResponse({
+          success: true,
+          message: result.message,
+          data: result.data,
+        })
+      );
+    } catch (err) {
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: err.message || "Multiple file upload failed",
+        })
+      );
+    }
+  }
+
+  async getSignedUrl(req: Request, res: Response): Promise<any> {
+    try {
+      const { publicId, width, height, crop } = req.body;
+      
+      if (!publicId) {
+        return res.status(400).json(
+          createResponse({
+            success: false,
+            message: "Public ID is required",
+          })
+        );
+      }
+
+      const signedUrlDto = {
+        publicId,
+        width,
+        height,
+        crop,
+      };
+
+      const result = await this.ownerRequestService.generateSignedUrl(signedUrlDto);
+
+      if (!result.success) {
+        return res.status(400).json(
+          createResponse({
+            success: false,
+            message: result.message,
+          })
+        );
+      }
+
+      return res.status(200).json(
+        createResponse({
+          success: true,
+          message: result.message,
+          data: result.data,
+        })
+      );
+    } catch (err) {
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: err.message || "Failed to generate signed URL",
+        })
+      );
+    }
+  }
 }
+
+

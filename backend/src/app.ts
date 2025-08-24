@@ -18,7 +18,6 @@ import { OwnerRoute as OwnerRequestRoute } from "./modules/owner/routes/ownerReq
 import { CommonRoutes } from "./modules/common/routes";
 import { AuthRoute } from "./modules/auth/routes/auth.routes";
 
-// ---------------- Services ----------------
 import { UserService } from "./modules/user/services/user.service";
 import { TheaterService } from "./modules/theaters/services/theater.service";
 import { MovieService } from "./modules/movies/services/movies.service";
@@ -27,7 +26,6 @@ import { OwnerRequestService } from "./modules/owner/services/ownerRequest.servi
 import { OTPService } from "./modules/otp/services/otp.service";
 import { AuthService } from "./modules/auth/services/auth.service";
 
-// ---------------- Repositories ----------------
 import { UserRepository } from "./modules/user/repositories/user.repository";
 import { TheaterRepository } from "./modules/theaters/repositories/theater.repository";
 import { MovieRepository } from "./modules/movies/repositories/movie.repository";
@@ -36,7 +34,6 @@ import { OwnerRequestRepository } from "./modules/owner/repositories/ownerReques
 import { OTPRepository } from "./modules/otp/repositories/otp.repository";
 import { AdminRepository } from "./modules/admin/repositories/admin.repository";
 
-// ---------------- Utils ----------------
 import { EmailService } from "./services/email.service";
 import {
   authenticateToken,
@@ -44,7 +41,7 @@ import {
   requireUser,
   requireOwner,
 } from "./modules/auth/middleware/auth.middleware";
-import { signCloudinaryUpload } from "./utils/signCloudinaryUpload";
+import { getSignedUrl } from "./utils/signCloudinaryUpload";
 import { AdminRoutes } from "./modules/admin/routes/admin.routes";
 import { ShowtimeRepository } from "./modules/showtimes/repositories/showtimes.repository";
 import { ScreenRepository } from "./modules/screens/repositories/screens.repositories";
@@ -75,7 +72,7 @@ export class App {
   }
 
   private setUtilityRoutes() {
-    this.app.use("/api/sign-cloudinary", signCloudinaryUpload);
+    this.app.use("/api/sign-cloudinary", getSignedUrl);
   }
 
   private setModuleRoutes() {

@@ -1,6 +1,5 @@
 import { IMovie } from "../interfaces/movies.model.interface";
 
-// Input DTOs
 export interface CreateMovieDto {
   tmdbId: string;
   title: string;

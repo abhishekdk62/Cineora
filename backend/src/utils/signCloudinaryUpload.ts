@@ -1,4 +1,4 @@
-const { v2: cloudinary } = require('cloudinary');
+const { v2: cloudinary } = require("cloudinary");
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -6,43 +6,179 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export const signCloudinaryUpload = async (req, res) => {
+export interface CloudinaryUploadOptions {
+  folder?: string;
+  width?: number;
+  height?: number;
+  crop?: string;
+  quality?: string | number;
+  resource_type?: "image" | "video" | "raw" | "auto";
+}
+
+export interface CloudinaryUploadResult {
+  public_id: string;
+  secure_url: string;
+  width: number;
+  height: number;
+  format: string;
+  bytes: number;
+}
+
+export const uploadToCloudinary = async (
+  input: string | Express.Multer.File,
+  options: CloudinaryUploadOptions = {}
+): Promise<CloudinaryUploadResult> => {
   try {
-    const { folder, timestamp } = req.body;
-    if (!timestamp ) {
-      return res.status(400).json({ 
-        error: 'Missing  parameter timestamp' 
-      });
-    }
-
-    if (!folder ) {
-      return res.status(400).json({ 
-        error: 'Missing required parameter folder' 
-      });
-    }
-
-
-    const paramsToSign = {
-      folder,
-      timestamp,
+    const uploadOptions: any = {
+      folder: options.folder || "uploads",
+      type: "authenticated",
+      resource_type: options.resource_type || "image",
+      transformation: [],
     };
 
-    const signature = cloudinary.utils.api_sign_request(
-      paramsToSign, 
-      process.env.CLOUDINARY_API_SECRET
-    );
+    if (options.width || options.height) {
+      uploadOptions.transformation.push({
+        width: options.width || options.height,
+        height: options.height || options.width,
+        crop: options.crop || "fill",
+      });
+    }
 
-    return res.json({
-      signature,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      timestamp, 
+    if (options.quality) {
+      uploadOptions.transformation.push({
+        quality: options.quality,
+      });
+    }
+
+    let result;
+
+    if (typeof input === "string") {
+      if (!input.startsWith("data:image")) {
+        throw new Error("Invalid base64 image format");
+      }
+
+      console.log("Uploading base64 image to Cloudinary...");
+      result = await cloudinary.uploader.upload(input, uploadOptions);
+    } else if (input && input.path) {
+      console.log("Uploading multer file to Cloudinary:", input.originalname);
+      result = await cloudinary.uploader.upload(input.path, {
+        ...uploadOptions,
+        original_filename: input.originalname.split(".")[0],
+      });
+
+      const fs = require("fs");
+      if (fs.existsSync(input.path)) {
+        fs.unlinkSync(input.path);
+        console.log("Temporary file cleaned up:", input.path);
+      }
+    } else {
+      throw new Error(
+        "Invalid input: expected base64 string or multer file object"
+      );
+    }
+
+    console.log("Cloudinary upload successful:", result.public_id);
+
+    return {
+      public_id: result.public_id,
+      secure_url: result.secure_url,
+      width: result.width,
+      height: result.height,
+      format: result.format,
+      bytes: result.bytes,
+    };
+  } catch (error) {
+    console.error("Cloudinary upload error:", error);
+    throw new Error(`Image upload failed: ${error.message}`);
+  }
+};
+
+// Upload multiple files function
+export const uploadMultipleToCloudinary = async (
+  files: Express.Multer.File[],
+  options: CloudinaryUploadOptions = {}
+): Promise<CloudinaryUploadResult[]> => {
+  try {
+    if (!files || files.length === 0) {
+      throw new Error("No files provided for upload");
+    }
+
+    console.log(`Uploading ${files.length} files to Cloudinary...`);
+
+    const uploadPromises = files.map((file, index) => {
+      const fileOptions = {
+        ...options,
+        folder: `${options.folder || "uploads"}/${Date.now()}_${index}`,
+      };
+      return uploadToCloudinary(file, fileOptions);
     });
 
+    const results = await Promise.all(uploadPromises);
+    console.log(`Successfully uploaded ${results.length} files`);
+
+    return results;
   } catch (error) {
-    console.error('Error signing Cloudinary upload:', error);
-    return res.status(500).json({ 
-      error: 'Failed to generate signature for upload' 
+    console.error("Multiple upload error:", error);
+    throw new Error(`Multiple file upload failed: ${error.message}`);
+  }
+};
+
+export const generateSignedUrl = (publicId: string, options: any = {}) => {
+  try {
+    if (!publicId) {
+      throw new Error("Public ID is required");
+    }
+
+    const urlOptions: any = {
+      type: "authenticated",
+      sign_url: true,
+      transformation: [],
+    };
+
+    if (options.width || options.height) {
+      urlOptions.transformation.push({
+        width: options.width || 200,
+        height: options.height || 200,
+        crop: options.crop || "fill",
+      });
+    }
+
+    return cloudinary.url(publicId, urlOptions);
+  } catch (error) {
+    console.error("Generate signed URL error:", error);
+    return null;
+  }
+};
+
+export const getSignedUrl = async (req, res) => {
+  try {
+    const { publicId, width, height, crop } = req.body;
+
+    if (!publicId) {
+      return res.status(400).json({
+        error: "Missing required parameter: publicId",
+      });
+    }
+
+    const options = { width, height, crop };
+    const signedUrl = generateSignedUrl(publicId, options);
+
+    if (!signedUrl) {
+      return res.status(500).json({
+        error: "Failed to generate signed URL",
+      });
+    }
+
+    return res.json({
+      signedUrl,
+      publicId,
+    });
+  } catch (error) {
+    console.error("Error generating signed URL:", error);
+    return res.status(500).json({
+      error: "Failed to generate signed URL",
     });
   }
 };
+
+export default cloudinary;

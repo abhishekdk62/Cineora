@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Lexend } from "next/font/google";
 import { User, UserCheck, UserX, Clock } from "lucide-react";
 import toast from "react-hot-toast";
@@ -49,7 +49,7 @@ export interface UserResponse {
         currentPage: number;
         totalPages: number;
         total: number;
-        loimit: number;
+        limit: number;
       };
     };
   };
@@ -157,6 +157,10 @@ const UsersManager: React.FC = () => {
   const [totalItems, setTotalItems] = useState(0);
   const [itemsPerPage] = useState(10);
 
+  // Add search state
+  const [searchTerm, setSearchTerm] = useState("");
+  const searchTimeoutRef = useRef<NodeJS.Timeout>();
+
   const [activeCounts, setActiveCounts] = useState({
     activeUsers: 0,
     inactiveUsers: 0,
@@ -222,6 +226,7 @@ const UsersManager: React.FC = () => {
       } else if (activeView === "unverified") {
         apiFilters.isVerified = false;
       }
+      
       const response: UserResponse = await getUsers(apiFilters);
       console.log(response);
       setUsers(response.data.users);
@@ -239,7 +244,36 @@ const UsersManager: React.FC = () => {
     }
   };
 
+  // Handle search with debouncing
+  const handleSearchChange = useCallback((newSearchTerm: string) => {
+    // Update search term immediately for UI
+    setSearchTerm(newSearchTerm);
+    setCurrentFilters(prev => ({ ...prev, search: newSearchTerm }));
+
+    // Clear existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Set new timeout for API call
+    searchTimeoutRef.current = setTimeout(() => {
+      const newFilters = { ...currentFilters, search: newSearchTerm };
+      handleFiltersChange(newFilters, true);
+    }, 500);
+  }, [currentFilters]);
+
+  // Clear timeout on unmount
   useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    // Reset search when view changes
+    setSearchTerm("");
     setCurrentFilters({});
     setCurrentPage(1);
     setUsers([]);
@@ -270,12 +304,13 @@ const UsersManager: React.FC = () => {
   const renderContent = () => {
     const commonProps = {
       isLoading,
-      currentFilters,
+      currentFilters: { ...currentFilters, search: searchTerm }, // Use local search term
       currentPage,
       totalPages,
       totalItems,
       onPageChange: handlePageChange,
       onFiltersChange: handleFiltersChange,
+      onSearchChange: handleSearchChange, // Pass the new search handler
       onViewDetails: handleViewDetails,
     };
 

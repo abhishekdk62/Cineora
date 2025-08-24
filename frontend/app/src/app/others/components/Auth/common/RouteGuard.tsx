@@ -74,7 +74,6 @@ export default function RouteGuard({
     return path
   }
 
-  // Don't render until mounted - prevents hydration mismatch
   if (!mounted) {
     return null
   }

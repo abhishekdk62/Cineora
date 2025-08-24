@@ -53,9 +53,7 @@ export class AdminRoutes {
       this.controller.getShowtimesByScreenAdmin(req, res)
     );
 
-    // this.router.get("/:showtimeId", (req, res) =>
-    //   this.controller.getShowtime(req, res)
-    // );
+ 
 
     this.router.patch("/showtimes/:showtimeId", (req, res) =>
       this.controller.changeShowtimeStatus(req, res)
@@ -99,37 +97,30 @@ this.router.get("/screens/:id", (req, res) =>
     this.router.delete("/screens/:id", (req, res) =>
       this.screenController.deleteScreen(req, res)
     );
-    // POST /
     this.router.post("/movies", (req, res) =>
       this.moviesController.addMovie(req, res)
     );
 
-    // GET /
     this.router.get("/movies", (req, res) =>
       this.moviesController.getMovies(req, res)
     );
 
-    // GET /filter  <- keep before /:movieId so "filter" doesn't match as an id
     this.router.get("/movies/filter", (req, res) =>
       this.moviesController.getMoviesWithFilters(req, res)
     );
 
-    // GET /:movieId
     this.router.get("/movies/:movieId", (req, res) =>
       this.moviesController.getMovieById(req, res)
     );
 
-    // PATCH /:movieId/toggle-status
     this.router.patch("/movies/:movieId/toggle-status", (req, res) =>
       this.moviesController.toggleMovieStatus(req, res)
     );
 
-    // PUT /:movieId
     this.router.put("/movies/:movieId", (req, res) =>
       this.moviesController.updateMovie(req, res)
     );
 
-    // DELETE /:movieId
     this.router.delete("/movies/:movieId", (req, res) =>
       this.moviesController.deleteMovie(req, res)
     );

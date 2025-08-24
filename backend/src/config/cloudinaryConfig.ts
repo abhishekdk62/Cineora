@@ -1,4 +1,3 @@
-// config/cloudinaryConfig.ts - ✅ This IS a module
 import { v2 as cloudinary } from 'cloudinary';
 
 cloudinary.config({

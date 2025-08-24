@@ -34,14 +34,47 @@ const Form: React.FC<AuthFormProps> = ({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
+
+  const validateForm = () => {
+    const errors: {[key: string]: string} = {};
+
+    // Email validation
+    if (!email) {
+      errors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      errors.email = "Please enter a valid email address";
+    }
+
+    // Password validation
+    if (!password) {
+      errors.password = "Password is required";
+    } else if (password.length < 6) {
+      errors.password = "Password must be at least 6 characters long";
+    }
+
+    // Confirm password validation (only for signup)
+    if (isSignup) {
+      if (!confirmPassword) {
+        errors.confirmPassword = "Please confirm your password";
+      } else if (password !== confirmPassword) {
+        errors.confirmPassword = "Passwords do not match";
+      }
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
-      email,
-      password,
-      confirmPassword: isSignup ? confirmPassword : undefined,
-    });
+    if (validateForm()) {
+      onSubmit({
+        email,
+        password,
+        confirmPassword: isSignup ? confirmPassword : undefined,
+      });
+    }
   };
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
@@ -51,6 +84,28 @@ const Form: React.FC<AuthFormProps> = ({
       }
     } catch (error) {
       console.error('Google Sign-In error:', error);
+    }
+  };
+
+  // Clear validation errors when typing
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+    if (validationErrors.email) {
+      setValidationErrors(prev => ({ ...prev, email: "" }));
+    }
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+    if (validationErrors.password) {
+      setValidationErrors(prev => ({ ...prev, password: "" }));
+    }
+  };
+
+  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setConfirmPassword(e.target.value);
+    if (validationErrors.confirmPassword) {
+      setValidationErrors(prev => ({ ...prev, confirmPassword: "" }));
     }
   };
 
@@ -66,11 +121,20 @@ const Form: React.FC<AuthFormProps> = ({
           </label>
           <input
             id="email"
+            type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className={`${lexendSmall.className} w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent backdrop-blur-sm`}
+            onChange={handleEmailChange}
+            className={`${lexendSmall.className} w-full px-4 py-3 bg-white/10 border ${
+              validationErrors.email ? 'border-red-400' : 'border-white/20'
+            } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent backdrop-blur-sm`}
             placeholder="Enter your email"
           />
+          {/* ✅ EMAIL ERROR DISPLAY */}
+          {validationErrors.email && (
+            <p className={`${lexendSmall.className} text-red-400 text-sm mt-1`}>
+              {validationErrors.email}
+            </p>
+          )}
         </div>
 
         <div>
@@ -85,8 +149,10 @@ const Form: React.FC<AuthFormProps> = ({
               id="password"
               type={showPassword ? "text" : "password"}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={`${lexendSmall.className} w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent backdrop-blur-sm pr-12`}
+              onChange={handlePasswordChange}
+              className={`${lexendSmall.className} w-full px-4 py-3 bg-white/10 border ${
+                validationErrors.password ? 'border-red-400' : 'border-white/20'
+              } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent backdrop-blur-sm pr-12`}
               placeholder="Enter your password"
             />
             <button
@@ -97,6 +163,12 @@ const Form: React.FC<AuthFormProps> = ({
               {showPassword ? <EyeClosed className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
           </div>
+          {/* ✅ PASSWORD ERROR DISPLAY */}
+          {validationErrors.password && (
+            <p className={`${lexendSmall.className} text-red-400 text-sm mt-1`}>
+              {validationErrors.password}
+            </p>
+          )}
         </div>
 
         {!isSignup && (
@@ -124,8 +196,10 @@ const Form: React.FC<AuthFormProps> = ({
                 id="confirmpassword"
                 type={showConfirmPassword ? "text" : "password"}
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className={`${lexendSmall.className} w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent backdrop-blur-sm pr-12`}
+                onChange={handleConfirmPasswordChange}
+                className={`${lexendSmall.className} w-full px-4 py-3 bg-white/10 border ${
+                  validationErrors.confirmPassword ? 'border-red-400' : 'border-white/20'
+                } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent backdrop-blur-sm pr-12`}
                 placeholder="Confirm your password"
               />
               <button
@@ -136,11 +210,17 @@ const Form: React.FC<AuthFormProps> = ({
                 {showConfirmPassword ? <EyeClosed className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
+            {/* ✅ CONFIRM PASSWORD ERROR DISPLAY */}
+            {validationErrors.confirmPassword && (
+              <p className={`${lexendSmall.className} text-red-400 text-sm mt-1`}>
+                {validationErrors.confirmPassword}
+              </p>
+            )}
           </div>
         )}
 
         {error && (
-          <div className="text-red-400 text-sm text-center">{error}</div>
+          <div className="text-red-400 text-sm text-center">Login failed</div>
         )}
 
         <button
@@ -153,7 +233,6 @@ const Form: React.FC<AuthFormProps> = ({
           {loading ? 'Loading...' : (isSignup ? "Sign Up" : "Sign In")}
         </button>
 
-        {/* ✅ Fixed Divider */}
         <div className="flex items-center my-6">
           <div className="flex-grow border-t border-white/20" />
           <span className={`${lexendSmall.className} px-4 text-gray-400`}>
@@ -162,7 +241,6 @@ const Form: React.FC<AuthFormProps> = ({
           <div className="flex-grow border-t border-white/20" />
         </div>
 
-        {/* ✅ Fixed Google Sign-In Button Container */}
         <div className="w-full">
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
@@ -173,7 +251,6 @@ const Form: React.FC<AuthFormProps> = ({
           />
         </div>
 
-        {/* ✅ Fixed Text Container */}
         <div className="text-center mt-6">
           <p className={`${lexendSmall.className} text-gray-400`}>
             {isSignup ? "Already have an account? " : "Don't have an account? "}

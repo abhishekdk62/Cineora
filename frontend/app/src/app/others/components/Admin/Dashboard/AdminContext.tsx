@@ -1,8 +1,5 @@
 import React, { createContext, useContext, useState, Dispatch, SetStateAction } from "react";
 import { Movie } from "./Movies/MoviesList";
-
-
-
 export interface TMDBMovie {
   id: number;
   title: string;
@@ -17,12 +14,10 @@ export interface TMDBMovie {
   original_language: string;
   adult?: boolean;
 }
-
 export interface TMDBGenre {
   id: number;
   name: string;
 }
-
 interface AdminContextType {
   movies: Movie[];
   setMovies: Dispatch<SetStateAction<Movie[]>>;

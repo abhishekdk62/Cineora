@@ -9,14 +9,22 @@ import {
 import { IUserRepository } from "../../user/interfaces/user.repository.interface";
 import { ServiceResponse } from "../../../interfaces/interface";
 import {
+  GenerateSignedUrlDto,
   GetOwnerRequestsFiltersDto,
   KYCSubmissionResponseDataDto,
   OwnerKYCDataDto,
+  UploadFileDto,
+  UploadMultipleFilesDto,
 } from "../dtos/ownerReq.dtos";
 import { IOwnerRequest } from "../interfaces/owner.model.interface";
 import { IOTPRepository } from "../../otp/interfaces/otp.repository.interface";
 import { OTPType } from "../../otp/interfaces/otp.model.interface";
 import { IEmailService } from "../../../services/email.service";
+import {
+  generateSignedUrl,
+  uploadMultipleToCloudinary,
+  uploadToCloudinary,
+} from "../../../utils/signCloudinaryUpload";
 
 export class OwnerRequestService implements IOwnerRequestService {
   constructor(
@@ -275,6 +283,7 @@ export class OwnerRequestService implements IOwnerRequestService {
           isVerified: true,
           theatres: [],
         });
+console.log('the password for the new owner is :',randomPassword);
 
         await this.emailService.sendOwnerWelcomeEmail(
           kycRequest.email,
@@ -433,6 +442,43 @@ export class OwnerRequestService implements IOwnerRequestService {
         });
       }
 
+      result.requests = result.requests.map((request) => {
+        return {
+          ...request,
+          aadhaarUrl: request.aadhaarUrl
+            ? generateSignedUrl(request.aadhaarUrl, {
+                width: 800,
+                height: 600,
+                crop: "fit",
+              })
+            : null,
+          ownerPhotoUrl: request.ownerPhotoUrl
+            ? generateSignedUrl(request.ownerPhotoUrl, {
+                width: 800,
+                height: 600,
+                crop: "fit",
+              })
+            : null,
+
+          panUrl: request.panUrl
+            ? generateSignedUrl(request.panUrl, {
+                width: 800,
+                height: 600,
+                crop: "fit",
+              })
+            : null,
+
+          profilePictureUrl: request.ownerPhotoUrl
+            ? generateSignedUrl(request.ownerPhotoUrl, {
+                width: 400,
+                height: 400,
+                crop: "fill",
+              })
+            : null,
+        };
+      });
+      
+
       return {
         success: true,
         message: "Owner requests fetched successfully",
@@ -453,6 +499,152 @@ export class OwnerRequestService implements IOwnerRequestService {
       return {
         success: false,
         message: "Something went wrong",
+      };
+    }
+  }
+
+  async uploadFile(uploadFileDto: UploadFileDto): Promise<ServiceResponse> {
+    try {
+      const { file, folder } = uploadFileDto;
+
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/jpg",
+        "application/pdf",
+      ];
+      if (!allowedTypes.includes(file.mimetype)) {
+        return {
+          success: false,
+          message:
+            "Invalid file type. Only JPEG, PNG, and PDF files are allowed.",
+        };
+      }
+
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        return {
+          success: false,
+          message: "File size too large. Maximum 5MB allowed.",
+        };
+      }
+      const options = {
+        folder: folder,
+        resource_type: file.mimetype.startsWith("image/")
+          ? ("image" as const)
+          : ("raw" as const),
+      };
+
+      const result = await uploadToCloudinary(file, options);
+
+      return {
+        success: true,
+        message: "File uploaded successfully",
+        data: {
+          public_id: result.public_id,
+          width: result.width,
+          height: result.height,
+          format: result.format,
+          bytes: result.bytes,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "File upload failed",
+      };
+    }
+  }
+
+  async uploadMultipleFiles(
+    uploadMultipleDto: UploadMultipleFilesDto
+  ): Promise<ServiceResponse> {
+    try {
+      const { files, folder } = uploadMultipleDto;
+
+      // Validate each file
+      for (const file of files) {
+        const allowedTypes = [
+          "image/jpeg",
+          "image/png",
+          "image/jpg",
+          "application/pdf",
+        ];
+        if (!allowedTypes.includes(file.mimetype)) {
+          return {
+            success: false,
+            message: `Invalid file type for ${file.originalname}. Only JPEG, PNG, and PDF files are allowed.`,
+          };
+        }
+
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+          return {
+            success: false,
+            message: `File ${file.originalname} is too large. Maximum 5MB allowed.`,
+          };
+        }
+      }
+
+      const options = {
+        folder: folder || "uploads",
+      };
+
+      const results = await uploadMultipleToCloudinary(files, options);
+
+      return {
+        success: true,
+        message: `Successfully uploaded ${results.length} files`,
+        data: results.map((result) => ({
+          url: result.secure_url,
+          public_id: result.public_id,
+          width: result.width,
+          height: result.height,
+          format: result.format,
+          bytes: result.bytes,
+        })),
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Multiple file upload failed",
+      };
+    }
+  }
+
+  async generateSignedUrl(
+    signedUrlDto: GenerateSignedUrlDto
+  ): Promise<ServiceResponse> {
+    try {
+      const { publicId, width, height, crop } = signedUrlDto;
+
+      const options = {
+        width,
+        height,
+        crop,
+      };
+
+      const signedUrl = generateSignedUrl(publicId, options);
+
+      if (!signedUrl) {
+        return {
+          success: false,
+          message: "Failed to generate signed URL",
+        };
+      }
+
+      return {
+        success: true,
+        message: "Signed URL generated successfully",
+        data: {
+          signedUrl,
+          publicId,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || "Failed to generate signed URL",
       };
     }
   }

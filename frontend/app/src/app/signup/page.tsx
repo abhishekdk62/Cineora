@@ -139,7 +139,7 @@ export default function SignUp() {
 
       if (googleLogin.fulfilled.match(resultAction)) {
         const data = resultAction.payload;
-        localStorage.setItem("role", data.user.role);
+        // localStorage.setItem("role", data.user.role);
         redirectBasedOnRole(data.user.role);
       } else {
         console.error("Google auth failed:", resultAction);

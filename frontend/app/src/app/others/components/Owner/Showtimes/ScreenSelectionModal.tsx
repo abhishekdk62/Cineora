@@ -77,13 +77,11 @@ const ScreenSelectionModal: React.FC<ScreenSelectionModalProps> = ({
     setSelectedScreen(screen);
   };
 
-  // Handle final selection from details modal
   const handleFinalSelect = (screen: Screen) => {
     onSelect(screen);
     setSelectedScreen(null);
   };
 
-  // Close details modal
   const closeDetailsModal = () => {
     setSelectedScreen(null);
   };

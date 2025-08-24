@@ -67,18 +67,15 @@ const MovieSelectionModal: React.FC<MovieSelectionModalProps> = ({
     return `${hours}h ${mins}m`;
   };
 
-  // Handle movie selection - open details modal
   const handleMovieClick = (movie: Movie) => {
     setSelectedMovie(movie);
   };
 
-  // Handle final selection from details modal
   const handleFinalSelect = (movie: Movie) => {
     onSelect(movie);
     setSelectedMovie(null);
   };
 
-  // Close details modal
   const closeDetailsModal = () => {
     setSelectedMovie(null);
   };

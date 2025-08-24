@@ -147,7 +147,7 @@ export class MoviesController {
     }
   }
 
- async updateMovie(req: Request, res: Response) { // ✅ Remove Promise<void>
+ async updateMovie(req: Request, res: Response) { 
   try {
     const { movieId } = req.params;
     if (!movieId) {
@@ -156,9 +156,8 @@ export class MoviesController {
 
     const movieData: UpdateMovieDto = req.body;
 
-    // ✅ Use movieId (not params.movieId)
     const updated = await this.movieService.updateMovie(
-      movieId, // ✅ Fixed - was params.movieId
+      movieId, 
       movieData
     );
 
@@ -176,7 +175,6 @@ export class MoviesController {
       })
     );
   } catch (err) {
-    // ✅ Add return for consistency
     return res.status(500).json(
       createResponse({
         success: false,

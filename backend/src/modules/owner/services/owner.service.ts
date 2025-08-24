@@ -12,6 +12,7 @@ import {
 import { ServiceResponse } from "../../../interfaces/interface";
 import { OwnerFilterDto, UpdateOwnerProfileDto } from "../dtos/owner.dtos";
 import { IOTPRepository } from "../../otp/interfaces/otp.repository.interface";
+import { generateSignedUrl } from "../../../utils/signCloudinaryUpload";
 
 export class OwnerService implements IOwnerService {
   constructor(
@@ -22,30 +23,86 @@ export class OwnerService implements IOwnerService {
     private readonly userRepo: IUserRepository
   ) {}
 
-  async getOwnerProfile(requestId: string): Promise<ServiceResponse> {
-    try {
-      const owner = await this.ownerRepo.findById(requestId);
+ async getOwnerProfile(requestId: string): Promise<ServiceResponse> {
+  try {
+    let owner = await this.ownerRepo.findById(requestId);
 
-      if (!owner) {
-        return {
-          success: false,
-          message: "Owner account not found",
-        };
-      }
-
-      return {
-        success: true,
-        message: "Owner account fetched successfully",
-        data: owner,
-      };
-    } catch (error) {
-      console.error("Get owner account error:", error);
+    if (!owner) {
       return {
         success: false,
-        message: "Something went wrong",
+        message: "Owner account not found",
       };
     }
+
+    // Helper function to extract public ID from URL or return as-is if already public ID
+    const extractPublicId = (urlOrPublicId: string): string | null => {
+      if (!urlOrPublicId) return null;
+      
+      // If already a public_id format (no https://)
+      if (!urlOrPublicId.startsWith('https://')) {
+        return urlOrPublicId;
+      }
+      
+      // Extract from Cloudinary URLs
+      const urlParts = urlOrPublicId.split('/');
+      
+      // Find the version part (v1234567890) or upload index
+      let startIndex = -1;
+      for (let i = 0; i < urlParts.length; i++) {
+        if (urlParts[i] === 'upload' || urlParts[i] === 'authenticated' || urlParts[i].startsWith('v')) {
+          startIndex = i + 1;
+          break;
+        }
+      }
+      
+      if (startIndex === -1) return null;
+      
+      // Join remaining parts and remove file extension
+      const publicIdWithExt = urlParts.slice(startIndex).join('/');
+      return publicIdWithExt.replace(/\.[^/.]+$/, ''); // Remove extension
+    };
+
+    // Generate signed URLs for owner's documents
+    owner = {
+      ...owner,
+      aadhaarUrl: owner.aadhaarUrl
+        ? generateSignedUrl(extractPublicId(owner.aadhaarUrl), {
+            width: 800,
+            height: 600,
+            crop: "fit",
+          })
+        : null,
+
+      panUrl: owner.panUrl
+        ? generateSignedUrl(extractPublicId(owner.panUrl), {
+            width: 800,
+            height: 600,
+            crop: "fit",
+          })
+        : null,
+
+      ownerPhotoUrl: owner.ownerPhotoUrl
+        ? generateSignedUrl(extractPublicId(owner.ownerPhotoUrl), {
+            width: 400,
+            height: 400,
+            crop: "fill",
+          })
+        : null,
+    };
+
+    return {
+      success: true,
+      message: "Owner account fetched successfully",
+      data: owner,
+    };
+  } catch (error) {
+    console.error("Get owner account error:", error);
+    return {
+      success: false,
+      message: "Something went wrong",
+    };
   }
+}
 
   async getOwnerById(ownerId: string): Promise<ServiceResponse> {
     try {
@@ -120,7 +177,7 @@ export class OwnerService implements IOwnerService {
     }
   }
 
-  async getOwners(filters: OwnerFilterDto): Promise<ServiceResponse> {
+async getOwners(filters: OwnerFilterDto): Promise<ServiceResponse> {
     try {
       const {
         search,
@@ -167,6 +224,44 @@ export class OwnerService implements IOwnerService {
           return aValue > bValue ? 1 : -1;
         });
       }
+
+   
+         result.owners = result.owners.map((request) => {
+           return {
+             ...request,
+             aadhaarUrl: request.aadhaarUrl
+               ? generateSignedUrl(request.aadhaarUrl, {
+                   width: 800,
+                   height: 600,
+                   crop: "fit",
+                 })
+               : null,
+             ownerPhotoUrl: request.ownerPhotoUrl
+               ? generateSignedUrl(request.ownerPhotoUrl, {
+                   width: 800,
+                   height: 600,
+                   crop: "fit",
+                 })
+               : null,
+   
+             panUrl: request.panUrl
+               ? generateSignedUrl(request.panUrl, {
+                   width: 800,
+                   height: 600,
+                   crop: "fit",
+                 })
+               : null,
+   
+             profilePictureUrl: request.ownerPhotoUrl
+               ? generateSignedUrl(request.ownerPhotoUrl, {
+                   width: 400,
+                   height: 400,
+                   crop: "fill",
+                 })
+               : null,
+           };
+         });
+         
 
       return {
         success: true,

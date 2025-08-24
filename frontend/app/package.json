@@ -20,7 +20,7 @@
     "cloudinary": "^2.7.0",
     "clsx": "^2.1.1",
     "crypto-js": "^4.2.0",
-    "framer-motion": "^12.23.11",
+    "framer-motion": "^12.23.12",
     "gsap": "^3.13.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.532.0",

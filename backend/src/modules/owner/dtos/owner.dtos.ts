@@ -1,6 +1,5 @@
 import { IOwner } from "../interfaces/owner.model.interface";
 
-// ===== INPUT DTOs =====
 export interface PaginationDto {
   page: number;
   limit: number;
@@ -93,7 +92,6 @@ export interface BulkUpdateResultDto {
   success: boolean;
 }
 
-// ===== ENUMS =====
 export enum OwnerStatus {
   ACTIVE = "active",
   INACTIVE = "inactive",
@@ -173,7 +171,6 @@ export interface OwnerStatsDto {
   totalTheatres: number;
 }
 
-// Missing DTOs for service operations
 export interface OwnerLoginDto {
   email: string;
   password: string;
@@ -247,7 +244,6 @@ export interface RejectOwnerRequestDto {
   rejectionReason: string;
 }
 
-// Response DTOs
 export interface KYCSubmissionResponseDto {
   requestId: string;
   status: string;

@@ -662,6 +662,18 @@ const userResponse = {
         });
       }
 
+         result.users = result.users.map((request) => {
+           return {
+             ...request,
+             profilePicture: request.profilePicture
+               ? generateSignedUrl(request.profilePicture, {
+                   width: 800,
+                   height: 600,
+                   crop: "fit",
+                 })
+               : null,
+           };
+         });
       return {
         success: true,
         message: "Users fetched successfully",

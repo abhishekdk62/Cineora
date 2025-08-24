@@ -28,7 +28,6 @@ export interface PaginatedResultDto<T> {
   total: number;
 }
 
-// ===== INPUT DTOs =====
 export interface SendOTPDto {
   email: string;
 }
@@ -77,7 +76,6 @@ export interface GetOwnerRequestsFiltersDto {
   limit?: number;
 }
 
-// ===== OUTPUT DTOs =====
 export interface ServiceResponseDto<T = any> {
   success: boolean;
   message: string;
@@ -114,4 +112,22 @@ export interface RequestsWithMetaDto {
   meta: {
     pagination: RequestsMetaPaginationDto;
   };
+}
+
+
+export interface UploadFileDto {
+  file: Express.Multer.File;
+  folder: string;
+}
+
+export interface UploadMultipleFilesDto {
+  files: Express.Multer.File[];
+  folder: string;
+}
+
+export interface GenerateSignedUrlDto {
+  publicId: string;
+  width?: number;
+  height?: number;
+  crop?: string;
 }

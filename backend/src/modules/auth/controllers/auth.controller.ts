@@ -13,7 +13,7 @@ import {
 export class AuthController {
   constructor(private readonly authService: IAuthService) {}
 
-  async login(req: Request, res: Response): Promise<void> {
+  async login(req: Request, res: Response): Promise<any> {
     try {
       const loginData: LoginRequestDto = req.body;
 
@@ -83,7 +83,7 @@ export class AuthController {
     }
   }
 
-  async sendPasswordResetOTP(req: Request, res: Response): Promise<void> {
+  async sendPasswordResetOTP(req: Request, res: Response): Promise<any> {
     try {
       const requestData: SendPasswordResetOtpRequestDto = req.body;
 
@@ -125,7 +125,7 @@ export class AuthController {
     }
   }
 
-  async verifyPasswordResetOtp(req: Request, res: Response): Promise<void> {
+  async verifyPasswordResetOtp(req: Request, res: Response): Promise<any> {
     try {
       const requestData: VerifyPasswordResetOtpRequestDto = req.body;
 
@@ -167,7 +167,7 @@ export class AuthController {
     }
   }
 
-  async resetPasswordWithOTP(req: Request, res: Response): Promise<void> {
+  async resetPasswordWithOTP(req: Request, res: Response): Promise<any> {
     try {
       const requestData: ResetPasswordRequestDto = req.body;
 
@@ -264,10 +264,9 @@ export class AuthController {
     }
   }
 
-  async checkAuthProvider(req: Request, res: Response): Promise<void> {
+  async checkAuthProvider(req: Request, res: Response): Promise<any> {
     try {
-      const params: CheckAuthProviderParamsDto =
-        req.params as CheckAuthProviderParamsDto;
+      const params = req.params;
 
       if (!params.email) {
         res.status(400).json({
@@ -291,7 +290,7 @@ export class AuthController {
     }
   }
 
-  async logout(req: Request, res: Response): Promise<void> {
+  async logout(req: Request, res: Response): Promise<any> {
     try {
       const userId = req.user?.userId || req.user?.adminId || req.user?.ownerId;
       const userType = req.user?.role;
@@ -323,7 +322,7 @@ export class AuthController {
       );
     }
   }
-  getCurrentUser = async (req: Request, res: Response): Promise<void> => {
+  getCurrentUser = async (req: Request, res: Response): Promise<any> => {
     try {
       let userId: string | undefined;
       let userRole: string | undefined;

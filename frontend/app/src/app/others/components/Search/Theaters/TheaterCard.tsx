@@ -108,7 +108,7 @@ const TheaterCard: React.FC<TheaterCardProps> = ({ theater, onViewNowShowing }) 
               const url = `https://www.google.com/maps?q=${theater.location.coordinates[1]},${theater.location.coordinates[0]}`;
               window.open(url, "_blank");
             }}
-            className="mt-2 text-xs text-[#e78f03] hover:text-[#d67e02] underline"
+            className="ml-8 text-xs text-[#24a1cf] hover:text-[#1694c3] underline"
           >
             View on Google Maps
           </button>

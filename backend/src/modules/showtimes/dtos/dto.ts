@@ -1,8 +1,6 @@
 import { IMovieShowtime } from "../interfaces/showtimes.model.interfaces";
 
-// ================ INPUT DTOs (for Controllers) ================
 
-// Create Showtime DTO
 export interface CreateShowtimeDto {
   movieId: string;
   theaterId: string;
@@ -17,12 +15,10 @@ export interface CreateShowtimeDto {
   ageRestriction?: number;
 }
 
-// Bulk Create DTO
 export interface CreateBulkShowtimesDto {
   showtimeList: CreateShowtimeDto[];
 }
 
-// Update Showtime DTO  
 export interface UpdateShowtimeDto {
   showDate?: Date;
   showTime?: string;
@@ -38,7 +34,6 @@ export interface UpdateShowtimeDto {
   ageRestriction?: number;
 }
 
-// Row Pricing DTO
 export interface RowPricingDto {
   rowLabel: string;
   seatType: "VIP" | "Premium" | "Normal";
@@ -49,7 +44,6 @@ export interface RowPricingDto {
   bookedSeats?: string[];
 }
 
-// Seat Block DTO
 export interface SeatBlockDto {
   seatId: string;
   userId: string;
@@ -58,7 +52,6 @@ export interface SeatBlockDto {
   expiresAt?: Date;
 }
 
-// Seat Operations DTOs
 export interface BlockSeatsDto {
   seatIds: string[];
   userId: string;
@@ -75,7 +68,6 @@ export interface BookSeatsDto {
   seatIds: string[];
 }
 
-// Query DTOs
 export interface ShowtimeQueryDto {
   page?: number;
   limit?: number;
@@ -96,9 +88,6 @@ export interface UpdateStatusDto {
   isActive: boolean;
 }
 
-// ================ OUTPUT DTOs (for Services) ================
-
-// Response DTOs
 export interface ShowtimeResponseDto {
   id: string;
   ownerId: string;
@@ -173,7 +162,6 @@ export interface ShowtimeDetailsResponseDto {
   rowPricing: RowPricingResponseDto[];
 }
 
-// ================ FILTER & UTILITY INTERFACES ================
 
 export interface ShowtimeFilters {
   search?: string;

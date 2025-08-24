@@ -264,21 +264,17 @@ export class ScreenService implements IScreenService {
         };
       }
 
-      // Get all screens for the theater
       const screens = await this.screenRepo.findByTheaterId(theaterId);
 
-      // Calculate statistics
       const totalScreens = screens.length;
       const activeScreens = screens.filter((screen) => screen.isActive).length;
       const inactiveScreens = totalScreens - activeScreens;
 
-      // Calculate seat statistics
       const totalSeats = screens.reduce(
         (sum, screen) => sum + screen.totalSeats,
         0
       );
 
-      // Calculate seat type distribution
       const seatTypeDistribution = {
         Normal: 0,
         Premium: 0,
@@ -306,18 +302,15 @@ export class ScreenService implements IScreenService {
         }
       });
 
-      // Calculate average seats per screen
       const avgSeatsPerScreen =
         totalScreens > 0 ? Math.round(totalSeats / totalScreens) : 0;
 
-      // Get screen types distribution
       const screenTypeDistribution: Record<string, number> = {};
       screens.forEach((screen) => {
         const type = screen.screenType || "Standard";
         screenTypeDistribution[type] = (screenTypeDistribution[type] || 0) + 1;
       });
 
-      // Calculate features frequency
       const featuresDistribution: Record<string, number> = {};
       screens.forEach((screen) => {
         if (screen.features && screen.features.length > 0) {

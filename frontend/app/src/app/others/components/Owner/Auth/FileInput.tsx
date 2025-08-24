@@ -42,76 +42,76 @@ export default function FileUploadInput({
     error: null
   });
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      const error = 'File size too large. Maximum 5MB allowed.';
-      setFileState({
-        file,
-        url: null,
-        uploading: false,
-        uploaded: false,
-        error
-      });
-      onUploadError?.(error);
-      return;
-    }
-
-    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
-    if (!validTypes.includes(file.type)) {
-      const error = 'Invalid file type. Only JPEG, PNG, and PDF files are allowed.';
-      setFileState({
-        file,
-        url: null,
-        uploading: false,
-        uploaded: false,
-        error
-      });
-      onUploadError?.(error);
-      return;
-    }
-
+  if (file.size > 5 * 1024 * 1024) {
+    const error = 'File size too large. Maximum 5MB allowed.';
     setFileState({
       file,
       url: null,
-      uploading: true,
+      uploading: false,
       uploaded: false,
-      error: null
+      error
     });
+    onUploadError?.(error);
+    return;
+  }
 
-    onUploadStart?.();
+  const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+  if (!validTypes.includes(file.type)) {
+    const error = 'Invalid file type. Only JPEG, PNG, and PDF files are allowed.';
+    setFileState({
+      file,
+      url: null,
+      uploading: false,
+      uploaded: false,
+      error
+    });
+    onUploadError?.(error);
+    return;
+  }
 
-    try {
-      const result = await uploadKYCImage(file, folder);
-      
-      if (result.success && result.url) {
-        setFileState({
-          file,
-          url: result.url,
-          uploading: false,
-          uploaded: true,
-          error: null
-        });
-        onUploadComplete(result.url);
-      } else {
-        throw new Error(result.error || 'Upload failed');
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+  setFileState({
+    file,
+    url: null,
+    uploading: true,
+    uploaded: false,
+    error: null
+  });
+
+  onUploadStart?.();
+
+  try {
+    const result = await uploadKYCImage(file, folder);
+    
+    if (result.success && result.public_id) {
       setFileState({
         file,
-        url: null,
+        url: result.public_id,  
         uploading: false,
-        uploaded: false,
-        error: errorMessage
+        uploaded: true,
+        error: null
       });
-      onUploadError?.(errorMessage);
+      onUploadComplete(result.public_id);  
+    } else {
+      throw new Error(result.error || 'Upload failed');
     }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+    setFileState({
+      file,
+      url: null,
+      uploading: false,
+      uploaded: false,
+      error: errorMessage
+    });
+    onUploadError?.(errorMessage);
+  }
 
-    e.target.value = '';
-  };
+  e.target.value = '';
+};
 
   const removeFile = () => {
     setFileState({

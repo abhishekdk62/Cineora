@@ -182,7 +182,7 @@ export class OwnerController {
   async sendEmailChangeOtp(req: Request, res: Response): Promise<any> {
     try {
       const { ownerId } = req.owner;
-      const emailChangeRequestDto: EmailChangeRequestDto = req.body; // ✅ DTO validation
+      const emailChangeRequestDto: EmailChangeRequestDto = req.body; 
 
       if (!emailChangeRequestDto.newEmail || !emailChangeRequestDto.password) {
         return res.status(400).json(
@@ -227,7 +227,7 @@ export class OwnerController {
   async verifyEmailChangeOtp(req: Request, res: Response): Promise<any> {
     try {
       const { ownerId } = req.owner;
-      const emailChangeVerificationDto: EmailChangeVerificationDto = req.body; // ✅ DTO validation
+      const emailChangeVerificationDto: EmailChangeVerificationDto = req.body; 
 
       if (
         !emailChangeVerificationDto.email ||
