@@ -158,7 +158,7 @@ export interface UserResponseDtoWithUrl {
   email: string;
   firstName: string;
   lastName: string;
-  dateOfBirth: Date | string; // depends on how you return it
+  dateOfBirth: Date | string; 
   language: string;
   gender: string;
   phone: string;
@@ -170,5 +170,5 @@ export interface UserResponseDtoWithUrl {
   joinedAt: Date | string;
   lastActive: Date | string;
   isActive: boolean;
-  profilePicture: string; // signed URL
+  profilePicture: string; 
 }

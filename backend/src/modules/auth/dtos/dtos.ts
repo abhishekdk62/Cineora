@@ -21,13 +21,11 @@ export interface TokenPayload {
 }
 
 
-// Login DTOs
 export interface LoginRequestDto {
   email: string;
   password: string;
 }
 
-// Password Reset DTOs
 export interface SendPasswordResetOtpDto {
   email: string;
 }
@@ -43,12 +41,10 @@ export interface ResetPasswordWithOtpDto {
   newPassword: string;
 }
 
-// Google Auth DTOs
 export interface GoogleAuthDto {
   credential: string;
 }
 
-// Token DTOs
 export interface RefreshTokenDto {
   refreshToken: string;
 }
@@ -62,7 +58,6 @@ export interface CheckAuthProviderDto {
   email: string;
 }
 
-// JWT Payload DTOs
 export interface JwtPayloadDto {
   email: string;
   role: string;
@@ -71,7 +66,6 @@ export interface JwtPayloadDto {
   userId?: string;
   tokenType?: string;
 }
-// Login Response DTOs
 export interface UserDataDto {
   id: string;
   email: string;
@@ -102,7 +96,6 @@ export interface LoginResponseDto {
   data?: LoginSuccessDataDto;
 }
 
-// Password Reset Response DTOs
 export interface SendPasswordResetOtpSuccessDataDto {
   email: string;
   userType: string;
@@ -137,7 +130,6 @@ export interface ResetPasswordWithOtpResponseDto {
   data?: ResetPasswordWithOtpSuccessDataDto;
 }
 
-// Google Auth Response DTOs
 export interface GoogleAuthSuccessDataDto {
   accessToken: string;
   refreshToken: string;
@@ -151,7 +143,6 @@ export interface GoogleAuthResponseDto {
   data?: GoogleAuthSuccessDataDto;
 }
 
-// Token Response DTOs
 export interface RefreshTokenSuccessDataDto {
   accessToken: string;
   refreshToken: string;
@@ -164,7 +155,6 @@ export interface RefreshTokenResponseDto {
   data?: RefreshTokenSuccessDataDto;
 }
 
-// Auth Provider Response DTOs
 export interface CheckAuthProviderSuccessDataDto {
   authProvider: string;
   hasGoogleLinked: boolean;
@@ -179,7 +169,6 @@ export interface CheckAuthProviderResponseDto {
   data?: CheckAuthProviderSuccessDataDto;
 }
 
-// Generic Response DTOs
 export interface AuthSuccessResponseDto {
   success: true;
   message: string;
@@ -190,7 +179,6 @@ export interface AuthErrorResponseDto {
   message: string;
 }
 
-// Google User Data DTO (internal)
 export interface GoogleUserDataDto {
   googleId: string;
   email: string;
@@ -199,7 +187,6 @@ export interface GoogleUserDataDto {
   emailVerified: boolean;
 }
 
-// User lookup response DTO
 export interface UserLookupResponseDto {
   _id: string;
   email: string;
@@ -208,13 +195,11 @@ export interface UserLookupResponseDto {
   ownerName: string | null;
 }
 
-// Token Pair Response DTO
 export interface TokenPairDto {
   accessToken: string;
   refreshToken: string;
 }
 
-// Create Google User Input DTO
 export interface CreateGoogleUserDto {
   username: string;
   email: string;
@@ -225,14 +210,12 @@ export interface CreateGoogleUserDto {
   isVerified: boolean;
 }
 
-// Update Google User DTO
 export interface UpdateGoogleUserDto {
   firstName: string;
   avatar: string;
   isVerified: boolean;
 }
 
-// Link Google Account DTO
 export interface LinkGoogleAccountDto {
   firstName: string;
   avatar: string;

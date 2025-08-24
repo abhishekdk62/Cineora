@@ -88,7 +88,7 @@ export class ShowtimeRepository implements IShowtimeRepository {
     userId: string,
     sessionId: string
   ): Promise<boolean> {
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); 
 
     const seatBlocks = seatIds.map((seatId) => ({
       seatId,
@@ -205,14 +205,12 @@ export class ShowtimeRepository implements IShowtimeRepository {
   private applyFilters(query: any, filters?: ShowtimeFilters): void {
     if (!filters) return;
 
-    // Search filter (movie title, format, language)
     if (filters.search) {
       const searchRegex = new RegExp(filters.search, 'i');
       query.$or = [
         { format: searchRegex },
         { language: searchRegex },
         { showTime: searchRegex },
-        // You might want to add movie title search via populate/lookup
       ];
     }
 
@@ -226,32 +224,26 @@ export class ShowtimeRepository implements IShowtimeRepository {
       };
     }
 
-    // Status filter
     if (filters.isActive !== undefined) {
       query.isActive = filters.isActive;
     }
 
-    // Format filter
     if (filters.format) {
       query.format = filters.format;
     }
 
-    // Language filter
     if (filters.language) {
       query.language = filters.language;
     }
 
-    // Theater filter
     if (filters.theaterId) {
       query.theaterId = new mongoose.Types.ObjectId(filters.theaterId);
     }
 
-    // Screen filter (for general admin search)
     if (filters.screenId) {
       query.screenId = new mongoose.Types.ObjectId(filters.screenId);
     }
 
-    // Movie filter
     if (filters.movieId) {
       query.movieId = new mongoose.Types.ObjectId(filters.movieId);
     }
@@ -286,7 +278,6 @@ export class ShowtimeRepository implements IShowtimeRepository {
       $inc: { availableSeats: -seatIds.length },
     });
 
-    // Update row-wise availability
     if (result) {
       const updatePromises = seatIds.map((seatId) => {
         const rowLabel = seatId[0]; // Extract row letter

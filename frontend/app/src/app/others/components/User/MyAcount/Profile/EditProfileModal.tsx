@@ -139,7 +139,6 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
   const imgRef = useRef<HTMLImageElement>(null);
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
 
-  /* ----- helpers ----- */
   const onInput = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -147,7 +146,6 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Add updateFormData function
   const updateFormData = (updates: Partial<EditFormData>) => {
     setFormData(prev => ({ ...prev, ...updates }));
   };

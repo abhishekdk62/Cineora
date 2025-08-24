@@ -256,6 +256,7 @@ async findWithFilters({
   limit,
   latitude,
   longitude,
+  facilities
 }: TheaterFilters) {
   const pageNum = typeof page === "string" ? parseInt(page, 10) : page || 1;
   const limitNum = typeof limit === "string" ? parseInt(limit, 10) : limit || 10;
@@ -268,7 +269,7 @@ async findWithFilters({
         $geoNear: {
           near: {
             type: "Point",
-            coordinates: [lon, lat],    // <-- use parsed lon and lat
+            coordinates: [lon, lat],
           },
           distanceField: "distance",
           maxDistance: 50000,
@@ -277,6 +278,7 @@ async findWithFilters({
           query: {
             isActive: true,
             isVerified: true,
+            ...(facilities && facilities.length > 0 ? { facilities: { $in: facilities } } : {})
           },
         },
       },
@@ -306,11 +308,9 @@ async findWithFilters({
     });
 
     const countPipeline = [...pipeline, { $count: "total" }];
-
-    // Use parsed pageNum and limitNum
     const skip = (pageNum - 1) * limitNum;
     pipeline.push({ $skip: skip });
-    pipeline.push({ $limit: limitNum }); // <-- corrected to limitNum
+    pipeline.push({ $limit: limitNum });
 
     const [theaters, totalCount] = await Promise.all([
       Theater.aggregate(pipeline),
@@ -337,6 +337,11 @@ async findWithFilters({
     ];
   }
 
+  // Add facilities filter for non-geospatial queries
+  if (facilities && facilities.length > 0) {
+    query.facilities = { $in: facilities };
+  }
+
   let mongooseQuery = Theater.find(query);
 
   switch (sortBy) {
@@ -360,7 +365,7 @@ async findWithFilters({
   const skip = (pageNum - 1) * limitNum;
   const [total, theaters] = await Promise.all([
     Theater.countDocuments(query),
-    mongooseQuery.skip(skip).limit(limitNum).lean(), // <-- always limitNum
+    mongooseQuery.skip(skip).limit(limitNum).lean(),
   ]);
 
   // Manual distance calculation if lat/lon provided

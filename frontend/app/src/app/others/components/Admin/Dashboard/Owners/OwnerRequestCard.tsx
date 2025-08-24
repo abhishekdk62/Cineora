@@ -68,6 +68,7 @@ const OwnerRequestCard: React.FC<OwnerRequestCardProps> = ({
       minute: '2-digit'
     })
   }
+console.log(request);
 
   return (
     <>

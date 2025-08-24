@@ -18,11 +18,13 @@ export class TheaterController {
     private readonly screenService: IScreenService
   ) {}
 
-  async getTheatersWithFilters(
-    req: Request,
-    res: Response
-  ): Promise<any> {
+  async getTheatersWithFilters(req: Request, res: Response): Promise<any> {
     try {
+      let facilities: string[] | undefined;
+
+      if (req.query.facilities && typeof req.query.facilities === "string") {
+        facilities = req.query.facilities.split(",").map((f) => f.trim());
+      }
       const filters: TheaterFilters = {
         search: req.query.search as string,
         sortBy: req.query.sortBy as string,
@@ -34,6 +36,7 @@ export class TheaterController {
         longitude: req.query.longitude
           ? parseFloat(req.query.longitude as string)
           : undefined,
+        facilities: facilities,
       };
 
       const result: PaginatedTheatersDto =
@@ -112,10 +115,7 @@ export class TheaterController {
     }
   }
 
-  async getTheatersByOwnerId(
-    req: Request,
-    res: Response
-  ): Promise<any> {
+  async getTheatersByOwnerId(req: Request, res: Response): Promise<any> {
     try {
       const ownerId = req.query.ownerId || req.owner.ownerId;
       const filters: TheaterFilters = req.query;
@@ -317,12 +317,10 @@ export class TheaterController {
   //   }
   // }
 
-  async toggleTheaterStatus(
-    req: Request,
-    res: Response
-  ): Promise<any> {
+  async toggleTheaterStatus(req: Request, res: Response): Promise<any> {
     try {
-      const { id } = req.params;
+      const id = req.params.id || req.params.theaterId;
+
       if (!id) {
         return res.status(400).json({
           message: "Theater ID is required",

@@ -19,11 +19,11 @@ export interface IScreen extends Document {
         }[];
       }[];
     };
-    seatMap?: any; // Keep for backward compatibility
+    seatMap?: any; 
   };
-  screenType?: string; // Made optional since it's not in frontend
-  features?: string[]; // Made optional since it's not in frontend
+  screenType?: string; 
+  features?: string[]; 
   isActive: boolean;
-  createdAt?: Date; // Added from frontend interface
-  updatedAt?: Date; // Added from frontend interface
+  createdAt?: Date; 
+  updatedAt?: Date; 
 }

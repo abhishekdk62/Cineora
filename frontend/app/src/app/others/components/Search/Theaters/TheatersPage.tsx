@@ -3,23 +3,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import TheaterListManager from "./TheaterListManager";
 import { GetTheatersFilters, getTheatersWithFilters, Theater } from "@/app/others/services/userServices/theaterServices";
-import { useSelector } from "react-redux";
-import { RootState } from "@/app/others/redux/store";
-
+import { useDebounce } from "@/app/others/Utils/debounce";
 
 type SortOption = "nearby" | "rating-high" | "rating-low" | "a-z" | "z-a";
-
-
-function debounce<T extends (...args: any[]) => void>(
-  func: T,
-  delay: number
-): (...args: Parameters<T>) => void {
-  let timeoutId: ReturnType<typeof setTimeout>;
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => func(...args), delay);
-  };
-}
 
 const TheatersPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -27,18 +13,21 @@ const TheatersPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [theaters, setTheaters] = useState<Theater[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchLoading, setSearchLoading] = useState(false); // Add search-specific loading
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-
   const [error, setError] = useState<string | null>(null);
-const[userLocation,setUserLocation]=useState<any>()
+  const [userLocation, setUserLocation] = useState<any>();
+  const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
+  const [currentFilters, setCurrentFilters] = useState({}); // Track current filters
+
   const itemsPerPage = 6;
 
-
-  const loadTheaters = async (
+  const loadTheaters = useCallback(async (
     search: string = searchTerm,
     sort: SortOption = sortBy,
-    page: number = currentPage
+    page: number = currentPage,
+    facilities: string[] = selectedFacilities 
   ) => {
     try {
       setIsLoading(true);
@@ -58,6 +47,7 @@ const[userLocation,setUserLocation]=useState<any>()
         sortBy: sort,
         page,
         limit: itemsPerPage,
+        facilities, 
         ...(locationData ? { latitude: locationData.latitude, longitude: locationData.longitude } : {}),
       };
 
@@ -70,49 +60,65 @@ const[userLocation,setUserLocation]=useState<any>()
       setTheaters([]);
     } finally {
       setIsLoading(false);
+      setSearchLoading(false); // Clear search loading when fetch completes
     }
+  }, [currentPage, userLocation]);
+
+  // Debounced search with current filters
+  const debouncedSearch = useDebounce((searchValue: string) => {
+    const newFilters = { ...currentFilters, search: searchValue };
+    loadTheaters(searchValue, sortBy, 1, selectedFacilities);
+  }, 550);
+
+  // Handle search input change with loading indicator
+  const handleSearchChange = useCallback((newSearchTerm: string) => {
+    setSearchTerm(newSearchTerm);
+    setSearchLoading(true); // Show loading immediately when user types
+    debouncedSearch(newSearchTerm);
+  }, [debouncedSearch]);
+
+  // Handle non-search changes (immediate update)
+  const handleFiltersChange = useCallback((sort: SortOption, facilities: string[]) => {
+    setSortBy(sort);
+    setSelectedFacilities(facilities);
+    setCurrentFilters({ sortBy: sort, facilities });
+    loadTheaters(searchTerm, sort, 1, facilities);
+    setCurrentPage(1);
+  }, [searchTerm, loadTheaters]);
+
+  const handleSortChange = (newSortBy: SortOption) => {
+    handleFiltersChange(newSortBy, selectedFacilities);
   };
 
-  const debouncedFetch = useCallback(
-    debounce((search: string, sort: SortOption, page: number) => {
-      loadTheaters(search, sort, page);
-    }, 500),
-    []
-  );
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
+  
+  const handleFacilityChange = (facilities: string[]) => {
+    handleFiltersChange(sortBy, facilities);
+  };
 
+  // Initial load and page changes
   useEffect(() => {
-    if (searchTerm.trim() === "") {
-      loadTheaters(searchTerm, sortBy, 1);
-      setCurrentPage(1);
-    } else {
-      debouncedFetch(searchTerm, sortBy, 1);
-      setCurrentPage(1);
-    }
-  }, [searchTerm, sortBy]);
-
-  useEffect(() => {
-    if (currentPage > 1) {
-      loadTheaters(searchTerm, sortBy, currentPage);
-    }
+    loadTheaters(searchTerm, sortBy, currentPage, selectedFacilities);
   }, [currentPage]);
-
-  const handleSearchChange = (newSearchTerm: string) => setSearchTerm(newSearchTerm);
-  const handleSortChange = (newSortBy: SortOption) => setSortBy(newSortBy);
-  const handlePageChange = (newPage: number) => setCurrentPage(newPage);
 
   return (
     <TheaterListManager
       theaters={theaters}
-      isLoading={isLoading}
+      isLoading={isLoading || searchLoading} // Combine both loading states
+      searchLoading={searchLoading} // Pass search-specific loading
       searchTerm={searchTerm}
       sortBy={sortBy}
       currentPage={currentPage}
       totalPages={totalPages}
       totalCount={totalCount}
       error={error}
-      onSearchChange={handleSearchChange}
+      selectedFacilities={selectedFacilities} 
+      onSearchChange={handleSearchChange} // Use the new search handler
       onSortChange={handleSortChange}
       onPageChange={handlePageChange}
+      onFacilityChange={handleFacilityChange} 
     />
   );
 };

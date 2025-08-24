@@ -1,6 +1,5 @@
 import { IScreen } from "../interfaces/screens.model.interface";
 
-// Basic Screen Filters (used in findAll method)
 export interface ScreenFilters {
   isActive?: boolean;
   screenType?: string;
@@ -10,7 +9,6 @@ export interface ScreenFilters {
   sortOrder?: "asc" | "desc";
 }
 
-// Advanced Screen Filters (used in findByTheaterIdWithFilters method)
 export interface AdvancedScreenFilters {
   isActive?: boolean;
   screenType?: string;
@@ -21,7 +19,6 @@ export interface AdvancedScreenFilters {
   sortOrder?: "asc" | "desc";
 }
 
-// Paginated Screen Response (for findAll method)
 export interface PaginatedScreenResult {
   screens: IScreen[];
   total: number;
@@ -30,7 +27,6 @@ export interface PaginatedScreenResult {
   pageSize: number;
 }
 
-// Screen Statistics Response (for findByTheaterIdWithFilters method)
 export interface ScreenWithStatisticsResult {
   screens: IScreen[];
   totalFiltered: number;
@@ -39,10 +35,9 @@ export interface ScreenWithStatisticsResult {
   totalAll: number;
 }
 
-// Create Screen DTO
 export interface CreateScreenDto {
   theater: {
-    _id: string; // Will be converted to ObjectId in service
+    _id: string; 
   };
   name: string;
   totalSeats: number;
@@ -56,10 +51,8 @@ export interface CreateScreenDto {
   features?: string[];
 }
 
-// Update Screen DTO
 
 
-// Screen Query DTOs
 export interface ScreenByTheaterQueryDto {
   theaterId: string;
   name: string;
@@ -76,10 +69,9 @@ export interface GetAllScreensQueryDto {
   limit?: number;
   filters?: ScreenFilters;
 }
-// Screen Response DTO
 export interface ScreenResponseDto {
   id?: string;
-  theaterId: any; // populated theater
+  theaterId: any; 
   name: string;
   totalSeats: number;
   layout: {
@@ -116,18 +108,15 @@ export interface ScreenStatsResponseDto {
   utilizationRate: number;
 }
 
-// Screen Count Response DTO
 export interface ScreenCountResponseDto {
   count: number;
 }
 
-// Screen Exists Response DTO
 export interface ScreenExistsResponseDto {
   exists: boolean;
 }
 
 
-// Update Screen DTO
 export interface UpdateScreenDto {
   name?: string;
   totalSeats?: number;
@@ -142,7 +131,6 @@ export interface UpdateScreenDto {
   isActive?: boolean;
 }
 
-// Screen Statistics Response DTO
 export interface ScreenStatsResponseDto {
   overview: {
     totalScreens: number;
@@ -164,12 +152,10 @@ export interface ScreenStatsResponseDto {
   utilizationRate: number;
 }
 
-// Screen Count Response DTO
 export interface ScreenCountResponseDto {
   count: number;
 }
 
-// Screen Exists Response DTO
 export interface ScreenExistsResponseDto {
   exists: boolean;
 }

@@ -1,4 +1,3 @@
-// utils/cloudinaryUtil.ts
 import { UploadApiResponse } from 'cloudinary';
 import cloudinary from '../config/cloudinaryConfig';
 export interface CloudinaryUploadOptions {
@@ -20,25 +19,22 @@ export interface CloudinaryUploadResult {
 }
 
 /**
- * Universal upload function - handles both base64 and multer files
- * @param input - Either base64 string or multer file object
- * @param options - Upload configuration options
- * @returns Promise with upload result
+ * @param input - 
+ * @param options - 
+ * @returns  
  */
 export const uploadToCloudinary = async (
   input: string | Express.Multer.File,
   options: CloudinaryUploadOptions = {}
 ): Promise<CloudinaryUploadResult> => {
   try {
-    // Default upload options
     const uploadOptions: any = {
       folder: options.folder || 'uploads',
-      type: 'authenticated', // Always private
+      type: 'authenticated', 
       resource_type: options.resource_type || 'image',
       transformation: []
     };
 
-    // Add transformations if specified
     if (options.width || options.height) {
       uploadOptions.transformation.push({
         width: options.width || options.height,
@@ -47,7 +43,6 @@ export const uploadToCloudinary = async (
       });
     }
 
-    // Add quality if specified
     if (options.quality) {
       uploadOptions.transformation.push({
         quality: options.quality
@@ -56,9 +51,7 @@ export const uploadToCloudinary = async (
 
     let result: UploadApiResponse;
 
-    // ✅ Handle different input types
     if (typeof input === 'string') {
-      // Handle base64 string
       if (!input.startsWith('data:image')) {
         throw new Error('Invalid base64 image format');
       }
@@ -67,14 +60,12 @@ export const uploadToCloudinary = async (
       result = await cloudinary.uploader.upload(input, uploadOptions);
       
     } else if (input && input.path) {
-      // ✅ Handle multer file object
       console.log('Uploading multer file to Cloudinary:', input.originalname);
       result = await cloudinary.uploader.upload(input.path, {
         ...uploadOptions,
         original_filename: input.originalname.split('.')[0]
       });
       
-      // Clean up temporary file
       const fs = require('fs');
       if (fs.existsSync(input.path)) {
         fs.unlinkSync(input.path);
@@ -103,10 +94,9 @@ export const uploadToCloudinary = async (
 };
 
 /**
- * Upload multiple files (from multer array)
- * @param files - Array of multer file objects
- * @param options - Upload configuration options
- * @returns Promise with array of upload results
+ * @param files - 
+ * @param options - 
+ * @returns 
  */
 export const uploadMultipleToCloudinary = async (
   files: Express.Multer.File[],
@@ -142,7 +132,7 @@ export const uploadMultipleToCloudinary = async (
 export const generateSignedUrl = (
   publicId: string,
   options: CloudinaryUploadOptions = {}
-): string | null => { // ✅ Add null to return type
+): string | null => { 
   try {
     if (!publicId) {
       throw new Error('Public ID is required');
@@ -166,7 +156,7 @@ export const generateSignedUrl = (
 
   } catch (error) {
     console.error('Generate signed URL error:', error);
-    return null; // ✅ This matches the return type now
+    return null; 
   }
 };
 

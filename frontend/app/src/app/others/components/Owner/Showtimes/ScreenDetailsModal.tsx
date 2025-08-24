@@ -54,7 +54,6 @@ const ScreenDetailsModal: React.FC<ScreenDetailsModalProps> = ({
     });
   };
 
-  // Calculate maxCols from the advanced layout
   const getMaxCols = () => {
     if (!screen.layout.advancedLayout?.rows) return screen.layout.seatsPerRow;
     
@@ -64,7 +63,6 @@ const ScreenDetailsModal: React.FC<ScreenDetailsModalProps> = ({
   };
 
   const renderLayoutSection = () => {
-    // Check if advanced layout exists and has the required structure
     if (screen.layout.advancedLayout && screen.layout.advancedLayout.rows) {
       return (
         <div className="mb-6">
@@ -76,7 +74,6 @@ const ScreenDetailsModal: React.FC<ScreenDetailsModalProps> = ({
       );
     }
     
-    // Fallback to basic layout display
     return (
       <div className="mb-6">
         <h3 className={`${lexendMedium.className} text-white text-lg mb-3 flex items-center gap-2`}>

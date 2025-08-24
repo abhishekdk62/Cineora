@@ -46,7 +46,7 @@ export default function LoginPage() {
       if (loginUser.fulfilled.match(resultAction)) {
         const userData = resultAction.payload;
         redirectBasedOnRole(userData.role);
-        localStorage.setItem("role", userData.role);
+        // localStorage.setItem("role", userData.role);
         console.log(`${userData.role} login successful`);
       }
     } catch (err: any) {
@@ -62,7 +62,7 @@ export default function LoginPage() {
 
       if (googleLogin.fulfilled.match(resultAction)) {
         const data = resultAction.payload;
-        localStorage.setItem("role", data.user.role);
+        // localStorage.setItem("role", data.user.role);
         redirectBasedOnRole(data.user.role);
       } else {
         console.error("Google auth failed:", resultAction);

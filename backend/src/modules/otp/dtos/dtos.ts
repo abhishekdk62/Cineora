@@ -1,6 +1,5 @@
 import { IOTP, OTPType } from "../interfaces/otp.model.interface";
 
-// ===== INPUT DTOs =====
 export interface CreateOTPDto {
   email: string;
   type: OTPType;
@@ -44,7 +43,6 @@ export interface CleanupOldOTPsDto {
   olderThanDays: number;
 }
 
-// ===== OUTPUT DTOs =====
 export interface OTPResponseDto {
   success: boolean;
   message?: string;

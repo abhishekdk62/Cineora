@@ -333,18 +333,15 @@ class Media {
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Add border
         ctx.strokeStyle = '#4a5568';
         ctx.lineWidth = 8;
         ctx.strokeRect(4, 4, canvas.width - 8, canvas.height - 8);
         
-        // Add movie icon
         ctx.fillStyle = '#e2e8f0';
         ctx.font = 'bold 120px Arial';
         ctx.textAlign = 'center';
         ctx.fillText('🎬', canvas.width / 2, canvas.height / 2 - 100);
         
-        // Add movie title
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 32px Arial';
         ctx.textAlign = 'center';

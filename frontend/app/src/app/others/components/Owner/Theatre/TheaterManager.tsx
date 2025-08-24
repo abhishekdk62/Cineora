@@ -153,15 +153,11 @@ const TheaterManager: React.FC = () => {
       if (!confirmed) return;
 
       const data = await toggleTheaterStatusOwner(theater._id);
+      fetchTheaters()
 
       console.log(data);
 
-      const updatedTheaters = theaters.map((theater) =>
-        theater._id === theater._id
-          ? { ...theater, isActive: !theater.isActive }
-          : theater
-      );
-      setTheaters(updatedTheaters);
+      
     } catch (error) {
       console.error("Error toggling theater status:", error);
       fetchTheaters();

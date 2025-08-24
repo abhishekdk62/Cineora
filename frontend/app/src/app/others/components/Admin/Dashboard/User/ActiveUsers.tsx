@@ -24,6 +24,7 @@ interface ActiveUsersProps {
   totalItems: number;
   onPageChange: (page: number) => void;
   onFiltersChange: (filters: UserFilters, resetPage?: boolean) => void;
+  onSearchChange: (searchTerm: string) => void; // Added this
   onViewDetails: (user: UserType) => void;
   onToggleStatus: (user: UserType) => void;
 }
@@ -87,10 +88,10 @@ const UserCard: React.FC<{
               </h3>
               <div className="flex gap-1">
                 {user.emailVerified && (
-                  <Mail size={14} className="text-green-400"  />
+                  <Mail size={14} className="text-green-400" />
                 )}
                 {user.phoneVerified && (
-                  <Phone size={14} className="text-green-400"  />
+                  <Phone size={14} className="text-green-400" />
                 )}
               </div>
             </div>
@@ -184,22 +185,16 @@ const ActiveUsers: React.FC<ActiveUsersProps> = ({
   totalItems,
   onPageChange,
   onFiltersChange,
+  onSearchChange, // Added this
   onViewDetails,
   onToggleStatus,
 }) => {
-  const handleSearch = (searchTerm: string) => {
-    onFiltersChange({
-      ...currentFilters,
-      search: searchTerm,
-    });
-  };
-
   const handleSortChange = (sortBy: string, sortOrder: "asc" | "desc") => {
     onFiltersChange({
       ...currentFilters,
       sortBy,
       sortOrder,
-    });
+    }, true);
   };
 
   return (
@@ -215,8 +210,8 @@ const ActiveUsers: React.FC<ActiveUsersProps> = ({
             <input
               type="text"
               placeholder="Search users by name, email, or phone..."
-              value={currentFilters.search || ""}
-              onChange={(e) => handleSearch(e.target.value)}
+              value={currentFilters.search || ""} // This will now update properly
+              onChange={(e) => onSearchChange(e.target.value)} // Use the new handler
               className="w-full pl-10 pr-4 py-2 bg-[#2a2a2a] border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#e78f03]"
             />
           </div>
@@ -243,6 +238,8 @@ const ActiveUsers: React.FC<ActiveUsersProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Users List */}
       <div className="space-y-4">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
@@ -272,6 +269,7 @@ const ActiveUsers: React.FC<ActiveUsersProps> = ({
         )}
       </div>
 
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="bg-[#1a1a1a] border border-gray-600 rounded-lg p-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -322,14 +320,8 @@ const ActiveUsers: React.FC<ActiveUsersProps> = ({
           </div>
         </div>
       )}
-    
-
     </div>
   );
 };
 
 export default ActiveUsers;
-
-
-
-

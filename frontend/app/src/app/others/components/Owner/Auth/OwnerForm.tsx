@@ -310,7 +310,7 @@ export default function OwnerKYCForm() {
       } else {
         throw new Error(result.message || "Submission failed");
       }
-    } catch (error) {
+    } catch (error:any) {
       console.error("Submission error:", error);
       let errorMessage = "Submission failed. Please try again.";
 
@@ -328,7 +328,7 @@ export default function OwnerKYCForm() {
           errorMessage;
       }
 
-      setError(errorMessage);
+      setError(error.response?.data?.message);
       setSuccess(false);
     } finally {
       setLoading(false);

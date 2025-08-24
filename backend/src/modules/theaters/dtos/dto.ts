@@ -82,5 +82,6 @@ export interface TheaterFilters {
   sortOrder?: "asc" | "desc";
   latitude?: number | string;
   longitude?: number | string;
+  facilities?:string[];
   maxDistance?: number | string;
 }

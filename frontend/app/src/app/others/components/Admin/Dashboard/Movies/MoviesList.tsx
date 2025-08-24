@@ -17,7 +17,7 @@ const lexend = Lexend({
 
 export interface Movie {
   _id: string;
-  tmdbId: number;
+  tmdbId: string; 
   title: string;
   genre: string[];
   releaseDate: string;
@@ -30,9 +30,8 @@ export interface Movie {
   director: string;
   language: string;
   isActive: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
 }
+
 
 interface MoviesListProps {
   movies: Movie[];

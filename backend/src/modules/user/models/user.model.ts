@@ -82,7 +82,6 @@ const userSchema = new Schema<IUser>(
       type: {
         type: String,
         enum: ["Point"],
-        // default: "Point",
       },
       coordinates: {
         type: [Number], 
@@ -129,7 +128,7 @@ const userSchema = new Schema<IUser>(
 
 userSchema.index({ email: 1, authProvider: 1 });
 userSchema.index({ username: 1 });
-userSchema.index({ location: "2dsphere" }); // GeoJSON index
+userSchema.index({ location: "2dsphere" }); 
 userSchema.index({ isActive: 1, lastActive: -1 });
 
 userSchema.pre("save", function (next) {

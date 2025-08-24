@@ -207,7 +207,6 @@ async createShowtime(
         );
         const bufferedEndTime = this.addMinutes(finalEndTime, bufferMinutes);
 
-        // ✅ Remove .toString() since finalScreenId is already a string
         const hasOverlap = await this.showtimeRepo.checkTimeSlotOverlap(
           finalScreenId,
           new Date(finalShowDate),

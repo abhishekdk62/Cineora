@@ -53,7 +53,6 @@ const ShowtimeForm: React.FC<ShowtimeFormProps> = ({
     rowPricing: [] as IRowPricing[],
   });
 
-  // For create/bulk
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
     start: "",
     end: "",
@@ -61,7 +60,6 @@ const ShowtimeForm: React.FC<ShowtimeFormProps> = ({
   const [timeSlots, setTimeSlots] = useState<string[]>([]);
   const [newTimeSlot, setNewTimeSlot] = useState("");
 
-  // For edit/view single
   const [singleDate, setSingleDate] = useState("");
   const [singleTime, setSingleTime] = useState("");
 
