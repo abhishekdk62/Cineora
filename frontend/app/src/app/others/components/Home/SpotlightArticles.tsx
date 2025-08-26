@@ -1,6 +1,6 @@
 "use client";
 
-import SpotlightCard from "../../Utils/ReactBits/Spotlight";
+import SpotlightCard from "../ReactBits/Spotlight";
 
 export default function SpotlightArticles() {
   const articles = [

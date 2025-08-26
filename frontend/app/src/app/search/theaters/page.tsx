@@ -2,7 +2,7 @@
 
 import { Footer, NavBar } from '@/app/others/components/Home'
 import TheatersPage from '@/app/others/components/Search/Theaters/TheatersPage'
-import Orb from '@/app/others/Utils/ReactBits/Orb'
+import Orb from '@/app/others/components/ReactBits/Orb'
 import React from 'react'
 
 const page = () => {

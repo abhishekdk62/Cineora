@@ -12,7 +12,7 @@ import {
 } from "./others/components/Home";
 import { useRouter } from "next/navigation";
 import OrbClient from "./others/components/Home/OrbClient";
-import Orb from "./others/Utils/ReactBits/Orb";
+import Orb from "./others/components/ReactBits/Orb";
 import RouteGuard from "./others/components/Auth/common/RouteGuard";
 import toast from "react-hot-toast";
 import { updateLocation } from "./others/services/userServices/userServices";

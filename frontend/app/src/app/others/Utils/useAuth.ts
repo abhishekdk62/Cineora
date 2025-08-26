@@ -2,8 +2,8 @@
 'use client'
 
 import { useSelector, useDispatch } from 'react-redux'
-import type { RootState, AppDispatch } from '../others/redux/store/index' 
-import { logoutUser } from '../others/redux/slices/authSlice'
+import type { RootState, AppDispatch } from '../redux/store/index' 
+import { logoutUser } from '../redux/slices/authSlice'
 
 export const useAuth = () => {
   const dispatch = useDispatch<AppDispatch>() 

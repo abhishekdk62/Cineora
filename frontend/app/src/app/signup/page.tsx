@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import type React from "react";
 import { useState } from "react";
 import Image from "next/image";
-import Aurora from "../others/Utils/ReactBits/Aurora";
+import Aurora from "../others/components/ReactBits/Aurora";
 import { Lexend } from "next/font/google";
 import { Eye, EyeClosed } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -72,12 +72,10 @@ export default function SignUp() {
         setEmail(data.email);
         setStep("otp");
         console.log("Signup successful, moving to OTP step");
-      } else {
-        setError(result.message || "Signup failed");
-      }
+      } 
     } catch (err: any) {
       setError(
-        err.response?.data?.message || "Signup failed. Please try again."
+        err.response?.data?.message
       );
       console.error("Signup error:", err);
     } finally {

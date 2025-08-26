@@ -1,7 +1,7 @@
 import React from "react";
 import { Building, MapPin, Power, ChevronRight } from "lucide-react";
 import { lexendMedium, lexendSmall } from "@/app/others/Utils/fonts";
-import { ITheater } from "@/app/others/Types";
+import { ITheater } from "@/app/others/types";
 interface TheatersListProps {
   theaters: ITheater[];
   isLoading: boolean;

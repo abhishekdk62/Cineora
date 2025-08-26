@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import MoviesPage from "../../others/components/Search/Movies/MoviesPage";
 import { Footer, NavBar } from "../../others/components/Home";
-import Orb from "../../others/Utils/ReactBits/Orb";
-import Pagination from "../../others/Utils/Pagination";
+import Orb from "../../others/components/ReactBits/Orb";
+import Pagination from "../../others/components/utils/Pagination";
 import { getMoviesWithFilters } from "@/app/others/services/userServices/movieServices";
 import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
 import { useDebounce } from "@/app/others/Utils/debounce";

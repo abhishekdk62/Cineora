@@ -6,8 +6,9 @@ import { motion } from "framer-motion";
 import SearchBar from "./SearchBar";
 import SortDropdown from "./SortDropdown";
 import TheaterList from "./TheaterList";
-import Pagination from "@/app/others/Utils/Pagination";
+import Pagination from "@/app/others/components/utils/Pagination";
 import FilterSidebar from "./FiltersSideBar";
+import { useRouter } from "next/navigation";
 
 const lexendMedium = Lexend({
   weight: "500",
@@ -47,7 +48,7 @@ interface TheaterListManagerProps {
   onSearchChange: (searchTerm: string) => void;
   onSortChange: (sortBy: SortOption) => void;
   onPageChange: (page: number) => void;
-  selectedFacilities: string[]; 
+  selectedFacilities: string[];
   onFacilityChange: (facilities: string[]) => void;
 }
 
@@ -65,13 +66,13 @@ const TheaterListManager: React.FC<TheaterListManagerProps> = ({
   onSearchChange,
   onSortChange,
   onPageChange,
-  selectedFacilities = [], 
+  selectedFacilities = [],
   onFacilityChange,
 }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
-
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const router = useRouter()
   const handleViewNowShowing = (theaterId: string) => {
-    console.log("View now showing for theater:", theaterId);
+
   };
 
   return (
@@ -95,21 +96,20 @@ const TheaterListManager: React.FC<TheaterListManagerProps> = ({
               searchLoading={searchLoading} // Pass search loading state
               placeholder="Search theaters by name or location..."
             />
-            
+
             {/* Filter button stays the same */}
             <motion.button
               onClick={() => setIsSidebarOpen(true)}
-              className={`${lexendMedium.className} relative flex items-center gap-2 px-4 py-4 bg-white/10 backdrop-blur-sm border border-gray-500/30 rounded-2xl text-white hover:bg-white/20 transition-all duration-300 ${
-                selectedFacilities.length > 0 ? 'bg-blue-600/20 border-blue-500/50' : ''
-              }`}
+              className={`${lexendMedium.className} relative flex items-center gap-2 px-4 py-4 bg-white/10 backdrop-blur-sm border border-gray-500/30 rounded-2xl text-white hover:bg-white/20 transition-all duration-300 ${selectedFacilities.length > 0 ? 'bg-blue-600/20 border-blue-500/50' : ''
+                }`}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
               {/* Filter button content stays the same */}
-              <motion.svg 
-                className="w-5 h-5" 
-                fill="none" 
-                stroke="currentColor" 
+              <motion.svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
                 animate={{ rotate: isSidebarOpen ? 180 : 0 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
@@ -117,9 +117,9 @@ const TheaterListManager: React.FC<TheaterListManagerProps> = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
               </motion.svg>
               <span className="hidden sm:inline">Filters</span>
-              
+
               {selectedFacilities.length > 0 && (
-                <motion.span 
+                <motion.span
                   className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
@@ -156,7 +156,7 @@ const TheaterListManager: React.FC<TheaterListManagerProps> = ({
           <p className={`${lexendSmall.className} text-gray-400`}>
             {isLoading ? 'Loading...' : `${totalCount} theater${totalCount !== 1 ? 's' : ''} found`}
             {selectedFacilities.length > 0 && (
-              <motion.span 
+              <motion.span
                 className="ml-2 text-blue-400"
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}

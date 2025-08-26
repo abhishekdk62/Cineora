@@ -64,20 +64,17 @@ const TheatersPage: React.FC = () => {
     }
   }, [currentPage, userLocation]);
 
-  // Debounced search with current filters
   const debouncedSearch = useDebounce((searchValue: string) => {
     const newFilters = { ...currentFilters, search: searchValue };
     loadTheaters(searchValue, sortBy, 1, selectedFacilities);
   }, 550);
 
-  // Handle search input change with loading indicator
   const handleSearchChange = useCallback((newSearchTerm: string) => {
     setSearchTerm(newSearchTerm);
-    setSearchLoading(true); // Show loading immediately when user types
+    setSearchLoading(true); 
     debouncedSearch(newSearchTerm);
   }, [debouncedSearch]);
 
-  // Handle non-search changes (immediate update)
   const handleFiltersChange = useCallback((sort: SortOption, facilities: string[]) => {
     setSortBy(sort);
     setSelectedFacilities(facilities);
@@ -98,7 +95,6 @@ const TheatersPage: React.FC = () => {
     handleFiltersChange(sortBy, facilities);
   };
 
-  // Initial load and page changes
   useEffect(() => {
     loadTheaters(searchTerm, sortBy, currentPage, selectedFacilities);
   }, [currentPage]);
@@ -106,8 +102,8 @@ const TheatersPage: React.FC = () => {
   return (
     <TheaterListManager
       theaters={theaters}
-      isLoading={isLoading || searchLoading} // Combine both loading states
-      searchLoading={searchLoading} // Pass search-specific loading
+      isLoading={isLoading || searchLoading} 
+      searchLoading={searchLoading}
       searchTerm={searchTerm}
       sortBy={sortBy}
       currentPage={currentPage}

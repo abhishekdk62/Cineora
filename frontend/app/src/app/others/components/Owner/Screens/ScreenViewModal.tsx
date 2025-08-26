@@ -2,8 +2,8 @@
 
 import React, { useMemo } from "react";
 import { X, Monitor, Users, Calendar, Edit3, MapPin, Star } from "lucide-react";
-import { IScreen } from "@/app/others/Types/screen.types";
-import { ITheater } from "@/app/others/Types";
+import { IScreen } from "@/app/others/types/screen.types";
+import { ITheater } from "@/app/others/types";
 import { Lexend } from "next/font/google";
 import { LayoutPreview } from "./LayoutPreview"; // Import the LayoutPreview component
 

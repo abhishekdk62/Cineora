@@ -1,7 +1,7 @@
 "use client";
 
 import { Lexend } from "next/font/google";
-import CircularGallery from "../../Utils/ReactBits/CircularGallery";
+import CircularGallery from "../ReactBits/CircularGallery";
 import { getMoviesWithFilters } from "../../services/userServices/movieServices";
 import { useEffect, useState } from "react";
 import { Movie } from "../Admin/Dashboard/Movies/MoviesList";

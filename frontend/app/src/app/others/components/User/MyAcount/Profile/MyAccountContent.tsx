@@ -21,7 +21,7 @@ import EditProfileModal from "./EditProfileModal";
 import ChangePasswordModal from "./ChangePasswordModal";
 import ChangeEmailModal from "./ChangeEmailModal";
 import LocationFields from "../../../Owner/Theatre/LocationFields";
-import MapLocationPicker from "@/app/others/Leaflet/MapLocationPicker";
+import MapLocationPicker from "@/app/others/components/Leaflet/MapLocationPicker";
 
 const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
