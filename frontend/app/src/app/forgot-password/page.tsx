@@ -2,7 +2,7 @@
 import dynamic from "next/dynamic";
 import type React from "react";
 import { useState } from "react";
-import Aurora from "../others/Utils/ReactBits/Aurora";
+import Aurora from "../others/components/ReactBits/Aurora";
 import { Lexend } from "next/font/google";
 import { useRouter } from "next/navigation";
 import ForgotPassword from "../others/components/Auth/ForgotPassword";

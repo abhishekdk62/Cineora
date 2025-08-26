@@ -15,8 +15,8 @@ import {
 import TheaterFormModal from "./TheaterFormModal";
 import toast from "react-hot-toast";
 import TheaterViewModal from "./TheaterViewModal";
-import { ITheater } from "@/app/others/Types";
-import { confirmAction, ConfirmDialog } from "@/app/others/Utils/ConfirmDialog";
+import { ITheater } from "@/app/others/types";
+import { confirmAction, ConfirmDialog } from "@/app/others/components/utils/ConfirmDialog";
 
 const lexendBold = Lexend({
   weight: "700",

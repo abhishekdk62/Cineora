@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { ReduxProvider } from "./others/redux/providers/ReduxProvider";
-import { ConfirmDialog } from "./others/Utils/ConfirmDialog";
+import { ConfirmDialog } from "./others/components/utils/ConfirmDialog";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const geistSans = Geist({

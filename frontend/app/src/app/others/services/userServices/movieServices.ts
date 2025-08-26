@@ -35,5 +35,11 @@ export const getMoviesWithFilters = async (filters: {
   const response = await apiClient.get(`/common/movies/filter?${params.toString()}`);
   return response.data;
 };
+  
 
 
+
+export const getMoviesByTheater=async(theaterId:string,date:string)=>{
+  const result=await apiClient.get(`/common/movies/from-theater/${theaterId}?date=${date}`)
+  return result.data
+}

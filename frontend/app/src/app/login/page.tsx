@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Aurora from "../others/Utils/ReactBits/Aurora";
+import Aurora from "../others/components/ReactBits/Aurora";
 import { Lexend } from "next/font/google";
 import AuthForm from "../others/components/Auth/AuthForm";
 import { useAppDispatch, useAppSelector } from "../others/redux/hooks/redux";
@@ -42,11 +42,12 @@ export default function LoginPage() {
 
     try {
       const resultAction = await dispatch(loginUser({ email, password }));
+      console.log('reslt acn login page is :',resultAction);
+      
 
       if (loginUser.fulfilled.match(resultAction)) {
         const userData = resultAction.payload;
         redirectBasedOnRole(userData.role);
-        // localStorage.setItem("role", userData.role);
         console.log(`${userData.role} login successful`);
       }
     } catch (err: any) {
@@ -94,7 +95,7 @@ export default function LoginPage() {
   };
 
   return (
-    <RouteGuard excludedRoles={['admin', 'owner', 'user']}>
+    <RouteGuard allowUnauthenticated={true} excludedRoles={['admin', 'owner', 'user']}>
       <div className="min-h-screen relative flex items-center justify-center bg-black overflow-hidden p-4">
         <div className="absolute inset-0 z-0">
           <Aurora

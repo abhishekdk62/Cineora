@@ -20,15 +20,15 @@ import {
   Power,
   ShieldCheck,
 } from "lucide-react";
-import { ITheater, ITheaterModal } from "@/app/others/Types";
+import { ITheater, ITheaterModal } from "@/app/others/types";
 import toast from "react-hot-toast";
-import { confirmAction } from "@/app/others/Utils/ConfirmDialog";
+import { confirmAction } from "@/app/others/components/utils/ConfirmDialog";
 import {
   rejectTheaterAdmin,
   toggleTheaterStatusAdmin,
   verifyTheaterAdmin,
 } from "@/app/others/services/adminServices/theaterServices";
-import MapLocationPicker from "@/app/others/Leaflet/MapLocationPicker";
+import MapLocationPicker from "@/app/others/components/Leaflet/MapLocationPicker";
 
 const lexend = Lexend({
   weight: "400",

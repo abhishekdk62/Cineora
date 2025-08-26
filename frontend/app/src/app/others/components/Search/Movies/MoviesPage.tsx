@@ -94,7 +94,6 @@ export default function MoviesPage({
     onSearchChange('');
   };
 
-  // Handle non-search filters
   useEffect(() => {
     const filters: any = {};
 
@@ -123,7 +122,7 @@ export default function MoviesPage({
     setDurationRange({ min: "", max: "" });
     setSortBy("releaseDate");
     setSortOrder("desc");
-    onSearchChange(''); // Clear search on parent
+    onSearchChange(''); 
   };
 
   const hasActiveFilters = selectedGenre !== 'all' || selectedRating !== 'all' || selectedLanguage !== 'all' || selectedYear !== 'all' || durationRange.min || durationRange.max;

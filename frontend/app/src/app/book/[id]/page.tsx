@@ -1,93 +1,124 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { Lexend } from "next/font/google";
-import Orb from "@/app/others/Utils/ReactBits/Orb";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import Orb from "@/app/others/components/ReactBits/Orb";
 import { Footer, NavBar } from "@/app/others/components/Home";
-import { getMovieById } from "@/app/others/services/userServices/movieServices";
 import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
+import { getMovieById, getMoviesByTheater } from "@/app/others/services/userServices/movieServices";
+import { getTheaterById, getTheatersByMovie } from "@/app/others/services/userServices/theaterServices";
+import LoadingState from "@/app/others/components/User/Book/LoadingState";
+import EmptyState from "@/app/others/components/User/Book/EmptyState";
+import BookingHeader from "@/app/others/components/User/Book/BookingHeader";
+import DateSelector from "@/app/others/components/User/Book/DateSelector";
+import BookingContent from "@/app/others/components/User/Book/BookingContent";
 
-const lexendSmall = Lexend({
-  weight: "200",
-  subsets: ["latin"],
-});
-
-const lexendMedium = Lexend({
-  weight: "400",
-  subsets: ["latin"],
-});
-
-const lexendBold = Lexend({
-  weight: "700",
-  subsets: ["latin"],
-});
-
-interface Theater {
+export interface UnifiedBookingEntity {
   _id: string;
-  name: string;
-  location: string;
-  distance: string;
-  amenities: string[];
-  showtimes: {
-    time: string;
-    availableSeats: number;
+  title?: string;
+  poster?: string;
+  duration?: number;
+  rating?: string;
+  genre?: string[];
+  name?: string;
+  language?: string;
+  format?: string;
+  showTime?: string;
+  theaterName?: string;
+  location?: {
+    coordinates: [string, string]
+  }
+  theaterLocation?: { coordinates: [number, number]; type: string };
+  distance?: string;
+  amenities?: string[];
+  city?: string;
+  state?: string;
+  screens?: number;
+  movieId?: {
+    _id: string;
+    title: string;
+    poster: string;
+    duration: number;
+    rating: string;
+    genre: string[];
+    language: string;
+    description?: string;
+    director?: string;
+    cast?: string[];
+    releaseDate?: string;
+    tmdbId?: string;
+    trailer?: string;
+  };
+  screenId?: {
+    _id: string;
+    name: string;
+    screenType?: string;
     totalSeats: number;
-    price: number;
-    screenType: string;
+    theaterId: string;
+    features?: string[];
+    layout?: any;
+  };
+  rowPricing?: {
+    rowLabel: string;
+    seatType: string;
+    basePrice: number;
+    showtimePrice: number;
+    totalSeats: number;
+    availableSeats: number;
+    bookedSeats: any[];
     _id: string;
   }[];
+  availableSeats?: number;
+  totalSeats?: number;
+  blockedSeats?: any[];
+  bookedSeats?: any[];
+  theaterId?: string;
+  ownerId?: string;
+  showDate?: string;
+  endTime?: string;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  showtimes?: {
+    _id?: string;
+    showtimeId?: string;
+    time?: string;
+    showTime?: string;
+    endTime?: string;
+    format?: string;
+    language?: string;
+    screenName?: string;
+    screenType?: string;
+    availableSeats?: number;
+    totalSeats?: number;
+    price?: number;
+    rowPricing?: {
+      rowLabel: string;
+      seatType: string;
+      basePrice: number;
+      showtimePrice: number;
+      totalSeats: number;
+      availableSeats: number;
+      bookedSeats: any[];
+      _id: string;
+    }[];
+  }[];
 }
-
-interface Movie {
-  _id: string;
-  title: string;
-  poster: string;
-  duration: number;
-  rating: string;
-  genre: string[];
-}
-
 export default function BookTicketsPage() {
   const params = useParams();
   const router = useRouter();
-  const [movie, setMovie] = useState<Movie | null>(null);
-  const [theaters, setTheaters] = useState<Theater[]>([]);
+  const searchParams = useSearchParams();
+
+  const [movie, setMovie] = useState<UnifiedBookingEntity | null>(null);
+  const [theater, setTheater] = useState<UnifiedBookingEntity | null>(null);
+  const [movies, setMovies] = useState<UnifiedBookingEntity[]>([]);
+  const [theaters, setTheaters] = useState<UnifiedBookingEntity[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
+  const [bookingFlow, setBookingFlow] = useState<'movie-first' | 'theater-first' | null>(null);
 
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
-  };
-
-  const getNext7Days = () => {
-    const days = [];
-    for (let i = 0; i < 7; i++) {
-      const date = new Date();
-      date.setDate(date.getDate() + i);
-      days.push(date);
-    }
-    return days;
-  };
-
-  const formatDate = (date: Date) => {
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return "Today";
-    } else if (date.toDateString() === tomorrow.toDateString()) {
-      return "Tomorrow";
-    } else {
-      return date.toLocaleDateString("en-US", {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-      });
-    }
+  const formatDateForAPI = (date: Date): string => {
+    return date.toISOString().split('T')[0];
   };
 
   useEffect(() => {
@@ -95,177 +126,42 @@ export default function BookTicketsPage() {
       try {
         setLoading(true);
 
-        const movieResponse = await getMovieById(params.id as string);
+        const flowType = searchParams.get('flow');
+        const referrer = document.referrer;
 
-        const mockTheaters: Theater[] = [
-          {
-            _id: "1",
-            name: "IMAX Downtown",
-            location: "Downtown Plaza, City Center",
-            distance: "2.1 km",
-            amenities: ["IMAX", "4DX", "Dolby Atmos", "Premium Seating"],
-            showtimes: [
-              {
-                time: "10:00 AM",
-                availableSeats: 45,
-                totalSeats: 150,
-                price: 350,
-                screenType: "IMAX",
-                _id: "1",
-              },
-              {
-                time: "01:30 PM",
-                availableSeats: 78,
-                totalSeats: 150,
-                price: 350,
-                screenType: "IMAX",
-                _id: "2",
-              },
-              {
-                time: "05:00 PM",
-                availableSeats: 12,
-                totalSeats: 150,
-                price: 400,
-                screenType: "IMAX",
-                _id: "3",
-              },
-              {
-                time: "08:30 PM",
-                availableSeats: 89,
-                totalSeats: 150,
-                price: 400,
-                screenType: "IMAX",
-                _id: "4",
-              },
-            ],
-          },
-          {
-            _id: "2",
-            name: "CineMax Mall",
-            location: "Grand Mall, Shopping District",
-            distance: "3.5 km",
-            amenities: ["Premium Seating", "Food Court", "Parking"],
-            showtimes: [
-              {
-                time: "11:15 AM",
-                availableSeats: 56,
-                totalSeats: 120,
-                price: 250,
-                screenType: "2D",
-                _id: "5",
-              },
-              {
-                time: "02:45 PM",
-                availableSeats: 34,
-                totalSeats: 120,
-                price: 250,
-                screenType: "2D",
-                _id: "6",
-              },
-              {
-                time: "06:15 PM",
-                availableSeats: 78,
-                totalSeats: 120,
-                price: 300,
-                screenType: "2D",
-                _id: "7",
-              },
-              {
-                time: "09:45 PM",
-                availableSeats: 92,
-                totalSeats: 120,
-                price: 300,
-                screenType: "2D",
-                _id: "8",
-              },
-            ],
-          },
-          {
-            _id: "3",
-            name: "Starlight Cinema",
-            location: "North Side Avenue",
-            distance: "5.2 km",
-            amenities: ["Recliner Seats", "Snack Bar", "Student Discount"],
-            showtimes: [
-              {
-                time: "12:00 PM",
-                availableSeats: 23,
-                totalSeats: 100,
-                price: 200,
-                screenType: "2D",
-                _id: "9",
-              },
-              {
-                time: "03:30 PM",
-                availableSeats: 67,
-                totalSeats: 100,
-                price: 200,
-                screenType: "2D",
-                _id: "10",
-              },
-              {
-                time: "07:00 PM",
-                availableSeats: 45,
-                totalSeats: 100,
-                price: 250,
-                screenType: "2D",
-                _id: "11",
-              },
-              {
-                time: "10:30 PM",
-                availableSeats: 78,
-                totalSeats: 100,
-                price: 250,
-                screenType: "2D",
-                _id: "12",
-              },
-            ],
-          },
-          {
-            _id: "4",
-            name: "Grand Theater",
-            location: "City Center, Business District",
-            distance: "1.8 km",
-            amenities: ["VIP Lounge", "Valet Parking", "Fine Dining"],
-            showtimes: [
-              {
-                time: "10:30 AM",
-                availableSeats: 34,
-                totalSeats: 180,
-                price: 500,
-                screenType: "VIP",
-                _id: "13",
-              },
-              {
-                time: "02:00 PM",
-                availableSeats: 56,
-                totalSeats: 180,
-                price: 500,
-                screenType: "VIP",
-                _id: "14",
-              },
-              {
-                time: "05:30 PM",
-                availableSeats: 12,
-                totalSeats: 180,
-                price: 600,
-                screenType: "VIP",
-                _id: "15",
-              },
-              {
-                time: "09:00 PM",
-                availableSeats: 67,
-                totalSeats: 180,
-                price: 600,
-                screenType: "VIP",
-                _id: "16",
-              },
-            ],
-          },
-        ];
+        let detectedFlow: 'movie-first' | 'theater-first' = 'movie-first';
 
-        setMovie(movieResponse.data);
-        setTheaters(mockTheaters);
+        if (flowType) {
+          detectedFlow = flowType as 'movie-first' | 'theater-first';
+        } else if (referrer.includes('/search/theaters')) {
+          detectedFlow = 'theater-first';
+        } else if (referrer.includes('/search/movies')) {
+          detectedFlow = 'movie-first';
+        }
+
+        setBookingFlow(detectedFlow);
+        const dateString = formatDateForAPI(selectedDate);
+
+        if (detectedFlow === 'movie-first') {
+          const movieResponse = await getMovieById(params.id as string);
+          setMovie(movieResponse.data);
+
+          const theatersResponse = await getTheatersByMovie(params.id as string, dateString);
+          setTheaters(theatersResponse.data || []);
+          console.log('SHOWTIME DS theaterId', theatersResponse.data[0]);
+
+
+        } else if (detectedFlow === 'theater-first') {
+          const theaterResponse = await getTheaterById(params.id as string);
+
+          setTheater(theaterResponse.data);
+
+          const moviesResponse = await getMoviesByTheater(params.id as string, dateString);
+          console.log('SHOWTIME DS BY movieId', moviesResponse.data[0]);
+
+          setMovies(moviesResponse.data || []);
+        }
+
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -276,257 +172,57 @@ export default function BookTicketsPage() {
     if (params.id) {
       fetchData();
     }
-  }, [params.id, selectedDate]);
+  }, [params.id, selectedDate, searchParams]);
 
-  const handleShowtimeSelect = (theaterId: string, showtimeId: string) => {
-    // Handle showtime selection logic here
-    console.log(`Selected theater: ${theaterId}, showtime: ${showtimeId}`);
-    // You can navigate to seat selection page or open a booking modal
-    // router.push(`/seat-selection/${theaterId}/${showtimeId}`);
+  const handleShowtimeSelect = (showtimeId: string) => {
+    router.push(`/book/tickets/${showtimeId}`)
+
+
+  };
+
+  const handleGoBack = () => {
+    router.back();
+  };
+
+  const handleDateChange = (date: Date) => {
+    setSelectedDate(date);
   };
 
   return (
-    <RouteGuard allowedRoles={['user']}>
+    <RouteGuard allowUnauthenticated={true} excludedRoles={['admin,owner']}>
       <div className="relative min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 overflow-hidden">
         <div className="fixed inset-0 z-0 pointer-events-none">
-          <Orb
-            hoverIntensity={0.5}
-            rotateOnHover={true}
-            hue={0}
-            forceHoverState={false}
-          />
+          <Orb hoverIntensity={0.5} rotateOnHover={true} hue={0} forceHoverState={false} />
         </div>
 
         <div className="relative z-10">
           <NavBar />
 
-          {loading && (
-            <div className="min-h-screen flex items-center justify-center">
-              <div className="backdrop-blur-sm bg-black/20 rounded-2xl p-8 border border-gray-500/30">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-                <p className={`${lexendMedium.className} text-white text-center`}>
-                  Loading theaters...
-                </p>
-              </div>
-            </div>
-          )}
+          {loading && <LoadingState bookingFlow={bookingFlow} />}
 
-          {!loading && !movie && (
-            <div className="min-h-screen flex items-center justify-center">
-              <div className="backdrop-blur-sm bg-black/20 rounded-2xl p-8 border border-gray-500/30 text-center">
-                <h2 className={`${lexendBold.className} text-white text-2xl mb-4`}>
-                  Movie Not Found
-                </h2>
-                <p className={`${lexendSmall.className} text-gray-400 mb-6`}>
-                  The movie you're looking for doesn't exist or has been removed.
-                </p>
-                <button
-                  onClick={() => router.back()}
-                  className={`${lexendMedium.className} bg-white text-black px-6 py-3 rounded-xl hover:bg-gray-200 transition-all duration-300`}
-                >
-                  Go Back
-                </button>
-              </div>
-            </div>
-          )}
-
-          {!loading && movie && (
+          {!loading && (movie || theater) && (
             <div className="min-h-screen">
-              {/* Header with Movie Info */}
-              <div className="pt-20 pb-6">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                  {/* Back Button */}
-                  <button
-                    onClick={() => router.back()}
-                    className={`${lexendSmall.className} flex items-center gap-2 text-gray-400 hover:text-white transition-all duration-300 mb-6`}
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 19l-7-7 7-7"
-                      />
-                    </svg>
-                    Back to Movie Details
-                  </button>
+              <BookingHeader
+                movie={movie}
+                theater={theater}
+                bookingFlow={bookingFlow}
+                onBack={handleGoBack}
+              />
 
-                  {/* Movie Header */}
-                  <div className="backdrop-blur-sm bg-black/20 rounded-2xl p-6 border border-gray-500/30">
-                    <div className="flex items-center gap-6">
-                      <img
-                        src={movie.poster}
-                        alt={movie.title}
-                        className="w-20 h-28 rounded-lg object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src =
-                            "/api/placeholder/80/112";
-                        }}
-                      />
-                      <div>
-                        <h1
-                          className={`${lexendBold.className} text-2xl md:text-3xl text-white mb-2`}
-                        >
-                          {movie.title}
-                        </h1>
-                        <div className="flex items-center gap-4 text-gray-300">
-                          <span className={`${lexendSmall.className}`}>
-                            {movie.rating}
-                          </span>
-                          <span className={`${lexendSmall.className}`}>•</span>
-                          <span className={`${lexendSmall.className}`}>
-                            {formatDuration(movie.duration)}
-                          </span>
-                          <span className={`${lexendSmall.className}`}>•</span>
-                          <span className={`${lexendSmall.className}`}>
-                            {movie.genre.join(", ")}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <DateSelector
+                selectedDate={selectedDate}
+                onDateChange={handleDateChange}
+              />
 
-              <div className="pb-6">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                  <div className="backdrop-blur-sm bg-black/20 rounded-2xl p-4 border border-gray-500/30">
-                    <h2
-                      className={`${lexendMedium.className} text-white text-lg mb-4`}
-                    >
-                      Select Date
-                    </h2>
-                    <div className="flex gap-3 overflow-x-auto pb-2">
-                      {getNext7Days().map((date, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setSelectedDate(date)}
-                          className={`${
-                            lexendSmall.className
-                          } flex-shrink-0 px-4 py-3 rounded-lg transition-all duration-300 ${
-                            selectedDate.toDateString() === date.toDateString()
-                              ? "bg-white text-black"
-                              : "bg-white/10 text-white hover:bg-white/20"
-                          }`}
-                        >
-                          <div className="text-center">
-                            <div className="font-medium">{formatDate(date)}</div>
-                            <div className="text-xs opacity-75">
-                              {date.toLocaleDateString("en-US", {
-                                day: "numeric",
-                                month: "short",
-                              })}
-                            </div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pb-12">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                  <div className="space-y-4">
-                    {theaters.map((theater) => (
-                      <div
-                        key={theater._id}
-                        className="backdrop-blur-sm bg-black/20 rounded-2xl p-6 border border-gray-500/30 hover:border-white/30 transition-all duration-300"
-                      >
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                          {/* Theater Info */}
-                          <div className="lg:col-span-1">
-                            <h3
-                              className={`${lexendMedium.className} text-white text-xl mb-2`}
-                            >
-                              {theater.name}
-                            </h3>
-                            <p
-                              className={`${lexendSmall.className} text-gray-400 mb-2`}
-                            >
-                              {theater.location}
-                            </p>
-                            <p
-                              className={`${lexendSmall.className} text-gray-400 mb-4`}
-                            >
-                              {theater.distance} away
-                            </p>
-
-                            {/* Amenities */}
-                            <div className="flex flex-wrap gap-2">
-                              {theater.amenities.map((amenity, index) => (
-                                <span
-                                  key={index}
-                                  className={`${lexendSmall.className} bg-white/10 text-white px-2 py-1 rounded text-xs border border-gray-500/30`}
-                                >
-                                  {amenity}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Showtimes */}
-                          <div className="lg:col-span-2">
-                            <h4
-                              className={`${lexendMedium.className} text-white text-lg mb-4`}
-                            >
-                              Show Times
-                            </h4>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                              {theater.showtimes.map((showtime) => (
-                                <button
-                                  key={showtime._id}
-                                  onClick={() =>
-                                    handleShowtimeSelect(theater._id, showtime._id)
-                                  }
-                                  className={`${
-                                    lexendSmall.className
-                                  } bg-white/10 hover:bg-white/20 border border-gray-500/30 hover:border-white/50 rounded-lg p-3 transition-all duration-300 text-left ${
-                                    showtime.availableSeats < 20
-                                      ? "border-red-400/50"
-                                      : ""
-                                  }`}
-                                >
-                                  <div className="text-white font-medium mb-1">
-                                    {showtime.time}
-                                  </div>
-                                  <div className="text-xs text-gray-400 mb-1">
-                                    {showtime.screenType}
-                                  </div>
-                                  <div className="text-xs text-gray-400 mb-2">
-                                    ₹{showtime.price}
-                                  </div>
-
-                                  {/* Availability Indicator */}
-                                  <div className="flex items-center gap-1">
-                                    <div
-                                      className={`w-2 h-2 rounded-full ${
-                                        showtime.availableSeats > 50
-                                          ? "bg-green-400"
-                                          : showtime.availableSeats > 20
-                                          ? "bg-yellow-400"
-                                          : "bg-red-400"
-                                      }`}
-                                    />
-                                    <span className="text-xs text-gray-400">
-                                      {showtime.availableSeats} seats
-                                    </span>
-                                  </div>
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <BookingContent
+                bookingFlow={bookingFlow}
+                movie={movie}
+                theater={theater}
+                movies={movies}
+                theaters={theaters}
+                selectedDate={selectedDate}
+                onShowtimeSelect={handleShowtimeSelect}
+              />
             </div>
           )}
 

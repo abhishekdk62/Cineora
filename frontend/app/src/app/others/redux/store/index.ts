@@ -1,31 +1,33 @@
-import { configureStore } from '@reduxjs/toolkit';
-import { 
-  persistStore, 
-  persistReducer, 
-  FLUSH, 
-  REHYDRATE, 
-  PAUSE, 
-  PERSIST, 
-  PURGE, 
-  REGISTER 
-} from 'redux-persist';
-import storage from 'redux-persist/lib/storage';
-import authSlice from '../slices/authSlice';
-import userSlice from '../slices/userSlice';
-import adminSlice from '../slices/adminSlice';
+import { configureStore } from "@reduxjs/toolkit";
+import {
+  persistStore,
+  persistReducer,
+  FLUSH,
+  REHYDRATE,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER,
+} from "redux-persist";
+import storage from "redux-persist/lib/storage";
+import authReducer from "../slices/authSlice";
+import userReducer from "../slices/userSlice";
+import adminReducer from "../slices/adminSlice";
+import bookingReducer from "../slices/bookingSlice";
 
 const persistConfig = {
-  key: 'auth',
+  key: "auth",
   storage,
 };
 
-const persistedAuthReducer = persistReducer(persistConfig, authSlice);
+const persistedAuthReducer = persistReducer(persistConfig, authReducer);
 
 export const store = configureStore({
   reducer: {
-    auth: persistedAuthReducer,  
-    user: userSlice,            
-    admin: adminSlice,           
+    auth: persistedAuthReducer,
+    user: userReducer,
+    admin: adminReducer,
+    booking: bookingReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

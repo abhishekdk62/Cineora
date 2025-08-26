@@ -5,7 +5,7 @@ import { Lexend } from "next/font/google";
 import { X, Building, MapPin, Phone, Hash, ShieldCheck, AlertCircle, Film } from "lucide-react";
 import dynamic from "next/dynamic";
 
-const MapLocationPicker = dynamic(() => import("../../../Leaflet/MapLocationPicker"), {
+const MapLocationPicker = dynamic(() => import("../../Leaflet/MapLocationPicker"), {
   ssr: false,
 });
 
