@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { X, Monitor, Loader2 } from "lucide-react";
-import { ITheater } from "@/app/others/Types";
-import { IScreen } from "@/app/others/Types/screen.types";
+import { ITheater } from "@/app/others/types";
+import { IScreen } from "@/app/others/types/screen.types";
 import { Lexend } from "next/font/google";
 import toast from "react-hot-toast";
 import {

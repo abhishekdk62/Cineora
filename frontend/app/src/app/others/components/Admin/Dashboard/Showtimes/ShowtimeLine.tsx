@@ -1,6 +1,6 @@
 import React from "react";
 import { IShowtime } from "./index";
-import { confirmAction } from "@/app/others/Utils/ConfirmDialog";
+import { confirmAction } from "@/app/others/components/utils/ConfirmDialog";
 import { toggleleShowTime } from "@/app/others/services/adminServices/showTimeServices";
 import toast from "react-hot-toast";
 import { ShowtimeFilters } from "./ShowtimesModal";

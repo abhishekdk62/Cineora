@@ -3,7 +3,7 @@ import { Lexend } from "next/font/google";
 import { Navigation, Loader2, AlertCircle, MapPin } from "lucide-react";
 import dynamic from "next/dynamic";
 
-const MapLocationPicker = dynamic(() => import('../../../Leaflet/MapLocationPicker'), {
+const MapLocationPicker = dynamic(() => import('../../Leaflet/MapLocationPicker'), {
   ssr: false,
   loading: () => <div className="w-full h-64 bg-gray-800 rounded-xl flex items-center justify-center">
     <Loader2 className="w-6 h-6 animate-spin text-gray-400" />

@@ -3,7 +3,7 @@ import ScreenCard from "./ScreenCard";
 import ScreenFiltersBar from "./ScreenFiltersBar";
 import ScreenPagination from "./ScreenPagination";
 import { IScreen } from "./inedx";
-import { confirmAction } from "@/app/others/Utils/ConfirmDialog";
+import { confirmAction } from "@/app/others/components/utils/ConfirmDialog";
 import { toggleScreen } from "@/app/others/services/adminServices/screenServices";
 import { isatty } from "tty";
 import toast from "react-hot-toast";

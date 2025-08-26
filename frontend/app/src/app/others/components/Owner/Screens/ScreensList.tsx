@@ -1,8 +1,8 @@
 // ScreensList.tsx
 import React, { useState, useEffect, useMemo } from "react";
 import { Monitor, Edit, Eye, Trash2, Power } from "lucide-react";
-import { ITheater } from "@/app/others/Types";
-import { IScreen } from "@/app/others/Types/screen.types";
+import { ITheater } from "@/app/others/types";
+import { IScreen } from "@/app/others/types/screen.types";
 import { lexendMedium, lexendSmall } from "@/app/others/Utils/fonts";
 import {
   deleteScreenOwner,
@@ -10,7 +10,7 @@ import {
   toggleScreenStatusOwner,
 } from "@/app/others/services/ownerServices/screenServices";
 import toast from "react-hot-toast";
-import { confirmAction } from "@/app/others/Utils/ConfirmDialog";
+import { confirmAction } from "@/app/others/components/utils/ConfirmDialog";
 
 interface ScreensListProps {
   theater: ITheater;

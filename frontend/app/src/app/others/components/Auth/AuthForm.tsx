@@ -218,11 +218,9 @@ const Form: React.FC<AuthFormProps> = ({
             )}
           </div>
         )}
-
         {error && (
-          <div className="text-red-400 text-sm text-center">Login failed</div>
+          <div className="text-red-400 text-sm text-center">{error}</div>
         )}
-
         <button
           type="submit"
           disabled={loading}

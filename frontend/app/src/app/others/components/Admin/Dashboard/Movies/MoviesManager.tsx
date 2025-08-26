@@ -15,7 +15,7 @@ import {
   updateMovie,
 } from "@/app/others/services/adminServices/movieServices";
 import toast from "react-hot-toast";
-import { confirmAction } from "@/app/others/Utils/ConfirmDialog";
+import { confirmAction } from "@/app/others/components/utils/ConfirmDialog";
 
 const lexend = Lexend({
   weight: "500",

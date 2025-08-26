@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Edit, Calendar, Clock, MapPin, Film, Monitor, Users, Eye, ChevronDown, ChevronUp, CircleX, CheckCircle } from "lucide-react";
 import { IShowtime } from "./showtime.interfaces";
 import { toggleShowtimeStatusOwner } from "@/app/others/services/ownerServices/showtimeServices";
-import { confirmAction } from "@/app/others/Utils/ConfirmDialog";
+import { confirmAction } from "@/app/others/components/utils/ConfirmDialog";
 import toast from "react-hot-toast";
 
 interface ShowtimeListProps {

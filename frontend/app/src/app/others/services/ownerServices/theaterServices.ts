@@ -1,5 +1,5 @@
 import axios from "axios";
-import { ITheater } from "../../Types";
+import { ITheater } from "../../types";
 import apiClient from "../../Utils/apiClient";
 
 export async function createTheater(theaterData: Partial<ITheater>) {

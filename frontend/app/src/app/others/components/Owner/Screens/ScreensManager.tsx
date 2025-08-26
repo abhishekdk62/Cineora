@@ -13,8 +13,8 @@ import TheatersList from "./TheatersList";
 import ScreensList from "./ScreensList";
 import ScreenFormModal from "./ScreenFormModal";
 import ScreenViewModal from "./ScreenViewModal";
-import { ITheater } from "@/app/others/Types";
-import { IScreen } from "@/app/others/Types/screen.types";
+import { ITheater } from "@/app/others/types";
+import { IScreen } from "@/app/others/types/screen.types";
 import {
   lexendBold,
   lexendMedium,
