@@ -7,7 +7,7 @@ import ActiveOwners from "./ActiveOwners";
 import OwnerRequests from "./OwnerRequests";
 import Theaters from "./Theaters";
 import InactiveOwners from "./InactiveOwners";
-import { confirmAction, ConfirmDialog } from "@/app/others/Utils/ConfirmDialog";
+import { confirmAction, ConfirmDialog } from "@/app/others/components/utils/ConfirmDialog";
 
 import toast from "react-hot-toast";
 import {

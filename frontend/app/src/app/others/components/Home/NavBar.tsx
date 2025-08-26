@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Add useEffect
 import { Lexend } from "next/font/google";
 import { Ticket, Menu, X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -20,11 +20,10 @@ const lexendBold = Lexend({
   subsets: ["latin"],
 });
 
-
 export default function NavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false); // Add this state
   const router = useRouter();
-
 
   const user = useSelector((state: RootState) => state.auth.user);
   const role = useSelector((state: RootState) => state.auth.role);
@@ -33,6 +32,11 @@ export default function NavBar() {
   );
   const loading = useSelector((state: RootState) => state.auth.loading);
   const error = useSelector((state: RootState) => state.auth.error);
+
+  // Add this useEffect
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleClickAcc = () => {
     router.push("/user/account");
@@ -77,9 +81,7 @@ export default function NavBar() {
               Movies
             </button>
             <button
-
               onClick={() => { router.push('/search/theaters') }}
-
               className={`${lexendSmall.className} text-gray-300 hover:text-white transition-colors`}
             >
               Theaters
@@ -96,22 +98,28 @@ export default function NavBar() {
               My Account
             </button>
 
-            {isAuthenticated ? (
-              <button
-                onClick={handleLogout}
-                className="bg-[#FF5A3C] text-white px-6 py-2 rounded-full hover:bg-[#e54a32] transition-colors font-medium"
-              >
-                Logout
-              </button>
+            {/* Fix: Only render auth button after component mounts */}
+            {mounted ? (
+              isAuthenticated ? (
+                <button
+                  onClick={handleLogout}
+                  className="bg-[#FF5A3C] text-white px-6 py-2 rounded-full hover:bg-[#e54a32] transition-colors font-medium"
+                >
+                  Logout
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    router.push("/login");
+                  }}
+                  className="bg-[#FF5A3C] text-white px-6 py-2 rounded-full hover:bg-[#e54a32] transition-colors font-medium"
+                >
+                  Sign In
+                </button>
+              )
             ) : (
-              <button
-                onClick={() => {
-                  router.push("/login");
-                }}
-                className="bg-[#FF5A3C] text-white px-6 py-2 rounded-full hover:bg-[#e54a32] transition-colors font-medium"
-              >
-                Sign In
-              </button>
+              // Show placeholder while mounting
+              <div className="w-20 h-10 bg-gray-600/30 rounded-full animate-pulse"></div>
             )}
           </div>
 
@@ -157,26 +165,31 @@ export default function NavBar() {
               >
                 My Account
               </button>
-              {isAuthenticated ? (
-                <button
-                  onClick={() => {
-                    handleLogout();
-                    setIsMenuOpen(false);
-                  }}
-                  className="bg-[#FF5A3C] text-white px-6 py-2 rounded-full hover:bg-[#e54a32] transition-colors font-medium w-fit"
-                >
-                  Logout
-                </button>
+              {/* Fix: Same fix for mobile menu */}
+              {mounted ? (
+                isAuthenticated ? (
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsMenuOpen(false);
+                    }}
+                    className="bg-[#FF5A3C] text-white px-6 py-2 rounded-full hover:bg-[#e54a32] transition-colors font-medium w-fit"
+                  >
+                    Logout
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      router.push("/login");
+                      setIsMenuOpen(false);
+                    }}
+                    className="bg-[#FF5A3C] text-white px-6 py-2 rounded-full hover:bg-[#e54a32] transition-colors font-medium w-fit"
+                  >
+                    Sign In
+                  </button>
+                )
               ) : (
-                <button
-                  onClick={() => {
-                    router.push("/login");
-                    setIsMenuOpen(false);
-                  }}
-                  className="bg-[#FF5A3C] text-white px-6 py-2 rounded-full hover:bg-[#e54a32] transition-colors font-medium w-fit"
-                >
-                  Sign In
-                </button>
+                <div className="w-20 h-10 bg-gray-600/30 rounded-full animate-pulse"></div>
               )}
             </div>
           </div>

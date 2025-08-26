@@ -3,6 +3,7 @@
 import React from "react";
 import { Star, ArrowRight, MapPin } from "lucide-react";
 import { Lexend } from "next/font/google";
+import { useRouter } from "next/navigation";
 
 const lexendMedium = Lexend({
   weight: "500",
@@ -13,6 +14,7 @@ const lexendSmall = Lexend({
   weight: "300",
   subsets: ["latin"],
 });
+
 
 interface Theater {
   _id: string;
@@ -46,7 +48,12 @@ const TheaterCard: React.FC<TheaterCardProps> = ({ theater, onViewNowShowing }) 
       />
     ));
   };
+const router=useRouter()
 
+const handleClick=(theaterId:string)=>{
+    
+    router.push(`/book/${theaterId}?flow=theater-first`)
+}
   return (
     <div className="backdrop-blur-sm bg-black/20 rounded-2xl p-6 border border-gray-500/30 hover:border-white/30 transition-all duration-300">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
@@ -96,7 +103,7 @@ const TheaterCard: React.FC<TheaterCardProps> = ({ theater, onViewNowShowing }) 
 
         <div className="lg:flex-shrink-0">
           <button
-            onClick={() => onViewNowShowing(theater._id)}
+            onClick={() => handleClick(theater._id)}
             className={`${lexendMedium.className} flex items-center bg-white text-black px-6 py-3 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105`}
           >
             <span>View Now Showing</span>

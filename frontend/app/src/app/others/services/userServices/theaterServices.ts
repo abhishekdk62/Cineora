@@ -54,4 +54,14 @@ export const getTheatersWithFilters = async (
     `/common/theaters/filter?${params.toString()}`
   );
   return res.data;
+}; 
+
+export const getTheaterById = async (theaterId: string) => {
+  const response = await apiClient.get(`/common/theater/${theaterId}`);
+  return response.data;
+};
+
+export const getTheatersByMovie = async (movieId: string,date:string) => {
+  const result = await apiClient.get(`/common/theaters/from-movie/${movieId}?date=${date}`);
+  return result.data;
 };

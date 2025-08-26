@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Lexend } from "next/font/google";
 import { Footer, NavBar } from "../../../others/components/Home";
-import Orb from "../../../others/Utils/ReactBits/Orb";
+import Orb from "../../../others/components/ReactBits/Orb";
 import { getMovieById } from "@/app/others/services/userServices/movieServices";
 
 const lexendSmall = Lexend({
@@ -77,13 +77,12 @@ export default function MovieDetailsPage() {
         setLoading(false);
       }
     };
-
     if (params.id) {
       fetchMovieDetails();
     }
   }, [params.id]);
 const handleBookTicket=()=>{
-  router.push(`/book/${params.id}`)
+  router.push(`/book/${params.id}?flow=movie-first`)
 }
   if (loading) {
     return (
@@ -156,13 +155,9 @@ const handleBookTicket=()=>{
               </button>
             </div>
           </div>
-
-          {/* Movie Details */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
             <div className="backdrop-blur-sm bg-black/20 rounded-3xl p-8 border border-gray-500/30">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
-                {/* Movie Poster */}
                 <div className="lg:col-span-1">
                   <div className="relative group">
                     <img

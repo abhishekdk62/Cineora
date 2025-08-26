@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import VariableProximity from "../../Utils/ReactBits/VariableProximity";
+import VariableProximity from "../ReactBits/VariableProximity";
 import { getMoviesWithFilters } from "../../services/userServices/movieServices";
 import { Movie } from "../Admin/Dashboard/Movies/MoviesList";
 import { useRouter } from "next/navigation";

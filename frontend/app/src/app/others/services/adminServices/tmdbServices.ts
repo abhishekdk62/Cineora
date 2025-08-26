@@ -1,4 +1,3 @@
-import { Movie } from "@/app/others/components/Admin/Dashboard/AdminContext";
 
 import tmdbClient from "../../Utils/tmdbClient";
 import axios from "axios";

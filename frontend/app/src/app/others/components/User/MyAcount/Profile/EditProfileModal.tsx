@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { updateProfile } from "@/app/others/services/userServices/userServices";
 import { IUser } from "./MyAccountContent";
-import MapLocationPicker from "@/app/others/Leaflet/MapLocationPicker";
+import MapLocationPicker from "@/app/others/components/Leaflet/MapLocationPicker";
 
 const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };

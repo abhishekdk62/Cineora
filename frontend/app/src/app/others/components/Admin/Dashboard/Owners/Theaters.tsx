@@ -15,7 +15,7 @@ import {
   Users,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { ITheater, TheaterFilters } from "@/app/others/Types";
+import { ITheater, TheaterFilters } from "@/app/others/types";
 import { getTheatersByOwnerIdAdmin } from "@/app/others/services/adminServices/theaterServices";
 import TheaterDetailsModal from "./TheaterModal";
 

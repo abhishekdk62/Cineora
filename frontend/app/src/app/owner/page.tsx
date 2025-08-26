@@ -1,8 +1,8 @@
 "use client";
 import React from "react";
-import Orb from "../others/Utils/ReactBits/Orb";
+import Orb from "../others/components/ReactBits/Orb";
 import OwnerKYCForm from "../others/components/Owner/Auth/OwnerForm";
-import Aurora from "../others/Utils/ReactBits/Aurora";
+import Aurora from "../others/components/ReactBits/Aurora";
 import RouteGuard from "../others/components/Auth/common/RouteGuard";
 
 const page = () => {

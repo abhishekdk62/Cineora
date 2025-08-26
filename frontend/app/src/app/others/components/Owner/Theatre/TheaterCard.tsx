@@ -15,8 +15,8 @@ import {
   AlertCircle,
   ShieldCheck,
 } from "lucide-react";
-import { ITheater } from "@/app/others/Types";
-import { confirmAction } from "@/app/others/Utils/ConfirmDialog";
+import { ITheater } from "@/app/others/types";
+import { confirmAction } from "@/app/others/components/utils/ConfirmDialog";
 
 const lexendBold = Lexend({
   weight: "700",

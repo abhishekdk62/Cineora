@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
-import { ITheater } from '@/app/others/Types';
-import { IScreen } from '@/app/others/Types/screen.types';
+import { ITheater } from '@/app/others/types';
+import { IScreen } from '@/app/others/types/screen.types';
 
 export interface Seat {
   col: number;

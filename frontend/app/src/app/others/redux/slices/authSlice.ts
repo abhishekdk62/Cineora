@@ -4,7 +4,6 @@ import {
   verifyOTP,
 } from "../../services/userServices/authServices";
 import { googleAuth, logout } from "../../services/authServices/authService";
-import { verify } from "crypto";
 
 interface User {
   id: string;
@@ -77,7 +76,7 @@ export const loginUser = createAsyncThunk(
   ) => {
     try {
       const result = await loginAPI(email, password);
-
+      console.log("auth slice result is :", result);
       if (result.success) {
         return {
           user: result.data.user,

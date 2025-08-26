@@ -1,6 +1,6 @@
 "use client";
 
-import Orb from "@/app/others/Utils/ReactBits/Orb"; 
+import Orb from "@/app/others/components/ReactBits/Orb"; 
 import SearchInput from "./SearchInput";
 import { Lexend } from "next/font/google";
 

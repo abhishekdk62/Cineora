@@ -3,7 +3,7 @@
 import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
 import { NavBar } from "@/app/others/components/Home";
 import AccountPage from "@/app/others/components/User/MyAcount/MyAcountManager";
-import DarkVeil from "@/app/others/Utils/ReactBits/DarkVeil";
+import DarkVeil from "@/app/others/components/ReactBits/DarkVeil";
 import React from "react";
 
 const page = () => {
