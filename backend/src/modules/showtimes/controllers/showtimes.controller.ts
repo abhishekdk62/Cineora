@@ -268,6 +268,8 @@ export class ShowtimeController {
       });
     }
   }
+
+
   async getShowtimesByScreen(req: Request, res: Response): Promise<any> {
     try {
       const { screenId } = req.params;
@@ -303,7 +305,6 @@ export class ShowtimeController {
       const { theaterId } = req.params;
       const { date } = req.query;
       const dateQueryDto: DateQueryDto = { date: date as string };
-
 
       if (!date) {
         res.status(400).json({
@@ -355,10 +356,14 @@ export class ShowtimeController {
   async releaseSeats(req: Request, res: Response): Promise<any> {
     try {
       const { showtimeId } = req.params;
-const releaseSeatsDto: ReleaseSeatsDto = req.body;
-const result = await this.showtimeService.releaseSeats(showtimeId, releaseSeatsDto.seatIds, releaseSeatsDto.userId, releaseSeatsDto.sessionId);
+      const releaseSeatsDto: ReleaseSeatsDto = req.body;
+      const result = await this.showtimeService.releaseSeats(
+        showtimeId,
+        releaseSeatsDto.seatIds,
+        releaseSeatsDto.userId,
+        releaseSeatsDto.sessionId
+      );
 
-    
       if (result.success) {
         res.status(200).json(result);
       } else {
@@ -375,10 +380,11 @@ const result = await this.showtimeService.releaseSeats(showtimeId, releaseSeatsD
     try {
       const { showtimeId } = req.params;
       const { seatIds } = req.body;
-const bookSeatsDto: BookSeatsDto = req.body;
-const result = await this.showtimeService.bookSeats(showtimeId, bookSeatsDto.seatIds);
-
-
+      const bookSeatsDto: BookSeatsDto = req.body;
+      const result = await this.showtimeService.bookSeats(
+        showtimeId,
+        bookSeatsDto.seatIds
+      );
 
       if (result.success) {
         res.status(200).json(result);
@@ -398,7 +404,7 @@ const result = await this.showtimeService.bookSeats(showtimeId, bookSeatsDto.sea
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
 
-      const filters:AdminFiltersDto = {
+      const filters: AdminFiltersDto = {
         search: req.query.search as string,
         showDate: req.query.showDate as string,
         isActive: req.query.isActive
@@ -435,7 +441,7 @@ const result = await this.showtimeService.bookSeats(showtimeId, bookSeatsDto.sea
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
 
-      const filters:AdminFiltersDto = {
+      const filters: AdminFiltersDto = {
         search: req.query.search as string,
         showDate: req.query.showDate as string,
         isActive: req.query.isActive
@@ -473,9 +479,11 @@ const result = await this.showtimeService.bookSeats(showtimeId, bookSeatsDto.sea
     try {
       const { showtimeId } = req.params;
       const { isActive } = req.body;
-const updateStatusDto: UpdateStatusDto = req.body;
-const result = await this.showtimeService.updateShowtimeStatus(showtimeId, updateStatusDto.isActive);
-
+      const updateStatusDto: UpdateStatusDto = req.body;
+      const result = await this.showtimeService.updateShowtimeStatus(
+        showtimeId,
+        updateStatusDto.isActive
+      );
 
       if (result.success) {
         res.status(200).json(result);

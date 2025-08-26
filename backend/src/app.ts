@@ -152,7 +152,12 @@ export class App {
       theaterController
     );
 
-    const userRoutes = new UserRoutes(express.Router(), userController);
+    const userRoutes = new UserRoutes(
+      express.Router(),
+      userController,
+      theaterController,
+      showtimeController
+    );
 
     const ownerRoutes = new OwnerMainRoute(
       express.Router(),
@@ -171,7 +176,8 @@ export class App {
     const commonRoutes = new CommonRoutes(
       express.Router(),
       moviesController,
-      theaterController
+      theaterController,
+      showtimeController
     );
 
     const authRoutes = new AuthRoute(
@@ -181,10 +187,25 @@ export class App {
     );
 
     this.app.use("/api/auth", authRoutes.getRouter());
-    this.app.use("/api/users", authenticateToken, requireUser, userRoutes.getRouter());
+    this.app.use(
+      "/api/users",
+      authenticateToken,
+      requireUser,
+      userRoutes.getRouter()
+    );
     this.app.use("/api/owners", ownerReqRoutes.getRouter());
-    this.app.use("/api/owner", authenticateToken, requireOwner, ownerRoutes.getRouter());
-    this.app.use("/api/admin", authenticateToken, requireAdmin, adminRoutes.getRouter());
+    this.app.use(
+      "/api/owner",
+      authenticateToken,
+      requireOwner,
+      ownerRoutes.getRouter()
+    );
+    this.app.use(
+      "/api/admin",
+      authenticateToken,
+      requireAdmin,
+      adminRoutes.getRouter()
+    );
     this.app.use("/api/common", commonRoutes.getRouter());
 
     this.app.use((req, res) =>

@@ -68,7 +68,7 @@ export class ScreenService implements IScreenService {
         name: screenData.name,
         totalSeats: screenData.totalSeats,
         layout: screenData.layout,
-        isActive: false,
+        isActive: true,
       };
       const screen = await this.screenRepo.create(data);
       if (!screen) {

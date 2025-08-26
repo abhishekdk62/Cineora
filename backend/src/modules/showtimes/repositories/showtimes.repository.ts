@@ -1,7 +1,4 @@
-import {
-  IMovieShowtime,
-
-} from "../interfaces/showtimes.model.interfaces";
+import { IMovieShowtime } from "../interfaces/showtimes.model.interfaces";
 import MovieShowtime from "../models/showtimes.model";
 import mongoose, { Types } from "mongoose";
 import { IShowtimeRepository } from "../interfaces/showtimes.repository.interface";
@@ -73,7 +70,6 @@ export class ShowtimeRepository implements IShowtimeRepository {
     id: string,
     updateData: Partial<IMovieShowtime>
   ): Promise<IMovieShowtime | null> {
-    
     return MovieShowtime.findByIdAndUpdate(id, updateData, { new: true });
   }
 
@@ -88,7 +84,7 @@ export class ShowtimeRepository implements IShowtimeRepository {
     userId: string,
     sessionId: string
   ): Promise<boolean> {
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); 
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
     const seatBlocks = seatIds.map((seatId) => ({
       seatId,
@@ -143,7 +139,7 @@ export class ShowtimeRepository implements IShowtimeRepository {
         .skip(skip)
         .limit(limit)
         .lean(),
-      MovieShowtime.countDocuments(query)
+      MovieShowtime.countDocuments(query),
     ]);
 
     const totalPages = Math.ceil(total / limit);
@@ -177,7 +173,7 @@ export class ShowtimeRepository implements IShowtimeRepository {
         .skip(skip)
         .limit(limit)
         .lean(),
-      MovieShowtime.countDocuments(query)
+      MovieShowtime.countDocuments(query),
     ]);
 
     const totalPages = Math.ceil(total / limit);
@@ -206,7 +202,7 @@ export class ShowtimeRepository implements IShowtimeRepository {
     if (!filters) return;
 
     if (filters.search) {
-      const searchRegex = new RegExp(filters.search, 'i');
+      const searchRegex = new RegExp(filters.search, "i");
       query.$or = [
         { format: searchRegex },
         { language: searchRegex },
@@ -220,7 +216,7 @@ export class ShowtimeRepository implements IShowtimeRepository {
       endDate.setDate(endDate.getDate() + 1);
       query.showDate = {
         $gte: startDate,
-        $lt: endDate
+        $lt: endDate,
       };
     }
 
@@ -250,21 +246,21 @@ export class ShowtimeRepository implements IShowtimeRepository {
   }
 
   private getSortOptions(filters?: ShowtimeFilters): any {
-    const sortBy = filters?.sortBy || 'showDate';
-    const sortOrder = filters?.sortOrder === 'desc' ? -1 : 1;
+    const sortBy = filters?.sortBy || "showDate";
+    const sortOrder = filters?.sortOrder === "desc" ? -1 : 1;
 
     switch (sortBy) {
-      case 'showTime':
+      case "showTime":
         return { showTime: sortOrder };
-      case 'format':
+      case "format":
         return { format: sortOrder };
-      case 'language':
+      case "language":
         return { language: sortOrder };
-      case 'availableSeats':
+      case "availableSeats":
         return { availableSeats: sortOrder };
-      case 'totalSeats':
+      case "totalSeats":
         return { totalSeats: sortOrder };
-      case 'createdAt':
+      case "createdAt":
         return { createdAt: sortOrder };
       default:
         return { showDate: sortOrder, showTime: 1 };
@@ -317,7 +313,6 @@ export class ShowtimeRepository implements IShowtimeRepository {
     endTime: string,
     excludeId?: string
   ): Promise<boolean> {
-
     const query: any = {
       screenId: new Types.ObjectId(screenId),
       showDate,
@@ -419,8 +414,12 @@ export class ShowtimeRepository implements IShowtimeRepository {
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
+    console.log("hitted this repository");
 
-    return MovieShowtime.aggregate([
+    console.log(movieId);
+    console.log(date);
+
+    let data = await MovieShowtime.aggregate([
       {
         $match: {
           movieId: new Types.ObjectId(movieId),
@@ -474,5 +473,8 @@ export class ShowtimeRepository implements IShowtimeRepository {
         $sort: { theaterName: 1 },
       },
     ]);
+    console.log(data);
+
+    return data;
   }
 }
