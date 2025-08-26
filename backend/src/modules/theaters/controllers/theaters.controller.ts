@@ -410,4 +410,54 @@ export class TheaterController {
       });
     }
   }
+  async getTheaterById(req: Request, res: Response): Promise<any> {
+    try {
+      const { theatreId } = req.params;
+      if (!theatreId) {
+        return res.status(400).json({
+          message: "Theater ID is required",
+          success: false,
+        });
+      }
+
+      const result = await this.theaterService.getTheaterById(theatreId);
+
+      if (!result.success) {
+        let statusCode = 400;
+
+        if (
+          result.message ===
+          "Theater with this name already exists in this city"
+        ) {
+          statusCode = 409;
+        } else if (result.message === "Theater not found or update failed") {
+          statusCode = 404;
+        } else if (result.message === "Something went wrong") {
+          statusCode = 500;
+        }
+
+        return res.status(statusCode).json(
+          createResponse({
+            success: false,
+            message: result.message,
+          })
+        );
+      }
+
+      return res.status(200).json(
+        createResponse({
+          success: true,
+          message: result.message,
+          data: result.data,
+        })
+      );
+    } catch (error) {
+      res.status(500).json(
+        createResponse({
+          success: false,
+          message: error.message,
+        })
+      );
+    }
+  }
 }

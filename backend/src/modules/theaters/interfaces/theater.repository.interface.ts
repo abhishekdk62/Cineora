@@ -9,7 +9,6 @@ export interface ITheaterRepository {
   ): Promise<ITheater | null>;
 
   findById(theaterId: string): Promise<ITheater | null>;
-
   findByOwnerId(
     ownerId: string,
     filters?: TheaterFilters
@@ -61,9 +60,7 @@ export interface ITheaterRepository {
     lon2: number
   ): number;
 
-  findWithFilters(
-    filters: TheaterFilters
-  ): Promise<{
+  findWithFilters(filters: TheaterFilters): Promise<{
     theaters: ITheater[];
     total: number;
     totalPages: number;

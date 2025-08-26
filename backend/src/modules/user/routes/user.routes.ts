@@ -1,10 +1,14 @@
 import express from "express";
 import { UserController } from "../controllers/user.controller";
+import { TheaterController } from "../../theaters/controllers/theaters.controller";
+import { ShowtimeController } from "../../showtimes/controllers/showtimes.controller";
 
 export class UserRoutes {
   constructor(
     private router: express.Router = express.Router(),
-    private userController: UserController
+    private userController: UserController,
+    private theaterController: TheaterController,
+    private showtimeController: ShowtimeController
   ) {
     this.setRoutes();
   }
@@ -40,6 +44,9 @@ export class UserRoutes {
 
     this.router.patch("/location", (req, res) =>
       this.userController.updateUserLocation(req, res)
+    );
+    this.router.get("/showtime/:id", (req, res) =>
+      this.showtimeController.getShowtime(req, res)
     );
   }
 

@@ -253,6 +253,7 @@ async createShowtime(
 
   async getShowtimeById(id: string): Promise<ServiceResponse> {
     try {
+      
       if (!mongoose.isValidObjectId(id)) {
         return {
           success: false,

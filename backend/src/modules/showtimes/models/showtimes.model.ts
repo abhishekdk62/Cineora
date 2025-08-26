@@ -89,7 +89,7 @@ const MovieShowtimeSchema = new Schema<IMovieShowtime>(
     },
     screenId: {
       type: Schema.Types.ObjectId,
-      ref: "Screen", // Reference to your existing Screen model
+      ref: "Screen", 
       required: true,
       index: true,
     },
