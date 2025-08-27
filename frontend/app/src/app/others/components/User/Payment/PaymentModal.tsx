@@ -4,6 +4,9 @@ import { Lexend } from "next/font/google";
 import { X } from "lucide-react";
 import { PaymentMethodList } from "./PaymentMethodList";
 import { PaymentButton } from "./PaymentButton";
+import { useSelector } from "react-redux";
+import { bookTicket } from "@/app/others/services/userServices/bookingServices";
+import { useRouter } from "next/navigation";
 
 
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
@@ -14,20 +17,24 @@ interface PaymentModalProps {
   totalAmount: number;
   onClose: () => void;
 }
-
 export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose }) => {
+  const router = useRouter()
+
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const bookingDatasRedux = useSelector((state: any) => state.booking.bookingData);
 
-  const handlePayment = () => {
-    if (!selectedPaymentMethod) return;
-    
-    setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
-      onClose();
-      alert('Payment Successful!');
-    }, 3000);
+  const handlePayment = async () => {
+    try {
+
+      const data = await bookTicket(bookingDatasRedux)
+      console.log(data.data);
+
+      router.push('/')
+    } catch (error) {
+      console.log(error);
+
+    }
   };
 
   return (

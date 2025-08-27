@@ -414,10 +414,7 @@ export class ShowtimeRepository implements IShowtimeRepository {
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
-    console.log("hitted this repository");
 
-    console.log(movieId);
-    console.log(date);
 
     let data = await MovieShowtime.aggregate([
       {
@@ -473,7 +470,6 @@ export class ShowtimeRepository implements IShowtimeRepository {
         $sort: { theaterName: 1 },
       },
     ]);
-    console.log(data);
 
     return data;
   }

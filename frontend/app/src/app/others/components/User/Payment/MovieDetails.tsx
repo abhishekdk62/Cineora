@@ -9,6 +9,7 @@ const lexendBold = Lexend({ weight: "700", subsets: ["latin"] });
 interface MovieDetailsProps {
   data: {
     movieTitle: string;
+    moviePoster:string;
     movieRating: number;
     theaterName: string;
     screenName: string;
@@ -24,7 +25,8 @@ export const MovieDetails: React.FC<MovieDetailsProps> = ({ data }) => {
     <div className="flex items-start gap-6 pb-6 border-b border-gray-600/30">
       <div className="relative">
         <div className="w-20 h-28 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-xl shadow-lg flex items-center justify-center">
-          <Film className="w-8 h-8 text-white" />
+         
+         <img src={data.moviePoster}className="w-full rounded-xl h-full" alt="" />
         </div>
         <div className="absolute -top-1 -right-1 bg-yellow-400 rounded-full p-1">
           <Star className="w-3 h-3 text-black" />
@@ -62,12 +64,12 @@ export const MovieDetails: React.FC<MovieDetailsProps> = ({ data }) => {
           {(data.format || data.language) && (
             <div className="flex items-center gap-4 mt-3">
               {data.format && (
-                <span className={`${lexendSmall.className} px-2 py-1 bg-cyan-500/20 text-cyan-400 text-xs rounded-full`}>
+                <span className={`${lexendSmall.className} px-2 py-1 bg-transparent text-white text-xs rounded-full`}>
                   {data.format}
                 </span>
               )}
               {data.language && (
-                <span className={`${lexendSmall.className} px-2 py-1 bg-purple-500/20 text-purple-400 text-xs rounded-full`}>
+                <span className={`${lexendSmall.className} px-2 py-1 bg-transparent text-white text-xs rounded-full`}>
                   {data.language}
                 </span>
               )}

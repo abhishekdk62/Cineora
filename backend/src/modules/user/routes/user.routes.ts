@@ -2,13 +2,19 @@ import express from "express";
 import { UserController } from "../controllers/user.controller";
 import { TheaterController } from "../../theaters/controllers/theaters.controller";
 import { ShowtimeController } from "../../showtimes/controllers/showtimes.controller";
+import { BookingController } from "../../bookings/controllers/bookings.controller";
+import { TicketController } from "../../tickets/controllers/ticket.controller";
+import { WalletController } from "../../wallet/controllers/wallet.controller";
 
 export class UserRoutes {
   constructor(
     private router: express.Router = express.Router(),
     private userController: UserController,
     private theaterController: TheaterController,
-    private showtimeController: ShowtimeController
+    private showtimeController: ShowtimeController,
+    private bookingController: BookingController,
+    private ticketController: TicketController,
+    private walletController:WalletController
   ) {
     this.setRoutes();
   }
@@ -48,6 +54,14 @@ export class UserRoutes {
     this.router.get("/showtime/:id", (req, res) =>
       this.showtimeController.getShowtime(req, res)
     );
+
+    this.router.post("/bookings/create-booking", (req, res) =>
+      this.bookingController.createBooking(req, res)
+    );
+    this.router.get("/tickets", (req, res) =>
+      this.ticketController.getUserTickets(req, res)
+    );
+    this.router.get('/wallet',(req,res)=>this.walletController.getBalance(req,res))
   }
 
   public getRouter() {

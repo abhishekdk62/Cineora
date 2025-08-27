@@ -1,37 +1,42 @@
 import mongoose, { Document, Types } from "mongoose";
 
-export interface ITransactionDetails {
-  gatewayTransactionId?: string;
-  gatewayResponse?: any;
-  failureReason?: string;
-  processingTime?: number;
+export interface INotificationData {
+  bookingId?: string;
+  movieTitle?: string;
+  theaterName?: string;
+  showDate?: string;
+  showTime?: string;
+  amount?: number;
+  url?: string;
 }
 
-export interface IPayment extends Document {
-  paymentId: string;
-  bookingId: mongoose.Types.ObjectId;
+export interface INotification extends Document {
+  notificationId: string;
   userId: mongoose.Types.ObjectId;
   
-  // Payment Details
-  amount: number;
-  currency: string;
-  paymentMethod: "upi" | "card" | "netbanking" | "wallet";
-  paymentGateway: "razorpay" | "stripe" | "paytm" | "phonepe";
+  // Notification Content
+  title: string;
+  message: string;
+  type: "booking" | "payment" | "reminder" | "offer" | "general" | "cancellation";
+  priority: "low" | "medium" | "high";
   
-  // Status & Processing
-  status: "pending" | "processing" | "completed" | "failed" | "cancelled" | "refunded";
-  transactionDetails?: ITransactionDetails;
+  // Notification Status
+  status: "pending" | "sent" | "delivered" | "failed" | "read";
+  isRead: boolean;
+  readAt?: Date;
   
-  // Refund Information
-  refundAmount?: number;
-  refundDate?: Date;
-  refundReason?: string;
-  refundTransactionId?: string;
+  // Delivery Channels
+  channels: ("app" | "email" | "sms" | "push")[];
+  sentVia: ("app" | "email" | "sms" | "push")[];
   
-  // Audit
-  initiatedAt: Date;
-  completedAt?: Date;
+  // Additional Data
+  data?: INotificationData;
   
+  // Scheduling
+  scheduledFor?: Date;
+  sentAt?: Date;
+  
+  // Timestamps
   createdAt: Date;
   updatedAt: Date;
 }

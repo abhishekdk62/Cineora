@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import { ITicket } from "../interfaces/ticket.model.interface";
 
 const TicketSchema = new Schema<ITicket>({
@@ -11,15 +11,38 @@ const TicketSchema = new Schema<ITicket>({
     type: Schema.Types.ObjectId,
     ref: "Booking",
     required: true,
-    index: true,
   },
   userId: {
     type: Schema.Types.ObjectId,
-    ref: "User", 
+    ref: "User",
     required: true,
-    index: true,
   },
+  movieId: {
+    type: Schema.Types.ObjectId,
+    ref: "Movie",
+    required: true,
+  },
+  theaterId: {
+    type: Schema.Types.ObjectId,
+    ref: "Theater",
+    required: true,
+  },
+  screenId: {
+    type: Schema.Types.ObjectId,
+    ref: "Screen",
+    required: true,
+  },
+  showtimeId: {
+    type: Schema.Types.ObjectId,
+    ref: "MovieShowtime",
+    required: true,
+  },
+
   seatNumber: {
+    type: String,
+    required: true,
+  },
+  seatRow: {
     type: String,
     required: true,
   },
@@ -33,32 +56,26 @@ const TicketSchema = new Schema<ITicket>({
     required: true,
     min: 0,
   },
-  
-  movieTitle: {
-    type: String,
-    required: true,
-  },
-  theaterName: {
-    type: String,
-    required: true,
-  },
-  screenName: {
-    type: String,
-    required: true,
-  },
+
   showDate: {
     type: Date,
     required: true,
-    index: true,
   },
   showTime: {
     type: String,
     required: true,
   },
+
+  status: {
+    type: String,
+    enum: ["confirmed", "cancelled", "used", "expired"],
+    default: "confirmed",
+  },
   
   qrCode: {
     type: String,
   },
+  
   isUsed: {
     type: Boolean,
     default: false,
@@ -69,9 +86,5 @@ const TicketSchema = new Schema<ITicket>({
 }, {
   timestamps: true,
 });
-
-TicketSchema.index({ bookingId: 1 });
-TicketSchema.index({ userId: 1, showDate: 1 });
-TicketSchema.index({ ticketId: 1 });
 
 export default mongoose.model<ITicket>("Ticket", TicketSchema);

@@ -12,7 +12,6 @@ import EmptyState from "@/app/others/components/User/Book/EmptyState";
 import BookingHeader from "@/app/others/components/User/Book/BookingHeader";
 import DateSelector from "@/app/others/components/User/Book/DateSelector";
 import BookingContent from "@/app/others/components/User/Book/BookingContent";
-
 export interface UnifiedBookingEntity {
   _id: string;
   title?: string;
@@ -108,7 +107,6 @@ export default function BookTicketsPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-
   const [movie, setMovie] = useState<UnifiedBookingEntity | null>(null);
   const [theater, setTheater] = useState<UnifiedBookingEntity | null>(null);
   const [movies, setMovies] = useState<UnifiedBookingEntity[]>([]);
@@ -116,21 +114,16 @@ export default function BookTicketsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [bookingFlow, setBookingFlow] = useState<'movie-first' | 'theater-first' | null>(null);
-
   const formatDateForAPI = (date: Date): string => {
     return date.toISOString().split('T')[0];
   };
-
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-
         const flowType = searchParams.get('flow');
         const referrer = document.referrer;
-
         let detectedFlow: 'movie-first' | 'theater-first' = 'movie-first';
-
         if (flowType) {
           detectedFlow = flowType as 'movie-first' | 'theater-first';
         } else if (referrer.includes('/search/theaters')) {
@@ -138,14 +131,11 @@ export default function BookTicketsPage() {
         } else if (referrer.includes('/search/movies')) {
           detectedFlow = 'movie-first';
         }
-
         setBookingFlow(detectedFlow);
         const dateString = formatDateForAPI(selectedDate);
-
         if (detectedFlow === 'movie-first') {
           const movieResponse = await getMovieById(params.id as string);
           setMovie(movieResponse.data);
-
           const theatersResponse = await getTheatersByMovie(params.id as string, dateString);
           setTheaters(theatersResponse.data || []);
           console.log('SHOWTIME DS theaterId', theatersResponse.data[0]);
@@ -173,21 +163,15 @@ export default function BookTicketsPage() {
       fetchData();
     }
   }, [params.id, selectedDate, searchParams]);
-
   const handleShowtimeSelect = (showtimeId: string) => {
     router.push(`/book/tickets/${showtimeId}`)
-
-
   };
-
   const handleGoBack = () => {
     router.back();
   };
-
   const handleDateChange = (date: Date) => {
     setSelectedDate(date);
   };
-
   return (
     <RouteGuard allowUnauthenticated={true} excludedRoles={['admin,owner']}>
       <div className="relative min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 overflow-hidden">

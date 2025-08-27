@@ -15,6 +15,7 @@ import {
   Key,
   MapPin,
   Phone,
+  Gamepad2,
 } from "lucide-react";
 
 import EditProfileModal from "./EditProfileModal";
@@ -22,6 +23,7 @@ import ChangePasswordModal from "./ChangePasswordModal";
 import ChangeEmailModal from "./ChangeEmailModal";
 import LocationFields from "../../../Owner/Theatre/LocationFields";
 import MapLocationPicker from "@/app/others/components/Leaflet/MapLocationPicker";
+import Loader from "../../../utils/Loader";
 
 const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
@@ -66,7 +68,7 @@ const InfoRow = ({ label, icon, value }: InfoRowProps) => (
       {icon}
       {label}
     </label>
-    <div className="bg-white/5 border border-white/10 rounded-xl p-4 backdrop-blur-sm">
+    <div className="bg-black/10 backdrop-blur-md border border-white/10 rounded-xl p-4">
       <p className={`${lexendMedium.className} text-white`}>{value}</p>
     </div>
   </div>
@@ -79,8 +81,8 @@ type StatCardProps = {
   sub?: string;
 };
 const StatCard = ({ icon, label, value, sub }: StatCardProps) => (
-  <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-    <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center mx-auto mb-2">
+  <div className="bg-black/10 backdrop-blur-md border border-white/10 rounded-xl p-5 text-center">
+    <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center mx-auto mb-3">
       {icon}
     </div>
     <p className={`${lexendSmall.className} text-gray-400 text-xs mb-1`}>
@@ -101,7 +103,7 @@ const MyAccountContent = ({
   const [showPwd, setShowPwd] = useState(false);
   const [showEmail, setShowEmail] = useState(false);
 
-  if (!userData) return <div className="text-white">Loading…</div>;
+  if (!userData) return <div className="text-white "><Loader text="Loading Profile" /></div>;
 
   const membershipLevel =
     userData.xpPoints >= 5_000
@@ -130,7 +132,7 @@ const MyAccountContent = ({
   })();
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <div className="max-w-6xl mx-auto space-y-8 p-6">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className={`${lexendBold.className} text-4xl text-white mb-2`}>
@@ -142,119 +144,109 @@ const MyAccountContent = ({
         </div>
         <button
           onClick={() => setIsEditing(true)}
-          className={`${lexendMedium.className} flex items-center gap-2 px-6 py-3 bg-white text-black hover:bg-white/5 hover:border hover:text-white hover:border-gray-400  rounded-xl `}
+          className={`${lexendMedium.className} flex items-center gap-2 px-6 py-3 bg-white/90 text-black hover:bg-white hover:shadow-lg rounded-xl transition-all duration-200`}
         >
+          {/* <Edit3 className="w-4 h-4" /> */}
           Edit Profile
         </button>
       </div>
+<div className="mb-4 p-8 rounded-xl bg-black/30 border border-gray-600/30">
+  <div className="flex flex-col items-center text-center">
+    {/* Centered round avatar */}
+    <div className="relative mb-6">
+      <img
+        src={userData.profilePicture || "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"}
+        alt={userData.username}
+        className="w-32 h-32 rounded-full object-cover border-4 border-gray-600/30 shadow-lg"
+      />
+    </div>
 
-      <div className="bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/10 rounded-2xl p-8 backdrop-blur-xl">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8">
-          {/* avatar */}
-          <div className="relative">
-            <img
-              src={userData.profilePicture || "/api/placeholder/150/150"}
-              alt={userData.username}
-              className="w-32 h-32 rounded-2xl object-cover border-4 border-white/20 shadow-lg"
-            />
-            {userData.isVerified && (
-              <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-lg">
-                <CheckCircle className="w-4 h-4 text-white" />
-              </div>
-            )}
-            {/* badge */}
-            <div className="mt-4 text-center">
-              <div
-                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${membershipLevel === "Premium"
-                  ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border border-purple-500/30"
-                  : membershipLevel === "Gold"
-                    ? "bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-300 border border-yellow-500/30"
-                    : membershipLevel === "Silver"
-                      ? "bg-gradient-to-r from-gray-400/20 to-gray-500/20 text-gray-300 border border-gray-400/30"
-                      : "bg-gradient-to-r from-amber-600/20 to-amber-700/20 text-amber-300 border border-amber-600/30"
-                  }`}
-              >
-                <Award className="w-3 h-3 mr-1" />
-                {membershipLevel} Member
-              </div>
-            </div>
+    {/* Name and username centered */}
+    <div className="mb-6">
+      <h2 className={`${lexendBold} text-white text-2xl mb-2`}>
+        {userData.firstName && userData.lastName
+          ? `${userData.firstName} ${userData.lastName}`
+          : userData.username}
+      </h2>
+      <p className={`${lexendMedium} text-gray-300 text-sm mb-3 flex items-center justify-center gap-2`}>
+        @{userData.username}
+      </p>
+      
+      {/* Membership level */}
+      <div className={`${lexendSmall} bg-black/20 px-3 py-1 rounded-lg border border-gray-600/20 flex justify-center items-center text-gray-300 text-sm`}>
+        <Award className="w-3 h-3 mr-1" />
+        {membershipLevel} Member
+      </div>
+    </div>
+
+    {/* Stats grid */}
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+      <div className="p-4 rounded-lg bg-black/20 border border-gray-600/20 text-center">
+        <div className="flex justify-center mb-2">
+          <Gamepad2 className="w-5 h-5 text-white" />
+        </div>
+        <div className={`${lexendBold} text-white text-lg mb-1`}>
+          {userData.xpPoints.toLocaleString()}
+        </div>
+        <div className={`${lexendSmall} text-gray-400 text-xs`}>
+          XP Points
+        </div>
+        {nextLevelPoints > 0 && (
+          <div className={`${lexendSmall} text-gray-500 text-xs mt-1`}>
+            {nextLevelPoints} to next level
           </div>
+        )}
+      </div>
 
-          {/* basic info + stats */}
-          <div className="flex-1 w-full">
-            {/* name / verified */}
-            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-6">
-              <div>
-                <h2
-                  className={`${lexendBold.className} text-3xl text-white mb-2`}
-                >
-                  {userData.firstName && userData.lastName
-                    ? `${userData.firstName} ${userData.lastName}`
-                    : userData.username}
-                </h2>
-                <p
-                  className={`${lexendMedium.className} text-gray-300 mb-4 flex items-center gap-2`}
-                >
-                  <User className="w-4 h-4" />@{userData.username}
-                </p>
-              </div>
-              {userData.isVerified && (
-                <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-xl">
-                  <Shield className="w-4 h-4 text-green-400" />
-                  <span
-                    className={`${lexendSmall.className} text-green-400 font-medium`}
-                  >
-                    Verified Account
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* stats grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <StatCard
-                icon={<span className="text-yellow-400 text-lg">✨</span>}
-                label="XP Points"
-                value={userData.xpPoints.toLocaleString()}
-                sub={
-                  nextLevelPoints > 0 ? `${nextLevelPoints} to next level` : ""
-                }
-              />
-              <StatCard
-                icon={<Calendar className="w-4 h-4 text-blue-400" />}
-                label="Member Since"
-                value={userData.joinedAt.toLocaleDateString("en-US", {
-                  month: "short",
-                  year: "numeric",
-                })}
-              />
-              <StatCard
-                icon={<Clock className="w-4 h-4 text-green-400" />}
-                label="Last Active"
-                value={userData.lastActive.toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                })}
-              />
-              <StatCard
-                icon={<Globe className="w-4 h-4 text-purple-400" />}
-                label="Language"
-                value={
-                  userData.language === "en"
-                    ? "English"
-                    : userData.language ?? "—"
-                }
-              />
-            </div>
-          </div>
+      <div className="p-4 rounded-lg bg-black/20 border border-gray-600/20 text-center">
+        <div className="flex justify-center mb-2">
+          <Calendar className="w-5 h-5 text-white" />
+        </div>
+        <div className={`${lexendBold} text-white text-lg mb-1`}>
+          {userData.joinedAt.toLocaleDateString("en-US", {
+            month: "short",
+            year: "numeric",
+          })}
+        </div>
+        <div className={`${lexendSmall} text-gray-400 text-xs`}>
+          Member Since
         </div>
       </div>
 
-      {/* ───── personal info card ───── */}
-      <div className="bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
+      <div className="p-4 rounded-lg bg-black/20 border border-gray-600/20 text-center">
+        <div className="flex justify-center mb-2">
+          <Clock className="w-5 h-5 text-white" />
+        </div>
+        <div className={`${lexendBold} text-white text-lg mb-1`}>
+          {userData.lastActive.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          })}
+        </div>
+        <div className={`${lexendSmall} text-gray-400 text-xs`}>
+          Last Active
+        </div>
+      </div>
+
+      <div className="p-4 rounded-lg bg-black/20 border border-gray-600/20 text-center">
+        <div className="flex justify-center mb-2">
+          <Globe className="w-5 h-5 text-white" />
+        </div>
+        <div className={`${lexendBold} text-white text-lg mb-1`}>
+          {userData.language === "en" ? "English" : userData.language ?? "—"}
+        </div>
+        <div className={`${lexendSmall} text-gray-400 text-xs`}>
+          Language
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+      <div className="bg-black/10 backdrop-blur-md border border-white/10 rounded-2xl p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-white text-black  hover:border-gray-400 rounded-xl flex items-center justify-center">
-            <User className="w-5 h-5 bg-white text-black  hover:border-gray-400" />
+          <div className="w-10 h-10 bg-white/90 text-black rounded-xl flex items-center justify-center">
+            <User className="w-5 h-5" />
           </div>
           <h3 className={`${lexendBold.className} text-xl text-white`}>
             Personal Information
@@ -316,17 +308,16 @@ const MyAccountContent = ({
             />
           )}
 
-          {userData.location &&
+          {userData.location && (
             <div>
-
               <div className="flex items-center gap-3 p-3">
-                <h1>Your location</h1>
+                <h4 className={`${lexendMedium.className} text-white`}>Your location</h4>
                 <button
                   onClick={() => {
                     const url = `https://www.google.com/maps?q=${userData?.location?.coordinates[1]},${userData?.location?.coordinates[0]}`;
                     window.open(url, "_blank");
                   }}
-                  className="text text-blue-400 hover:text-blue-700 underline"
+                  className="text-blue-400 hover:text-blue-300 underline text-sm transition-colors"
                 >
                   View on Google Maps
                 </button>
@@ -338,19 +329,15 @@ const MyAccountContent = ({
                   userData.location.coordinates[0] || 77.1025
                 ]}
               />
-
-
             </div>
-          }
-
+          )}
         </div>
       </div>
 
-      {/* ───── security & status card ───── */}
-      <div className="bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
+      <div className="bg-black/10 backdrop-blur-md border border-white/10 rounded-2xl p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-white text-black  rounded-xl flex items-center justify-center">
-            <Shield className="w-5 h-5 text-black" />
+          <div className="w-10 h-10 bg-white/90 text-black rounded-xl flex items-center justify-center">
+            <Shield className="w-5 h-5" />
           </div>
           <h3 className={`${lexendBold.className} text-xl text-white`}>
             Security &amp; Status
@@ -359,14 +346,14 @@ const MyAccountContent = ({
 
         <div className="space-y-4">
           <SecurityRow
-            iconBg="bg-white"
+            iconBg="bg-white/90"
             icon={<Key className="w-4 h-4 text-black" />}
             label="Password"
             actionLabel="Change"
             onAction={() => setShowPwd(true)}
           />
           <SecurityRow
-            iconBg="bg-white"
+            iconBg="bg-white/90"
             icon={<Mail className="w-4 h-4 text-black" />}
             label="Email"
             actionLabel="Change"
@@ -374,49 +361,31 @@ const MyAccountContent = ({
           />
 
           <SecurityRow
-            iconBg="bg-white"
-            icon={<CheckCircle className="w-4 h-4 text-black" />}
-            label="Account Status"
-            statusChip="Active"
-            statusChipStyle="bg-green-500/20 text-green-400 border-green-500/30"
-          />
-
-          {/* last login */}
-          <SecurityRow
-            iconBg="bg-white"
+            iconBg="bg-white/90"
             icon={<Clock className="w-4 h-4 text-black" />}
             label="Last Login"
             rightText={userData.lastActive.toLocaleDateString()}
           />
 
           {/* membership progress */}
-          <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+          <div className="bg-black/10 backdrop-blur-md border border-white/10 rounded-xl p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-white/90 rounded-lg flex items-center justify-center">
                   <Award className="w-4 h-4 text-black" />
                 </div>
                 <span className={`${lexendMedium.className} text-gray-200`}>
                   Membership Level
                 </span>
               </div>
-              <span
-                className={`px-3 py-1 rounded-full text-sm font-medium ${membershipLevel === "Premium"
-                  ? "bg-white text-black border"
-                  : membershipLevel === "Gold"
-                    ? "bg-white text-black border"
-                    : membershipLevel === "Silver"
-                      ? "bg-white text-black border"
-                      : "bg-white text-black border"
-                  }`}
-              >
+              <span className="px-3 py-1 rounded-full text-sm font-medium bg-white/90 text-black border">
                 {membershipLevel}
               </span>
             </div>
             {nextLevelPoints > 0 && (
               <div className="w-full bg-white/10 rounded-full h-2">
                 <div
-                  className="bg-gradient-to-r from-white to-purple-600 h-2 rounded-full transition-all"
+                  className="bg-gradient-to-r from-white/80 to-white/60 h-2 rounded-full transition-all"
                   style={{ width: `${progressPct}%` }}
                 />
               </div>
@@ -426,7 +395,7 @@ const MyAccountContent = ({
       </div>
 
       {/* ───── footer ───── */}
-      <div className="text-center bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
+      <div className="text-center bg-black/10 backdrop-blur-md border border-white/10 rounded-2xl p-6">
         <div className="flex items-center justify-center gap-2 mb-3">
           <Shield className="w-5 h-5 text-green-400" />
           <span className={`${lexendMedium.className} text-green-400`}>
@@ -477,6 +446,7 @@ type SecRowProps = {
   statusChipStyle?: string;
   rightText?: string;
 };
+
 const SecurityRow = ({
   iconBg,
   icon,
@@ -487,12 +457,10 @@ const SecurityRow = ({
   statusChipStyle,
   rightText,
 }: SecRowProps) => (
-  <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+  <div className="bg-black/10 backdrop-blur-md border border-white/10 rounded-xl p-4">
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <div
-          className={`w-8 h-8 ${iconBg} rounded-lg flex items-center justify-center`}
-        >
+        <div className={`w-8 h-8 ${iconBg} rounded-lg flex items-center justify-center`}>
           {icon}
         </div>
         <span className={`${lexendMedium.className} text-gray-200`}>
@@ -503,16 +471,14 @@ const SecurityRow = ({
       {actionLabel && onAction && (
         <button
           onClick={onAction}
-          className="px-3 py-1 bg-white text-black hover:bg-white/5 hover:border hover:text-white hover:border-gray-400 rounded-full text-sm font-medium border transition-colors"
+          className="px-4 py-2 bg-white/90 text-black hover:bg-white hover:shadow-lg rounded-lg text-sm font-medium transition-all duration-200"
         >
           {actionLabel}
         </button>
       )}
 
       {statusChip && (
-        <span
-          className={`px-3 py-1 rounded-full text-sm font-medium border ${statusChipStyle}`}
-        >
+        <span className={`px-3 py-1 rounded-full text-sm font-medium border ${statusChipStyle}`}>
           {statusChip}
         </span>
       )}

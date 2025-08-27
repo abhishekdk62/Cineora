@@ -48,6 +48,8 @@ export class OTPService implements IOTPService {
     const validOTP = await this.otpRepo.findValidOTP(email, otp, type);
 
     if (!validOTP) {
+      console.log('valid not ');
+      
       return {
         success: false,
         message: "Invalid or expired OTP",

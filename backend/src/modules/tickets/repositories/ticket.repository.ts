@@ -7,26 +7,28 @@ export class TicketRepository implements ITicketRepository {
     const ticket = new Ticket(ticketData);
     return ticket.save();
   }
-  
+
   async findById(id: string): Promise<ITicket | null> {
     return Ticket.findById(id).populate("bookingId").populate("userId");
   }
-  
+
   async findByTicketId(ticketId: string): Promise<ITicket | null> {
-    return Ticket.findOne({ ticketId }).populate("bookingId").populate("userId");
+    return Ticket.findOne({ ticketId })
+      .populate("bookingId")
+      .populate("userId");
   }
-  
+
   async findByBookingId(bookingId: string): Promise<ITicket[]> {
     return Ticket.find({ bookingId }).populate("userId");
   }
-  
+
   async findByUserId(userId: string): Promise<ITicket[]> {
     return Ticket.find({ userId }).sort({ showDate: -1 });
   }
-  
+
   async findByUserIdPaginated(
-    userId: string, 
-    page: number = 1, 
+    userId: string,
+    page: number = 1,
     limit: number = 10
   ): Promise<{
     tickets: ITicket[];
@@ -36,12 +38,15 @@ export class TicketRepository implements ITicketRepository {
   }> {
     const skip = (page - 1) * limit;
     const tickets = await Ticket.find({ userId })
+      .populate("movieId", "title poster")
+      .populate("theaterId", "name")
+      .populate("screenId", "name")
       .sort({ showDate: -1 })
       .skip(skip)
       .limit(limit);
-      
+
     const total = await Ticket.countDocuments({ userId });
-    
+
     return {
       tickets,
       total,
@@ -49,14 +54,14 @@ export class TicketRepository implements ITicketRepository {
       totalPages: Math.ceil(total / limit),
     };
   }
-  
+
   async updateById(
-    id: string, 
+    id: string,
     updateData: Partial<ITicket>
   ): Promise<ITicket | null> {
     return Ticket.findByIdAndUpdate(id, updateData, { new: true });
   }
-  
+
   async markAsUsed(ticketId: string): Promise<ITicket | null> {
     return Ticket.findOneAndUpdate(
       { ticketId },
@@ -64,7 +69,7 @@ export class TicketRepository implements ITicketRepository {
       { new: true }
     );
   }
-  
+
   async createBulkTickets(ticketsData: Partial<ITicket>[]): Promise<ITicket[]> {
     const result = await Ticket.insertMany(ticketsData);
     return result as ITicket[];
@@ -78,17 +83,20 @@ export class TicketRepository implements ITicketRepository {
       isUsed: false,
     }).sort({ showDate: 1 });
   }
-  
+
   async findTicketHistory(userId: string): Promise<ITicket[]> {
     return Ticket.find({ userId }).sort({ showDate: -1 });
   }
-  
+
   async deleteById(id: string): Promise<boolean> {
     const result = await Ticket.findByIdAndDelete(id);
     return !!result;
   }
-  
-  async validateTicket(ticketId: string, qrCode: string): Promise<ITicket | null> {
+
+  async validateTicket(
+    ticketId: string,
+    qrCode: string
+  ): Promise<ITicket | null> {
     return Ticket.findOne({ ticketId, qrCode, isUsed: false });
   }
 }

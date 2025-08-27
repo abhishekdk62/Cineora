@@ -102,9 +102,15 @@ export interface UserResponseDto {
 }
 
 export interface SignupResponseDto {
-  email: string;
-  username: string;
+  email?:string,
+  username?:string;
+  user?: {
+    _id: string;
+    email: string;
+    username: string;
+  };
 }
+
 
 export interface VerifyOTPResponseDto {
   user: UserResponseDto;

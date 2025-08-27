@@ -3,35 +3,60 @@ import { CreateBookingDto, UpdatePaymentStatusDto } from "../dtos/dto";
 import { IBookingService } from "../interfaces/bookings.service.interface";
 import { ITicketService } from "../../tickets/interfaces/ticket.service.interface";
 
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    email: string;
+    // other user properties
+  };
+}
 
 export class BookingController {
-  constructor(private readonly bookingService: IBookingService,private readonly ticketService:ITicketService) {}
+  constructor(
+    private readonly bookingService: IBookingService,
+    private readonly ticketService: ITicketService
+  ) {}
   
-  async createBooking(req: Request, res: Response): Promise<any> {
+  async createBooking(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
       const bookingDto: CreateBookingDto = req.body;
+      const userId = req.user.id; 
       
-      const bookingResult = await this.bookingService.createBooking(bookingDto);
+      if (!userId) {
+        console.log('user auth req')
+        return res.status(401).json({
+          success: false,
+          message: "Authentication required",
+        });
+      }
+
+      const bookingDataWithUser = {
+        ...bookingDto,
+        userId, 
+      };
+
+     
+      const bookingResult = await this.bookingService.createBooking(bookingDataWithUser);
       
       if (!bookingResult.success) {
         return res.status(400).json(bookingResult);
       }
       
-      const ticketResult = await this.ticketService.createTicketsFromBooking(
+      const ticketResult = await this.ticketService.createTicketsFromRows(
         bookingResult.data._id.toString(),
+        bookingDto.selectedRows || [], 
         {
-          userId: bookingDto.userId,
-          selectedSeats: bookingDto.selectedSeats,
-          seatBreakdown: bookingDto.seatPricing,
-          movieTitle: bookingResult.data.movieId?.title || "Movie",
-          theaterName: bookingResult.data.theaterId?.name || "Theater",
-          screenName: `Screen ${bookingResult.data.screenId?.name || 1}`,
+          userId,
+          movieId: bookingResult.data.movieId ,
+          theaterId: bookingResult.data.theaterId ,
+          screenId: bookingResult.data.screenId,
+          showtimeId:bookingResult.data.showtimeId,
+          paymentMethod:bookingDto.paymentMethod,
           showDate: bookingDto.showDate,
           showTime: bookingDto.showTime,
         }
       );
       
-      // 3. Return combined response
       const response = {
         success: true,
         message: "Booking and tickets created successfully",
@@ -41,18 +66,17 @@ export class BookingController {
           ticketCreationError: !ticketResult.success ? ticketResult.message : null
         }
       };
-      
       res.status(201).json(response);
       
     } catch (error: any) {
+      console.log(error);
+      
       res.status(500).json({
         success: false,
         message: error.message || "Internal server error",
       });
     }
   }
-
-  
   async getBookingById(req: Request, res: Response): Promise<any> {
     try {
       const { bookingId } = req.params;
@@ -71,9 +95,19 @@ export class BookingController {
     }
   }
   
-  async getUserBookings(req: Request, res: Response): Promise<any> {
+  async getUserBookings(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
       const { userId } = req.params;
+      const authenticatedUserId = req.user?.id;
+      
+      // ✅ Ensure user can only access their own bookings
+      if (userId !== authenticatedUserId) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied. You can only view your own bookings.",
+        });
+      }
+
       const { page = 1, limit = 10 } = req.query;
       
       const result = await this.bookingService.getUserBookings(
@@ -91,9 +125,19 @@ export class BookingController {
     }
   }
   
-  async getUpcomingBookings(req: Request, res: Response): Promise<any> {
+  async getUpcomingBookings(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
       const { userId } = req.params;
+      const authenticatedUserId = req.user?.id;
+      
+      // ✅ Security check
+      if (userId !== authenticatedUserId) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied",
+        });
+      }
+
       const result = await this.bookingService.getUpcomingBookings(userId);
       
       res.status(200).json(result);
@@ -105,10 +149,20 @@ export class BookingController {
     }
   }
   
-  async cancelBooking(req: Request, res: Response): Promise<any> {
+  async cancelBooking(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
       const { bookingId } = req.params;
-      const { userId } = req.body;
+      const userId = req.user?.id; 
+
+      
+      
+      if (!userId) {
+        
+        return res.status(401).json({
+          success: false,
+          message: "Authentication required",
+        });
+      }
       
       const result = await this.bookingService.cancelBooking(bookingId, userId);
       
@@ -149,9 +203,18 @@ export class BookingController {
     }
   }
   
-  async getBookingHistory(req: Request, res: Response): Promise<any> {
+  async getBookingHistory(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
       const { userId } = req.params;
+      const authenticatedUserId = req.user?.id;
+      
+      if (userId !== authenticatedUserId) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied",
+        });
+      }
+
       const result = await this.bookingService.getBookingHistory(userId);
       
       res.status(200).json(result);

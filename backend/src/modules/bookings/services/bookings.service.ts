@@ -11,15 +11,22 @@ export class BookingService implements IBookingService {
     private readonly bookingRepo: IBookingRepository,
     private readonly showtimeRepo: IShowtimeRepository
   ) {}
+
   async createBooking(bookingData: CreateBookingDto): Promise<ServiceResponse> {
     const session = await mongoose.startSession();
     session.startTransaction();
-    
     try {
-      // Generate booking ID
       const bookingId = `BK${Date.now()}${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
-      
-      // Convert string IDs to ObjectId before database operations
+      let allSelectedSeats: string[] = [];
+      if (bookingData.selectedRows && bookingData.selectedRows.length > 0) {
+        allSelectedSeats = bookingData.selectedRows.flatMap(row => 
+          row.seatsSelected.map(seatNum => `${row.rowLabel}${seatNum}`)
+        );
+      } else if (bookingData.selectedSeats) {
+        allSelectedSeats = bookingData.selectedSeats;
+      } else {
+        throw new Error("No seats selected");
+      }
       const bookingPayload = {
         ...bookingData,
         bookingId,
@@ -28,6 +35,7 @@ export class BookingService implements IBookingService {
         theaterId: new mongoose.Types.ObjectId(bookingData.theaterId),
         screenId: new mongoose.Types.ObjectId(bookingData.screenId),
         showtimeId: new mongoose.Types.ObjectId(bookingData.showtimeId),
+        selectedSeats: allSelectedSeats, // ✅ Store flattened seat list
         paymentStatus: "completed" as const,
         bookingStatus: "confirmed" as const,
       };
@@ -38,7 +46,8 @@ export class BookingService implements IBookingService {
         throw new Error("Showtime not found");
       }
       
-      const conflictSeats = bookingData.selectedSeats.filter(seat => 
+      // ✅ Check availability of all selected seats
+      const conflictSeats = allSelectedSeats.filter(seat => 
         showtime.bookedSeats.includes(seat)
       );
       
@@ -56,7 +65,7 @@ export class BookingService implements IBookingService {
       // 3. Update showtime - Mark seats as booked
       await this.showtimeRepo.bookSeats(
         bookingData.showtimeId,
-        bookingData.selectedSeats
+        allSelectedSeats // ✅ Use flattened seat list
       );
       
       await session.commitTransaction();
@@ -64,7 +73,7 @@ export class BookingService implements IBookingService {
       return {
         success: true,
         message: "Booking created successfully",
-        data: booking, // 🎯 Only return booking, not tickets
+        data: booking,
       };
       
     } catch (error: any) {
@@ -79,8 +88,6 @@ export class BookingService implements IBookingService {
     }
   }
 
-
-  
   async getBookingByBookingId(bookingId: string): Promise<ServiceResponse> {
     try {
       const booking = await this.bookingRepo.findByBookingId(bookingId);

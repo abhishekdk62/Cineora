@@ -1,18 +1,30 @@
+// Selected row interface for row-based seat selection
+export interface SelectedRow {
+  rowId: string;
+  rowLabel: string;
+  seatsSelected: string[];
+  seatCount: number;
+  seatType: "VIP" | "Premium" | "Normal";
+  pricePerSeat: number;
+  totalPrice: number;
+}
+
+// Create booking DTO
 export interface CreateBookingDto {
   userId: string;
   movieId: string;
   theaterId: string;
   screenId: string;
   showtimeId: string;
-  selectedSeats: string[];
-  selectedSeatIds: string[];
-  seatPricing: Array<{
-    seatId: string;
-    seatType: "VIP" | "Premium" | "Normal";
-    basePrice: number;
-    finalPrice: number;
-    rowLabel: string;
-  }>;
+  
+  // Row-based selection (NEW)
+  selectedRows?: SelectedRow[];
+  
+  // Legacy support
+  selectedSeats?: string[];
+  selectedSeatIds?: string[];
+  seatPricing?: any[];
+  
   priceDetails: {
     subtotal: number;
     convenienceFee: number;
@@ -20,21 +32,41 @@ export interface CreateBookingDto {
     discount: number;
     total: number;
   };
-  paymentMethod: string;
+  
   showDate: Date;
   showTime: string;
-  contactInfo: {
+  paymentMethod?: string;
+  paymentGateway?: string;
+  contactInfo?: {
     email: string;
     phone: string;
   };
 }
 
+// Update payment status DTO
+export interface UpdatePaymentStatusDto {
+  paymentStatus: "pending" | "completed" | "failed" | "refunded";
+  paymentId?: string;
+  transactionId?: string;
+  gatewayResponse?: any;
+  failureReason?: string;
+  refundAmount?: number;
+  refundReason?: string;
+}
+
+// Cancel booking DTO
+export interface CancelBookingDto {
+  bookingId: string;
+  userId: string;
+  reason?: string;
+}
+
+// Booking response DTO
 export interface BookingResponseDto {
   bookingId: string;
   userId: string;
   movieTitle: string;
   theaterName: string;
-  screenName: string;
   selectedSeats: string[];
   showDate: string;
   showTime: string;
@@ -42,22 +74,4 @@ export interface BookingResponseDto {
   paymentStatus: string;
   bookingStatus: string;
   bookedAt: string;
-}
-
-export interface CancelBookingDto {
-  bookingId: string;
-  userId: string;
-  reason?: string;
-}
-
-export interface UpdatePaymentStatusDto {
-  bookingId: string;
-  paymentStatus: "pending" | "completed" | "failed" | "refunded";
-  paymentId?: string;
-}
-
-export interface UserBookingsQueryDto {
-  page?: number;
-  limit?: number;
-  status?: "confirmed" | "cancelled" | "expired";
 }

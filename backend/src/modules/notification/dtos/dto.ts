@@ -1,43 +1,48 @@
-export interface InitiatePaymentDto {
-  bookingId: string;
+export interface CreateNotificationDto {
   userId: string;
-  amount: number;
-  currency?: string;
-  paymentMethod: "upi" | "card" | "netbanking" | "wallet";
-  paymentGateway: "razorpay" | "stripe" | "paytm" | "phonepe";
-  successUrl?: string;
-  failureUrl?: string;
+  title: string;
+  message: string;
+  type: "booking" | "payment" | "reminder" | "offer" | "general" | "cancellation";
+  priority?: "low" | "medium" | "high";
+  channels?: ("app" | "email" | "sms" | "push")[];
+  data?: any;
+  scheduledFor?: Date;
 }
 
-export interface PaymentCallbackDto {
-  paymentId: string;
-  gatewayTransactionId: string;
-  status: "success" | "failure";
-  amount: number;
-  gatewayResponse: any;
-}
-
-export interface RefundPaymentDto {
-  paymentId: string;
-  refundAmount: number;
-  refundReason: string;
-}
-
-export interface PaymentResponseDto {
-  paymentId: string;
-  bookingId: string;
-  amount: number;
-  currency: string;
-  paymentMethod: string;
-  paymentGateway: string;
+export interface NotificationResponseDto {
+  notificationId: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: string;
+  priority: string;
   status: string;
-  initiatedAt: string;
-  completedAt?: string;
-  gatewayUrl?: string;
+  isRead: boolean;
+  readAt?: string;
+  sentVia: string[];
+  data?: any;
+  createdAt: string;
 }
 
-export interface VerifyPaymentDto {
-  paymentId: string;
-  gatewayTransactionId: string;
-  signature?: string;
+export interface BulkNotificationDto {
+  userIds: string[];
+  title: string;
+  message: string;
+  type: string;
+  channels?: string[];
+  data?: any;
+}
+
+export interface NotificationFiltersDto {
+  type?: string;
+  isRead?: boolean;
+  page?: number;
+  limit?: number;
+}
+
+export interface NotificationStatsDto {
+  totalNotifications: number;
+  unreadNotifications: number;
+  notificationsByType: { [key: string]: number };
+  notificationsByStatus: { [key: string]: number };
 }

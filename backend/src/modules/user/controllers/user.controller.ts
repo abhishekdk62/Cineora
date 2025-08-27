@@ -26,12 +26,15 @@ import {
 import { IUserService } from "../interfaces/user.service.interface";
 import { IAuthService } from "../../auth/interfaces/auth.service.interface";
 import { IMovieService } from "../../movies/interfaces/movies.service.interface";
+import { IWalletService } from "../../wallet/interfaces/wallet.service.interface";
+import { MovieService } from "../../movies/services/movies.service";
 
 export class UserController {
   constructor(
     private readonly userService: IUserService,
     private readonly authService: IAuthService,
-    private readonly movieService: IMovieService
+    private readonly movieService: MovieService,
+    private readonly walletService: IWalletService
   ) {}
 
   async signup(req: Request, res: Response): Promise<any> {
@@ -60,7 +63,9 @@ export class UserController {
         createResponse({
           success: true,
           message: result.message,
-          data: result.data,
+          data: {
+            ...result.data,
+          },
         })
       );
     } catch (err) {
@@ -98,7 +103,17 @@ export class UserController {
           .status(400)
           .json(createResponse({ success: false, message: result.message }));
       }
+ const walletResult = await this.walletService.createWallet(
+          result.data?.user._id,
+          "User"
+        );
 
+        if (!walletResult.success) {
+          console.error(
+            `Failed to create wallet for user ${result.data?.user._id}:`,
+            walletResult.message
+          );
+        }
       const user = result.data?.user;
       if (!user) {
         return res.status(500).json(
@@ -119,6 +134,7 @@ export class UserController {
         );
 
         this.setAuthCookies(res, accessToken, refreshToken);
+       
 
         return res.status(200).json(
           createResponse({
@@ -271,7 +287,6 @@ export class UserController {
           })
         );
       }
-      console.log("acces token suiiiiii", refreshResult.data.accessToken);
 
       res.cookie("accessToken", refreshResult.data.accessToken, {
         httpOnly: true,
@@ -345,10 +360,7 @@ export class UserController {
       );
     }
   }
-  async updateUserLocation(
-    req: Request,
-    res: Response
-  ): Promise<any> {
+  async updateUserLocation(req: Request, res: Response): Promise<any> {
     try {
       const { id } = req.user;
 
@@ -422,7 +434,7 @@ export class UserController {
       );
     }
   }
- async getNearbyUsers(req: Request, res: Response):Promise<any> {
+  async getNearbyUsers(req: Request, res: Response): Promise<any> {
     try {
       const { id } = req.params;
       const { maxDistance } = req.query;
@@ -459,11 +471,11 @@ export class UserController {
       );
     } catch (err) {
       res.status(500).json(
-          createResponse({
-            success: false,
-            message: err.message,
-          })
-        )
+        createResponse({
+          success: false,
+          message: err.message,
+        })
+      );
     }
   }
 
@@ -613,10 +625,7 @@ export class UserController {
     }
   }
 
-  async verifyChangeEmailOtp(
-    req: Request,
-    res: Response
-  ): Promise<any> {
+  async verifyChangeEmailOtp(req: Request, res: Response): Promise<any> {
     try {
       const { id } = req.user;
       const verifyEmailOTPDto: VerifyEmailChangeOTPDto = req.body;
@@ -754,10 +763,7 @@ export class UserController {
     }
   }
 
-  async toggleUserStatus(
-    req: Request,
-    res: Response
-  ): Promise<any> {
+  async toggleUserStatus(req: Request, res: Response): Promise<any> {
     try {
       const { id } = req.params;
 
@@ -798,7 +804,7 @@ export class UserController {
     }
   }
 
-  async getUserDetails(req: Request, res: Response): Promise< any> {
+  async getUserDetails(req: Request, res: Response): Promise<any> {
     try {
       const { id } = req.params;
 

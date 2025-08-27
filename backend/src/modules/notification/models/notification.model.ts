@@ -1,32 +1,35 @@
 import mongoose, { Schema } from "mongoose";
-import { IPayment, ITransactionDetails } from "../interfaces/notification.model.interface";
+import { INotification, INotificationData } from "../interfaces/notification.model.interface";
 
-const TransactionDetailsSchema = new Schema<ITransactionDetails>({
-  gatewayTransactionId: {
+const NotificationDataSchema = new Schema<INotificationData>({
+  bookingId: {
     type: String,
   },
-  gatewayResponse: {
-    type: Schema.Types.Mixed,
-  },
-  failureReason: {
+  movieTitle: {
     type: String,
   },
-  processingTime: {
-    type: Number, // in milliseconds
+  theaterName: {
+    type: String,
+  },
+  showDate: {
+    type: String,
+  },
+  showTime: {
+    type: String,
+  },
+  amount: {
+    type: Number,
+  },
+  url: {
+    type: String,
   },
 });
 
-const PaymentSchema = new Schema<IPayment>({
-  paymentId: {
+const NotificationSchema = new Schema<INotification>({
+  notificationId: {
     type: String,
     required: true,
     unique: true,
-  },
-  bookingId: {
-    type: Schema.Types.ObjectId,
-    ref: "Booking",
-    required: true,
-    index: true,
   },
   userId: {
     type: Schema.Types.ObjectId,
@@ -35,61 +38,67 @@ const PaymentSchema = new Schema<IPayment>({
     index: true,
   },
   
-  // Payment Details
-  amount: {
-    type: Number,
-    required: true,
-    min: 0,
-  },
-  currency: {
+  // Notification Content
+  title: {
     type: String,
     required: true,
-    default: "INR",
+    maxlength: 100,
   },
-  paymentMethod: {
+  message: {
     type: String,
-    enum: ["upi", "card", "netbanking", "wallet"],
     required: true,
+    maxlength: 500,
   },
-  paymentGateway: {
+  type: {
     type: String,
-    enum: ["razorpay", "stripe", "paytm", "phonepe"],
+    enum: ["booking", "payment", "reminder", "offer", "general", "cancellation"],
     required: true,
+    index: true,
+  },
+  priority: {
+    type: String,
+    enum: ["low", "medium", "high"],
+    default: "medium",
   },
   
-  // Status & Processing
+  // Notification Status
   status: {
     type: String,
-    enum: ["pending", "processing", "completed", "failed", "cancelled", "refunded"],
+    enum: ["pending", "sent", "delivered", "failed", "read"],
     default: "pending",
     index: true,
   },
-  transactionDetails: {
-    type: TransactionDetailsSchema,
-  },
-  
-  // Refund Information
-  refundAmount: {
-    type: Number,
-    min: 0,
-  },
-  refundDate: {
-    type: Date,
-  },
-  refundReason: {
-    type: String,
-  },
-  refundTransactionId: {
-    type: String,
-  },
-  
-  // Audit
-  initiatedAt: {
-    type: Date,
-    default: Date.now,
+  isRead: {
+    type: Boolean,
+    default: false,
     index: true,
   },
-  completedAt: {
+  readAt: {
+    type: Date,
+  },
+  
+  // Delivery Channels
+  channels: {
+    type: [String],
+    enum: ["app", "email", "sms", "push"],
+    default: ["app"],
+  },
+  sentVia: {
+    type: [String],
+    enum: ["app", "email", "sms", "push"],
+    default: [],
+  },
+  
+  // Additional Data
+  data: {
+    type: NotificationDataSchema,
+  },
+  
+  // Scheduling
+  scheduledFor: {
+    type: Date,
+  },
+  sentAt: {
     type: Date,
   },
 }, {
@@ -97,9 +106,9 @@ const PaymentSchema = new Schema<IPayment>({
 });
 
 // Indexes for performance
-PaymentSchema.index({ paymentId: 1 });
-PaymentSchema.index({ userId: 1, status: 1 });
-PaymentSchema.index({ bookingId: 1 });
-PaymentSchema.index({ status: 1, initiatedAt: -1 });
+NotificationSchema.index({ userId: 1, isRead: 1, createdAt: -1 });
+NotificationSchema.index({ type: 1, createdAt: -1 });
+NotificationSchema.index({ status: 1, scheduledFor: 1 });
+NotificationSchema.index({ notificationId: 1 });
 
-export default mongoose.model<IPayment>("Payment", PaymentSchema);
+export default mongoose.model<INotification>("Notification", NotificationSchema);

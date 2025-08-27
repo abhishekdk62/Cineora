@@ -1,6 +1,13 @@
 import { ServiceResponse } from "../../../interfaces/interface";
 
 export interface ITicketService {
+  
+  createTicketsFromRows(
+    bookingId: string,
+    selectedRows: any[],
+    bookingInfo: any
+  ): Promise<ServiceResponse>;
+ verifyTicket(encryptedData: string): Promise<ServiceResponse> ;
   createTicketsFromBooking(
     bookingId: string,
     bookingData: any

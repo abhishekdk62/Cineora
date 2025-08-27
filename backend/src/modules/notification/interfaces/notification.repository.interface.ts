@@ -1,45 +1,52 @@
-import { IPayment } from "./notification.model.interface";
+import { INotification } from "./notification.model.interface";
 
-export interface IPaymentRepository {
-  create(paymentData: Partial<IPayment>): Promise<IPayment | null>;
+export interface INotificationRepository {
+  create(notificationData: Partial<INotification>): Promise<INotification | null>;
   
-  findById(id: string): Promise<IPayment | null>;
+  findById(id: string): Promise<INotification | null>;
   
-  findByPaymentId(paymentId: string): Promise<IPayment | null>;
+  findByNotificationId(notificationId: string): Promise<INotification | null>;
   
-  findByBookingId(bookingId: string): Promise<IPayment[]>;
+  findByUserId(
+    userId: string,
+    page: number,
+    limit: number,
+    filters?: {
+      type?: string;
+      isRead?: boolean;
+    }
+  ): Promise<{
+    notifications: INotification[];
+    total: number;
+    unreadCount: number;
+  }>;
   
-  findByUserId(userId: string): Promise<IPayment[]>;
+  markAsRead(notificationId: string): Promise<INotification | null>;
   
-  updateById(
-    id: string,
-    updateData: Partial<IPayment>
-  ): Promise<IPayment | null>;
-  
-  updateByPaymentId(
-    paymentId: string,
-    updateData: Partial<IPayment>
-  ): Promise<IPayment | null>;
+  markAllAsRead(userId: string): Promise<number>;
   
   updateStatus(
-    paymentId: string,
+    notificationId: string,
     status: string,
-    transactionDetails?: any
-  ): Promise<IPayment | null>;
-  
-  findByStatus(status: string): Promise<IPayment[]>;
-  
-  findPendingPayments(): Promise<IPayment[]>;
-  
-  findFailedPayments(): Promise<IPayment[]>;
-  
-  createRefund(
-    paymentId: string,
-    refundAmount: number,
-    refundReason: string
-  ): Promise<IPayment | null>;
-  
-  findRefundablePayments(): Promise<IPayment[]>;
+    sentVia?: string[]
+  ): Promise<INotification | null>;
   
   deleteById(id: string): Promise<boolean>;
+  
+  deleteByUserId(userId: string): Promise<number>;
+  
+  findScheduledNotifications(): Promise<INotification[]>;
+  
+  findUnreadCount(userId: string): Promise<number>;
+  
+  findByType(
+    type: string,
+    page: number,
+    limit: number
+  ): Promise<{
+    notifications: INotification[];
+    total: number;
+  }>;
+  
+  findFailedNotifications(): Promise<INotification[]>;
 }

@@ -83,12 +83,17 @@ export class OwnerRequestController {
           })
         );
       }
+      console.log('going to berify');
+      
       const result = await this.ownerRequestService.verifyOTP(
         verifyOTPDto.email,
         verifyOTPDto.otp
       );
+      console.log('after to berify');
 
       if (!result.success) {
+      console.log('we fd up berify');
+
         return res.status(400).json(
           createResponse({
             success: false,
@@ -96,6 +101,7 @@ export class OwnerRequestController {
           })
         );
       }
+      console.log('no run berify');
 
       return res.status(200).json(
         createResponse({

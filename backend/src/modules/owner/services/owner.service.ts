@@ -480,6 +480,8 @@ async getOwners(filters: OwnerFilterDto): Promise<ServiceResponse> {
       );
 
       if (!otpRecord) {
+      console.log('valid not thohza suui');
+
         return {
           success: false,
           message: "Invalid or expired OTP",
