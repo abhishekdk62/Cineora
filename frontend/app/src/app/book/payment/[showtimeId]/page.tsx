@@ -137,15 +137,16 @@ export default function PaymentPage() {
     const totalAmount = seatTotal + convenienceFee + taxes;
     return {
       movieTitle: showTimeData.movieId?.title || "Movie Title",
+      moviePoster:showTimeData.movieId?.poster,
       movieRating: showTimeData.movieId?.rating || 0,
       theaterName: showTimeData.theaterId?.name || "Theater Name",
       screenName: `Screen ${showTimeData.screenId?.name || showTimeData.screenId || 1}`,
-      showDate: new Date(showTimeData.date).toLocaleDateString('en-US', {
+      showDate: new Date(showTimeData.showDate).toLocaleDateString('en-US', {
         weekday: 'short',
         month: 'short',
         day: 'numeric'
       }),
-      showTime: showTimeData.time || "Show Time",
+      showTime: showTimeData.showTime || "Show Time",
       format: showTimeData.format || "2D",
       language: showTimeData.language || "English",
       selectedSeats: bookingDatasRedux.selectedSeats,
@@ -162,14 +163,13 @@ export default function PaymentPage() {
     router.back();
   }, [router]);
   const handleOpenPaymentModal = useCallback(() => {
-    console.log('payment data suiiii', bookingDatasRedux);
     setShowPaymentModal(true);
   }, [bookingDatasRedux]);
 
-  const handleClosePaymentModal = useCallback(() => {
+  const handleClosePaymentModal = () => {
 
     setShowPaymentModal(false);
-  }, []);
+  }
 
   if (loading || !paymentData) {
     return <Loader text="Loading payment details" />;

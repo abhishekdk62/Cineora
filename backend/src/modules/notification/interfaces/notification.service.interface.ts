@@ -1,37 +1,70 @@
 import { ServiceResponse } from "../../../interfaces/interface";
 
-export interface IPaymentService {
-  initiatePayment(paymentData: any): Promise<ServiceResponse>;
-  
-  processPaymentCallback(
-    paymentId: string,
-    gatewayResponse: any
+export interface INotificationService {
+  sendNotification(
+    userId: string,
+    title: string,
+    message: string,
+    type: string,
+    channels?: string[],
+    data?: any,
+    scheduledFor?: Date
   ): Promise<ServiceResponse>;
   
-  getPaymentById(paymentId: string): Promise<ServiceResponse>;
-  
-  getPaymentsByBooking(bookingId: string): Promise<ServiceResponse>;
-  
-  getUserPayments(userId: string): Promise<ServiceResponse>;
-  
-  refundPayment(
-    paymentId: string,
-    refundAmount: number,
-    refundReason: string
+  getUserNotifications(
+    userId: string,
+    page?: number,
+    limit?: number,
+    type?: string,
+    isRead?: boolean
   ): Promise<ServiceResponse>;
   
-  cancelPayment(paymentId: string): Promise<ServiceResponse>;
+  getNotificationById(notificationId: string): Promise<ServiceResponse>;
   
-  verifyPayment(
-    paymentId: string,
-    gatewayTransactionId: string
+  markAsRead(notificationId: string): Promise<ServiceResponse>;
+  
+  markAllAsRead(userId: string): Promise<ServiceResponse>;
+  
+  deleteNotification(notificationId: string): Promise<ServiceResponse>;
+  
+  clearUserNotifications(userId: string): Promise<ServiceResponse>;
+  
+  getUnreadCount(userId: string): Promise<ServiceResponse>;
+  
+  // Bulk operations
+  sendBulkNotifications(
+    userIds: string[],
+    title: string,
+    message: string,
+    type: string,
+    channels?: string[]
   ): Promise<ServiceResponse>;
   
-  getPaymentStatus(paymentId: string): Promise<ServiceResponse>;
+  // System notifications
+  sendBookingNotification(
+    userId: string,
+    bookingData: any
+  ): Promise<ServiceResponse>;
   
-  retryPayment(paymentId: string): Promise<ServiceResponse>;
+  sendPaymentNotification(
+    userId: string,
+    paymentData: any
+  ): Promise<ServiceResponse>;
   
-  getFailedPayments(): Promise<ServiceResponse>;
+  sendReminderNotification(
+    userId: string,
+    reminderData: any
+  ): Promise<ServiceResponse>;
   
-  getPendingPayments(): Promise<ServiceResponse>;
+  sendOfferNotification(
+    userId: string,
+    offerData: any
+  ): Promise<ServiceResponse>;
+  
+  // Admin functions
+  getNotificationStats(): Promise<ServiceResponse>;
+  
+  processScheduledNotifications(): Promise<ServiceResponse>;
+  
+  retryFailedNotifications(): Promise<ServiceResponse>;
 }

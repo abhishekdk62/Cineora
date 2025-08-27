@@ -1,74 +1,23 @@
 import { Request, Response } from "express";
-import { PaymentService } from "../services/notification.service";
-import { IPaymentService } from "../interfaces/notification.service.interface";
-import { InitiatePaymentDto, PaymentCallbackDto, RefundPaymentDto } from "../dtos/dto";
+import { NotificationService } from "../services/notification.service";
+import { INotificationService } from "../interfaces/notification.service.interface";
+import { CreateNotificationDto, BulkNotificationDto } from "../dtos/dto";
 
-export class PaymentController {
-  constructor(private readonly paymentService: IPaymentService) {}
+export class NotificationController {
+  constructor(private readonly notificationService: INotificationService) {}
   
-  async initiatePayment(req: Request, res: Response): Promise<any> {
-    try {
-      const paymentDto: InitiatePaymentDto = req.body;
-      const result = await this.paymentService.initiatePayment(paymentDto);
-      
-      if (result.success) {
-        res.status(201).json(result);
-      } else {
-        res.status(400).json(result);
-      }
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
-    }
-  }
-  
-  async paymentCallback(req: Request, res: Response): Promise<any> {
-    try {
-      const { paymentId } = req.params;
-      const gatewayResponse = req.body;
-      
-      const result = await this.paymentService.processPaymentCallback(
-        paymentId,
-        gatewayResponse
-      );
-      
-      if (result.success) {
-        res.status(200).json(result);
-      } else {
-        res.status(400).json(result);
-      }
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
-    }
-  }
-  
-  async getPaymentById(req: Request, res: Response): Promise<any> {
-    try {
-      const { paymentId } = req.params;
-      const result = await this.paymentService.getPaymentById(paymentId);
-      
-      if (result.success) {
-        res.status(200).json(result);
-      } else {
-        res.status(404).json(result);
-      }
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
-    }
-  }
-  
-  async getUserPayments(req: Request, res: Response): Promise<any> {
+  async getUserNotifications(req: Request, res: Response): Promise<any> {
     try {
       const { userId } = req.params;
-      const result = await this.paymentService.getUserPayments(userId);
+      const { page = 1, limit = 20, type, isRead } = req.query;
+      
+      const result = await this.notificationService.getUserNotifications(
+        userId,
+        Number(page),
+        Number(limit),
+        type as string,
+        isRead ? isRead === "true" : undefined
+      );
       
       res.status(200).json(result);
     } catch (error: any) {
@@ -79,80 +28,118 @@ export class PaymentController {
     }
   }
   
-  async refundPayment(req: Request, res: Response): Promise<any> {
+  async getNotificationById(req: Request, res: Response): Promise<any> {
     try {
-      const { paymentId } = req.params;
-      const { refundAmount, refundReason }: RefundPaymentDto = req.body;
-      
-      const result = await this.paymentService.refundPayment(
-        paymentId,
-        refundAmount,
-        refundReason
-      );
-      
-      if (result.success) {
-        res.status(200).json(result);
-      } else {
-        res.status(400).json(result);
-      }
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
-    }
-  }
-  
-  async cancelPayment(req: Request, res: Response): Promise<any> {
-    try {
-      const { paymentId } = req.params;
-      const result = await this.paymentService.cancelPayment(paymentId);
-      
-      if (result.success) {
-        res.status(200).json(result);
-      } else {
-        res.status(400).json(result);
-      }
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
-    }
-  }
-  
-  async verifyPayment(req: Request, res: Response): Promise<any> {
-    try {
-      const { paymentId } = req.params;
-      const { gatewayTransactionId } = req.body;
-      
-      const result = await this.paymentService.verifyPayment(
-        paymentId,
-        gatewayTransactionId
-      );
-      
-      if (result.success) {
-        res.status(200).json(result);
-      } else {
-        res.status(400).json(result);
-      }
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
-    }
-  }
-  
-  async getPaymentStatus(req: Request, res: Response): Promise<any> {
-    try {
-      const { paymentId } = req.params;
-      const result = await this.paymentService.getPaymentStatus(paymentId);
+      const { notificationId } = req.params;
+      const result = await this.notificationService.getNotificationById(notificationId);
       
       if (result.success) {
         res.status(200).json(result);
       } else {
         res.status(404).json(result);
+      }
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Internal server error",
+      });
+    }
+  }
+  
+  async markAsRead(req: Request, res: Response): Promise<any> {
+    try {
+      const { notificationId } = req.params;
+      const result = await this.notificationService.markAsRead(notificationId);
+      
+      if (result.success) {
+        res.status(200).json(result);
+      } else {
+        res.status(404).json(result);
+      }
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Internal server error",
+      });
+    }
+  }
+  
+  async markAllAsRead(req: Request, res: Response): Promise<any> {
+    try {
+      const { userId } = req.params;
+      const result = await this.notificationService.markAllAsRead(userId);
+      
+      res.status(200).json(result);
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Internal server error",
+      });
+    }
+  }
+  
+  async deleteNotification(req: Request, res: Response): Promise<any> {
+    try {
+      const { notificationId } = req.params;
+      const result = await this.notificationService.deleteNotification(notificationId);
+      
+      if (result.success) {
+        res.status(200).json(result);
+      } else {
+        res.status(404).json(result);
+      }
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Internal server error",
+      });
+    }
+  }
+  
+  async clearUserNotifications(req: Request, res: Response): Promise<any> {
+    try {
+      const { userId } = req.params;
+      const result = await this.notificationService.clearUserNotifications(userId);
+      
+      res.status(200).json(result);
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Internal server error",
+      });
+    }
+  }
+  
+  async getUnreadCount(req: Request, res: Response): Promise<any> {
+    try {
+      const { userId } = req.params;
+      const result = await this.notificationService.getUnreadCount(userId);
+      
+      res.status(200).json(result);
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Internal server error",
+      });
+    }
+  }
+  
+  async sendBulkNotifications(req: Request, res: Response): Promise<any> {
+    try {
+      const { userIds, title, message, type, channels }: BulkNotificationDto = req.body;
+      
+      const result = await this.notificationService.sendBulkNotifications(
+        userIds,
+        title,
+        message,
+        type,
+        channels
+      );
+      
+      if (result.success) {
+        res.status(201).json(result);
+      } else {
+        res.status(400).json(result);
       }
     } catch (error: any) {
       res.status(500).json({

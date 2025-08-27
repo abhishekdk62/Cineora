@@ -14,7 +14,7 @@ export interface IContactInfo {
 }
 
 export interface ISeatPricing {
-  seatId: string;
+  rowId: string;
   seatType: "VIP" | "Premium" | "Normal";
   basePrice: number;
   finalPrice: number;

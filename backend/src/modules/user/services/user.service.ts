@@ -116,10 +116,12 @@ export class UserService implements IUserService {
     try {
       email = String(email || "")
         .trim()
-        .toLowerCase(); // normalization
+        .toLowerCase(); 
 
       const validOTP = await this.otpRepo.findValidOTP(email, otp, "signup");
       if (!validOTP || !validOTP.userData) {
+      console.log('valid not at veit');
+
         return { success: false, message: "Invalid or expired OTP" };
       }
 

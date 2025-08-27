@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose";
 import { IBooking, IContactInfo, IPriceDetails, ISeatPricing } from "../interfaces/bookings.model.interface";
 
 const SeatPricingSchema = new Schema<ISeatPricing>({
-  seatId: {
+  rowId: {
     type: String,
     required: true,
   },
@@ -60,17 +60,13 @@ const ContactInfoSchema = new Schema<IContactInfo>({
     type: String,
     required: true,
   },
-  phone: {
-    type: String,
-    required: true,
-  },
+
 });
 
 const BookingSchema = new Schema<IBooking>({
   bookingId: {
     type: String,
     required: true,
-    unique: true,
   },
   userId: {
     type: Schema.Types.ObjectId,

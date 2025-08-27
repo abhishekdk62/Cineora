@@ -47,6 +47,15 @@ import { ShowtimeRepository } from "./modules/showtimes/repositories/showtimes.r
 import { ScreenRepository } from "./modules/screens/repositories/screens.repositories";
 import { ScreenService } from "./modules/screens/services/screens.service";
 import { ShowtimeService } from "./modules/showtimes/services/showtimes.service";
+import { BookingController } from "./modules/bookings/controllers/bookings.controller";
+import { TicketService } from "./modules/tickets/services/ticket.service";
+import { TicketRepository } from "./modules/tickets/repositories/ticket.repository";
+import { BookingRepository } from "./modules/bookings/repositories/bookings.repository";
+import { BookingService } from "./modules/bookings/services/bookings.service";
+import { TicketController } from "./modules/tickets/controllers/ticket.controller";
+import { WalletService } from "./modules/wallet/services/wallet.service";
+import { WalletRepository } from "./modules/wallet/repositories/wallet.repository";
+import { WalletController } from "./modules/wallet/controllers/wallet.controller";
 
 export class App {
   private app: Application;
@@ -82,12 +91,14 @@ export class App {
     const ownerRepo = new OwnerRepository();
     const ownerRequestRepo = new OwnerRequestRepository();
     const otpRepo = new OTPRepository();
+    const walletRepo = new WalletRepository();
     const adminRepo = new AdminRepository();
     const theaterRepo = new TheaterRepository();
     const screenRepo = new ScreenRepository();
     const showtimeRepo = new ShowtimeRepository();
     const movieRepo = new MovieRepository();
-
+    const ticketRepo = new TicketRepository();
+    const bookingRepo = new BookingRepository();
     const userService = new UserService(
       userRepo,
       ownerRepo,
@@ -112,6 +123,9 @@ export class App {
     const otpService = new OTPService(otpRepo);
     const theaterService = new TheaterService(theaterRepo, emailService);
     const screenService = new ScreenService(screenRepo, theaterRepo);
+    const ticketService = new TicketService(ticketRepo);
+    const bookingService = new BookingService(bookingRepo, showtimeRepo);
+    const walletService = new WalletService(walletRepo);
     const showtimeService = new ShowtimeService(showtimeRepo);
     const movieService = new MovieService(movieRepo);
     const authService = new AuthService(
@@ -126,13 +140,19 @@ export class App {
     const userController = new UserController(
       userService,
       authService,
-      movieService
+      movieService,
+      walletService
     );
     const ownerController = new OwnerController(ownerService);
     const ownerRequestController = new OwnerRequestController(
       ownerRequestService
     );
     const screenController = new ScreenController(screenService);
+    const ticketController = new TicketController(ticketService);
+    const bookingController = new BookingController(
+      bookingService,
+      ticketService
+    );
     const showtimeController = new ShowtimeController(showtimeService);
     const theaterController = new TheaterController(
       theaterService,
@@ -140,6 +160,7 @@ export class App {
     );
     const moviesController = new MoviesController(movieService);
     const authController = new AuthController(authService);
+    const walletController = new WalletController(walletService);
 
     const adminRoutes = new AdminRoutes(
       express.Router(),
@@ -156,7 +177,10 @@ export class App {
       express.Router(),
       userController,
       theaterController,
-      showtimeController
+      showtimeController,
+      bookingController,
+      ticketController,
+      walletController
     );
 
     const ownerRoutes = new OwnerMainRoute(
@@ -177,7 +201,8 @@ export class App {
       express.Router(),
       moviesController,
       theaterController,
-      showtimeController
+      showtimeController,
+      ticketController
     );
 
     const authRoutes = new AuthRoute(

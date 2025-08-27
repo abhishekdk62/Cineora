@@ -17,7 +17,8 @@ import {
 } from "lucide-react";
 import MyAccountContent, { IUser } from "./Profile/MyAccountContent";
 import { getUserProfile } from "@/app/others/services/userServices/authServices";
-
+import MobileTicket from "./Tickets/TicketsList";
+import WalletPage from "./Wallet/WalletManager";
 const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
 const lexendSmall = { className: "font-normal text-sm" };
@@ -32,6 +33,32 @@ type SidebarItem =
   | "help";
 
 const AccountPage = () => {
+ interface Booking {
+  id: string;
+  movieTitle: string;
+  moviePoster: string;
+  theaterName: string;
+  date: string;
+  time: string;
+  row: string;
+  seats: number[];
+  bookingId: string;
+  status: 'confirmed' | 'cancelled' | 'expired';
+}
+
+ const mockBooking: Booking = {
+  id: 'booking1',
+  movieTitle: 'Thor: Love and Thunder',
+  moviePoster: 'https://image.tmdb.org/t/p/w500/pIkRyD18kl4FhoCNQuWxWu5cBLM.jpg',
+  theaterName: 'PVR Cinemas - DLF Mall',
+  date: 'June 19',
+  time: '8 p.m.',
+  row: '1',
+  seats: [1, 2],
+  bookingId: 'TKT2025082601234567',
+  status: 'confirmed'
+};
+
   const [activeSection, setActiveSection] = useState<SidebarItem>("account");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [userData, setUserData] = useState<IUser | null>(null);
@@ -67,9 +94,9 @@ const AccountPage = () => {
     },
     {
       id: "bookings" as SidebarItem,
-      label: "My Bookings",
+      label: "My Tickets",
       icon: Calendar,
-      description: "View your ticket history",
+      description: "View your tickets and ticket history",
     },
     {
       id: "notifications" as SidebarItem,
@@ -108,11 +135,11 @@ const AccountPage = () => {
       case "account":
         return <MyAccountContent getUeserDetails={getUeserDetails} userData={userData} />;
       case "bookings":
-        return <ComingSoonContent title="My Bookings" icon={Calendar} />;
+        return <MobileTicket   />;
       case "notifications":
         return <ComingSoonContent title="Notifications" icon={Bell} />;
       case "wallet":
-        return <ComingSoonContent title="Wallet & Credits" icon={Wallet} />;
+        return <WalletPage  />;
       case "favorites":
         return <ComingSoonContent title="Favorites" icon={Heart} />;
       case "payment":
@@ -128,197 +155,154 @@ const AccountPage = () => {
     console.log("Logging out...");
   };
 
-  return (
-    <div className="min-h-screen bg-transparent text-white">
-      <div className="flex">
-        {/* Desktop Sidebar */}
-        <div className="hidden lg:flex lg:w-80 lg:flex-col lg:fixed lg:inset-y-0 lg:bg-gradient-to-b lg:from-white/10 lg:to-white/5 lg:backdrop-blur-xl lg:border-r lg:border-white/10">
-          <div className="flex flex-col flex-1 min-h-0">
-            {/* Sidebar Header */}
-            <div className="flex items-center justify-between h-20 flex-shrink-0 px-6 border-b border-white/10">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br bg-white  rounded-xl flex items-center justify-center">
-                  <User className="w-5 h-5 text-black" />
-                </div>
-                <div>
-                  <h1 className={`${lexendBold.className} text-lg text-white`}>
-                    Account
-                  </h1>
-                  <p
-                    className={`${lexendSmall.className} text-gray-400 text-xs`}
+return (
+  <div className="min-h-screen bg-transparent text-white">
+    <div className="flex">
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:flex lg:w-80 lg:flex-col lg:fixed lg:inset-y-0 lg:bg-black/10 lg:backdrop-blur-md lg:border-r lg:border-white/10">
+        <div className="flex flex-col flex-1 min-h-0">
+          <nav className="flex-1 px-6 mt-16 py-8 space-y-2">
+            {sidebarItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeSection === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveSection(item.id)}
+                  className={`${
+                    lexendMedium.className
+                  } w-full group relative flex items-center px-4 py-4 rounded-xl transition-all duration-200 ${
+                    isActive
+                      ? " border border-white text-white shadow-lg"
+                      : "text-gray-300 hover:bg-white/5 hover:text-white"
+                  }`}
+                >
+                  <div
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center mr-4 ${
+                      isActive
+                        ? "bg-black/5"
+                        : "bg-white/5 group-hover:bg-white/10"
+                    }`}
                   >
-                    {userData?.firstName} {userData?.lastName}
-                  </p>
-                </div>
-              </div>
-              <Settings className="w-5 h-5 text-gray-400" />
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="text-sm font-semibold">{item.label}</p>
+                    <p
+                      className={`text-xs mt-0.5 ${
+                        isActive ? "text-gray-500" : "text-gray-400"
+                      }`}
+                    >
+                      {item.description}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+      </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {isMobileSidebarOpen && (
+        <div className="fixed inset-0 z-50 flex lg:hidden">
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setIsMobileSidebarOpen(false)}
+          />
+          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-black/10 backdrop-blur-md border-r border-white/10">
+            <div className="absolute top-0 right-0 -mr-12 pt-2">
+              <button
+                onClick={() => setIsMobileSidebarOpen(false)}
+                className="ml-1 flex items-center justify-center h-10 w-10 rounded-full hover:bg-white/10 transition-colors"
+              >
+                <X className="h-6 w-6 text-white" />
+              </button>
             </div>
 
-            <nav className="flex-1 px-4 py-6 space-y-1">
+            <nav className="flex-1 px-6 py-8 mt-10 space-y-2">
               {sidebarItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeSection === item.id;
                 return (
                   <button
                     key={item.id}
-                    onClick={() => setActiveSection(item.id)}
+                    onClick={() => {
+                      setActiveSection(item.id);
+                      setIsMobileSidebarOpen(false);
+                    }}
                     className={`${
                       lexendMedium.className
-                    } w-full group relative flex flex-col px-4 py-4 rounded-xl transition-all duration-300 ${
+                    } w-full group relative flex items-center px-4 py-4 rounded-xl transition-all duration-200 ${
                       isActive
-                        ? "bg-gradient-to-r from-white to-gray-100 text-black shadow-lg"
+                        ? "bg-white/90 text-black shadow-lg"
                         : "text-gray-300 hover:bg-white/5 hover:text-white"
                     }`}
                   >
-                    <div className="flex items-center w-full">
-                      <div
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 ${
-                          isActive
-                            ? "bg-black/10"
-                            : "bg-white/10 group-hover:bg-white/20"
+                    <div
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center mr-4 ${
+                        isActive
+                          ? "bg-black/5"
+                          : "bg-white/5 group-hover:bg-white/10"
+                      }`}
+                    >
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="text-sm font-semibold">{item.label}</p>
+                      <p
+                        className={`text-xs mt-0.5 ${
+                          isActive ? "text-gray-500" : "text-gray-400"
                         }`}
                       >
-                        <Icon className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1 text-left">
-                        <p className="text-sm font-medium">{item.label}</p>
-                        <p
-                          className={`text-xs ${
-                            isActive ? "text-gray-600" : "text-gray-500"
-                          } group-hover:text-gray-400`}
-                        >
-                          {item.description}
-                        </p>
-                      </div>
+                        {item.description}
+                      </p>
                     </div>
                   </button>
                 );
               })}
+
+              <div className="pt-6 mt-6 border-t border-white/10">
+                <button
+                  onClick={handleLogout}
+                  className={`${lexendMedium.className} w-full flex items-center px-4 py-4 rounded-xl transition-all duration-200 text-red-400 hover:bg-red-500/5 hover:text-red-300 group`}
+                >
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center mr-4 bg-red-500/10 group-hover:bg-red-500/20">
+                    <LogOut className="w-5 h-5" />
+                  </div>
+                  <span className="text-sm font-semibold">Sign Out</span>
+                </button>
+              </div>
             </nav>
           </div>
         </div>
+      )}
 
-        {/* Mobile Sidebar Overlay */}
-        {isMobileSidebarOpen && (
-          <div className="fixed inset-0 z-50 flex lg:hidden">
-            <div
-              className="fixed inset-0 bg-black/80 backdrop-blur-sm"
-              onClick={() => setIsMobileSidebarOpen(false)}
-            />
-            <div className="relative flex-1 flex flex-col max-w-xs w-full bg-gradient-to-b from-white/10 to-white/5 backdrop-blur-xl border-r border-white/10">
-              <div className="absolute top-0 right-0 -mr-12 pt-2">
-                <button
-                  onClick={() => setIsMobileSidebarOpen(false)}
-                  className="ml-1 flex items-center justify-center h-10 w-10 rounded-full hover:bg-white/10"
-                >
-                  <X className="h-6 w-6 text-white" />
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between h-20 flex-shrink-0 px-6 border-b border-white/10">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                    <User className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h1
-                      className={`${lexendBold.className} text-lg text-white`}
-                    >
-                      Account
-                    </h1>
-                    <p
-                      className={`${lexendSmall.className} text-gray-400 text-xs`}
-                    >
-                      {userData?.firstName} {userData?.lastName}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <nav className="flex-1 px-4 py-6 space-y-1">
-                {sidebarItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = activeSection === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => {
-                        setActiveSection(item.id);
-                        setIsMobileSidebarOpen(false);
-                      }}
-                      className={`${
-                        lexendMedium.className
-                      } w-full group relative flex flex-col px-4 py-4 rounded-xl transition-all duration-300 ${
-                        isActive
-                          ? "bg-gradient-to-r from-white to-gray-100 text-black shadow-lg"
-                          : "text-gray-300 hover:bg-white/5 hover:text-white"
-                      }`}
-                    >
-                      <div className="flex items-center w-full">
-                        <div
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 ${
-                            isActive
-                              ? "bg-black/10"
-                              : "bg-white/10 group-hover:bg-white/20"
-                          }`}
-                        >
-                          <Icon className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1 text-left">
-                          <p className="text-sm font-medium">{item.label}</p>
-                          <p
-                            className={`text-xs ${
-                              isActive ? "text-gray-600" : "text-gray-500"
-                            } group-hover:text-gray-400`}
-                          >
-                            {item.description}
-                          </p>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-
-                <div className="pt-6 mt-6 border-t border-white/10">
-                  <button
-                    onClick={handleLogout}
-                    className={`${lexendMedium.className} w-full flex items-center px-4 py-3 rounded-xl transition-all duration-300 text-red-400 hover:bg-red-500/10 hover:text-red-300 group`}
-                  >
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center mr-3 bg-red-500/10 group-hover:bg-red-500/20">
-                      <LogOut className="w-4 h-4" />
-                    </div>
-                    <span>Sign Out</span>
-                  </button>
-                </div>
-              </nav>
-            </div>
-          </div>
-        )}
-
-        {/* Main Content */}
-        <div className="flex-1 lg:pl-80">
-          {/* Mobile Header */}
-          <div className="lg:hidden flex items-center justify-between h-16 px-4 bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-xl border-b border-white/10">
-            <button
-              onClick={() => setIsMobileSidebarOpen(true)}
-              className="p-2 rounded-lg hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20"
-            >
-              <Menu className="h-6 w-6 text-white" />
-            </button>
-            <h1 className={`${lexendBold.className} text-lg text-white`}>
-              {sidebarItems.find((item) => item.id === activeSection)?.label}
-            </h1>
-            <div className="w-10" />
-          </div>
-
-          {/* Content Area */}
-          <main className="flex-1 p-6 bg-gradient-to-br from-transparent via-transparent to-white/5">
-            {renderContent()}
-          </main>
+      {/* Main Content */}
+      <div className="flex-1 lg:pl-80">
+        {/* Mobile Header */}
+        <div className="lg:hidden flex items-center justify-between h-16 px-6 bg-black/10 backdrop-blur-md border-b border-white/10">
+          <button
+            onClick={() => setIsMobileSidebarOpen(true)}
+            className="p-2 rounded-lg hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/10 transition-colors"
+          >
+            <Menu className="h-6 w-6 text-white" />
+          </button>
+          <h1 className={`${lexendBold.className} text-lg text-white`}>
+            {sidebarItems.find((item) => item.id === activeSection)?.label}
+          </h1>
+          <div className="w-10" />
         </div>
+
+        {/* Content Area */}
+        <main className="flex-1 min-h-screen bg-transparent">
+          {renderContent()}
+        </main>
       </div>
     </div>
-  );
+  </div>
+);
+
 };
 
 const ComingSoonContent = ({
