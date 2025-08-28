@@ -43,7 +43,6 @@ export class ReviewRepository implements IReviewRepository {
       
     const total = await Review.countDocuments({ movieId, status });
     
-    // Calculate average rating and distribution
     const ratingStats = await Review.aggregate([
       { $match: { movieId: movieId, status: status } },
       {
@@ -89,7 +88,6 @@ export class ReviewRepository implements IReviewRepository {
     averageRating: number;
     ratingDistribution: { [key: number]: number };
   }> {
-    // Similar implementation as findByMovieId but for theaters
     const skip = (page - 1) * limit;
     
     const reviews = await Review.find({ theaterId, status })
@@ -178,13 +176,10 @@ export class ReviewRepository implements IReviewRepository {
     type: "like" | "dislike" | "helpful"
   ): Promise<boolean> {
     try {
-      // Remove existing like/dislike first
       await ReviewLike.findOneAndDelete({ userId, reviewId });
       
-      // Add new like
       await ReviewLike.create({ userId, reviewId, type });
       
-      // Update counts
       await this.updateLikeCounts(reviewId);
       
       return true;

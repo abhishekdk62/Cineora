@@ -1,11 +1,10 @@
-// components/QRCodeDisplay.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 
 interface QRCodeDisplayProps {
-  data: string; // Your encrypted QR string from ticket.qrCode
+  data: string; 
   size?: number;
 }
 

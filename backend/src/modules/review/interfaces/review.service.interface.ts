@@ -27,7 +27,6 @@ export interface IReviewService {
   
   deleteReview(reviewId: string, userId: string): Promise<ServiceResponse>;
   
-  // Moderation
   moderateReview(
     reviewId: string,
     status: "approved" | "rejected",
@@ -40,7 +39,6 @@ export interface IReviewService {
     limit?: number
   ): Promise<ServiceResponse>;
   
-  // Engagement
   likeReview(
     userId: string,
     reviewId: string,
@@ -49,7 +47,6 @@ export interface IReviewService {
   
   unlikeReview(userId: string, reviewId: string): Promise<ServiceResponse>;
   
-  // Analytics
   getReviewStats(): Promise<ServiceResponse>;
   
   getMovieRatingStats(movieId: string): Promise<ServiceResponse>;

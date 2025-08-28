@@ -1,4 +1,3 @@
-// Selected row interface for row-based seat selection
 export interface SelectedRow {
   rowId: string;
   rowLabel: string;
@@ -9,7 +8,6 @@ export interface SelectedRow {
   totalPrice: number;
 }
 
-// Create booking DTO
 export interface CreateBookingDto {
   userId: string;
   movieId: string;
@@ -17,10 +15,8 @@ export interface CreateBookingDto {
   screenId: string;
   showtimeId: string;
   
-  // Row-based selection (NEW)
   selectedRows?: SelectedRow[];
   
-  // Legacy support
   selectedSeats?: string[];
   selectedSeatIds?: string[];
   seatPricing?: any[];
@@ -43,7 +39,6 @@ export interface CreateBookingDto {
   };
 }
 
-// Update payment status DTO
 export interface UpdatePaymentStatusDto {
   paymentStatus: "pending" | "completed" | "failed" | "refunded";
   paymentId?: string;
@@ -54,14 +49,12 @@ export interface UpdatePaymentStatusDto {
   refundReason?: string;
 }
 
-// Cancel booking DTO
 export interface CancelBookingDto {
   bookingId: string;
   userId: string;
   reason?: string;
 }
 
-// Booking response DTO
 export interface BookingResponseDto {
   bookingId: string;
   userId: string;

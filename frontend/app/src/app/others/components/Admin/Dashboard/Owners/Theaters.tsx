@@ -1,4 +1,3 @@
-// Theaters.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -33,7 +32,7 @@ interface TheatersProps {
   setViewInactiveTheater: () => void;
   ownerId: string;
   onClose: () => void;
-  status: "active" | "inactive"; // New prop to determine status
+  status: "active" | "inactive"; 
 }
 
 const Theaters: React.FC<TheatersProps> = ({
@@ -147,12 +146,10 @@ const handleRejectTheater = async () => {
     }
   };
 
-  // Initial load
   useEffect(() => {
     fetchTheaters();
   }, [ownerId, currentPage, status]); 
 
-  // Handle search
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setCurrentPage(1);
@@ -164,7 +161,6 @@ const handleRejectTheater = async () => {
     });
   };
 
-  // Handle sort change
   const handleSortChange = (newSortBy: string) => {
     const newSortOrder =
       sortBy === newSortBy && sortOrder === "desc" ? "asc" : "desc";

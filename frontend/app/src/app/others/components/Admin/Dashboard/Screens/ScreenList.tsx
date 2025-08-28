@@ -46,7 +46,6 @@ const ScreenList: React.FC<ScreenListProps> = ({
     sortOrder: "asc"
   });
 
-  // Sync input filters to parent (useEffect optional)
   const handleFilterChange = (updated: ScreenFilters) => {
     setFilters(updated);
     onFiltersChange(updated);

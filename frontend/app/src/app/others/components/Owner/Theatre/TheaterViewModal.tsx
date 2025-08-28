@@ -2,11 +2,14 @@
 
 import React from "react";
 import { Lexend } from "next/font/google";
-import { X, Building, MapPin, Phone, Hash, ShieldCheck, AlertCircle, Film } from "lucide-react";
+import { X, Building, MapPin, Phone, Hash, ShieldCheck, AlertCircle, Film, Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
 
-const MapLocationPicker = dynamic(() => import("../../Leaflet/MapLocationPicker"), {
+const MapLocationPicker = dynamic(() => import('../../Leaflet/MapLocationPicker'), {
   ssr: false,
+  loading: () => <div className="w-full h-64 bg-gray-800 rounded-xl flex items-center justify-center">
+    <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+  </div>
 });
 
 const lexendBold = Lexend({ weight: "700", subsets: ["latin"] });

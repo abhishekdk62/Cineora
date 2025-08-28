@@ -1,4 +1,3 @@
-// interfaces/transactions.service.interface.ts (add to existing file)
 import { ServiceResponse } from "../../../interfaces/interface";
 
 export interface ITransactionService {

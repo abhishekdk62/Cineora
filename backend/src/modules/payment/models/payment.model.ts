@@ -12,7 +12,7 @@ const TransactionDetailsSchema = new Schema<ITransactionDetails>({
     type: String,
   },
   processingTime: {
-    type: Number, // in milliseconds
+    type: Number, 
   },
 });
 
@@ -35,7 +35,6 @@ const PaymentSchema = new Schema<IPayment>({
     index: true,
   },
   
-  // Payment Details
   amount: {
     type: Number,
     required: true,
@@ -57,7 +56,6 @@ const PaymentSchema = new Schema<IPayment>({
     required: true,
   },
   
-  // Status & Processing
   status: {
     type: String,
     enum: ["pending", "processing", "completed", "failed", "cancelled", "refunded"],
@@ -68,7 +66,6 @@ const PaymentSchema = new Schema<IPayment>({
     type: TransactionDetailsSchema,
   },
   
-  // Refund Information
   refundAmount: {
     type: Number,
     min: 0,
@@ -83,7 +80,6 @@ const PaymentSchema = new Schema<IPayment>({
     type: String,
   },
   
-  // Audit
   initiatedAt: {
     type: Date,
     default: Date.now,
@@ -96,7 +92,6 @@ const PaymentSchema = new Schema<IPayment>({
   timestamps: true,
 });
 
-// Indexes for performance
 PaymentSchema.index({ paymentId: 1 });
 PaymentSchema.index({ userId: 1, status: 1 });
 PaymentSchema.index({ bookingId: 1 });

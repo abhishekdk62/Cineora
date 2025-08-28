@@ -22,7 +22,7 @@ export interface ITheater {
 }
 export interface ITheaterModal {
   _id: string;
-  ownerId: string | {  // Allow both string and object
+  ownerId: string | { 
     _id: string;
     ownerName: string;
     email: string;

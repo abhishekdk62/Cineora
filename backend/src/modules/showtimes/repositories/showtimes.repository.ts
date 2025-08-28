@@ -276,7 +276,7 @@ export class ShowtimeRepository implements IShowtimeRepository {
 
     if (result) {
       const updatePromises = seatIds.map((seatId) => {
-        const rowLabel = seatId[0]; // Extract row letter
+        const rowLabel = seatId[0]; 
         return MovieShowtime.updateOne(
           { _id: showtimeId, "rowPricing.rowLabel": rowLabel },
           {

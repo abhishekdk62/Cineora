@@ -34,19 +34,15 @@ export class OwnerService implements IOwnerService {
       };
     }
 
-    // Helper function to extract public ID from URL or return as-is if already public ID
     const extractPublicId = (urlOrPublicId: string): string | null => {
       if (!urlOrPublicId) return null;
       
-      // If already a public_id format (no https://)
       if (!urlOrPublicId.startsWith('https://')) {
         return urlOrPublicId;
       }
       
-      // Extract from Cloudinary URLs
       const urlParts = urlOrPublicId.split('/');
       
-      // Find the version part (v1234567890) or upload index
       let startIndex = -1;
       for (let i = 0; i < urlParts.length; i++) {
         if (urlParts[i] === 'upload' || urlParts[i] === 'authenticated' || urlParts[i].startsWith('v')) {
@@ -57,12 +53,10 @@ export class OwnerService implements IOwnerService {
       
       if (startIndex === -1) return null;
       
-      // Join remaining parts and remove file extension
       const publicIdWithExt = urlParts.slice(startIndex).join('/');
-      return publicIdWithExt.replace(/\.[^/.]+$/, ''); // Remove extension
+      return publicIdWithExt.replace(/\.[^/.]+$/, ''); 
     };
 
-    // Generate signed URLs for owner's documents
     owner = {
       ...owner,
       aadhaarUrl: owner.aadhaarUrl

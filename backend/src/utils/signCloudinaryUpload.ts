@@ -93,7 +93,6 @@ export const uploadToCloudinary = async (
   }
 };
 
-// Upload multiple files function
 export const uploadMultipleToCloudinary = async (
   files: Express.Multer.File[],
   options: CloudinaryUploadOptions = {}

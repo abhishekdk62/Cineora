@@ -13,13 +13,12 @@ import { NavBar } from "@/app/others/components/Home";
 import Loader from "@/app/others/components/utils/Loader";
 import { useDispatch, useSelector } from "react-redux";
 import { setBookingData } from "@/app/others/redux/slices/bookingSlice";
+import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
 
-// Font configurations
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
 const lexendMedium = Lexend({ weight: "400", subsets: ["latin"] });
 const lexendBold = Lexend({ weight: "700", subsets: ["latin"] });
 
-// Seat interface
 export interface Seat {
   col: number;
   id: string;
@@ -27,14 +26,12 @@ export interface Seat {
   price: number;
 }
 
-// Row interface
 export interface Row {
   rowLabel: string;
   offset: number;
   seats: Seat[];
 }
 
-// Movie details interface
 interface MovieDetails {
   _id: string;
   title: string;
@@ -55,7 +52,6 @@ interface MovieDetails {
   __v: number;
 }
 
-// Theater details interface
 interface TheaterDetails {
   _id: string;
   name: string;
@@ -79,7 +75,6 @@ interface TheaterDetails {
   __v: number;
 }
 
-// Screen details interface
 interface ScreenDetails {
   _id: string;
   name: string;
@@ -88,8 +83,8 @@ interface ScreenDetails {
   layout: {
     rows: number;
     seatsPerRow: number;
-    advancedLayout: { 
-      rows: Row[] 
+    advancedLayout: {
+      rows: Row[]
     };
   };
   features: string[];
@@ -99,7 +94,6 @@ interface ScreenDetails {
   __v: number;
 }
 
-// Row pricing interface
 interface RowPricing {
   _id: string;
   rowLabel: string;
@@ -115,33 +109,27 @@ interface RowPricing {
 export interface ShowtimeData {
   _id: string;
   ownerId: string;
-  
-  // Related entities with full details
+
   movieId: MovieDetails;
   theaterId: TheaterDetails;
   screenId: ScreenDetails;
-  
-  // Show timing details
+
   showDate: string;
   showTime: string;
   endTime: string;
-  
-  // Show metadata
+
   format: string;           // "2D", "3D"
   language: string;         // "en", "hi", etc.
   ageRestriction: string | null;
   isActive: boolean;
-  
-  // Seat availability
+
   totalSeats: number;
   availableSeats: number;
   bookedSeats: string[];
   blockedSeats: string[];
-  
-  // Pricing structure
+
   rowPricing: RowPricing[];
-  
-  // Audit fields
+
   createdAt: string;
   updatedAt: string;
   __v: number;
@@ -153,12 +141,10 @@ export default function SeatSelectionPage() {
   const params = useParams();
   const router = useRouter();
   const dispatch = useDispatch();
-  
-  // Redux selectors
+
   const user = useSelector((state: any) => state.auth.user);
   const bookingDatasRedux = useSelector((state: any) => state.booking.bookingData);
-  
-  // Component state
+
   const showtimeId = params?.showtimeId as string;
   const [showtimeData, setShowtimeData] = useState<ShowtimeData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -166,8 +152,7 @@ export default function SeatSelectionPage() {
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [seatStatuses, setSeatStatuses] = useState<Record<string, SeatStatus>>({});
 
-  // Utility functions
-  const getMaxCols = (rows: Row[]): number => 
+  const getMaxCols = (rows: Row[]): number =>
     Math.max(...rows.map(row => row.offset + row.seats.length));
 
   const getSeatPrice = (seatId: string): number => {
@@ -189,20 +174,18 @@ export default function SeatSelectionPage() {
     return seat?.type || 'General';
   };
 
-  // Fetch showtime data
   useEffect(() => {
     if (!showtimeId) return;
-    
+
     const fetchShowtimeData = async () => {
       try {
         setLoading(true);
         const response = await getShowTimeUser(showtimeId);
         const data = response.data;
-        
+
         console.log('Showtime data:', data);
         setShowtimeData(data);
 
-        // Initialize seat statuses
         const statuses: Record<string, SeatStatus> = {};
         data.screenId.layout.advancedLayout.rows.forEach((row: Row) => {
           row.seats.forEach(seat => {
@@ -226,11 +209,10 @@ export default function SeatSelectionPage() {
     fetchShowtimeData();
   }, [showtimeId]);
 
-  // Handle seat selection
   const handleSeatClick = (seatId: string) => {
     const currentStatus = seatStatuses[seatId];
     if (currentStatus === 'booked' || currentStatus === 'blocked') return;
-    
+
     if (currentStatus === 'selected') {
       setSelectedSeats(prev => prev.filter(id => id !== seatId));
       setSeatStatuses(prev => ({ ...prev, [seatId]: 'available' }));
@@ -242,10 +224,9 @@ export default function SeatSelectionPage() {
     }
   };
 
-  // Seat button styling
   const getSeatButtonStyle = (status: SeatStatus, seatType?: string) => {
     let baseStyle = "w-8 h-8 rounded-lg transition-all duration-200 cursor-pointer flex items-center justify-center text-xs font-medium border-2 ";
-    
+
     if (seatType === 'VIP') {
       baseStyle += "bg-yellow-500 text-black border-yellow-400 ";
     } else if (seatType === 'Premium') {
@@ -255,7 +236,7 @@ export default function SeatSelectionPage() {
     }
 
     switch (status) {
-      case 'available': 
+      case 'available':
         return baseStyle + "hover:opacity-80";
       case 'booked':
         return "w-8 h-8 rounded-lg bg-red-500 text-white cursor-not-allowed border-2 border-red-400 flex items-center justify-center text-xs font-medium";
@@ -263,28 +244,24 @@ export default function SeatSelectionPage() {
         return "w-8 h-8 rounded-lg bg-cyan-400 text-black border-2 border-cyan-300 scale-110 flex items-center justify-center text-xs font-medium transition-all duration-200";
       case 'blocked':
         return "w-8 h-8 rounded-lg bg-gray-800 text-gray-600 cursor-not-allowed border-2 border-gray-700 flex items-center justify-center text-xs font-medium";
-      default: 
+      default:
         return baseStyle;
     }
   };
 
-  // Navigation handlers
   const handleBack = () => {
     router.back();
   };
 
-  // Main payment handler
   const handleProceedToPayment = () => {
     if (!showtimeData || !user) return;
-    
-    // Extract row-based pricing information from selected seats
+
     const selectedRowsData = selectedSeats.map(seatId => {
       const rowLabel = seatId.charAt(0);
       const seatNumber = seatId.substring(1);
-      
-      // Find corresponding row pricing from the response
+
       const rowPricingInfo = showtimeData.rowPricing.find(rp => rp.rowLabel === rowLabel);
-      
+
       return {
         seatId,
         rowLabel,
@@ -296,10 +273,9 @@ export default function SeatSelectionPage() {
       };
     });
 
-    // Group seats by row for row-based selection
     const selectedRowsGrouped = selectedRowsData.reduce((acc, seat) => {
       const existingRow = acc.find(row => row.rowLabel === seat.rowLabel);
-      
+
       if (existingRow) {
         existingRow.seatsSelected.push(seat.seatNumber);
         existingRow.seatCount += 1;
@@ -315,7 +291,7 @@ export default function SeatSelectionPage() {
           totalPrice: seat.finalPrice,
         });
       }
-      
+
       return acc;
     }, [] as any[]);
 
@@ -324,18 +300,14 @@ export default function SeatSelectionPage() {
     const taxes = Math.round(totalAmount * 0.18);
     const finalTotal = totalAmount + convenienceFee + taxes;
 
-    // Dispatch complete booking data to Redux
     dispatch(setBookingData({
-      // Basic IDs
       showtimeId: showtimeData._id,
       movieId: showtimeData.movieId._id,
       theaterId: showtimeData.theaterId._id,
       screenId: showtimeData.screenId._id,
-      
-      // ✅ User ID from authenticated user
+
       userId: user?.id || user?.userId || user?._id,
-      
-      // Complete movie details
+
       movieTitle: showtimeData.movieId.title,
       movieDetails: {
         title: showtimeData.movieId.title,
@@ -351,8 +323,7 @@ export default function SeatSelectionPage() {
         tmdbId: showtimeData.movieId.tmdbId,
         trailer: showtimeData.movieId.trailer,
       },
-      
-      // Theater details
+
       theaterName: showtimeData.theaterId.name,
       theaterDetails: {
         name: showtimeData.theaterId.name,
@@ -366,8 +337,7 @@ export default function SeatSelectionPage() {
         location: showtimeData.theaterId.location,
         isVerified: showtimeData.theaterId.isVerified,
       },
-      
-      // Screen details
+
       screenName: showtimeData.screenId.name,
       screenDetails: {
         name: showtimeData.screenId.name,
@@ -376,8 +346,7 @@ export default function SeatSelectionPage() {
         features: showtimeData.screenId.features,
         theaterId: showtimeData.screenId.theaterId,
       },
-      
-      // Show details
+
       showDate: showtimeData.showDate,
       showTime: showtimeData.showTime,
       showDetails: {
@@ -392,21 +361,17 @@ export default function SeatSelectionPage() {
         ageRestriction: showtimeData.ageRestriction,
         ownerId: showtimeData.ownerId,
       },
-      
-      // Complete row pricing reference
+
       allRowPricing: showtimeData.rowPricing,
-      
-      // Contact info
+
       contactInfo: {
         email: user?.email || "",
         phone: user?.phone || ""
       },
-      
-      // Selected seat data
+
       selectedRows: selectedRowsGrouped,
       selectedSeats: selectedSeats,
-      
-      // Enhanced seat pricing details
+
       seatPricing: selectedRowsData.map(seat => ({
         rowId: seat.rowId,
         rowLabel: seat.rowLabel,
@@ -416,8 +381,7 @@ export default function SeatSelectionPage() {
         seatsSelected: [seat.seatNumber],
         seatCount: 1,
       })),
-      
-      // Price calculation
+
       priceDetails: {
         subtotal: totalAmount,
         convenienceFee: convenienceFee,
@@ -425,11 +389,11 @@ export default function SeatSelectionPage() {
         discount: 0,
         total: finalTotal,
       },
-      
+
       amount: totalAmount,
       tax: taxes,
       totalAmount: finalTotal,
-      
+
       paymentMethod: "",
       paymentGateway: "",
       bookingStatus: "pending",
@@ -448,93 +412,97 @@ export default function SeatSelectionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden">
-      <div className="fixed inset-0 z-10 opacity-30">
-        <Prism
-          animationType="rotate"
-          timeScale={0.5}
-          height={3.5}
-          baseWidth={5.5}
-          scale={3.6}
-          hueShift={0}
-          colorFrequency={1}
-          noise={0}
-          glow={1.3}
-        />
-      </div>
 
-      <NavBar />
+    <RouteGuard allowedRoles={['user']} >
 
-      <div className="relative z-20">
-        {loading && (
-          <Loader text="Loading seats" />
-        )}
+      <div className="min-h-screen bg-black relative overflow-hidden">
+        <div className="fixed inset-0 z-10 opacity-30">
+          <Prism
+            animationType="rotate"
+            timeScale={0.5}
+            height={3.5}
+            baseWidth={5.5}
+            scale={3.6}
+            hueShift={0}
+            colorFrequency={1}
+            noise={0}
+            glow={1.3}
+          />
+        </div>
 
-        {(error || !showtimeData) && !loading && (
-          <div className="pt-20 flex items-center justify-center">
-            <div className="text-center">
-              <p className={`${lexendMedium.className} text-red-400 mb-4`}>
-                {error || "Showtime not found"}
-              </p>
-              <button
-                onClick={handleBack}
-                className={`${lexendMedium.className} bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-lg transition-colors`}
-              >
-                Go Back
-              </button>
-            </div>
-          </div>
-        )}
+        <NavBar />
 
-        {!loading && showtimeData && (
-          <div className="pb-12">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="relative flex items-center pt-12 pb-30">
+        <div className="relative z-20">
+          {loading && (
+            <Loader text="Loading seats" />
+          )}
+
+          {(error || !showtimeData) && !loading && (
+            <div className="pt-20 flex items-center justify-center">
+              <div className="text-center">
+                <p className={`${lexendMedium.className} text-red-400 mb-4`}>
+                  {error || "Showtime not found"}
+                </p>
                 <button
                   onClick={handleBack}
-                  className={`${lexendSmall.className} flex items-center gap-2 text-gray-400 hover:text-white transition-all duration-300 mb-6 absolute left-5 z-10`}
+                  className={`${lexendMedium.className} bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-lg transition-colors`}
                 >
-                  <ArrowLeft className="w-5 h-5" />
-                  Back to Showtimes
+                  Go Back
                 </button>
-
-                <div className="w-full flex justify-center">
-                  <p className={`${lexendBold.className} text-4xl text-center text-white`}>
-                    Choose Your Seats
-                  </p>
-                </div>
               </div>
-
-              <CurvedScreen />
-
-              <SeatLayout
-                rows={showtimeData.screenId.layout.advancedLayout.rows}
-                seatStatuses={seatStatuses}
-                onSeatClick={handleSeatClick}
-                getSeatButtonStyle={getSeatButtonStyle}
-                getSeatPrice={getSeatPrice}
-                lexendMediumClassName={lexendMedium.className}
-                maxCols={getMaxCols(showtimeData.screenId.layout.advancedLayout.rows)}
-              />
-
-              <Legend lexendSmallClassName={lexendSmall.className} />
-
-              {selectedSeats.length > 0 && (
-                <SelectionSummary
-                  selectedSeats={selectedSeats}
-                  totalAmount={calculateTotalAmount()}
-                  lexendMediumClassName={lexendMedium.className}
-                  lexendSmallClassName={lexendSmall.className}
-                  lexendBoldClassName={lexendBold.className}
-                  onProceed={handleProceedToPayment}
-                  getSeatPrice={getSeatPrice}
-                  getSeatType={getSeatType}
-                />
-              )}
             </div>
-          </div>
-        )}
+          )}
+
+          {!loading && showtimeData && (
+            <div className="pb-12">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="relative flex items-center pt-12 pb-30">
+                  <button
+                    onClick={handleBack}
+                    className={`${lexendSmall.className} flex items-center gap-2 text-gray-400 hover:text-white transition-all duration-300 mb-6 absolute left-5 z-10`}
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                    Back to Showtimes
+                  </button>
+
+                  <div className="w-full flex justify-center">
+                    <p className={`${lexendBold.className} text-4xl text-center text-white`}>
+                      Choose Your Seats
+                    </p>
+                  </div>
+                </div>
+
+                <CurvedScreen />
+
+                <SeatLayout
+                  rows={showtimeData.screenId.layout.advancedLayout.rows}
+                  seatStatuses={seatStatuses}
+                  onSeatClick={handleSeatClick}
+                  getSeatButtonStyle={getSeatButtonStyle}
+                  getSeatPrice={getSeatPrice}
+                  lexendMediumClassName={lexendMedium.className}
+                  maxCols={getMaxCols(showtimeData.screenId.layout.advancedLayout.rows)}
+                />
+
+                <Legend lexendSmallClassName={lexendSmall.className} />
+
+                {selectedSeats.length > 0 && (
+                  <SelectionSummary
+                    selectedSeats={selectedSeats}
+                    totalAmount={calculateTotalAmount()}
+                    lexendMediumClassName={lexendMedium.className}
+                    lexendSmallClassName={lexendSmall.className}
+                    lexendBoldClassName={lexendBold.className}
+                    onProceed={handleProceedToPayment}
+                    getSeatPrice={getSeatPrice}
+                    getSeatType={getSeatType}
+                  />
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </RouteGuard>
   );
 }

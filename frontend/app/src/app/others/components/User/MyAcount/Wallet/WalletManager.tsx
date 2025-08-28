@@ -1,4 +1,3 @@
-// components/wallet/WalletPage.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -30,7 +29,6 @@ const WalletPage: React.FC = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  // Mock data - replace with actual API calls
   useEffect(() => {
     const fetchWalletData = async () => {
       try {
@@ -58,13 +56,11 @@ const WalletPage: React.FC = () => {
 
   const handleWithdraw = () => {
     console.log('Opening withdraw modal...');
-    // Add your withdraw logic here
   };
 
   const handleViewTransaction = (transaction: Transaction) => {
     console.log('Viewing transaction details:', transaction);
-    // Add your transaction detail view logic here
-    // You can open a modal with transaction details
+
   };
 
   if (loading) {

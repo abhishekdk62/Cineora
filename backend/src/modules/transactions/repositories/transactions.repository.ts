@@ -1,4 +1,3 @@
-// repositories/transactions.repository.ts
 import Transaction from "../models/transactions.model";
 import { ITransactionRepository } from "../interfaces/transactions.repository.interface";
 import { ITransaction } from "../interfaces/transactions.model.interface";

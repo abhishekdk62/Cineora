@@ -9,10 +9,8 @@ export class ReviewService implements IReviewService {
   
   async submitReview(reviewData: CreateReviewDto): Promise<ServiceResponse> {
     try {
-      // Generate review ID
       const reviewId = `REV${Date.now()}${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
       
-      // Convert string IDs to ObjectId
       const reviewPayload = {
         reviewId,
         userId: new mongoose.Types.ObjectId(reviewData.userId),
@@ -27,14 +25,12 @@ export class ReviewService implements IReviewService {
         helpfulCount: 0,
       };
       
-      // Add movie or theater ID
       if (reviewData.reviewType === "movie" && reviewData.movieId) {
         reviewPayload["movieId"] = new mongoose.Types.ObjectId(reviewData.movieId);
       } else if (reviewData.reviewType === "theater" && reviewData.theaterId) {
         reviewPayload["theaterId"] = new mongoose.Types.ObjectId(reviewData.theaterId);
       }
       
-      // Add booking reference if provided
       if (reviewData.bookingId) {
         reviewPayload["bookingId"] = new mongoose.Types.ObjectId(reviewData.bookingId);
       }
@@ -245,7 +241,7 @@ export class ReviewService implements IReviewService {
       
       const updatedReview = await this.reviewRepo.updateById(
         review._id.toString(),
-        { ...updateData, status: "pending" } // Reset to pending after edit
+        { ...updateData, status: "pending" } 
       );
       
       return {

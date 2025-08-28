@@ -25,18 +25,18 @@ interface Movie {
 interface MoviesPageProps {
   movies: Movie[];
   loading: boolean;
-  searchLoading?: boolean; // Add search loading prop
+  searchLoading?: boolean; 
   totalPages: number;
   currentPage: number;
   onPageChange: (page: number) => void;
-  onSearchChange: (search: string) => void; // Change from debouncedSearch
+  onSearchChange: (search: string) => void; 
   onFiltersChange: (filters: any) => void;
 }
 
 export default function MoviesPage({
   movies,
   loading,
-  searchLoading = false, // Default to false
+  searchLoading = false, 
   totalPages,
   currentPage,
   onPageChange,
@@ -53,7 +53,6 @@ export default function MoviesPage({
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>("desc");
   const [showFilters, setShowFilters] = useState(false);
 
-  // Constants (same as before)
   const genres = ["All", "Action", "Adventure", "Animation", "Comedy", "Crime", "Documentary", "Drama", "Family", "Fantasy", "History", "Horror", "Music", "Mystery", "Romance", "Sci-Fi", "Thriller", "War", "Western"];
   const ratings = ["All", "G", "PG", "PG-13", "R", "NC-17"];
   const languages = ["All", "en", "es", "fr", "de", "hi", "zh", "ja", "ko"];
@@ -82,13 +81,11 @@ export default function MoviesPage({
     return `${hours}h ${mins}m`;
   };
 
-  // Handle search input change
   const handleSearchInput = (value: string) => {
     setSearchQuery(value);
     onSearchChange(value);
   };
 
-  // Handle clear search
   const handleClearSearch = () => {
     setSearchQuery('');
     onSearchChange('');
@@ -111,7 +108,7 @@ export default function MoviesPage({
     filters.sortOrder = sortOrder;
 
     onFiltersChange(filters);
-  }, [selectedGenre, selectedRating, selectedLanguage, selectedYear, durationRange, sortBy, sortOrder]); // Remove searchQuery from dependencies
+  }, [selectedGenre, selectedRating, selectedLanguage, selectedYear, durationRange, sortBy, sortOrder]); 
 
   const clearAllFilters = () => {
     setSearchQuery("");
@@ -131,9 +128,9 @@ export default function MoviesPage({
     <div className="min-h-screen bg-transparent">
       <SearchHeader
         searchQuery={searchQuery}
-        onSearchInput={handleSearchInput} // Use new handler
-        onClearSearch={handleClearSearch} // Use new clear handler
-        searchLoading={searchLoading} // Pass search loading state
+        onSearchInput={handleSearchInput} 
+        onClearSearch={handleClearSearch}
+        searchLoading={searchLoading} 
         sortBy={sortBy}
         setSortBy={setSortBy}
         sortOrder={sortOrder}

@@ -31,7 +31,6 @@ export interface INotificationService {
   
   getUnreadCount(userId: string): Promise<ServiceResponse>;
   
-  // Bulk operations
   sendBulkNotifications(
     userIds: string[],
     title: string,
@@ -40,7 +39,6 @@ export interface INotificationService {
     channels?: string[]
   ): Promise<ServiceResponse>;
   
-  // System notifications
   sendBookingNotification(
     userId: string,
     bookingData: any
@@ -61,7 +59,6 @@ export interface INotificationService {
     offerData: any
   ): Promise<ServiceResponse>;
   
-  // Admin functions
   getNotificationStats(): Promise<ServiceResponse>;
   
   processScheduledNotifications(): Promise<ServiceResponse>;

@@ -35,7 +35,7 @@ interface AddMovieModalProps {
   onClose: () => void;
   onSubmit: (movieData: any) => void;
   tmdbMovie?: any;
-  editingMovie?: Movie | null;
+  editingMovie?: any;
 }
 
 const AddMovieModal: React.FC<AddMovieModalProps> = ({

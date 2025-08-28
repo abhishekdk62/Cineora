@@ -4,9 +4,10 @@ import { ServiceResponse } from "../../../interfaces/interface";
 import crypto from "crypto";
 import mongoose from "mongoose";
 import { config } from "../../../config";
+import { EmailService, IEmailService } from "../../../services/email.service";
 
 export class TicketService implements ITicketService {
-  constructor(private readonly ticketRepo: ITicketRepository) {}
+  constructor(private readonly ticketRepo: ITicketRepository,private emailService:IEmailService) {}
 
   private generateQREncryptedData(ticketData: any): string {
     const qrPayload = {
@@ -71,6 +72,16 @@ export class TicketService implements ITicketService {
       }
 
       const createdTickets = await this.ticketRepo.createBulkTickets(tickets);
+    try {
+      const emailSent = await this.emailService.sendTicketsEmail(
+        bookingInfo.email, 
+        createdTickets, 
+        bookingInfo
+      );
+      console.log(`Ticket email sent: ${emailSent}`);
+    } catch (emailError) {
+      console.error("Failed to send ticket email:", emailError);
+    }
 
       return {
         success: true,
@@ -140,6 +151,112 @@ export class TicketService implements ITicketService {
       };
     }
   }
+async cancelTicket(bookingId: string, userId: string, amount: number): Promise<ServiceResponse> {
+    try {
+      
+      const tickets = await this.ticketRepo.findByBookingId(bookingId);
+      
+      if (!tickets || tickets.length === 0) {
+        return {
+          success: false,
+          message: "Tickets not found",
+          data: null,
+        };
+      }
+      const firstTicket = tickets[0];
+
+
+      if (firstTicket.userId._id.toString() !== userId) {
+        return {
+          success: false,
+          message: "Unauthorized: You can only cancel your own tickets",
+          data: null,
+        };
+      }
+
+      const alreadyCancelledTickets = tickets.filter(ticket => ticket.status === 'cancelled');
+      if (alreadyCancelledTickets.length > 0) {
+        return {
+          success: false,
+          message: "Booking is already cancelled",
+          data: null,
+        };
+      }
+
+      const usedTickets = tickets.filter(ticket => ticket.status === 'used');
+      if (usedTickets.length > 0) {
+        return {
+          success: false,
+          message: "Cannot cancel booking with used tickets",
+          data: null,
+        };
+      }
+
+      const showDateTime = new Date(firstTicket.showDate);
+      const [hours, minutes] = firstTicket.showTime.split(':');
+      showDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+      const now = new Date();
+      
+      if (showDateTime <= now) {
+        return {
+          success: false,
+          message: "Cannot cancel booking for past shows",
+          data: null,
+        };
+      }
+
+      const refundPercentage = this.calculateRefundPercentage(showDateTime);
+      
+      const updatePromises = tickets.map(ticket => 
+        this.ticketRepo.updateById(
+          (ticket as any)._id.toString(),
+          { 
+            status: 'cancelled',
+            updatedAt: new Date()
+          }
+        )
+      );
+
+      const updatedTickets = await Promise.all(updatePromises);
+
+      return {
+        success: true,
+        message: "Booking cancelled successfully",
+        data: {
+          cancelledTickets: updatedTickets,
+          refundPercentage: refundPercentage,
+          originalAmount: amount,
+          refundAmount: Math.round(amount * refundPercentage / 100),
+          showDate: firstTicket.showDate,
+          showTime: firstTicket.showTime
+        },
+      };
+
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || "Failed to cancel booking",
+        data: null,
+      };
+    }
+}
+
+
+private calculateRefundPercentage(showDateTime: Date): number {
+    const now = new Date();
+    const hoursUntilShow = Math.ceil((showDateTime.getTime() - now.getTime()) / (1000 * 60 * 60));
+    
+    if (hoursUntilShow >= 4) {
+        return 75; 
+    } else if (hoursUntilShow >= 2) {
+        return 50;   
+    } else if (hoursUntilShow >= 0.5) { 
+        return 25; 
+    } else {
+        return 0; 
+    }
+}
+
 
   async verifyTicket(encryptedData: string): Promise<ServiceResponse> {
     try {

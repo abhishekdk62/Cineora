@@ -11,7 +11,7 @@ interface TheatersListBookProps {
   theaters: UnifiedBookingEntity[];
   selectedDate: Date;
   movie?: UnifiedBookingEntity | null;
-  onShowtimeSelect: (showtimeId:string) => void;
+  onShowtimeSelect: (showtimeId: string) => void;
 }
 
 export default function TheatersListBook({
@@ -20,23 +20,32 @@ export default function TheatersListBook({
   movie,
   onShowtimeSelect,
 }: TheatersListBookProps) {
-  // Helper function to get the lowest price from rowPricing
   const getLowestPrice = (rowPricing?: any[]): number => {
     if (!rowPricing || rowPricing.length === 0) return 0;
     return Math.min(...rowPricing.map(row => row.showtimePrice ?? row.basePrice ?? 0));
   };
 
-  // Helper function to format location coordinates  
   const formatLocation = (theaterLocation?: { coordinates: [number, number]; type: string }): string => {
     if (!theaterLocation?.coordinates) return "Location not available";
     const [lng, lat] = theaterLocation.coordinates;
     return `${lat.toFixed(3)}, ${lng.toFixed(3)}`;
   };
 
-  // Helper function to get total available seats
   const getTotalAvailableSeats = (rowPricing?: any[]): number => {
     if (!rowPricing) return 0;
     return rowPricing.reduce((total, row) => total + (row.availableSeats ?? 0), 0);
+  };
+
+  const isShowtimeExpired = (showTime: string, showDate: Date): boolean => {
+    const now = new Date();
+    
+    const showDateTime = new Date(showDate);
+    const [hours, minutes] = showTime.split(':');
+    showDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    
+    const endDateTime = new Date(showDateTime.getTime() + 2 * 60 * 60 * 1000);
+    
+    return endDateTime <= now;
   };
 
   return (
@@ -89,8 +98,6 @@ export default function TheatersListBook({
                 <div className="lg:col-span-3">
                   <h4 className={`${lexendMedium.className} text-white text-lg mb-4`}>
                     Show Times
-
-
                   </h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 justify-start">
                     {theater.showtimes?.map((showtime) => {
@@ -98,36 +105,56 @@ export default function TheatersListBook({
                       const totalAvailable = showtime.rowPricing ? getTotalAvailableSeats(showtime.rowPricing) : (showtime.availableSeats ?? 0);
                       const showtimeId = showtime.showtimeId ?? showtime._id ?? '';
                       const displayTime = showtime.showTime ?? showtime.time ?? 'N/A';
+                      
+                      const isExpired = isShowtimeExpired(displayTime, selectedDate);
 
                       return (
                         <button
                           key={showtimeId}
-                          onClick={() => onShowtimeSelect(showtimeId)}
-                          className={`${lexendSmall.className} bg-white/10 hover:bg-white/20 border border-gray-500/30 hover:border-white/50 rounded-lg p-3 transition-all duration-300 text-left ${totalAvailable < 20 ? "border-red-400/50" : ""
-                            }`}
+                          onClick={() => !isExpired && onShowtimeSelect(showtimeId)} 
+                          disabled={isExpired} 
+                          className={`${lexendSmall.className} rounded-lg p-3 transition-all duration-300 text-left ${
+                            isExpired 
+                              ? "bg-gray-800/30 border border-gray-600/20 cursor-not-allowed opacity-50" 
+                              : `bg-white/10 hover:bg-white/20 border border-gray-500/30 hover:border-white/50 ${
+                                  totalAvailable < 20 ? "border-red-400/50" : ""
+                                }`
+                          }`}
                         >
-                          <div className="text-white font-medium mb-1">
+                          <div className={`font-medium mb-1 ${
+                            isExpired ? "text-gray-500" : "text-white" 
+                          }`}>
                             {displayTime}
+                          
                           </div>
-                          <div className="text-xs text-gray-400 mb-1">
+                          <div className={`text-xs mb-1 ${
+                            isExpired ? "text-gray-600" : "text-gray-400"
+                          }`}>
                             {showtime.screenName ?? 'Screen'} • {showtime.format ?? '2D'}
                           </div>
-                          <div className="text-xs text-gray-400 mb-2">
+                          <div className={`text-xs mb-2 ${
+                            isExpired ? "text-gray-600" : "text-gray-400"
+                          }`}>
                             From ₹{lowestPrice}
                           </div>
 
                           {/* Availability Indicator */}
                           <div className="flex items-center gap-1">
                             <div
-                              className={`w-2 h-2 rounded-full ${totalAvailable > 50
-                                  ? "bg-green-400"
-                                  : totalAvailable > 20
-                                    ? "bg-yellow-400"
-                                    : "bg-red-400"
-                                }`}
+                              className={`w-2 h-2 rounded-full ${
+                                isExpired 
+                                  ? "bg-gray-600" 
+                                  : totalAvailable > 50
+                                    ? "bg-green-400"
+                                    : totalAvailable > 20
+                                      ? "bg-yellow-400"
+                                      : "bg-red-400"
+                              }`}
                             />
-                            <span className="text-xs text-gray-400">
-                              {totalAvailable} seats
+                            <span className={`text-xs ${
+                              isExpired ? "text-gray-600" : "text-gray-400"
+                            }`}>
+                              {isExpired ? "Show ended" : `${totalAvailable} seats`}
                             </span>
                           </div>
                         </button>

@@ -1,89 +1,78 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-// Row-based seat pricing interface
 interface SeatPricing {
-  rowId: string;           // Row pricing ID from database
-  rowLabel: string;        // "A", "B", "C" etc.
+  rowId: string; 
+  rowLabel: string; 
   seatType: "VIP" | "Premium" | "Normal";
   basePrice: number;
   finalPrice: number;
-  seatsSelected: string[]; // Array of seat numbers in this row ["1", "2", "3"]
-  seatCount: number;       // Number of seats selected in this row
+  seatsSelected: string[]; 
+  seatCount: number; 
 }
 
-// Price breakdown interface
 interface PriceDetails {
-  subtotal: number;      // Sum of all seat prices
-  convenienceFee: number; // 5% of subtotal
-  taxes: number;         // 18% GST
-  discount: number;      // Any discounts applied
-  total: number;         // Final amount to pay
+  subtotal: number; 
+  convenienceFee: number; 
+  taxes: number; 
+  discount: number; 
+  total: number; 
 }
 
-// Contact information interface
 interface ContactInfo {
   email: string;
   phone: string;
 }
 
-// Selected row interface for row-based selection
 interface SelectedRow {
-  rowId: string;         // Row pricing ID
-  rowLabel: string;      // "A", "B", "C"
-  seatsSelected: string[]; // ["1", "2", "3"] - seat numbers within the row
-  seatCount: number;     // 3
+  rowId: string; 
+  rowLabel: string; 
+  seatsSelected: string[]; 
+  seatCount: number;
   seatType: "VIP" | "Premium" | "Normal";
   pricePerSeat: number;
   totalPrice: number;
 }
 
-// Main booking data interface
 interface BookingData {
-  // Show Details
   showtimeId?: string;
   movieId?: string;
   theaterId?: string;
   screenId?: string;
-  
-  // ✅ Row-based seat selection (NEW)
+movieDetails?:{};
+theaterDetails?:{};
+screenDetails?:{};
+showDetails?:{};
+allRowPricing?:any;
   selectedRows: SelectedRow[];
-  
-  // Seat Selection (for display and compatibility)
-  selectedSeats: string[];        // ["A1", "A2", "A3", "B1", "B2"] - flattened for display
-  selectedSeatIds: string[];      // Row pricing IDs for reference
-  seatPricing: SeatPricing[];     // Row-based pricing details
-  
-  // Financial Details
+
+  selectedSeats: string[]; 
+  selectedSeatIds: string[]; 
+  seatPricing: SeatPricing[]; 
+
   priceDetails: PriceDetails;
-  
-  // Legacy fields (keeping for compatibility)
+
   totalAmount: number;
   tax: number;
   amount: number;
   selectedRowIds: string[];
-  
-  // Show Information
-  showDate?: string;             // "2025-01-26"
-  showTime?: string;             // "19:30"
-  movieTitle?: string;           // "Avengers: Endgame"
-  theaterName?: string;          // "PVR Cinemas"
-  screenName?: string;           // "Screen 1"
-  
-  // Payment Details
-  paymentMethod?: "upi" | "card" | "netbanking" | "wallet";
-  paymentGateway?: "razorpay" | "stripe" | "paytm" | "phonepe";
-  
-  // User Details
+
+  showDate?: string; 
+  showTime?: string; 
+  movieTitle?: string; 
+  theaterName?: string; 
+  screenName?: string; 
+
+  paymentMethod?: "upi" | "card" | "netbanking" | "wallet" | "";
+  paymentGateway?: "razorpay" | "stripe" | "paytm" | "phonepe " | "";
+
   userId?: string;
   contactInfo?: ContactInfo;
-  
-  // Booking Status
+
   bookingId?: string;
   paymentId?: string;
   bookingStatus?: "pending" | "confirmed" | "cancelled";
   paymentStatus?: "pending" | "completed" | "failed";
-  
-  // Additional metadata
+
   couponCode?: string;
   discountApplied?: number;
 }
@@ -104,7 +93,6 @@ const bookingSlice = createSlice({
   name: "booking",
   initialState,
   reducers: {
-    // Set booking data (merge with existing)
     setBookingData: (state, action: PayloadAction<Partial<BookingData>>) => {
       if (state.bookingData) {
         state.bookingData = { ...state.bookingData, ...action.payload };
@@ -131,19 +119,16 @@ const bookingSlice = createSlice({
       state.error = null;
     },
 
-    // ✅ NEW: Update selected rows (row-based selection)
     updateSelectedRows: (state, action: PayloadAction<SelectedRow[]>) => {
       if (state.bookingData) {
         state.bookingData.selectedRows = action.payload;
-        
-        // Auto-generate flattened seat list for display
-        const flattenedSeats = action.payload.flatMap(row => 
-          row.seatsSelected.map(seatNum => `${row.rowLabel}${seatNum}`)
+
+        const flattenedSeats = action.payload.flatMap((row) =>
+          row.seatsSelected.map((seatNum) => `${row.rowLabel}${seatNum}`)
         );
         state.bookingData.selectedSeats = flattenedSeats;
-        
-        // Update seat pricing array
-        state.bookingData.seatPricing = action.payload.map(row => ({
+
+        state.bookingData.seatPricing = action.payload.map((row) => ({
           rowId: row.rowId,
           rowLabel: row.rowLabel,
           seatType: row.seatType,
@@ -152,48 +137,62 @@ const bookingSlice = createSlice({
           seatsSelected: row.seatsSelected,
           seatCount: row.seatCount,
         }));
-        
-        // Auto-calculate pricing
-        const subtotal = action.payload.reduce((sum, row) => sum + row.totalPrice, 0);
+
+        const subtotal = action.payload.reduce(
+          (sum, row) => sum + row.totalPrice,
+          0
+        );
         state.bookingData.priceDetails.subtotal = subtotal;
-        state.bookingData.amount = subtotal; // Legacy compatibility
-        
-        // Auto-calculate fees and total
-        const convenienceFee = Math.round(subtotal * 0.05); // 5%
-        const taxes = Math.round(subtotal * 0.18); // 18% GST
-        const total = subtotal + convenienceFee + taxes - state.bookingData.priceDetails.discount;
-        
+        state.bookingData.amount = subtotal; 
+
+        const convenienceFee = Math.round(subtotal * 0.05); 
+        const taxes = Math.round(subtotal * 0.18); 
+        const total =
+          subtotal +
+          convenienceFee +
+          taxes -
+          state.bookingData.priceDetails.discount;
+
         state.bookingData.priceDetails.convenienceFee = convenienceFee;
         state.bookingData.priceDetails.taxes = taxes;
         state.bookingData.priceDetails.total = total;
-        state.bookingData.tax = taxes; // Legacy compatibility
-        state.bookingData.totalAmount = total; // Legacy compatibility
+        state.bookingData.tax = taxes; 
+        state.bookingData.totalAmount = total; 
       }
     },
 
-    // ✅ NEW: Add seat to a specific row
-    addSeatToRow: (state, action: PayloadAction<{
-      rowId: string;
-      rowLabel: string;
-      seatNumber: string;
-      seatType: "VIP" | "Premium" | "Normal";
-      pricePerSeat: number;
-    }>) => {
+    addSeatToRow: (
+      state,
+      action: PayloadAction<{
+        rowId: string;
+        rowLabel: string;
+        seatNumber: string;
+        seatType: "VIP" | "Premium" | "Normal";
+        pricePerSeat: number;
+      }>
+    ) => {
       if (state.bookingData) {
-        const { rowId, rowLabel, seatNumber, seatType, pricePerSeat } = action.payload;
-        
-        // Find existing row or create new one
-        let existingRowIndex = state.bookingData.selectedRows.findIndex(row => row.rowId === rowId);
-        
+        const { rowId, rowLabel, seatNumber, seatType, pricePerSeat } =
+          action.payload;
+
+        let existingRowIndex = state.bookingData.selectedRows.findIndex(
+          (row) => row.rowId === rowId
+        );
+
         if (existingRowIndex >= 0) {
-          // Add seat to existing row
-          if (!state.bookingData.selectedRows[existingRowIndex].seatsSelected.includes(seatNumber)) {
-            state.bookingData.selectedRows[existingRowIndex].seatsSelected.push(seatNumber);
+          if (
+            !state.bookingData.selectedRows[
+              existingRowIndex
+            ].seatsSelected.includes(seatNumber)
+          ) {
+            state.bookingData.selectedRows[existingRowIndex].seatsSelected.push(
+              seatNumber
+            );
             state.bookingData.selectedRows[existingRowIndex].seatCount += 1;
-            state.bookingData.selectedRows[existingRowIndex].totalPrice += pricePerSeat;
+            state.bookingData.selectedRows[existingRowIndex].totalPrice +=
+              pricePerSeat;
           }
         } else {
-          // Create new row entry
           state.bookingData.selectedRows.push({
             rowId,
             rowLabel,
@@ -204,22 +203,27 @@ const bookingSlice = createSlice({
             totalPrice: pricePerSeat,
           });
         }
-        
-        // Update flattened seat list
-        const flattenedSeats = state.bookingData.selectedRows.flatMap(row => 
-          row.seatsSelected.map(seatNum => `${row.rowLabel}${seatNum}`)
+
+        const flattenedSeats = state.bookingData.selectedRows.flatMap((row) =>
+          row.seatsSelected.map((seatNum) => `${row.rowLabel}${seatNum}`)
         );
         state.bookingData.selectedSeats = flattenedSeats;
-        
-        // Recalculate pricing
-        const subtotal = state.bookingData.selectedRows.reduce((sum, row) => sum + row.totalPrice, 0);
+
+        const subtotal = state.bookingData.selectedRows.reduce(
+          (sum, row) => sum + row.totalPrice,
+          0
+        );
         state.bookingData.priceDetails.subtotal = subtotal;
         state.bookingData.amount = subtotal;
-        
+
         const convenienceFee = Math.round(subtotal * 0.05);
         const taxes = Math.round(subtotal * 0.18);
-        const total = subtotal + convenienceFee + taxes - state.bookingData.priceDetails.discount;
-        
+        const total =
+          subtotal +
+          convenienceFee +
+          taxes -
+          state.bookingData.priceDetails.discount;
+
         state.bookingData.priceDetails.convenienceFee = convenienceFee;
         state.bookingData.priceDetails.taxes = taxes;
         state.bookingData.priceDetails.total = total;
@@ -228,47 +232,55 @@ const bookingSlice = createSlice({
       }
     },
 
-    // ✅ NEW: Remove seat from a specific row
-    removeSeatFromRow: (state, action: PayloadAction<{
-      rowId: string;
-      seatNumber: string;
-      pricePerSeat: number;
-    }>) => {
+    removeSeatFromRow: (
+      state,
+      action: PayloadAction<{
+        rowId: string;
+        seatNumber: string;
+        pricePerSeat: number;
+      }>
+    ) => {
       if (state.bookingData) {
         const { rowId, seatNumber, pricePerSeat } = action.payload;
-        
-        const rowIndex = state.bookingData.selectedRows.findIndex(row => row.rowId === rowId);
-        
+
+        const rowIndex = state.bookingData.selectedRows.findIndex(
+          (row) => row.rowId === rowId
+        );
+
         if (rowIndex >= 0) {
           const row = state.bookingData.selectedRows[rowIndex];
           const seatIndex = row.seatsSelected.indexOf(seatNumber);
-          
+
           if (seatIndex >= 0) {
-            // Remove seat from row
             row.seatsSelected.splice(seatIndex, 1);
             row.seatCount -= 1;
             row.totalPrice -= pricePerSeat;
-            
-            // Remove row if no seats left
+
             if (row.seatCount === 0) {
               state.bookingData.selectedRows.splice(rowIndex, 1);
             }
-            
-            // Update flattened seat list
-            const flattenedSeats = state.bookingData.selectedRows.flatMap(row => 
-              row.seatsSelected.map(seatNum => `${row.rowLabel}${seatNum}`)
+
+            const flattenedSeats = state.bookingData.selectedRows.flatMap(
+              (row) =>
+                row.seatsSelected.map((seatNum) => `${row.rowLabel}${seatNum}`)
             );
             state.bookingData.selectedSeats = flattenedSeats;
-            
-            // Recalculate pricing
-            const subtotal = state.bookingData.selectedRows.reduce((sum, row) => sum + row.totalPrice, 0);
+
+            const subtotal = state.bookingData.selectedRows.reduce(
+              (sum, row) => sum + row.totalPrice,
+              0
+            );
             state.bookingData.priceDetails.subtotal = subtotal;
             state.bookingData.amount = subtotal;
-            
+
             const convenienceFee = Math.round(subtotal * 0.05);
             const taxes = Math.round(subtotal * 0.18);
-            const total = subtotal + convenienceFee + taxes - state.bookingData.priceDetails.discount;
-            
+            const total =
+              subtotal +
+              convenienceFee +
+              taxes -
+              state.bookingData.priceDetails.discount;
+
             state.bookingData.priceDetails.convenienceFee = convenienceFee;
             state.bookingData.priceDetails.taxes = taxes;
             state.bookingData.priceDetails.total = total;
@@ -279,104 +291,112 @@ const bookingSlice = createSlice({
       }
     },
 
-    // Update selected seats (legacy - for compatibility)
     updateSelectedSeats: (state, action: PayloadAction<string[]>) => {
       if (state.bookingData) {
         state.bookingData.selectedSeats = action.payload;
       }
     },
 
-    // Update seat pricing details
     updateSeatPricing: (state, action: PayloadAction<SeatPricing[]>) => {
       if (state.bookingData) {
         state.bookingData.seatPricing = action.payload;
-        
-        // Auto-calculate subtotal when seat pricing is updated
+
         const subtotal = action.payload.reduce((sum, seat) => {
-          return sum + (seat.finalPrice * seat.seatCount);
+          return sum + seat.finalPrice * seat.seatCount;
         }, 0);
-        
+
         state.bookingData.priceDetails.subtotal = subtotal;
-        state.bookingData.amount = subtotal; // Legacy compatibility
-        
-        // Auto-calculate fees and total
-        const convenienceFee = Math.round(subtotal * 0.05); // 5%
-        const taxes = Math.round(subtotal * 0.18); // 18% GST
-        const total = subtotal + convenienceFee + taxes - state.bookingData.priceDetails.discount;
-        
+        state.bookingData.amount = subtotal; 
+
+        const convenienceFee = Math.round(subtotal * 0.05); 
+        const taxes = Math.round(subtotal * 0.18); 
+        const total =
+          subtotal +
+          convenienceFee +
+          taxes -
+          state.bookingData.priceDetails.discount;
+
         state.bookingData.priceDetails.convenienceFee = convenienceFee;
         state.bookingData.priceDetails.taxes = taxes;
         state.bookingData.priceDetails.total = total;
-        state.bookingData.tax = taxes; // Legacy compatibility
-        state.bookingData.totalAmount = total; // Legacy compatibility
+        state.bookingData.tax = taxes; 
+        state.bookingData.totalAmount = total; 
       }
     },
 
-    // Update price details
-    updatePriceDetails: (state, action: PayloadAction<Partial<PriceDetails>>) => {
+    updatePriceDetails: (
+      state,
+      action: PayloadAction<Partial<PriceDetails>>
+    ) => {
       if (state.bookingData) {
-        state.bookingData.priceDetails = { 
-          ...state.bookingData.priceDetails, 
-          ...action.payload 
+        state.bookingData.priceDetails = {
+          ...state.bookingData.priceDetails,
+          ...action.payload,
         };
-        
-        // Update legacy fields for compatibility
+
         state.bookingData.amount = state.bookingData.priceDetails.subtotal;
         state.bookingData.tax = state.bookingData.priceDetails.taxes;
         state.bookingData.totalAmount = state.bookingData.priceDetails.total;
       }
     },
 
-    // Update show details
-    updateShowDetails: (state, action: PayloadAction<{
-      showtimeId?: string;
-      movieId?: string;
-      theaterId?: string;
-      screenId?: string;
-      showDate?: string;
-      showTime?: string;
-      movieTitle?: string;
-      theaterName?: string;
-      screenName?: string;
-    }>) => {
+    updateShowDetails: (
+      state,
+      action: PayloadAction<{
+        showtimeId?: string;
+        movieId?: string;
+        theaterId?: string;
+        screenId?: string;
+        showDate?: string;
+        showTime?: string;
+        movieTitle?: string;
+        theaterName?: string;
+        screenName?: string;
+      }>
+    ) => {
       if (state.bookingData) {
         state.bookingData = { ...state.bookingData, ...action.payload };
       }
     },
 
-    // Update user and contact details
-    updateUserDetails: (state, action: PayloadAction<{
-      userId?: string;
-      contactInfo?: ContactInfo;
-    }>) => {
+    updateUserDetails: (
+      state,
+      action: PayloadAction<{
+        userId?: string;
+        contactInfo?: ContactInfo;
+      }>
+    ) => {
       if (state.bookingData) {
         state.bookingData = { ...state.bookingData, ...action.payload };
       }
     },
 
-    // Update payment details
-    updatePaymentDetails: (state, action: PayloadAction<{
-      paymentMethod?: BookingData["paymentMethod"];
-      paymentGateway?: BookingData["paymentGateway"];
-      paymentId?: string;
-      paymentStatus?: BookingData["paymentStatus"];
-    }>) => {
+    updatePaymentDetails: (
+      state,
+      action: PayloadAction<{
+        paymentMethod?: BookingData["paymentMethod"];
+        paymentGateway?: BookingData["paymentGateway"];
+        paymentId?: string;
+        paymentStatus?: BookingData["paymentStatus"];
+      }>
+    ) => {
       if (state.bookingData) {
         state.bookingData = { ...state.bookingData, ...action.payload };
       }
     },
 
-    // Update booking status
-    updateBookingStatus: (state, action: PayloadAction<{
-      bookingId?: string;
-      bookingStatus?: BookingData["bookingStatus"];
-    }>) => {
+    updateBookingStatus: (
+      state,
+      action: PayloadAction<{
+        bookingId?: string;
+        bookingStatus?: BookingData["bookingStatus"];
+      }>
+    ) => {
       if (state.bookingData) {
         state.bookingData = { ...state.bookingData, ...action.payload };
       }
     },
 
-    // Legacy action - update amount
     updateAmount: (state, action: PayloadAction<number>) => {
       if (state.bookingData) {
         state.bookingData.amount = action.payload;
@@ -384,7 +404,6 @@ const bookingSlice = createSlice({
       }
     },
 
-    // Legacy action - update tax
     updateTax: (state, action: PayloadAction<number>) => {
       if (state.bookingData) {
         state.bookingData.tax = action.payload;
@@ -392,7 +411,6 @@ const bookingSlice = createSlice({
       }
     },
 
-    // Legacy action - update total amount
     updateTotalAmount: (state, action: PayloadAction<number>) => {
       if (state.bookingData) {
         state.bookingData.totalAmount = action.payload;
@@ -400,74 +418,70 @@ const bookingSlice = createSlice({
       }
     },
 
-    // Calculate total amount (auto-calculation)
     calculateTotalAmount: (state) => {
       if (state.bookingData) {
-        const { subtotal, convenienceFee, taxes, discount } = state.bookingData.priceDetails;
+        const { subtotal, convenienceFee, taxes, discount } =
+          state.bookingData.priceDetails;
         const total = subtotal + convenienceFee + taxes - discount;
-        
+
         state.bookingData.priceDetails.total = total;
-        state.bookingData.totalAmount = total; // Legacy compatibility
+        state.bookingData.totalAmount = total; 
       }
     },
 
-    // Apply discount/coupon
-    applyDiscount: (state, action: PayloadAction<{
-      discount: number;
-      couponCode?: string;
-    }>) => {
+    applyDiscount: (
+      state,
+      action: PayloadAction<{
+        discount: number;
+        couponCode?: string;
+      }>
+    ) => {
       if (state.bookingData) {
         state.bookingData.priceDetails.discount = action.payload.discount;
         if (action.payload.couponCode) {
           state.bookingData.couponCode = action.payload.couponCode;
         }
-        
-        // Recalculate total
-        const { subtotal, convenienceFee, taxes, discount } = state.bookingData.priceDetails;
+
+        const { subtotal, convenienceFee, taxes, discount } =
+          state.bookingData.priceDetails;
         const total = subtotal + convenienceFee + taxes - discount;
         state.bookingData.priceDetails.total = total;
-        state.bookingData.totalAmount = total; // Legacy compatibility
+        state.bookingData.totalAmount = total; 
       }
     },
 
-    // Remove discount
     removeDiscount: (state) => {
       if (state.bookingData) {
         state.bookingData.priceDetails.discount = 0;
         state.bookingData.couponCode = undefined;
-        
-        // Recalculate total
-        const { subtotal, convenienceFee, taxes } = state.bookingData.priceDetails;
+
+        const { subtotal, convenienceFee, taxes } =
+          state.bookingData.priceDetails;
         const total = subtotal + convenienceFee + taxes;
         state.bookingData.priceDetails.total = total;
         state.bookingData.totalAmount = total;
       }
     },
 
-    // Set loading state
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
 
-    // Set error state
     setError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload;
       state.isLoading = false;
     },
 
-    // Reset booking data
     resetBookingData: (state) => {
       state.bookingData = null;
       state.isLoading = false;
       state.error = null;
     },
 
-    // Clear error
     clearError: (state) => {
       state.error = null;
     },
 
-    // Clear selected seats
     clearSelectedSeats: (state) => {
       if (state.bookingData) {
         state.bookingData.selectedRows = [];
@@ -488,12 +502,11 @@ const bookingSlice = createSlice({
   },
 });
 
-// Export actions
 export const {
   setBookingData,
-  updateSelectedRows,        // ✅ NEW
-  addSeatToRow,             // ✅ NEW
-  removeSeatFromRow,        // ✅ NEW
+  updateSelectedRows, 
+  addSeatToRow, 
+  removeSeatFromRow, 
   updateSelectedSeats,
   updateSeatPricing,
   updatePriceDetails,
@@ -501,27 +514,34 @@ export const {
   updateUserDetails,
   updatePaymentDetails,
   updateBookingStatus,
-  updateAmount,             // Legacy
-  updateTax,                // Legacy
-  updateTotalAmount,        // Legacy
+  updateAmount, 
+  updateTax, 
+  updateTotalAmount,
   calculateTotalAmount,
   applyDiscount,
-  removeDiscount,           // ✅ NEW
+  removeDiscount, 
   setLoading,
   setError,
   resetBookingData,
   clearError,
-  clearSelectedSeats,       // ✅ NEW
+  clearSelectedSeats, 
 } = bookingSlice.actions;
 
-// Selectors for easy data access
-export const selectBookingData = (state: { booking: BookingState }) => state.booking.bookingData;
-export const selectSelectedSeats = (state: { booking: BookingState }) => state.booking.bookingData?.selectedSeats || [];
-export const selectSelectedRows = (state: { booking: BookingState }) => state.booking.bookingData?.selectedRows || []; // ✅ NEW
-export const selectPriceDetails = (state: { booking: BookingState }) => state.booking.bookingData?.priceDetails;
-export const selectIsLoading = (state: { booking: BookingState }) => state.booking.isLoading;
-export const selectError = (state: { booking: BookingState }) => state.booking.error;
-export const selectTotalAmount = (state: { booking: BookingState }) => state.booking.bookingData?.priceDetails.total || 0;
-export const selectSeatCount = (state: { booking: BookingState }) => state.booking.bookingData?.selectedSeats.length || 0;
+export const selectBookingData = (state: { booking: BookingState }) =>
+  state.booking.bookingData;
+export const selectSelectedSeats = (state: { booking: BookingState }) =>
+  state.booking.bookingData?.selectedSeats || [];
+export const selectSelectedRows = (state: { booking: BookingState }) =>
+  state.booking.bookingData?.selectedRows || []; 
+export const selectPriceDetails = (state: { booking: BookingState }) =>
+  state.booking.bookingData?.priceDetails;
+export const selectIsLoading = (state: { booking: BookingState }) =>
+  state.booking.isLoading;
+export const selectError = (state: { booking: BookingState }) =>
+  state.booking.error;
+export const selectTotalAmount = (state: { booking: BookingState }) =>
+  state.booking.bookingData?.priceDetails.total || 0;
+export const selectSeatCount = (state: { booking: BookingState }) =>
+  state.booking.bookingData?.selectedSeats.length || 0;
 
 export default bookingSlice.reducer;

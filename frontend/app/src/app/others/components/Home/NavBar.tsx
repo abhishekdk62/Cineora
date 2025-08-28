@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useState, useEffect } from "react"; // Add useEffect
+import { useState, useEffect } from "react"; 
 import { Lexend } from "next/font/google";
 import { Ticket, Menu, X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -22,7 +22,7 @@ const lexendBold = Lexend({
 
 export default function NavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [mounted, setMounted] = useState(false); // Add this state
+  const [mounted, setMounted] = useState(false); 
   const router = useRouter();
 
   const user = useSelector((state: RootState) => state.auth.user);
@@ -33,7 +33,6 @@ export default function NavBar() {
   const loading = useSelector((state: RootState) => state.auth.loading);
   const error = useSelector((state: RootState) => state.auth.error);
 
-  // Add this useEffect
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -118,12 +117,10 @@ export default function NavBar() {
                 </button>
               )
             ) : (
-              // Show placeholder while mounting
               <div className="w-20 h-10 bg-gray-600/30 rounded-full animate-pulse"></div>
             )}
           </div>
 
-          {/* Mobile menu button */}
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}

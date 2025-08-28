@@ -1,4 +1,3 @@
-// components/booking/EmptyState.tsx
 "use client";
 
 import React from "react";

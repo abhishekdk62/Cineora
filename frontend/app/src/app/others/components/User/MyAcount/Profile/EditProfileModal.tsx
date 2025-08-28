@@ -22,8 +22,13 @@ import {
 } from "lucide-react";
 import { updateProfile } from "@/app/others/services/userServices/userServices";
 import { IUser } from "./MyAccountContent";
-import MapLocationPicker from "@/app/others/components/Leaflet/MapLocationPicker";
-
+import dynamic from "next/dynamic";
+const MapLocationPicker = dynamic(() => import('../../../Leaflet/MapLocationPicker'), {
+  ssr: false,
+  loading: () => <div className="w-full h-64 bg-gray-800 rounded-xl flex items-center justify-center">
+    <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+  </div>
+});
 const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
 const lexendSmall = { className: "font-normal text-sm" };
@@ -126,7 +131,7 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
     language: user.language ?? "en",
     gender: user.gender ?? "",
     phone: user.phone ?? "",
-    location: user.location, // ✅ Include existing location
+    location: user.location, 
     locationCity: user.locationCity ?? "",
     locationState: user.locationState ?? "",
     profilePicture: user.profilePicture ?? "",
@@ -233,7 +238,6 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
 
   const isFormValid = !validate(formData);
 
-  // ✅ Fixed handleMapLocationSelect function
   const handleMapLocationSelect = (lat: number, lng: number) => {
     updateFormData({
       location: {
@@ -254,7 +258,7 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
     try {
       await updateProfile(formData);
       toast.success("Profile updated");
-      if (onDataUpdate) await onDataUpdate(); // ✅ Refresh user data
+      if (onDataUpdate) await onDataUpdate(); 
       onClose();
 
     } catch (err: any) {

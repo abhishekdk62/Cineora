@@ -67,14 +67,7 @@ export interface IScreenLayoutFormData {
   totalSeats: string;
 }
 
-// interface ScreenFormData {
-//   name: string;
-//   totalSeats: string;
-//   screenType: string;
-//   features: string[];
-//   layout: ScreenLayoutFormData;
-//   isActive: boolean;
-// }
+
 
 export interface IFormErrors {
   name?: string;

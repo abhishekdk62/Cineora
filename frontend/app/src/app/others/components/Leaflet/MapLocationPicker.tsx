@@ -63,11 +63,11 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
           zoom={13}
           style={{ height: "100%", width: "100%" }}
          scrollWheelZoom={!readOnly} 
-                    dragging={!readOnly} // ✅ Disable dragging in read-only mode
-          touchZoom={!readOnly} // ✅ Disable touch zoom in read-only mode
-          doubleClickZoom={!readOnly} // ✅ Disable double click zoom in read-only mode
-          boxZoom={!readOnly} // ✅ Disable box zoom in read-only mode
-          keyboard={!readOnly} // ✅ Disable keyboard controls in read-only mode
+                    dragging={!readOnly} 
+          touchZoom={!readOnly} 
+          doubleClickZoom={!readOnly} 
+          boxZoom={!readOnly} 
+          keyboard={!readOnly} 
 
         >
           <TileLayer

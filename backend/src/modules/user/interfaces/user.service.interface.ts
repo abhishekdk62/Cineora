@@ -19,7 +19,6 @@ export interface IUserService {
     otp: string
   ): Promise<ServiceResponse<VerifyOTPResponseDto>>;
   resendOTP(email: string): Promise<ServiceResponse<void>>;
-
   getUserProfile(id: string): Promise<ServiceResponse<UserResponseDto>>;
   updateProfile(
     id: string,

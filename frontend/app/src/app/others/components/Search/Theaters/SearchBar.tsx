@@ -12,7 +12,7 @@ const lexendSmall = Lexend({
 interface SearchBarProps {
   searchTerm: string;
   onSearchChange: (term: string) => void;
-  searchLoading?: boolean; // Add search loading prop
+  searchLoading?: boolean; 
   placeholder?: string;
 }
 
@@ -38,12 +38,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
         className={`${lexendSmall.className} w-full pl-10 pr-10 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm transition-all duration-300 ${
           searchLoading ? 'opacity-75' : ''
         }`}
-        // NO disabled prop here!
       />
 
       {/* Right side icons */}
       <div className="absolute inset-y-0 right-0 pr-3 flex items-center gap-2">
-        {/* Search Loading Spinner */}
         {searchLoading && (
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
         )}

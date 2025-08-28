@@ -29,7 +29,7 @@ const TicketSchema = new Schema<ITicket>({
   },
   screenId: {
     type: Schema.Types.ObjectId,
-    ref: "Screen",
+    ref: "Screen", 
     required: true,
   },
   showtimeId: {

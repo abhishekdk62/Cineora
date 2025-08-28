@@ -1,4 +1,3 @@
-// ScreensList.tsx
 import React, { useState, useEffect, useMemo } from "react";
 import { Monitor, Edit, Eye, Trash2, Power } from "lucide-react";
 import { ITheater } from "@/app/others/types";
@@ -98,7 +97,7 @@ const ScreensList: React.FC<ScreensListProps> = ({
       });
       if (!confirmed) return;
 
-      const response = await deleteScreenOwner(screenId); // Fixed function name conflict
+      const response = await deleteScreenOwner(screenId); 
 
       toast.success("Screen deleted successfully");
       fetchScreens();
@@ -122,7 +121,6 @@ const ScreensList: React.FC<ScreensListProps> = ({
     );
   }
 
-  // Handle empty states with better messaging
   if (screens.length === 0) {
     return (
       <div className="bg-black/90 backdrop-blur-sm border border-gray-500/30 rounded-2xl p-12 text-center">

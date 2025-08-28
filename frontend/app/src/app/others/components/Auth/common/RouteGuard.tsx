@@ -29,7 +29,6 @@ export default function RouteGuard({
 
   useEffect(() => {
     if (!loading && redirectOnAuth && mounted) {
-      // Your existing redirect logic here
       if (allowedRoles && allowedRoles.length > 0) {
         if (!isAuthenticated && !allowUnauthenticated) {
           setTimeout(() => {
@@ -88,7 +87,6 @@ export default function RouteGuard({
     )
   }
 
-  // Rest of your existing logic...
   if (allowedRoles && allowedRoles.length > 0) {
     if ((!isAuthenticated && !allowUnauthenticated) || 
         (isAuthenticated && role && !allowedRoles.includes(role))) {

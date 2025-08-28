@@ -16,15 +16,21 @@ import {
   MapPin,
   Phone,
   Gamepad2,
+  Loader2,
 } from "lucide-react";
 
 import EditProfileModal from "./EditProfileModal";
 import ChangePasswordModal from "./ChangePasswordModal";
 import ChangeEmailModal from "./ChangeEmailModal";
 import LocationFields from "../../../Owner/Theatre/LocationFields";
-import MapLocationPicker from "@/app/others/components/Leaflet/MapLocationPicker";
 import Loader from "../../../utils/Loader";
-
+import dynamic from "next/dynamic";
+const MapLocationPicker = dynamic(() => import('../../../Leaflet/MapLocationPicker'), {
+  ssr: false,
+  loading: () => <div className="w-full h-64 bg-gray-800 rounded-xl flex items-center justify-center">
+    <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+  </div>
+});
 const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
 const lexendSmall = { className: "font-normal text-sm" };
@@ -134,114 +140,120 @@ const MyAccountContent = ({
   return (
     <div className="max-w-6xl mx-auto space-y-8 p-6">
       <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className={`${lexendBold.className} text-4xl text-white mb-2`}>
+        <div></div>
+
+        <div className="text-center flex-1">
+          <h1 className={`${lexendBold.className} text-5xl text-white mb-2`}>
             Profile &amp; Settings
           </h1>
-          <p className={`${lexendSmall.className} text-gray-400`}>
-            Manage your account information and preferences
-          </p>
+
         </div>
-        <button
-          onClick={() => setIsEditing(true)}
-          className={`${lexendMedium.className} flex items-center gap-2 px-6 py-3 bg-white/90 text-black hover:bg-white hover:shadow-lg rounded-xl transition-all duration-200`}
-        >
-          {/* <Edit3 className="w-4 h-4" /> */}
-          Edit Profile
-        </button>
+
+
       </div>
-<div className="mb-4 p-8 rounded-xl bg-black/30 border border-gray-600/30">
-  <div className="flex flex-col items-center text-center">
-    {/* Centered round avatar */}
-    <div className="relative mb-6">
-      <img
-        src={userData.profilePicture || "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"}
-        alt={userData.username}
-        className="w-32 h-32 rounded-full object-cover border-4 border-gray-600/30 shadow-lg"
-      />
+
+
+      <div className="mb-4 p-8 rounded-xl bg-black/30 border border-gray-600/30">
+    <div className="flex flex-col items-center text-center relative">
+  {/* Edit Profile Button - Top Right */}
+  <button
+    onClick={() => setIsEditing(true)}
+    className={`${lexendMedium.className} absolute top-0 right-0 flex items-center gap-2 px-6 py-3 bg-transparent border border-white text-white hover:bg-white/10 rounded-xl transition-all duration-200 z-10`}
+  >
+    Edit Profile
+  </button>
+
+  {/* Centered round avatar */}
+  <div className="relative mb-6 mt-16"> {/* Added top margin to avoid overlap with button */}
+    <img
+      src={userData.profilePicture || "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"}
+      alt={userData.username}
+      className="w-32 h-32 rounded-full object-cover border-4 border-gray-600/30 shadow-lg"
+    />
+  </div>
+
+  {/* Name and username centered */}
+  <div className="mb-6">
+    <h2 className={`${lexendBold} text-white text-2xl mb-2`}>
+      {userData.firstName && userData.lastName
+        ? `${userData.firstName} ${userData.lastName}`
+        : userData.username}
+    </h2>
+    <p className={`${lexendMedium} text-gray-300 text-sm mb-3 flex items-center justify-center gap-2`}>
+      @{userData.username}
+    </p>
+
+    {/* Membership level */}
+    <div className={`${lexendSmall} bg-black/20 px-3 py-1 rounded-lg border border-gray-600/20 flex justify-center items-center text-gray-300 text-sm`}>
+      <Award className="w-3 h-3 mr-1" />
+      {membershipLevel} Member
+    </div>
+  </div>
+
+  {/* Stats grid */}
+  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+    <div className="p-4 rounded-lg bg-black/20 border border-gray-600/20 text-center">
+      <div className="flex justify-center mb-2">
+        <Gamepad2 className="w-5 h-5 text-white" />
+      </div>
+      <div className={`${lexendBold} text-white text-lg mb-1`}>
+        {userData.xpPoints.toLocaleString()}
+      </div>
+      <div className={`${lexendSmall} text-gray-400 text-xs`}>
+        XP Points
+      </div>
+      {nextLevelPoints > 0 && (
+        <div className={`${lexendSmall} text-gray-500 text-xs mt-1`}>
+          {nextLevelPoints} to next level
+        </div>
+      )}
     </div>
 
-    {/* Name and username centered */}
-    <div className="mb-6">
-      <h2 className={`${lexendBold} text-white text-2xl mb-2`}>
-        {userData.firstName && userData.lastName
-          ? `${userData.firstName} ${userData.lastName}`
-          : userData.username}
-      </h2>
-      <p className={`${lexendMedium} text-gray-300 text-sm mb-3 flex items-center justify-center gap-2`}>
-        @{userData.username}
-      </p>
-      
-      {/* Membership level */}
-      <div className={`${lexendSmall} bg-black/20 px-3 py-1 rounded-lg border border-gray-600/20 flex justify-center items-center text-gray-300 text-sm`}>
-        <Award className="w-3 h-3 mr-1" />
-        {membershipLevel} Member
+    <div className="p-4 rounded-lg bg-black/20 border border-gray-600/20 text-center">
+      <div className="flex justify-center mb-2">
+        <Calendar className="w-5 h-5 text-white" />
+      </div>
+      <div className={`${lexendBold} text-white text-lg mb-1`}>
+        {userData.joinedAt.toLocaleDateString("en-US", {
+          month: "short",
+          year: "numeric",
+        })}
+      </div>
+      <div className={`${lexendSmall} text-gray-400 text-xs`}>
+        Member Since
       </div>
     </div>
 
-    {/* Stats grid */}
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full">
-      <div className="p-4 rounded-lg bg-black/20 border border-gray-600/20 text-center">
-        <div className="flex justify-center mb-2">
-          <Gamepad2 className="w-5 h-5 text-white" />
-        </div>
-        <div className={`${lexendBold} text-white text-lg mb-1`}>
-          {userData.xpPoints.toLocaleString()}
-        </div>
-        <div className={`${lexendSmall} text-gray-400 text-xs`}>
-          XP Points
-        </div>
-        {nextLevelPoints > 0 && (
-          <div className={`${lexendSmall} text-gray-500 text-xs mt-1`}>
-            {nextLevelPoints} to next level
-          </div>
-        )}
+    <div className="p-4 rounded-lg bg-black/20 border border-gray-600/20 text-center">
+      <div className="flex justify-center mb-2">
+        <Clock className="w-5 h-5 text-white" />
       </div>
-
-      <div className="p-4 rounded-lg bg-black/20 border border-gray-600/20 text-center">
-        <div className="flex justify-center mb-2">
-          <Calendar className="w-5 h-5 text-white" />
-        </div>
-        <div className={`${lexendBold} text-white text-lg mb-1`}>
-          {userData.joinedAt.toLocaleDateString("en-US", {
-            month: "short",
-            year: "numeric",
-          })}
-        </div>
-        <div className={`${lexendSmall} text-gray-400 text-xs`}>
-          Member Since
-        </div>
+      <div className={`${lexendBold} text-white text-lg mb-1`}>
+        {userData.lastActive.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        })}
       </div>
-
-      <div className="p-4 rounded-lg bg-black/20 border border-gray-600/20 text-center">
-        <div className="flex justify-center mb-2">
-          <Clock className="w-5 h-5 text-white" />
-        </div>
-        <div className={`${lexendBold} text-white text-lg mb-1`}>
-          {userData.lastActive.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-          })}
-        </div>
-        <div className={`${lexendSmall} text-gray-400 text-xs`}>
-          Last Active
-        </div>
+      <div className={`${lexendSmall} text-gray-400 text-xs`}>
+        Last Active
       </div>
+    </div>
 
-      <div className="p-4 rounded-lg bg-black/20 border border-gray-600/20 text-center">
-        <div className="flex justify-center mb-2">
-          <Globe className="w-5 h-5 text-white" />
-        </div>
-        <div className={`${lexendBold} text-white text-lg mb-1`}>
-          {userData.language === "en" ? "English" : userData.language ?? "—"}
-        </div>
-        <div className={`${lexendSmall} text-gray-400 text-xs`}>
-          Language
-        </div>
+    <div className="p-4 rounded-lg bg-black/20 border border-gray-600/20 text-center">
+      <div className="flex justify-center mb-2">
+        <Globe className="w-5 h-5 text-white" />
+      </div>
+      <div className={`${lexendBold} text-white text-lg mb-1`}>
+        {userData.language === "en" ? "English" : userData.language ?? "—"}
+      </div>
+      <div className={`${lexendSmall} text-gray-400 text-xs`}>
+        Language
       </div>
     </div>
   </div>
 </div>
+
+      </div>
 
       <div className="bg-black/10 backdrop-blur-md border border-white/10 rounded-2xl p-6">
         <div className="flex items-center gap-3 mb-6">

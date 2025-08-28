@@ -14,7 +14,6 @@ const ReviewSchema = new Schema<IReview>({
     index: true,
   },
   
-  // Review Target
   movieId: {
     type: Schema.Types.ObjectId,
     ref: "Movie",
@@ -32,7 +31,6 @@ const ReviewSchema = new Schema<IReview>({
     index: true,
   },
   
-  // Review Content
   rating: {
     type: Number,
     required: true,
@@ -50,7 +48,6 @@ const ReviewSchema = new Schema<IReview>({
     maxlength: 1000,
   },
   
-  // Moderation
   status: {
     type: String,
     enum: ["pending", "approved", "rejected"],
@@ -68,7 +65,6 @@ const ReviewSchema = new Schema<IReview>({
     type: String,
   },
   
-  // Engagement
   likesCount: {
     type: Number,
     default: 0,
@@ -82,7 +78,6 @@ const ReviewSchema = new Schema<IReview>({
     default: 0,
   },
   
-  // Verification
   isVerifiedReview: {
     type: Boolean,
     default: false,
@@ -95,7 +90,6 @@ const ReviewSchema = new Schema<IReview>({
   timestamps: true,
 });
 
-// Review Like Schema
 const ReviewLikeSchema = new Schema<IReviewLike>({
   userId: {
     type: Schema.Types.ObjectId,
@@ -116,7 +110,6 @@ const ReviewLikeSchema = new Schema<IReviewLike>({
   timestamps: true,
 });
 
-// Indexes for performance
 ReviewSchema.index({ movieId: 1, status: 1, rating: -1 });
 ReviewSchema.index({ theaterId: 1, status: 1, rating: -1 });
 ReviewSchema.index({ userId: 1, createdAt: -1 });
@@ -125,7 +118,6 @@ ReviewSchema.index({ status: 1, createdAt: -1 });
 ReviewLikeSchema.index({ userId: 1, reviewId: 1 }, { unique: true });
 ReviewLikeSchema.index({ reviewId: 1, type: 1 });
 
-// Prevent duplicate reviews from same user for same movie/theater
 ReviewSchema.index(
   { userId: 1, movieId: 1 }, 
   { unique: true, partialFilterExpression: { movieId: { $exists: true } } }

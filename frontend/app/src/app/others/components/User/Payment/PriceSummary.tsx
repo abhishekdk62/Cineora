@@ -1,4 +1,3 @@
-// components/PriceSummary.tsx
 import React from "react";
 import { Lexend } from "next/font/google";
 import { Info } from "lucide-react";

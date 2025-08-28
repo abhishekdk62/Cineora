@@ -1,4 +1,3 @@
-// components/booking/DateSelector.tsx
 "use client";
 
 import React from "react";

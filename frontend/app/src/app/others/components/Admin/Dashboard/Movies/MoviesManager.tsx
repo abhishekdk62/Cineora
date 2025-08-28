@@ -267,13 +267,11 @@ const MoviesManager: React.FC = () => {
   const getDisplayMovies = () => {
     let moviesToShow = filteredMovies;
 
-    // Apply active/inactive filter based on view
     const viewFiltered =
       activeView === "current"
         ? moviesToShow.filter((m) => m.isActive)
         : moviesToShow.filter((m) => !m.isActive);
 
-    // If no server-side filtering is active, apply client-side pagination
     if (!hasActiveFilters) {
       const startIndex = (currentPage - 1) * itemsPerPage;
       const endIndex = startIndex + itemsPerPage;

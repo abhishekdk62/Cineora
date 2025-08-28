@@ -12,7 +12,7 @@ export interface ITicketService {
     bookingId: string,
     bookingData: any
   ): Promise<ServiceResponse>;
-  
+  cancelTicket(ticketId: string, userId: string,amount:number): Promise<ServiceResponse>;
   getTicketById(ticketId: string): Promise<ServiceResponse>;
   
   getTicketsByBookingId(bookingId: string): Promise<ServiceResponse>;

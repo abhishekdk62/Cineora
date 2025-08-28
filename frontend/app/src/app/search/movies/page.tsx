@@ -11,7 +11,7 @@ import { useDebounce } from "@/app/others/Utils/debounce";
 const Page = () => {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [searchLoading, setSearchLoading] = useState(false); // Add search-specific loading
+  const [searchLoading, setSearchLoading] = useState(false); 
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [currentFilters, setCurrentFilters] = useState({}); 
@@ -38,19 +38,17 @@ const Page = () => {
       setTotalPages(0);
     } finally {
       setLoading(false);
-      setSearchLoading(false); // Clear search loading when fetch completes
+      setSearchLoading(false); 
     }
   }, [currentPage]);
 
-  // Modified debounced search with loading states
   const debouncedSearch = useDebounce((searchTerm: string) => {
     const newFilters = { ...currentFilters, search: searchTerm };
     fetchMovies(newFilters);
   }, 550);
 
-  // Handle search input change with loading indicator
   const handleSearchChange = useCallback((searchTerm: string) => {
-    setSearchLoading(true); // Show loading immediately when user types
+    setSearchLoading(true); 
     debouncedSearch(searchTerm);
   }, [debouncedSearch]);
 
@@ -59,7 +57,6 @@ const Page = () => {
     fetchMovies(filters);
   }, [fetchMovies]);
 
-  // Initial load and page changes
   useEffect(() => {
     fetchMovies(currentFilters);
   }, [currentPage]);
@@ -80,13 +77,13 @@ const Page = () => {
           <NavBar />
           <MoviesPage 
             movies={movies}
-            loading={loading || searchLoading} // Combine both loading states
-            searchLoading={searchLoading} // Pass search-specific loading
+            loading={loading || searchLoading} 
+            searchLoading={searchLoading} 
             totalPages={totalPages}
             currentPage={currentPage}
             onPageChange={setCurrentPage}
             onFiltersChange={handleFiltersChange}
-            onSearchChange={handleSearchChange} // Use the new search handler
+            onSearchChange={handleSearchChange}
           />
 
           <Pagination 

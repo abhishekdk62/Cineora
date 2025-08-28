@@ -29,29 +29,23 @@ export interface IBooking extends Document {
   screenId: mongoose.Types.ObjectId;
   showtimeId: mongoose.Types.ObjectId;
   
-  // Seat Details
   selectedSeats: string[];
   selectedSeatIds: string[];
   seatPricing: ISeatPricing[];
   
-  // Financial Details
   priceDetails: IPriceDetails;
   
-  // Payment Info
   paymentStatus: "pending" | "completed" | "failed" | "refunded";
   paymentId?: string;
   paymentMethod?: string;
   
-  // Booking Status
   bookingStatus: "confirmed" | "cancelled" | "expired";
   
-  // Timestamps
   bookedAt: Date;
   cancelledAt?: Date;
   showDate: Date;
   showTime: string;
   
-  // Contact Info
   contactInfo: IContactInfo;
   
   createdAt: Date;

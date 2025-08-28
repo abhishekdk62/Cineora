@@ -1,4 +1,3 @@
-// TheaterDetailsModal.tsx
 import React from "react";
 import { Lexend } from "next/font/google";
 import {
@@ -19,6 +18,7 @@ import {
   Navigation,
   Power,
   ShieldCheck,
+  Loader2,
 } from "lucide-react";
 import { ITheater, ITheaterModal } from "@/app/others/types";
 import toast from "react-hot-toast";
@@ -28,8 +28,13 @@ import {
   toggleTheaterStatusAdmin,
   verifyTheaterAdmin,
 } from "@/app/others/services/adminServices/theaterServices";
-import MapLocationPicker from "@/app/others/components/Leaflet/MapLocationPicker";
-
+import dynamic from "next/dynamic";
+const MapLocationPicker = dynamic(() => import('../../../../components/Leaflet/MapLocationPicker'), {
+  ssr: false,
+  loading: () => <div className="w-full h-64 bg-gray-800 rounded-xl flex items-center justify-center">
+    <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+  </div>
+});
 const lexend = Lexend({
   weight: "400",
   subsets: ["latin"],

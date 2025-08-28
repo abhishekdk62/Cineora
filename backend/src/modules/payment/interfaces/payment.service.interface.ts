@@ -1,4 +1,5 @@
 import { ServiceResponse } from "../../../interfaces/interface";
+import { CreateRazorpayOrderDto, VerifyRazorpayPaymentDto } from "../dtos/dto";
 
 export interface IPaymentService {
   initiatePayment(paymentData: any): Promise<ServiceResponse>;
@@ -13,7 +14,9 @@ export interface IPaymentService {
   getPaymentsByBooking(bookingId: string): Promise<ServiceResponse>;
   
   getUserPayments(userId: string): Promise<ServiceResponse>;
-  
+    createRazorpayOrder(orderData: CreateRazorpayOrderDto): Promise<any>;
+  verifyRazorpayPayment(paymentData: VerifyRazorpayPaymentDto): Promise<any>;
+
   refundPayment(
     paymentId: string,
     refundAmount: number,

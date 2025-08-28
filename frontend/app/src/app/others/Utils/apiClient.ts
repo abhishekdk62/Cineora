@@ -33,7 +33,6 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // ✅ CRITICAL: Don't intercept refresh endpoint failures!
     if (originalRequest.url?.includes('/auth/refresh')) {
       return Promise.reject(error);
     }

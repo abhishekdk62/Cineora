@@ -38,7 +38,6 @@ const NotificationSchema = new Schema<INotification>({
     index: true,
   },
   
-  // Notification Content
   title: {
     type: String,
     required: true,
@@ -61,7 +60,6 @@ const NotificationSchema = new Schema<INotification>({
     default: "medium",
   },
   
-  // Notification Status
   status: {
     type: String,
     enum: ["pending", "sent", "delivered", "failed", "read"],
@@ -77,7 +75,6 @@ const NotificationSchema = new Schema<INotification>({
     type: Date,
   },
   
-  // Delivery Channels
   channels: {
     type: [String],
     enum: ["app", "email", "sms", "push"],
@@ -89,12 +86,10 @@ const NotificationSchema = new Schema<INotification>({
     default: [],
   },
   
-  // Additional Data
   data: {
     type: NotificationDataSchema,
   },
   
-  // Scheduling
   scheduledFor: {
     type: Date,
   },
@@ -105,7 +100,6 @@ const NotificationSchema = new Schema<INotification>({
   timestamps: true,
 });
 
-// Indexes for performance
 NotificationSchema.index({ userId: 1, isRead: 1, createdAt: -1 });
 NotificationSchema.index({ type: 1, createdAt: -1 });
 NotificationSchema.index({ status: 1, scheduledFor: 1 });

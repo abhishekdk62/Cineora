@@ -6,9 +6,15 @@ import mongoose from "mongoose";
 export class WalletService implements IWalletService {
   constructor(private readonly walletRepo: IWalletRepository) {}
 
-  async createWallet(userId: string, userModel: 'User' | 'Owner'): Promise<ServiceResponse> {
+  async createWallet(
+    userId: string,
+    userModel: "User" | "Owner"
+  ): Promise<ServiceResponse> {
     try {
-      const existingWallet = await this.walletRepo.findByUser(userId, userModel);
+      const existingWallet = await this.walletRepo.findByUser(
+        userId,
+        userModel
+      );
       if (existingWallet) {
         return {
           success: false,
@@ -21,8 +27,8 @@ export class WalletService implements IWalletService {
         userId: new mongoose.Types.ObjectId(userId),
         userModel,
         balance: 0,
-        currency: 'INR',
-        status: 'active',
+        currency: "INR",
+        status: "active",
       });
 
       return {
@@ -40,8 +46,8 @@ export class WalletService implements IWalletService {
   }
 
   async creditWallet(
-    userId: string, 
-    userModel: 'User' | 'Owner', 
+    userId: string,
+    userModel: "User" | "Owner",
     amount: number,
     description?: string
   ): Promise<ServiceResponse> {
@@ -54,7 +60,11 @@ export class WalletService implements IWalletService {
         };
       }
 
-      const wallet = await this.walletRepo.updateBalance(userId, userModel, amount);
+      const wallet = await this.walletRepo.updateBalance(
+        userId,
+        userModel,
+        amount
+      );
       if (!wallet) {
         return {
           success: false,
@@ -78,8 +88,8 @@ export class WalletService implements IWalletService {
   }
 
   async debitWallet(
-    userId: string, 
-    userModel: 'User' | 'Owner', 
+    userId: string,
+    userModel: "User" | "Owner",
     amount: number,
     description?: string
   ): Promise<ServiceResponse> {
@@ -92,7 +102,10 @@ export class WalletService implements IWalletService {
         };
       }
 
-      const currentBalance = await this.walletRepo.getBalance(userId, userModel);
+      const currentBalance = await this.walletRepo.getBalance(
+        userId,
+        userModel
+      );
       if (currentBalance < amount) {
         return {
           success: false,
@@ -101,7 +114,11 @@ export class WalletService implements IWalletService {
         };
       }
 
-      const wallet = await this.walletRepo.updateBalance(userId, userModel, -amount);
+      const wallet = await this.walletRepo.updateBalance(
+        userId,
+        userModel,
+        -amount
+      );
       if (!wallet) {
         return {
           success: false,
@@ -124,10 +141,13 @@ export class WalletService implements IWalletService {
     }
   }
 
-  async getBalance(userId: string, userModel: 'User' | 'Owner'): Promise<ServiceResponse> {
+  async getBalance(
+    userId: string,
+    userModel: "User" | "Owner"
+  ): Promise<ServiceResponse> {
     try {
       const balance = await this.walletRepo.getBalance(userId, userModel);
-      
+
       return {
         success: true,
         message: "Balance retrieved successfully",
@@ -142,10 +162,13 @@ export class WalletService implements IWalletService {
     }
   }
 
-  async getWalletDetails(userId: string, userModel: 'User' | 'Owner'): Promise<ServiceResponse> {
+  async getWalletDetails(
+    userId: string,
+    userModel: "User" | "Owner"
+  ): Promise<ServiceResponse> {
     try {
       const wallet = await this.walletRepo.findByUser(userId, userModel);
-      
+
       if (!wallet) {
         return {
           success: false,
@@ -168,10 +191,13 @@ export class WalletService implements IWalletService {
     }
   }
 
-  async freezeWallet(userId: string, userModel: 'User' | 'Owner'): Promise<ServiceResponse> {
+  async freezeWallet(
+    userId: string,
+    userModel: "User" | "Owner"
+  ): Promise<ServiceResponse> {
     try {
       const wallet = await this.walletRepo.freezeWallet(userId, userModel);
-      
+
       if (!wallet) {
         return {
           success: false,
@@ -194,10 +220,13 @@ export class WalletService implements IWalletService {
     }
   }
 
-  async unfreezeWallet(userId: string, userModel: 'User' | 'Owner'): Promise<ServiceResponse> {
+  async unfreezeWallet(
+    userId: string,
+    userModel: "User" | "Owner"
+  ): Promise<ServiceResponse> {
     try {
       const wallet = await this.walletRepo.unfreezeWallet(userId, userModel);
-      
+
       if (!wallet) {
         return {
           success: false,
@@ -220,19 +249,35 @@ export class WalletService implements IWalletService {
     }
   }
 
-  async transferMoney(fromUserId: string, toUserId: string, amount: number): Promise<ServiceResponse> {
+  async transferMoney(
+    fromUserId: string,
+    toUserId: string,
+    amount: number
+  ): Promise<ServiceResponse> {
     try {
-      // Debit from sender
-      const debitResult = await this.debitWallet(fromUserId, 'User', amount, 'Transfer to user');
+      const debitResult = await this.debitWallet(
+        fromUserId,
+        "User",
+        amount,
+        "Transfer to user"
+      );
       if (!debitResult.success) {
         return debitResult;
       }
 
-      // Credit to receiver
-      const creditResult = await this.creditWallet(toUserId, 'Owner', amount, 'Transfer from user');
+      const creditResult = await this.creditWallet(
+        toUserId,
+        "Owner",
+        amount,
+        "Transfer from user"
+      );
       if (!creditResult.success) {
-        // Rollback debit
-        await this.creditWallet(fromUserId, 'User', amount, 'Rollback failed transfer');
+        await this.creditWallet(
+          fromUserId,
+          "User",
+          amount,
+          "Rollback failed transfer"
+        );
         return creditResult;
       }
 

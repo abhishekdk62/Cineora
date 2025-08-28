@@ -163,7 +163,7 @@ export class UserController {
           createResponse({
             success: true,
             message: "Email verified successfully. Please login manually.",
-            data: result.data, // includes xpBonus etc.
+            data: result.data, 
           })
         );
       }

@@ -1,4 +1,3 @@
-// data/paymentMethods.ts
 import { QrCode, CreditCard, Wallet, Building } from "lucide-react";
 
 export const paymentMethods = [
@@ -8,7 +7,6 @@ export const paymentMethods = [
     description: 'Pay with any UPI app',
     icon: QrCode,
     color: 'from-green-500 to-emerald-600',
-    offers: '₹25 Cashback',
     popular: true
   },
   {
@@ -17,7 +15,6 @@ export const paymentMethods = [
     description: 'Cards, NetBanking, Wallets',
     icon: CreditCard,
     color: 'from-blue-500 to-indigo-600',
-    offers: '₹15 OFF',
     popular: true
   },
   {
@@ -29,13 +26,5 @@ export const paymentMethods = [
     offers: 'Instant Refund',
     popular: false
   },
-  {
-    id: 'netbanking',
-    name: 'Net Banking',
-    description: 'All major banks supported',
-    icon: Building,
-    color: 'from-orange-500 to-red-600',
-    offers: 'Secure Payment',
-    popular: false
-  }
+
 ];

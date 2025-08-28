@@ -1,4 +1,3 @@
-// dto/transactions.dto.ts
 export interface CreateTransactionDto {
   userId: string;
   walletId: string;
@@ -122,7 +121,7 @@ export interface PayoutRequestDto {
   ownerId: string;
   amount: number;
   bankDetails: {
-    accountNumber: string; // This will be mapped to bankAccount in metadata
+    accountNumber: string; 
     ifscCode: string;
     accountHolderName: string;
   };

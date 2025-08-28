@@ -27,14 +27,15 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({ data, onPayment 
         <PriceSummary data={data} />
 
         <button
+        
           onClick={() => {
             dispatch(setBookingData({ totalAmount: data.total, tax: data.taxes, amount: data.subtotal }))
             onPayment()
 
           }}
-          className={`${lexendMedium.className} w-full py-4 bg-white text-black font-medium text-lg rounded-xl transition-all duration-300 shadow-lg hover:bg-gray-100`}
+          className={`${lexendMedium.className} w-full py-4 bg-white text-black hover:bg-gradient-to-tr hover:from-violet-300 hover:to-yellow-100 font-medium  rounded-xl transition-all duration-200 transform hover:scale-[1.02] gap-2  text-lg  shadow-lg hover:bg-gray-100`}
         >
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex items-center justify-center ">
             Pay ₹{data.total}
           </div>
         </button>

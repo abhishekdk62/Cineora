@@ -26,7 +26,6 @@ async createBulkShowtimes(
     groupedByScreenDate[key].push(st);
   }
 
-  // Check for internal overlaps within the batch
   for (const [key, showtimes] of Object.entries(groupedByScreenDate)) {
     showtimes.sort((a, b) => a.showTime.localeCompare(b.showTime));
 
@@ -638,7 +637,6 @@ async createShowtime(
     filters: ShowtimeFilters = {}
   ): Promise<ServiceResponse> {
     try {
-      // You'll need to add this method to repository too
       const showtimes = await this.showtimeRepo.findAll(page, limit, filters);
 
       return {
@@ -729,7 +727,6 @@ async createShowtime(
     date.setHours(hours, mins, 0, 0);
     date.setMinutes(date.getMinutes() + minutes);
 
-    // Handle day overflow
     const newHours = date.getHours();
     const newMins = date.getMinutes();
 
@@ -744,7 +741,6 @@ async createShowtime(
     date.setHours(hours, mins, 0, 0);
     date.setMinutes(date.getMinutes() - minutes);
 
-    // Handle negative time (previous day)
     const newHours = Math.max(0, date.getHours());
     const newMins = Math.max(0, date.getMinutes());
 

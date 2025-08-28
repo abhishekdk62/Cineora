@@ -306,7 +306,6 @@ class Media {
 
     const img = new Image();
     
-    // ✅ Use crossOrigin for all images since we're using proxy for TMDB
     img.crossOrigin = "anonymous";
     img.src = this.image;
     
@@ -320,13 +319,11 @@ class Media {
 
     img.onerror = (error) => {
       console.error('❌ Poster failed to load:', this.image, error);
-      // Create fallback canvas if proxy fails
       const canvas = document.createElement('canvas');
       canvas.width = 600;
       canvas.height = 900;
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        // Create movie poster-style fallback
         const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
         gradient.addColorStop(0, '#2d3748');
         gradient.addColorStop(1, '#1a202c');
@@ -546,7 +543,6 @@ class App {
     
     const canvas = this.renderer.gl.canvas as HTMLCanvasElement;
     
-    // Remove debug background after testing
     canvas.style.width = '100%';
     canvas.style.height = '100%';
     canvas.style.display = 'block';

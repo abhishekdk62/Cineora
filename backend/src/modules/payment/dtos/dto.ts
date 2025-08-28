@@ -41,3 +41,16 @@ export interface VerifyPaymentDto {
   gatewayTransactionId: string;
   signature?: string;
 }
+
+
+export interface CreateRazorpayOrderDto {
+  amount: number;
+  currency?: string;
+}
+
+export interface VerifyRazorpayPaymentDto {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+  bookingData: any;
+}

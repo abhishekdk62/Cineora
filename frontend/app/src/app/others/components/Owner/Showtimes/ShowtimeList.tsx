@@ -46,7 +46,7 @@ const ShowtimeList: React.FC<ShowtimeListProps> = ({
 
       if (!confirmed) return;
 
-      const result = await toggleShowtimeStatusOwner(showtimeId, !isActive); // toggle correctly
+      const result = await toggleShowtimeStatusOwner(showtimeId, !isActive); 
       console.log(result);
 
       if (result.success) {
@@ -92,7 +92,6 @@ const ShowtimeList: React.FC<ShowtimeListProps> = ({
     return typeof screenId === "string" ? screenId : "Unknown Screen";
   };
 
-  // Group showtimes by selected criteria
   const groupShowtimesBy = (showtimes: IShowtime[], groupKey: string) => {
     if (groupKey === "none") return { "All Showtimes": showtimes };
 

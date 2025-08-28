@@ -29,9 +29,10 @@ export class WalletController {
     try {
       const userId = req.user.id || req.owner.ownerId;
       const userModel =
-        req.user.role || req.owner.role === "owner" ? "Owner" : "User";
+        req.user.role || req.owner.role 
+let person = userModel[0].toUpperCase() + userModel.slice(1);
 
-      const result = await this.walletService.getBalance(userId, userModel);
+      const result = await this.walletService.getBalance(userId, person);
       res.status(200).json(result);
     } catch (error: any) {
       res.status(500).json({

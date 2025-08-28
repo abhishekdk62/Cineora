@@ -140,7 +140,7 @@ export class BookingRepository implements IBookingRepository {
   
   async findExpiredBookings(): Promise<IBooking[]> {
     const currentDate = new Date();
-    currentDate.setDate(currentDate.getDate() - 1); // 1 day ago
+    currentDate.setDate(currentDate.getDate() - 1); 
     
     return Booking.find({
       bookedAt: { $lt: currentDate },

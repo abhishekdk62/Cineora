@@ -39,21 +39,18 @@ const Form: React.FC<AuthFormProps> = ({
   const validateForm = () => {
     const errors: {[key: string]: string} = {};
 
-    // Email validation
     if (!email) {
       errors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       errors.email = "Please enter a valid email address";
     }
 
-    // Password validation
     if (!password) {
       errors.password = "Password is required";
     } else if (password.length < 6) {
       errors.password = "Password must be at least 6 characters long";
     }
 
-    // Confirm password validation (only for signup)
     if (isSignup) {
       if (!confirmPassword) {
         errors.confirmPassword = "Please confirm your password";
@@ -87,7 +84,6 @@ const Form: React.FC<AuthFormProps> = ({
     }
   };
 
-  // Clear validation errors when typing
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
     if (validationErrors.email) {

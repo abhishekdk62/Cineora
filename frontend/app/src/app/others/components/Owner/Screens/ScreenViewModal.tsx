@@ -5,7 +5,7 @@ import { X, Monitor, Users, Calendar, Edit3, MapPin, Star } from "lucide-react";
 import { IScreen } from "@/app/others/types/screen.types";
 import { ITheater } from "@/app/others/types";
 import { Lexend } from "next/font/google";
-import { LayoutPreview } from "./LayoutPreview"; // Import the LayoutPreview component
+import { LayoutPreview } from "./LayoutPreview"; 
 
 const lexendBold = Lexend({ weight: "700", subsets: ["latin"] });
 const lexendMedium = Lexend({ weight: "500", subsets: ["latin"] });
@@ -39,7 +39,6 @@ const ScreenViewModal: React.FC<ScreenViewModalProps> = ({
     return stats;
   }, [screen.layout.advancedLayout.rows]);
 
-  // Calculate maxCols for the LayoutPreview component
   const getMaxCols = () => {
     if (!screen.layout.advancedLayout?.rows) return screen.layout.seatsPerRow;
     

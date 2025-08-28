@@ -35,18 +35,16 @@ export class BookingService implements IBookingService {
         theaterId: new mongoose.Types.ObjectId(bookingData.theaterId),
         screenId: new mongoose.Types.ObjectId(bookingData.screenId),
         showtimeId: new mongoose.Types.ObjectId(bookingData.showtimeId),
-        selectedSeats: allSelectedSeats, // ✅ Store flattened seat list
+        selectedSeats: allSelectedSeats, 
         paymentStatus: "completed" as const,
         bookingStatus: "confirmed" as const,
       };
       
-      // 1. Check seat availability (race condition protection)
       const showtime = await this.showtimeRepo.findById(bookingData.showtimeId);
       if (!showtime) {
         throw new Error("Showtime not found");
       }
       
-      // ✅ Check availability of all selected seats
       const conflictSeats = allSelectedSeats.filter(seat => 
         showtime.bookedSeats.includes(seat)
       );
@@ -55,17 +53,15 @@ export class BookingService implements IBookingService {
         throw new Error(`Seats ${conflictSeats.join(', ')} are already booked`);
       }
       
-      // 2. Create booking record with converted ObjectIds
       const booking = await this.bookingRepo.create(bookingPayload);
       
       if (!booking) {
         throw new Error("Failed to create booking");
       }
       
-      // 3. Update showtime - Mark seats as booked
       await this.showtimeRepo.bookSeats(
         bookingData.showtimeId,
-        allSelectedSeats // ✅ Use flattened seat list
+        allSelectedSeats 
       );
       
       await session.commitTransaction();
@@ -141,7 +137,6 @@ export class BookingService implements IBookingService {
     session.startTransaction();
     
     try {
-      // 1. Find and validate booking
       const booking = await this.bookingRepo.findByBookingId(bookingId);
       
       if (!booking) {
@@ -156,7 +151,6 @@ export class BookingService implements IBookingService {
         throw new Error("Booking is already cancelled");
       }
       
-      // 2. Check cancellation policy (24 hours before show)
       const showDateTime = new Date(booking.showDate);
       const currentTime = new Date();
       const timeDifference = showDateTime.getTime() - currentTime.getTime();
@@ -166,10 +160,8 @@ export class BookingService implements IBookingService {
         throw new Error("Cannot cancel booking within 24 hours of show time");
       }
       
-      // 3. Cancel booking
       const cancelledBooking = await this.bookingRepo.cancelBooking(bookingId);
       
-      // 4. Release seats in showtime
       await this.showtimeRepo.releaseSeats(
         booking.showtimeId.toString(),
         booking.selectedSeats,
@@ -177,7 +169,6 @@ export class BookingService implements IBookingService {
         "cancellation"
       );
       
-      // 5. Update payment status for refund
       await this.bookingRepo.updatePaymentStatus(
         bookingId,
         "refunded"
@@ -255,7 +246,6 @@ export class BookingService implements IBookingService {
     }
   }
   
-  // Additional methods...
   async getBookingById(bookingId: string): Promise<ServiceResponse> {
     return this.getBookingByBookingId(bookingId);
   }
