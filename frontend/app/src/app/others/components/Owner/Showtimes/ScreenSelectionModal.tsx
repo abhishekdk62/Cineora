@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { X, Search, Monitor, Users, ChevronRight } from "lucide-react";
 import { getScreensByTheaterId } from "@/app/others/services/ownerServices/screenServices";
-import ScreenDetailsModal from "./ScreenDetailsModal"; // Import the new modal
+import ScreenDetailsModal from "./ScreenDetailsModal"; 
 
 interface Theater {
   _id: string;
@@ -48,7 +48,7 @@ const ScreenSelectionModal: React.FC<ScreenSelectionModalProps> = ({
   const [screens, setScreens] = useState<Screen[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
-  const [selectedScreen, setSelectedScreen] = useState<Screen | null>(null); // Add this state
+  const [selectedScreen, setSelectedScreen] = useState<Screen | null>(null); 
 
   useEffect(() => {
     if (theaterId) {
@@ -128,7 +128,7 @@ const ScreenSelectionModal: React.FC<ScreenSelectionModalProps> = ({
                 {filteredScreens.map((screen) => (
                   <div
                     key={screen._id}
-                    onClick={() => handleScreenClick(screen)} // Changed this line
+                    onClick={() => handleScreenClick(screen)} 
                     className="flex items-center gap-4 p-4 bg-white/5 hover:bg-white/10 rounded-xl transition-all duration-300 cursor-pointer group border border-transparent hover:border-gray-500/30"
                   >
                     <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">

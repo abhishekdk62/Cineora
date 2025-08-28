@@ -2,9 +2,10 @@ import { Request, Response } from "express";
 import { TicketService } from "../services/ticket.service";
 import { ITicketService } from "../interfaces/ticket.service.interface";
 import { createResponse } from "../../../utils/createResponse";
+import { IWalletService } from "../../wallet/interfaces/wallet.service.interface";
 
 export class TicketController {
-  constructor(private readonly ticketService: ITicketService) {}
+  constructor(private readonly ticketService: ITicketService,private readonly walletService:IWalletService) {}
 
   async getTicketById(req: Request, res: Response): Promise<any> {
     try {
@@ -23,6 +24,67 @@ export class TicketController {
       });
     }
   }
+async cancelTicket(req: Request, res: Response): Promise<any> {
+    try {
+      const { bookingId, amount } = req.query;
+      const userId = req.user?.id; 
+      
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Authentication required",
+        });
+      }
+      
+      const amountNumber = Array.isArray(amount) 
+        ? Number(amount[0]) 
+        : Number(amount);
+
+      const result = await this.ticketService.cancelTicket(bookingId as string, userId, amountNumber);
+      
+      if (result.success) {
+        const { refundAmount, refundPercentage } = result.data;
+        
+        this.walletService.creditWallet(
+          userId, 
+          'User', 
+          refundAmount, 
+          `Booking cancelled - ${refundPercentage}% refund (₹${refundAmount})`
+        ).catch(error => {
+          console.error('Failed to credit wallet:', error);
+        });
+
+        res.status(200).json({
+          success: true,
+          message: `Booking cancelled successfully. ₹${refundAmount} will be credited to your wallet (${refundPercentage}% refund)`,
+          data: {
+            bookingId,
+            cancelledTickets: result.data.cancelledTickets,
+            refundDetails: {
+              originalAmount: amountNumber,
+              refundAmount: refundAmount,
+              refundPercentage: refundPercentage,
+              cancellationFee: amountNumber - refundAmount
+            },
+            showDetails: {
+              showDate: result.data.showDate,
+              showTime: result.data.showTime
+            }
+          }
+        });
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error: any) {
+      console.error('Cancel ticket error:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Internal server error",
+      });
+    }
+}
+
+
 
   async getUserTickets(req: Request, res: Response): Promise<any> {
     try {

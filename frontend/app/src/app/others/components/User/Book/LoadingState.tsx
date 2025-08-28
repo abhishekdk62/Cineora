@@ -1,4 +1,3 @@
-// components/booking/LoadingState.tsx
 "use client";
 
 import React from "react";

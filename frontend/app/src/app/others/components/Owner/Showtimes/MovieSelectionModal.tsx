@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { X, Search, Film, Calendar, Clock, ChevronRight } from "lucide-react";
 import { getMoviesForShowtime } from "@/app/others/services/ownerServices/movieservices";
-import MovieDetailsModal from "./MovieDetailsModal"; // Import the new modal
+import MovieDetailsModal from "./MovieDetailsModal"; 
 
 interface Movie {
   _id: string;
@@ -38,7 +38,7 @@ const MovieSelectionModal: React.FC<MovieSelectionModalProps> = ({
   const [movies, setMovies] = useState<Movie[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
-  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null); // Add this state
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null); 
 
   useEffect(() => {
     fetchMovies();
@@ -47,7 +47,7 @@ const MovieSelectionModal: React.FC<MovieSelectionModalProps> = ({
   const fetchMovies = async () => {
     try {
       const result = await getMoviesForShowtime();
-      setMovies(result.data.filter((movie: Movie) => movie.isActive)); // Set the movies
+      setMovies(result.data.filter((movie: Movie) => movie.isActive)); 
     } catch (error) {
       console.error("Error fetching movies:", error);
     } finally {
@@ -122,7 +122,7 @@ const MovieSelectionModal: React.FC<MovieSelectionModalProps> = ({
                 {filteredMovies.map((movie) => (
                   <div
                     key={movie._id}
-                    onClick={() => handleMovieClick(movie)} // Changed this line
+                    onClick={() => handleMovieClick(movie)} 
                     className="flex items-center gap-4 p-4 bg-white/5 hover:bg-white/10 rounded-xl transition-all duration-300 cursor-pointer group border border-transparent hover:border-gray-500/30"
                   >
                     <div className="w-16 h-20 rounded-lg overflow-hidden bg-gray-700 flex-shrink-0">

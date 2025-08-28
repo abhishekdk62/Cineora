@@ -1,4 +1,3 @@
-// components/PaymentMethodList.tsx
 import React from "react";
 import { Lexend } from "next/font/google";
 import { paymentMethods } from "./paymentMethods";
@@ -17,12 +16,12 @@ export const PaymentMethodList: React.FC<PaymentMethodListProps> = ({
 }) => {
   return (
     <div className="space-y-3 mb-6">
-      {paymentMethods.map((method:any) => (
+      {paymentMethods.map((method: any) => (
         <label
           key={method.id}
-          className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+          className={`flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all duration-200 ${
             selectedMethod === method.id
-              ? 'border-cyan-400/60 bg-cyan-400/10'
+              ? 'border-white/30 bg-white/10'
               : 'border-gray-600/30 bg-white/5 hover:border-gray-500/50'
           }`}
         >
@@ -37,7 +36,7 @@ export const PaymentMethodList: React.FC<PaymentMethodListProps> = ({
           
           <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
             selectedMethod === method.id
-              ? 'border-cyan-400 bg-cyan-400'
+              ? 'border-white bg-white'
               : 'border-gray-500'
           }`}>
             {selectedMethod === method.id && (
@@ -45,7 +44,7 @@ export const PaymentMethodList: React.FC<PaymentMethodListProps> = ({
             )}
           </div>
 
-          <div className={`p-2 rounded-lg bg-gradient-to-br ${method.color}`}>
+          <div className="p-3 rounded-lg bg-white/10 border border-gray-600/20">
             <method.icon className="w-5 h-5 text-white" />
           </div>
 
@@ -55,7 +54,7 @@ export const PaymentMethodList: React.FC<PaymentMethodListProps> = ({
                 {method.name}
               </span>
               {method.popular && (
-                <span className={`${lexendSmall.className} px-2 py-1 bg-orange-500/20 text-orange-400 text-xs rounded-full`}>
+                <span className={`${lexendSmall.className} px-3 py-1 bg-white/20 text-white text-xs rounded-full border border-gray-500/30`}>
                   Popular
                 </span>
               )}
@@ -63,7 +62,7 @@ export const PaymentMethodList: React.FC<PaymentMethodListProps> = ({
             <p className={`${lexendSmall.className} text-gray-400 text-sm mb-1`}>
               {method.description}
             </p>
-            <span className={`${lexendSmall.className} text-green-400 text-xs`}>
+            <span className={`${lexendSmall.className} text-gray-300 text-xs`}>
               {method.offers}
             </span>
           </div>

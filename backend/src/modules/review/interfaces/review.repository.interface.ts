@@ -47,7 +47,6 @@ export interface IReviewRepository {
   
   deleteById(id: string): Promise<boolean>;
   
-  // Review Likes
   addLike(
     userId: string,
     reviewId: string,
@@ -58,7 +57,6 @@ export interface IReviewRepository {
   
   updateLikeCounts(reviewId: string): Promise<IReview | null>;
   
-  // Admin queries
   findPendingReviews(page: number, limit: number): Promise<{
     reviews: IReview[];
     total: number;

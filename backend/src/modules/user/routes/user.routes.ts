@@ -5,6 +5,7 @@ import { ShowtimeController } from "../../showtimes/controllers/showtimes.contro
 import { BookingController } from "../../bookings/controllers/bookings.controller";
 import { TicketController } from "../../tickets/controllers/ticket.controller";
 import { WalletController } from "../../wallet/controllers/wallet.controller";
+import { PaymentController } from "../../payment/controllers/payment.controller";
 
 export class UserRoutes {
   constructor(
@@ -14,7 +15,9 @@ export class UserRoutes {
     private showtimeController: ShowtimeController,
     private bookingController: BookingController,
     private ticketController: TicketController,
-    private walletController:WalletController
+    private walletController: WalletController,
+    private paymentController: PaymentController,
+  
   ) {
     this.setRoutes();
   }
@@ -61,7 +64,18 @@ export class UserRoutes {
     this.router.get("/tickets", (req, res) =>
       this.ticketController.getUserTickets(req, res)
     );
-    this.router.get('/wallet',(req,res)=>this.walletController.getBalance(req,res))
+    this.router.get("/wallet", (req, res) =>
+      this.walletController.getBalance(req, res)
+    );
+
+    this.router.post("/razorpay/create-order", (req, res) =>
+      this.paymentController.createRazorpayOrder(req, res)
+    );
+    this.router.post("/razorpay/verify-payment", (req, res) =>
+      this.paymentController.verifyRazorpayPayment(req, res)
+    );
+
+    this.router.delete('/cancel/ticket',(req,res)=>this.ticketController.cancelTicket(req,res))
   }
 
   public getRouter() {

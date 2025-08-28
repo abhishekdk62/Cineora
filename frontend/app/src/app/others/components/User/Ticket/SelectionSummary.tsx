@@ -24,7 +24,6 @@ export default function SelectionSummary({
 }: SelectionSummaryProps) {
   const [showDetails, setShowDetails] = useState(false);
 
-  // Group seats by BOTH type AND price
   const getSeatBreakdown = () => {
     const breakdown: Record<string, { seats: string[], price: number, count: number, seatType: string }> = {};
     

@@ -11,7 +11,7 @@ interface MoviesListBookProps {
   movies: UnifiedBookingEntity[];
   selectedDate: Date;
   theater?: UnifiedBookingEntity;
-  onShowtimeSelect: (showtimeId:string) => void;
+  onShowtimeSelect: (showtimeId: string) => void;
 }
 
 export default function MoviesListBook({
@@ -26,19 +26,28 @@ export default function MoviesListBook({
     return `${hours}h ${mins}m`;
   };
 
-  // Helper function to get the lowest price from rowPricing
   const getLowestPrice = (rowPricing?: any[]): number => {
     if (!rowPricing || rowPricing.length === 0) return 0;
     return Math.min(...rowPricing.map(row => row.showtimePrice ?? row.basePrice ?? 0));
   };
 
-  // Helper function to get total available seats
   const getTotalAvailableSeats = (rowPricing?: any[]): number => {
     if (!rowPricing) return 0;
     return rowPricing.reduce((total, row) => total + (row.availableSeats ?? 0), 0);
   };
 
-  // Group movies by movieId and screenId
+  const isShowtimeExpired = (showTime: string, showDate: Date): boolean => {
+    const now = new Date();
+    
+    const showDateTime = new Date(showDate);
+    const [hours, minutes] = showTime.split(':');
+    showDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    
+    const endDateTime = new Date(showDateTime.getTime() + 2 * 60 * 60 * 1000);
+    
+    return endDateTime <= now;
+  };
+
   const groupMoviesByMovieAndScreen = () => {
     const grouped = new Map<string, UnifiedBookingEntity[]>();
     
@@ -61,34 +70,8 @@ export default function MoviesListBook({
   return (
     <div className="pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Theater Header */}
-        {theater && (
-          <div className="mb-6 backdrop-blur-sm bg-black/20 rounded-2xl p-4 border border-gray-500/30">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className={`${lexendMedium.className} text-white text-2xl mb-1`}>
-                  {theater.name}
-                </h2>
-                <p className={`${lexendSmall.className} text-gray-300 text-sm`}>
-                  {theater.city}, {theater.state} • {theater.screens} Screens
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  const url = `https://www.google.com/maps?q=${theater.location?.coordinates[1]},${theater.location?.coordinates[0]}`;
-                  window.open(url, "_blank");
-                }}
-                className={`${lexendSmall.className} text-xs text-[#009ffc] hover:text-[#1975d0] underline`}
-              >
-                View Location
-              </button>
-            </div>
-          </div>
-        )}
-
         <div className="space-y-4">
           {groupedMovies.map((movieGroup, groupIndex) => {
-            // Get the first movie for display info (since all movies in group are same movie)
             const representativeMovie = movieGroup[0];
             const movieData = representativeMovie.movieId || representativeMovie;
             const screenData = representativeMovie.screenId;
@@ -178,21 +161,35 @@ export default function MoviesListBook({
                         const showtimeId = movie._id;
                         const displayTime = movie.showTime ?? 'N/A';
 
+                        const isExpired = isShowtimeExpired(displayTime, selectedDate);
+
                         return (
                           <button
                             key={showtimeId}
-                            onClick={() => onShowtimeSelect(showtimeId)}
-                            className={`${lexendSmall.className} bg-white/10 hover:bg-white/20 border border-gray-500/30 hover:border-white/50 rounded-lg p-3 transition-all duration-300 text-left ${
-                              totalAvailable < 20 ? "border-red-400/50" : ""
+                            onClick={() => !isExpired && onShowtimeSelect(showtimeId)} 
+                            disabled={isExpired} 
+                            className={`${lexendSmall.className} rounded-lg p-3 transition-all duration-300 text-left ${
+                              isExpired 
+                                ? "bg-gray-800/30 border border-gray-600/20 cursor-not-allowed opacity-50" 
+                                : `bg-white/10 hover:bg-white/20 border border-gray-500/30 hover:border-white/50 ${
+                                    totalAvailable < 20 ? "border-red-400/50" : ""
+                                  }`
                             }`}
                           >
-                            <div className="text-white font-medium mb-1">
+                            <div className={`font-medium mb-1 ${
+                              isExpired ? "text-gray-500" : "text-white" 
+                            }`}>
                               {displayTime}
+                         
                             </div>
-                            <div className="text-xs text-gray-400 mb-1">
+                            <div className={`text-xs mb-1 ${
+                              isExpired ? "text-gray-600" : "text-gray-400"
+                            }`}>
                               {movie.format ?? '2D'} • {movie.language?.toUpperCase() ?? 'N/A'}
                             </div>
-                            <div className="text-xs text-gray-400 mb-2">
+                            <div className={`text-xs mb-2 ${
+                              isExpired ? "text-gray-600" : "text-gray-400"
+                            }`}>
                               {lowestPrice > 0 ? `From ₹${lowestPrice}` : 'Price TBD'}
                             </div>
 
@@ -200,15 +197,19 @@ export default function MoviesListBook({
                             <div className="flex items-center gap-1">
                               <div
                                 className={`w-2 h-2 rounded-full ${
-                                  totalAvailable > 50
-                                    ? "bg-green-400"
-                                    : totalAvailable > 20
-                                    ? "bg-yellow-400"
-                                    : "bg-red-400"
+                                  isExpired 
+                                    ? "bg-gray-600" 
+                                    : totalAvailable > 50
+                                      ? "bg-green-400"
+                                      : totalAvailable > 20
+                                        ? "bg-yellow-400"
+                                        : "bg-red-400"
                                 }`}
                               />
-                              <span className="text-xs text-gray-400">
-                                {totalAvailable} seats
+                              <span className={`text-xs ${
+                                isExpired ? "text-gray-600" : "text-gray-400"
+                              }`}>
+                                {isExpired ? "Show ended" : `${totalAvailable} seats`}
                               </span>
                             </div>
                           </button>

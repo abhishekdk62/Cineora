@@ -1,4 +1,3 @@
-// /app/services/theaterService.ts
 
 import apiClient from "../../Utils/apiClient";
 

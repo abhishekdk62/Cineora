@@ -1,4 +1,3 @@
-// services/transactions.service.ts
 import { ITransactionService } from "../interfaces/transactions.service.interface";
 import { ITransactionRepository } from "../interfaces/transactions.repository.interface";
 import { IWalletRepository } from "../../wallet/interfaces/wallet.repository.interface";
@@ -78,7 +77,6 @@ export class TransactionService implements ITransactionService {
         notificationSent: false
       });
 
-      // Update wallet balance
       const userModel = wallet.userModel;
       await this.walletRepo.updateBalance(data.userId, userModel, data.type === 'credit' ? data.amount : -data.amount);
 
@@ -224,7 +222,6 @@ export class TransactionService implements ITransactionService {
         notificationSent: false
       });
 
-      // Update wallet balances
       await this.walletRepo.updateBalance(userId, 'User', -totalAmount);
       await this.walletRepo.updateBalance(ownerId, 'Owner', ownerShare);
 
@@ -303,7 +300,6 @@ export class TransactionService implements ITransactionService {
         notificationSent: false
       });
 
-      // Update wallet balance
       await this.walletRepo.updateBalance(ownerId, 'Owner', -amount);
 
       await session.commitTransaction();
@@ -428,16 +424,7 @@ export class TransactionService implements ITransactionService {
     session.startTransaction();
     
     try {
-      // Get the booking details to find user and owner
-      // This would typically involve finding the booking by ID
-      // For now, this is a placeholder implementation
-      
-      // Example implementation:
-      // 1. Find the booking by bookingId
-      // 2. Get the original transaction details
-      // 3. Create refund transaction for user (credit)
-      // 4. Create refund transaction for owner (debit)
-      // 5. Update wallet balances
+   
       
       await session.commitTransaction();
       
@@ -458,14 +445,12 @@ export class TransactionService implements ITransactionService {
     }
   }
 
-  // Additional helper method for transaction rollback
   private async rollbackTransaction(session: mongoose.ClientSession, errorMessage: string) {
     await session.abortTransaction();
     await session.endSession();
     throw new Error(errorMessage);
   }
 
-  // Method to handle complex multi-step transactions
   async processComplexTransaction(steps: Array<() => Promise<any>>): Promise<ServiceResponse> {
     const session = await mongoose.startSession();
     session.startTransaction();

@@ -109,7 +109,6 @@ export const uploadMultipleToCloudinary = async (
 
     console.log(`Uploading ${files.length} files to Cloudinary...`);
 
-    // Upload all files in parallel
     const uploadPromises = files.map((file, index) => {
       const fileOptions = {
         ...options,

@@ -8,7 +8,6 @@ import MovieSelectionModal from "./MovieSelectionModal";
 import ScreenSelectionModal from "./ScreenSelectionModal";
 import toast from "react-hot-toast";
 
-// Utility functions (unchanged)
 function getDatesInRange(startStr: string, endStr: string): string[] {
   const result: string[] = [];
   let start = new Date(startStr);
@@ -202,11 +201,9 @@ const ShowtimeForm: React.FC<ShowtimeFormProps> = ({
     e.preventDefault();
     if (mode === "view") return;
 
-    // Get today's date for validation
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // JS-only validation
     if (!selectedMovie?._id || !selectedTheater?._id || !selectedScreen?._id) {
       toast.error("Please select movie, theater, and screen.");
       return;

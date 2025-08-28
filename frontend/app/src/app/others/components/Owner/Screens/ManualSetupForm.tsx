@@ -39,7 +39,6 @@ export const ManualSetupForm: React.FC<ManualSetupFormProps> = ({
   mode,
   setSetupMode
 }) => {
-  // Handle screen features
   const addFeature = () => {
     const currentFeatures = formData.features || [];
     handleInputChange('features', [...currentFeatures, '']);

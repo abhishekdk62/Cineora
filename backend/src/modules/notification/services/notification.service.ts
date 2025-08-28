@@ -3,11 +3,10 @@ import { INotificationRepository } from "../interfaces/notification.repository.i
 import { ServiceResponse } from "../../../interfaces/interface";
 import mongoose from "mongoose";
 
-// 🎯 Define proper types for strict typing
 type NotificationType = "booking" | "payment" | "reminder" | "offer" | "general" | "cancellation";
 type NotificationPriority = "low" | "medium" | "high";
 type NotificationStatus = "pending" | "sent" | "delivered" | "failed" | "read";
-type ChannelType = "app" | "email" | "sms" | "push"; // ✅ Fix channels type
+type ChannelType = "app" | "email" | "sms" | "push"; 
 
 export class NotificationService implements INotificationService {
   constructor(private readonly notificationRepo: INotificationRepository) {}
@@ -17,12 +16,11 @@ export class NotificationService implements INotificationService {
     title: string,
     message: string,
     type: string,
-    channels: string[] = ["app"], // Accept string[] but validate internally
+    channels: string[] = ["app"], 
     data?: any,
     scheduledFor?: Date
   ): Promise<ServiceResponse> {
     try {
-      // Validate notification type
       const validTypes: NotificationType[] = ["booking", "payment", "reminder", "offer", "general", "cancellation"];
       if (!validTypes.includes(type as NotificationType)) {
         return {
@@ -32,7 +30,6 @@ export class NotificationService implements INotificationService {
         };
       }
 
-      // 🎯 Validate channels
       const validChannels: ChannelType[] = ["app", "email", "sms", "push"];
       const invalidChannels = channels.filter(channel => !validChannels.includes(channel as ChannelType));
       if (invalidChannels.length > 0) {
@@ -43,12 +40,10 @@ export class NotificationService implements INotificationService {
         };
       }
 
-      // Generate notification ID
       const notificationId = `NOT${Date.now()}${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
       
-      // Cast to proper types after validation
       const validatedType = type as NotificationType;
-      const validatedChannels = channels as ChannelType[]; // ✅ Fix channels casting
+      const validatedChannels = channels as ChannelType[]; 
       const priority: NotificationPriority = (validatedType === "booking" || validatedType === "payment") ? "high" : "medium";
       const status: NotificationStatus = scheduledFor ? "pending" : "sent";
       
@@ -59,7 +54,7 @@ export class NotificationService implements INotificationService {
         message,
         type: validatedType,
         priority,
-        channels: validatedChannels, // ✅ Now properly typed
+        channels: validatedChannels, 
         data,
         scheduledFor,
         status,
@@ -71,7 +66,6 @@ export class NotificationService implements INotificationService {
         throw new Error("Failed to create notification");
       }
       
-      // If not scheduled, send immediately
       if (!scheduledFor) {
         await this.deliverNotification(notification);
       }
@@ -92,31 +86,26 @@ export class NotificationService implements INotificationService {
   }
   
   private async deliverNotification(notification: any): Promise<void> {
-    const sentVia: ChannelType[] = []; // ✅ Use proper type
+    const sentVia: ChannelType[] = []; 
     
     try {
-      // Always save to app notifications
       if (notification.channels.includes("app")) {
         sentVia.push("app");
       }
       
       // TODO: Implement actual delivery mechanisms
       if (notification.channels.includes("email")) {
-        // await this.sendEmail(notification);
         sentVia.push("email");
       }
       
       if (notification.channels.includes("sms")) {
-        // await this.sendSMS(notification);
         sentVia.push("sms");
       }
       
       if (notification.channels.includes("push")) {
-        // await this.sendPushNotification(notification);
         sentVia.push("push");
       }
       
-      // Update notification status
       await this.notificationRepo.updateStatus(
         notification.notificationId,
         "delivered",
@@ -124,7 +113,6 @@ export class NotificationService implements INotificationService {
       );
       
     } catch (error) {
-      // Update status to failed if delivery fails
       await this.notificationRepo.updateStatus(
         notification.notificationId,
         "failed",
@@ -144,7 +132,6 @@ export class NotificationService implements INotificationService {
     try {
       const filters: any = {};
       if (type) {
-        // Validate type if provided
         const validTypes: NotificationType[] = ["booking", "payment", "reminder", "offer", "general", "cancellation"];
         if (validTypes.includes(type as NotificationType)) {
           filters.type = type;
@@ -229,7 +216,7 @@ export class NotificationService implements INotificationService {
       title,
       message,
       "booking",
-      ["app", "email"], // ✅ Valid channels
+      ["app", "email"], 
       {
         bookingId: bookingData.bookingId,
         movieTitle: bookingData.movieTitle,
@@ -272,7 +259,6 @@ export class NotificationService implements INotificationService {
     const title = "Movie Reminder! 🍿";
     const message = `Don't forget! Your movie ${reminderData.movieTitle} starts in 2 hours at ${reminderData.theaterName}.`;
     
-    // Schedule reminder 2 hours before show time
     const showDateTime = new Date(`${reminderData.showDate} ${reminderData.showTime}`);
     const reminderTime = new Date(showDateTime.getTime() - 2 * 60 * 60 * 1000);
     
@@ -281,7 +267,7 @@ export class NotificationService implements INotificationService {
       title,
       message,
       "reminder",
-      ["app", "push"], // ✅ Valid channels
+      ["app", "push"], 
       reminderData,
       reminderTime
     );
@@ -447,10 +433,8 @@ export class NotificationService implements INotificationService {
     );
   }
   
-  // 🎯 Fix: Change method name to avoid repository error
   async getNotificationStats(): Promise<ServiceResponse> {
     try {
-      // Create stats object here instead of calling non-existent repo method
       const stats = {
         totalNotifications: 0,
         unreadNotifications: 0,

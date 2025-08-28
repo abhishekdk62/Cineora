@@ -98,7 +98,6 @@ const BookingSchema = new Schema<IBooking>({
     index: true,
   },
   
-  // Seat Details
   selectedSeats: {
     type: [String],
     required: true,
@@ -112,13 +111,11 @@ const BookingSchema = new Schema<IBooking>({
     required: true,
   },
   
-  // Financial Details
   priceDetails: {
     type: PriceDetailsSchema,
     required: true,
   },
   
-  // Payment Info
   paymentStatus: {
     type: String,
     enum: ["pending", "completed", "failed", "refunded"],
@@ -131,14 +128,12 @@ const BookingSchema = new Schema<IBooking>({
     type: String,
   },
   
-  // Booking Status
   bookingStatus: {
     type: String,
     enum: ["confirmed", "cancelled", "expired"],
     default: "confirmed",
   },
   
-  // Timestamps
   bookedAt: {
     type: Date,
     default: Date.now,
@@ -157,7 +152,6 @@ const BookingSchema = new Schema<IBooking>({
     required: true,
   },
   
-  // Contact Info
   contactInfo: {
     type: ContactInfoSchema,
     required: true,
@@ -166,7 +160,6 @@ const BookingSchema = new Schema<IBooking>({
   timestamps: true,
 });
 
-// Indexes for performance
 BookingSchema.index({ userId: 1, bookedAt: -1 });
 BookingSchema.index({ bookingId: 1 });
 BookingSchema.index({ showtimeId: 1 });

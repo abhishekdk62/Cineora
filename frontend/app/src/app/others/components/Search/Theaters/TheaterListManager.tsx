@@ -38,7 +38,7 @@ type SortOption = "nearby" | "rating-high" | "rating-low" | "a-z" | "z-a";
 interface TheaterListManagerProps {
   theaters: Theater[];
   isLoading: boolean;
-  searchLoading?: boolean; // Add search loading prop
+  searchLoading?: boolean; 
   searchTerm: string;
   sortBy: SortOption;
   currentPage: number;
@@ -56,7 +56,7 @@ interface TheaterListManagerProps {
 const TheaterListManager: React.FC<TheaterListManagerProps> = ({
   theaters,
   isLoading,
-  searchLoading = false, // Default to false
+  searchLoading = false, 
   searchTerm,
   sortBy,
   currentPage,
@@ -93,7 +93,7 @@ const TheaterListManager: React.FC<TheaterListManagerProps> = ({
             <SearchBar
               searchTerm={searchTerm}
               onSearchChange={onSearchChange}
-              searchLoading={searchLoading} // Pass search loading state
+              searchLoading={searchLoading} 
               placeholder="Search theaters by name or location..."
             />
 

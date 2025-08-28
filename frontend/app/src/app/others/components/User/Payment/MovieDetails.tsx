@@ -1,4 +1,3 @@
-// components/MovieDetails.tsx
 import React from "react";
 import { Lexend } from "next/font/google";
 import { Film, MapPin, Calendar, Clock, Star } from "lucide-react";

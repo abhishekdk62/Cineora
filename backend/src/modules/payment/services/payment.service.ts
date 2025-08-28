@@ -1,18 +1,28 @@
 import { IPaymentService } from "../interfaces/payment.service.interface";
 import { IPaymentRepository } from "../interfaces/payment.repository.interface";
 import { ServiceResponse } from "../../../interfaces/interface";
+import Razorpay from 'razorpay';
+import crypto from 'crypto';
+
 import { InitiatePaymentDto, PaymentCallbackDto, RefundPaymentDto } from "../dtos/dto";
 import mongoose from "mongoose";
+import { config } from "../../../config";
 
 export class PaymentService implements IPaymentService {
-  constructor(private readonly paymentRepo: IPaymentRepository) {}
-  
+    private razorpay: Razorpay;
+
+  constructor(private readonly paymentRepo: IPaymentRepository) {
+    this.razorpay = new Razorpay({
+      key_id: config.razorpayKeyId!,
+      key_secret: config.razorpaySecret!,
+    });
+    
+  }
+
   async initiatePayment(paymentData: InitiatePaymentDto): Promise<ServiceResponse> {
     try {
-      // Generate payment ID
       const paymentId = `PAY${Date.now()}${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
       
-      // Convert string IDs to ObjectId
       const paymentPayload = {
         paymentId,
         bookingId: new mongoose.Types.ObjectId(paymentData.bookingId),
@@ -25,17 +35,15 @@ export class PaymentService implements IPaymentService {
         initiatedAt: new Date(),
       };
       
-      // Create payment record
+      
       const payment = await this.paymentRepo.create(paymentPayload);
       
       if (!payment) {
+
         throw new Error("Failed to create payment record");
       }
       
       // TODO: Integrate with actual payment gateway
-      // const gatewayResponse = await this.callPaymentGateway(payment);
-      
-      // For now, return mock gateway URL
       const mockGatewayUrl = `https://checkout.razorpay.com/v1/checkout?payment_id=${paymentId}`;
       
       return {
@@ -50,13 +58,87 @@ export class PaymentService implements IPaymentService {
       
     } catch (error: any) {
       return {
+
         success: false,
         message: error.message || "Failed to initiate payment",
         data: null,
       };
     }
   }
-  
+    async createRazorpayOrder(orderData: { amount: number; currency?: string }): Promise<ServiceResponse> {
+    try {
+      const options = {
+        amount: orderData.amount, 
+        currency: orderData.currency || 'INR',
+        receipt: `receipt_${Date.now()}`,
+      };
+
+      const order = await this.razorpay.orders.create(options);
+      
+      return {
+        success: true,
+        message: 'Order created successfully',
+        data: order,
+      };
+
+    } catch (error: any) {
+
+      return {
+        success: false,
+        message: error.message || 'Failed to create Razorpay order',
+        data: null,
+      };
+    }
+  }
+
+  async verifyRazorpayPayment(paymentData: {
+    razorpay_payment_id: string;
+    razorpay_order_id: string;
+    razorpay_signature: string;
+    bookingData: any;
+  }): Promise<ServiceResponse> {
+    try {
+      const {
+        razorpay_payment_id,
+        razorpay_order_id,
+        razorpay_signature
+      } = paymentData;
+
+      const body = razorpay_order_id + "|" + razorpay_payment_id;
+      
+      const expectedSignature = crypto
+        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
+        .update(body.toString())
+        .digest('hex');
+
+      if (expectedSignature === razorpay_signature) {
+        return {
+          success: true,
+          message: 'Payment verified successfully',
+          data: {
+            payment_id: razorpay_payment_id,
+            order_id: razorpay_order_id,
+            verified: true
+          }
+        };
+      } else {
+        return {
+          success: false,
+          message: 'Payment verification failed',
+          data: null,
+        };
+      }
+
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || 'Payment verification failed',
+        data: null,
+      };
+    }
+  }
+
+
   async processPaymentCallback(
     paymentId: string,
     gatewayResponse: any
@@ -68,10 +150,8 @@ export class PaymentService implements IPaymentService {
         throw new Error("Payment not found");
       }
       
-      // Determine status from gateway response
       const status = gatewayResponse.status === "success" ? "completed" : "failed";
       
-      // Update payment status
       const updatedPayment = await this.paymentRepo.updateStatus(
         paymentId,
         status,
@@ -163,7 +243,6 @@ export class PaymentService implements IPaymentService {
       
       // TODO: Call payment gateway refund API
       
-      // Update payment with refund details
       const refundedPayment = await this.paymentRepo.createRefund(
         paymentId,
         refundAmount,
@@ -271,7 +350,6 @@ export class PaymentService implements IPaymentService {
         throw new Error("Only failed payments can be retried");
       }
       
-      // Reset status to pending
       const updatedPayment = await this.paymentRepo.updateStatus(
         paymentId,
         "pending"

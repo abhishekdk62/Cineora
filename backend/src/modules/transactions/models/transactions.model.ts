@@ -1,4 +1,3 @@
-// models/transactions.model.ts
 import mongoose, { Schema } from "mongoose";
 import { ITransaction } from "../interfaces/transactions.model.interface";
 

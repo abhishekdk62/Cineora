@@ -1,4 +1,3 @@
-// components/tickets/TicketDetailsModal.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -13,10 +12,11 @@ const lexendSmall = { className: "font-normal text-sm" };
 
 interface TicketDetailsModalProps {
   ticket: any;
+  activeTab:string,
   onClose: () => void;
 }
 
-const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose }) => {
+const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose,activeTab }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
 
@@ -33,7 +33,6 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
     return timeString;
   };
 
-  // Group tickets by seat type for proper display
   const groupTicketsBySeatType = (tickets: any[]) => {
     if (!tickets || tickets.length === 0) return [];
 
@@ -55,12 +54,17 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
       seatType,
       seats: ticketGroup.map(t => `${t.seatRow}${t.seatNumber}`),
       count: ticketGroup.length,
-      price: ticketGroup[0].price,
-      totalPrice: ticketGroup.reduce((sum, t) => sum + t.price, 0)
+      price: ticketGroup[0].price, 
+      totalPrice: ticketGroup.reduce((sum, t) => {
+        const basePrice = t.price;
+        const taxAmount = basePrice * 0.18; 
+        const convenienceAmount = basePrice * 0.05; 
+        return sum + basePrice + taxAmount + convenienceAmount;
+      }, 0)
     }));
   };
 
-  // Get grouped seat information
+
   const seatGroups = ticket.allTickets ? groupTicketsBySeatType(ticket.allTickets) : [
     {
       seatType: ticket.seatType,
@@ -89,7 +93,6 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
       });
     } catch (error) {
       console.error('PDF generation failed:', error);
-      // You can show a toast notification here
     } finally {
       setDownloadingPdf(false);
     }
@@ -98,7 +101,6 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="backdrop-blur-sm bg-black/20 border border-gray-500/30 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-500/30">
           <h2 className={`${lexendBold.className} text-2xl text-white`}>
             Ticket Details
@@ -111,9 +113,7 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
           </button>
         </div>
 
-        {/* Content */}
         <div className="p-6 space-y-6">
-          {/* Movie Info */}
           <div className="flex gap-6">
             <img
               src={ticket.movieId.poster}
@@ -197,30 +197,41 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
                 </h4>
 
                 {seatGroups.map((group, index) => (
-                  <div key={index} className="flex items-center justify-between py-2 border-b border-gray-600/20 last:border-b-0">
-                    <div className="flex items-center gap-3">
-                      {/* Color indicator based on seat type */}
-                      <div
-                        className="w-3 h-3 rounded-full border"
-                        style={{
-                          backgroundColor: group.seatType === 'VIP' ? '#EAB308' :
-                            group.seatType === 'Premium' ? '#9333EA' : '#06B6D4',
-                          borderColor: group.seatType === 'VIP' ? '#CA8A04' :
-                            group.seatType === 'Premium' ? '#7C3AED' : '#0891B2'
-                        }}
-                      />
-                      <span className={`${lexendSmall.className} text-gray-300 text-sm`}>
-                        {group.seatType} (₹{group.price})
+                  <div key={index} className="mb-4 p-3   rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-3 h-3 rounded-full border"
+                          style={{
+                            backgroundColor: group.seatType === 'VIP' ? '#EAB308' :
+                              group.seatType === 'Premium' ? '#9333EA' : '#06B6D4',
+                            borderColor: group.seatType === 'VIP' ? '#CA8A04' :
+                              group.seatType === 'Premium' ? '#7C3AED' : '#0891B2'
+                          }}
+                        />
+                        <span className={`${lexendSmall.className} text-gray-300 text-sm`}>
+                          {group.seatType} × {group.count}
+                        </span>
+                      </div>
+                      <span className={`${lexendSmall.className} text-white text-sm font-medium`}>
+                        ₹{group.totalPrice}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className={`${lexendSmall.className} text-gray-400 text-sm`}>
-                        {group.count} × ₹{group.price}
-                      </span>
-                      <span className={`${lexendSmall.className} text-white text-sm font-medium`}>
-                        = ₹{group.totalPrice}
-                      </span>
+                    {/* Individual price breakdown */}
+                    <div className="ml-6 space-y-1 text-xs text-gray-400">
+                      <div className="flex justify-between">
+                        <span>Base Price: ₹{group.price} × {group.count}</span>
+                        <span>₹{group.price * group.count}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Tax (18%)</span>
+                        <span>₹{Math.round(group.price * group.count * 0.18)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Convenience Fee (5%)</span>
+                        <span>₹{Math.round(group.price * group.count * 0.05)}</span>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -236,6 +247,7 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
                 </div>
               </div>
             )}
+
           </div>
 
           {/* Additional Info Grid */}
@@ -254,8 +266,8 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
                 Status
               </h4>
               <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${ticket.status === 'confirmed' ? 'bg-green-900/30 text-green-400' :
-                  ticket.status === 'cancelled' ? 'bg-red-900/30 text-red-400' :
-                    'bg-gray-700/30 text-gray-400'
+                ticket.status === 'cancelled' ? 'bg-red-900/30 text-red-400' :
+                  'bg-gray-700/30 text-gray-400'
                 }`}>
                 {ticket.status.toUpperCase()}
               </span>

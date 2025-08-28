@@ -85,7 +85,6 @@ const ShowtimesModal: React.FC<ShowtimesModalProps> = ({ screen, onClose }) => {
 
   useEffect(() => {
     fetchShowtimes(1, filters);
-    // eslint-disable-next-line
   }, [screen._id]);
 
   const handleFilterChange = (field: keyof ShowtimeFilters, value: any) => {
@@ -100,7 +99,6 @@ const ShowtimesModal: React.FC<ShowtimesModalProps> = ({ screen, onClose }) => {
     fetchShowtimes(page, filters);
   };
 
-  // Group showtimes by date for better visualization
   const groupedShowtimes = showtimes.reduce((acc, showtime) => {
     const date = new Date(showtime.showDate).toDateString();
     if (!acc[date]) {

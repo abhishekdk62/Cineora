@@ -157,7 +157,6 @@ const UsersManager: React.FC = () => {
   const [totalItems, setTotalItems] = useState(0);
   const [itemsPerPage] = useState(10);
 
-  // Add search state
   const [searchTerm, setSearchTerm] = useState("");
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -244,25 +243,20 @@ const UsersManager: React.FC = () => {
     }
   };
 
-  // Handle search with debouncing
   const handleSearchChange = useCallback((newSearchTerm: string) => {
-    // Update search term immediately for UI
     setSearchTerm(newSearchTerm);
     setCurrentFilters(prev => ({ ...prev, search: newSearchTerm }));
 
-    // Clear existing timeout
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
 
-    // Set new timeout for API call
     searchTimeoutRef.current = setTimeout(() => {
       const newFilters = { ...currentFilters, search: newSearchTerm };
       handleFiltersChange(newFilters, true);
     }, 500);
   }, [currentFilters]);
 
-  // Clear timeout on unmount
   useEffect(() => {
     return () => {
       if (searchTimeoutRef.current) {
@@ -272,7 +266,6 @@ const UsersManager: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Reset search when view changes
     setSearchTerm("");
     setCurrentFilters({});
     setCurrentPage(1);
@@ -304,13 +297,13 @@ const UsersManager: React.FC = () => {
   const renderContent = () => {
     const commonProps = {
       isLoading,
-      currentFilters: { ...currentFilters, search: searchTerm }, // Use local search term
+      currentFilters: { ...currentFilters, search: searchTerm }, 
       currentPage,
       totalPages,
       totalItems,
       onPageChange: handlePageChange,
       onFiltersChange: handleFiltersChange,
-      onSearchChange: handleSearchChange, // Pass the new search handler
+      onSearchChange: handleSearchChange,
       onViewDetails: handleViewDetails,
     };
 

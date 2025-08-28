@@ -63,7 +63,6 @@ export default function LoginPage() {
 
       if (googleLogin.fulfilled.match(resultAction)) {
         const data = resultAction.payload;
-        // localStorage.setItem("role", data.user.role);
         redirectBasedOnRole(data.user.role);
       } else {
         console.error("Google auth failed:", resultAction);
@@ -127,7 +126,7 @@ export default function LoginPage() {
 
           <div className="mt-6 text-center">
             <button
-              onClick={handleGuestLogin} // define this function to redirect or set guest session
+              onClick={handleGuestLogin} 
               className="w-full py-2 px-4 rounded-xl bg-gray-700 hover:bg-gray-600 text-white font-medium transition"
             >
               Continue as Guest

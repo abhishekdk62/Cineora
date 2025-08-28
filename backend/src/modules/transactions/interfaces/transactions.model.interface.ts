@@ -1,4 +1,3 @@
-// interfaces/transactions.model.interface.ts
 import mongoose, { Document, Types } from "mongoose";
 import { IWallet } from "../../wallet/interfaces/wallet.model.interface";
 

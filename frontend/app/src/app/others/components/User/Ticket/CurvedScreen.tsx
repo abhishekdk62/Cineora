@@ -89,7 +89,6 @@ export default function CurvedScreen() {
         
         {/* Enhanced label section */}
         <div className="mt-8 text-center relative">
-          {/* Subtle glow behind text */}
           <div className="absolute inset-0 blur-lg opacity-30">
             <p className="tracking-[0.3em] text-cyan-400 text-sm font-extralight">
               SCREEN

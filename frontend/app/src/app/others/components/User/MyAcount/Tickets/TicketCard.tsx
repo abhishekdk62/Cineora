@@ -1,9 +1,10 @@
-// components/tickets/TicketCard.tsx
 'use client';
 
 import React, { useState } from 'react';
 import Barcode from './Barcode';
 import { generateTicketPDF } from '@/app/others/Utils/pdfGenerator';
+import { cancelTicket } from '@/app/others/services/userServices/ticketServices';
+import { confirmAction, ConfirmDialog } from '../../../utils/ConfirmDialog';
 
 const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
@@ -11,28 +12,20 @@ const lexendSmall = { className: "font-normal text-sm" };
 
 interface TicketCardProps {
   booking: any;
+  activeTab: string;
   onViewDetails: (booking: any) => void;
 }
 
-function statusColors(status: string) {
-  switch (status) {
-    case 'confirmed':
-      return 'bg-green-900/20 text-green-400 border-green-500/30';
-    case 'cancelled':
-      return 'bg-red-900/20 text-red-400 border-red-500/30';
-    case 'used':
-      return 'bg-blue-900/20 text-blue-400 border-blue-500/30';
-    case 'expired':
-      return 'bg-gray-700/20 text-gray-400 border-gray-500/30';
-    default:
-      return 'bg-gray-700/20 text-gray-400 border-gray-500/30';
-  }
-}
-
-const TicketCard: React.FC<TicketCardProps> = ({ booking, onViewDetails }) => {
+const TicketCard: React.FC<TicketCardProps> = ({ booking, onViewDetails, activeTab }) => {
   const [downloadingPdf, setDownloadingPdf] = useState(false);
 
-  // Format date function
+  const calculateTotalPrice = (booking: any) => {
+    const baseTotal = booking.totalPrice;
+    const tax = baseTotal * 0.18; 
+    const convenienceFee = baseTotal * 0.05; 
+    return baseTotal + tax + convenienceFee;
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'long',
@@ -41,12 +34,10 @@ const TicketCard: React.FC<TicketCardProps> = ({ booking, onViewDetails }) => {
     });
   };
 
-  // Format time function
   const formatTime = (timeString: string) => {
     return timeString;
   };
 
-  // Group tickets by seat type - same logic as modal
   const groupTicketsBySeatType = (tickets: any[]) => {
     if (!tickets || tickets.length === 0) return [];
 
@@ -69,32 +60,35 @@ const TicketCard: React.FC<TicketCardProps> = ({ booking, onViewDetails }) => {
       seats: ticketGroup.map(t => `${t.seatRow}${t.seatNumber}`),
       count: ticketGroup.length,
       price: ticketGroup[0].price,
-      totalPrice: ticketGroup.reduce((sum, t) => sum + t.price, 0)
+      totalPrice: ticketGroup.reduce((sum, t) => {
+        const basePrice = t.price;
+        const taxAmount = basePrice * 0.18;
+        const convenienceAmount = basePrice * 0.05;
+        return sum + basePrice + taxAmount + convenienceAmount;
+      }, 0)
     }));
   };
 
   const handleDownloadPdf = async () => {
     try {
       setDownloadingPdf(true);
-      
-      // Create the data structure needed for PDF generation
-      // Since booking might have different structure than ticket in modal
-      const seatGroups = booking.allTickets ? 
-        groupTicketsBySeatType(booking.allTickets) : 
+
+      const seatGroups = booking.allTickets ?
+        groupTicketsBySeatType(booking.allTickets) :
         [{
           seatType: booking.seatType,
           seats: booking.seats,
           count: booking.seats.length,
-          price: booking.totalPrice / booking.seats.length, // Calculate individual price
-          totalPrice: booking.totalPrice
+          price: booking.totalPrice / booking.seats.length,
+          totalPrice: calculateTotalPrice(booking) 
         }];
 
-      const totalAmount = booking.totalPrice;
+      const totalAmount = calculateTotalPrice(booking); 
       const totalSeats = booking.seats.length;
       const allSeats = booking.seats;
 
       await generateTicketPDF({
-        ticket: booking, // Use booking as ticket data
+        ticket: booking,
         seatGroups,
         totalAmount,
         totalSeats,
@@ -104,12 +98,29 @@ const TicketCard: React.FC<TicketCardProps> = ({ booking, onViewDetails }) => {
       });
     } catch (error) {
       console.error('PDF generation failed:', error);
-      // You can show a toast notification here
     } finally {
       setDownloadingPdf(false);
     }
   };
+  const handleCancel = async () => {
+    try {
+      const confirm = await confirmAction({
+        title: 'Cancel ticket?',
+        message: 'Do you really want to cancell this ticket?',
+        confirmText: 'Yes',
+        cancelText: 'No'
+      })
+      if (!confirm) {
+        return
+      }
+      const data = await cancelTicket(booking.bookingId, Math.round(calculateTotalPrice(booking)))
+      console.log(data.data);
 
+    } catch (error) {
+      console.log(error);
+
+    }
+  }
   return (
     <div className="flex bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl hover:scale-[1.02] transition-transform duration-300 group">
       {/* Poster */}
@@ -120,16 +131,25 @@ const TicketCard: React.FC<TicketCardProps> = ({ booking, onViewDetails }) => {
           className="w-full h-full object-cover"
         />
       </div>
-      
-      {/* Info Section */}
+
+     
       <div className="flex flex-col flex-1 px-7 py-6">
-        <h2 className={`${lexendBold.className} text-xl text-white mb-2`}>
-          {booking.movieId.title}
-        </h2>
+        <div className={` gap-1 flex items-center text-white mb-2`}>
+       
+<div className={`${lexendBold.className} text-xl`}>
+
+     {booking.movieId.title}
+</div>
+          
+            {booking.status=='cancelled'&& <button className=' bg-transparent text-red-400 border border-red-500 p-1 rounded-2xl'>
+        Cancelled
+      </button>}
+        </div>
+   
         <p className={`${lexendSmall.className} text-gray-300 mb-4`}>
           {booking.theaterId.name} - {booking.screenId.name}
         </p>
-        
+
         <div className={`${lexendMedium.className} flex items-center gap-8 mt-2 text-base text-white`}>
           <div className="flex items-center gap-2">
             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -144,7 +164,7 @@ const TicketCard: React.FC<TicketCardProps> = ({ booking, onViewDetails }) => {
             <span>{formatTime(booking.showTime)}</span>
           </div>
         </div>
-        
+
         <div className="flex gap-4 mt-4 mb-6">
           <span className={`${lexendSmall.className} bg-white/10 text-white px-3 py-1.5 rounded-lg font-medium border border-white/20`}>
             {booking.seatType}
@@ -152,13 +172,13 @@ const TicketCard: React.FC<TicketCardProps> = ({ booking, onViewDetails }) => {
           <span className={`${lexendSmall.className} bg-white/10 text-white px-3 py-1.5 rounded-lg font-medium border border-white/20`}>
             Seats: {booking.seats.join(', ')}
           </span>
-          <span className={`${lexendSmall.className} bg-white/10 text-white px-3 py-1.5 rounded-lg font-medium border border-white/20`}>
-            ₹{booking.totalPrice}
-          </span>
+          {/* <span className={`${lexendSmall.className} bg-white/10 text-white px-3 py-1.5 rounded-lg font-medium border border-white/20`}>
+            ₹{Math.round(calculateTotalPrice(booking))}
+          </span> */}
         </div>
-        
+
         <div className="mt-auto flex gap-3">
-          <button 
+          <button
             onClick={() => onViewDetails(booking)}
             className={`${lexendMedium.className} bg-transparent text-white px-5 py-2.5 rounded-xl border border-white hover:bg-white/10 transition-colors text-sm`}
           >
@@ -171,14 +191,16 @@ const TicketCard: React.FC<TicketCardProps> = ({ booking, onViewDetails }) => {
           >
             {downloadingPdf ? 'Generating...' : 'Download PDF'}
           </button>
-          {booking.status === 'confirmed' && !booking.isUsed && (
-            <button className={`${lexendMedium.className} bg-transparent text-white/70 px-5 py-2.5 rounded-xl border border-white/50 hover:bg-red-900/20 hover:text-red-400 hover:border-red-500/30 transition-colors text-sm`}>
+          {booking.status === 'confirmed' && !booking.isUsed && activeTab == 'upcoming' && (
+            <button
+              onClick={handleCancel}
+              className={`${lexendMedium.className} bg-transparent text-white/70 px-5 py-2.5 rounded-xl border border-white/50 hover:bg-red-900/20 hover:text-red-400 hover:border-red-500/30 transition-colors text-sm`}>
               Cancel Ticket
             </button>
           )}
         </div>
       </div>
-      
+
       <div className="flex flex-col justify-center items-center w-24 bg-white border-l border-white/20 relative">
         <Barcode code={booking.qrCode} />
         <div className={`${lexendSmall.className} absolute bottom-4 left-1/2 transform -translate-x-1/2 text-xs text-gray-700 font-mono`}>

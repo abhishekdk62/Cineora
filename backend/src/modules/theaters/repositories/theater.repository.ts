@@ -85,7 +85,7 @@ export class TheaterRepository implements ITheaterRepository {
     try {
       await Theater.findByIdAndUpdate(
         theaterId,
-        { $inc: { screens: 1 } }, // Increment by 1
+        { $inc: { screens: 1 } }, 
         { new: true }
       );
     } catch (error) {
@@ -98,7 +98,7 @@ export class TheaterRepository implements ITheaterRepository {
     try {
       await Theater.findByIdAndUpdate(
         theaterId,
-        { $inc: { screens: -1 } }, // Decrement by 1
+        { $inc: { screens: -1 } }, 
         { new: true }
       );
     } catch (error) {
@@ -323,7 +323,6 @@ async findWithFilters({
     return { theaters, total, totalPages };
   }
 
-  // Non-geospatial queries
   const query: any = {
     isActive: true,
     isVerified: true,
@@ -337,7 +336,6 @@ async findWithFilters({
     ];
   }
 
-  // Add facilities filter for non-geospatial queries
   if (facilities && facilities.length > 0) {
     query.facilities = { $in: facilities };
   }
@@ -368,7 +366,6 @@ async findWithFilters({
     mongooseQuery.skip(skip).limit(limitNum).lean(),
   ]);
 
-  // Manual distance calculation if lat/lon provided
   const theatersWithDistance = theaters.map((theater: any) => {
     let distance = undefined;
     if (lat != null && lon != null && theater.location?.coordinates) {

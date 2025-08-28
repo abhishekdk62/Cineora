@@ -13,13 +13,13 @@ const TheatersPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [theaters, setTheaters] = useState<Theater[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchLoading, setSearchLoading] = useState(false); // Add search-specific loading
+  const [searchLoading, setSearchLoading] = useState(false); 
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<any>();
   const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
-  const [currentFilters, setCurrentFilters] = useState({}); // Track current filters
+  const [currentFilters, setCurrentFilters] = useState({}); 
 
   const itemsPerPage = 6;
 
@@ -60,7 +60,7 @@ const TheatersPage: React.FC = () => {
       setTheaters([]);
     } finally {
       setIsLoading(false);
-      setSearchLoading(false); // Clear search loading when fetch completes
+      setSearchLoading(false); 
     }
   }, [currentPage, userLocation]);
 
@@ -111,7 +111,7 @@ const TheatersPage: React.FC = () => {
       totalCount={totalCount}
       error={error}
       selectedFacilities={selectedFacilities} 
-      onSearchChange={handleSearchChange} // Use the new search handler
+      onSearchChange={handleSearchChange} 
       onSortChange={handleSortChange}
       onPageChange={handlePageChange}
       onFacilityChange={handleFacilityChange} 

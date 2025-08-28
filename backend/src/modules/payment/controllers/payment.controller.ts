@@ -9,14 +9,18 @@ export class PaymentController {
   async initiatePayment(req: Request, res: Response): Promise<any> {
     try {
       const paymentDto: InitiatePaymentDto = req.body;
+      
       const result = await this.paymentService.initiatePayment(paymentDto);
       
       if (result.success) {
         res.status(201).json(result);
       } else {
+        
         res.status(400).json(result);
       }
     } catch (error: any) {
+      
+      
       res.status(500).json({
         success: false,
         message: error.message || "Internal server error",
@@ -102,7 +106,61 @@ export class PaymentController {
       });
     }
   }
-  
+
+async createRazorpayOrder(req: Request, res: Response): Promise<any> {
+  try {
+    const { amount, currency } = req.body;
+    
+    const result = await this.paymentService.createRazorpayOrder({
+      amount,
+      currency: currency || 'INR'
+    });
+    
+    if (result.success) {
+      res.status(201).json(result);
+    } else {
+      res.status(400).json(result);
+    }
+  } catch (error: any) {
+
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal server error",
+    });
+  }
+}
+
+async verifyRazorpayPayment(req: Request, res: Response): Promise<any> {
+  try {
+    const { 
+      razorpay_payment_id, 
+      razorpay_order_id, 
+      razorpay_signature,
+      bookingData 
+    } = req.body;
+    const result = await this.paymentService.verifyRazorpayPayment({
+      razorpay_payment_id,
+      razorpay_order_id,
+      razorpay_signature,
+      bookingData
+    });
+    if (result.success) {
+      res.status(200).json(result);
+    } else {
+      console.log(result);
+      
+      res.status(400).json(result);
+    }
+  } catch (error: any) {
+    console.log(error);
+    
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal server error",
+    });
+  }
+}
+
   async cancelPayment(req: Request, res: Response): Promise<any> {
     try {
       const { paymentId } = req.params;

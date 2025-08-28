@@ -20,9 +20,9 @@ const lexendBold = Lexend({
 
 interface SearchHeaderProps {
   searchQuery: string;
-  onSearchInput: (search: string) => void; // Changed from setSearchQuery
-  onClearSearch: () => void; // New clear handler
-  searchLoading?: boolean; // Add search loading prop
+  onSearchInput: (search: string) => void; 
+  onClearSearch: () => void; 
+  searchLoading?: boolean; 
   sortBy: string;
   setSortBy: (sort: string) => void;
   sortOrder: 'asc' | 'desc';
@@ -71,7 +71,6 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
                 )}
               </button>
 
-              {/* Search Input with Loading Indicator */}
               <div className="relative flex-1">
                 <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -84,17 +83,13 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
                   className={`${lexendMedium.className} w-full pl-12 pr-12 py-4 bg-white/10 backdrop-blur-sm border border-gray-500/30 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-white/50 focus:bg-white/20 transition-all duration-300 ${
                     searchLoading ? 'opacity-75' : ''
                   }`}
-                  // disabled={searchLoading}
                 />
                 
-                {/* Right side icons */}
                 <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-                  {/* Search Loading Spinner */}
                   {searchLoading && (
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
                   )}
                   
-                  {/* Clear button */}
                   {searchQuery && !searchLoading && (
                     <button
                       onClick={onClearSearch}

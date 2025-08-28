@@ -1,4 +1,3 @@
-// components/tickets/Barcode.tsx
 'use client';
 
 import React from 'react';

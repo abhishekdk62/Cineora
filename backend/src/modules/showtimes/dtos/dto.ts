@@ -91,9 +91,9 @@ export interface UpdateStatusDto {
 export interface ShowtimeResponseDto {
   id: string;
   ownerId: string;
-  movieId: any; // populated
-  theaterId: any; // populated
-  screenId: any; // populated
+  movieId: any; 
+  theaterId: any; 
+  screenId: any; 
   showDate: Date;
   showTime: string;
   endTime: string;
@@ -185,12 +185,10 @@ export interface PaginatedShowtimeResult {
   pageSize: number;
 }
 
-// For editShowtime method
 export interface EditShowtimeDto extends UpdateShowtimeDto {
   _id: string;
 }
 
-// For admin filter queries
 export interface AdminFiltersDto {
   search?: string;
   showDate?: string;
@@ -204,14 +202,12 @@ export interface AdminFiltersDto {
   sortOrder?: "asc" | "desc";
 }
 
-// For getAllShowtimes method
 export interface GetAllShowtimesFiltersDto {
   theaterId?: string;
   movieId?: string;
   date?: Date;
 }
 
-// For date query validation
 export interface DateQueryDto {
   date: string;
 }

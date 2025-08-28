@@ -24,7 +24,7 @@ interface ActiveUsersProps {
   totalItems: number;
   onPageChange: (page: number) => void;
   onFiltersChange: (filters: UserFilters, resetPage?: boolean) => void;
-  onSearchChange: (searchTerm: string) => void; // Added this
+  onSearchChange: (searchTerm: string) => void; 
   onViewDetails: (user: UserType) => void;
   onToggleStatus: (user: UserType) => void;
 }
@@ -185,7 +185,7 @@ const ActiveUsers: React.FC<ActiveUsersProps> = ({
   totalItems,
   onPageChange,
   onFiltersChange,
-  onSearchChange, // Added this
+  onSearchChange, 
   onViewDetails,
   onToggleStatus,
 }) => {
@@ -210,8 +210,8 @@ const ActiveUsers: React.FC<ActiveUsersProps> = ({
             <input
               type="text"
               placeholder="Search users by name, email, or phone..."
-              value={currentFilters.search || ""} // This will now update properly
-              onChange={(e) => onSearchChange(e.target.value)} // Use the new handler
+              value={currentFilters.search || ""} 
+              onChange={(e) => onSearchChange(e.target.value)} 
               className="w-full pl-10 pr-4 py-2 bg-[#2a2a2a] border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#e78f03]"
             />
           </div>

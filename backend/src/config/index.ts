@@ -29,6 +29,8 @@ export const config = {
   qrCodeSecret:process.env.QR_VERIFICATION_SECRET,
   maxFileSize: Number(process.env.MAX_FILE_SIZE) || 5000000,
   allowedFileTypes: ["image/jpeg", "image/jpg", "image/png", "image/gif"],
+  razorpayKeyId:process.env.RAZORPAY_KEY_ID,
+  razorpaySecret:process.env.RAZORPAY_KEY_SECRET
 };
 
 

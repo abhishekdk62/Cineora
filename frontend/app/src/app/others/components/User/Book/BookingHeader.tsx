@@ -1,4 +1,3 @@
-// components/booking/BookingHeader.tsx
 "use client";
 
 import React from "react";
@@ -15,11 +14,11 @@ interface BookingHeaderProps {
   onBack: () => void;
 }
 
-export default function BookingHeader({ 
-  movie, 
-  theater, 
-  bookingFlow, 
-  onBack 
+export default function BookingHeader({
+  movie,
+  theater,
+  bookingFlow,
+  onBack
 }: BookingHeaderProps) {
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -27,34 +26,29 @@ export default function BookingHeader({
     return `${hours}h ${mins}m`;
   };
 
-  // Helper function to format location safely
   const formatLocation = (theaterData: any): string => {
-    // Try theaterLocation first
     if (theaterData?.theaterLocation?.coordinates) {
       const [lng, lat] = theaterData.theaterLocation.coordinates;
       return `${lat.toFixed(3)}, ${lng.toFixed(3)}`;
     }
-    
-    // Try location object
+
     if (theaterData?.location?.coordinates) {
       const [lng, lat] = theaterData.location.coordinates;
       return `${lat.toFixed(3)}, ${lng.toFixed(3)}`;
     }
-    
-    // Try location as string
+
     if (typeof theaterData?.location === 'string') {
       return theaterData.location;
     }
-    
-    // Try address fields
+
     if (theaterData?.city && theaterData?.state) {
       return `${theaterData.city}, ${theaterData.state}`;
     }
-    
+
     if (theaterData?.address) {
       return theaterData.address;
     }
-    
+
     return "Location not available";
   };
 
@@ -102,23 +96,26 @@ export default function BookingHeader({
             </div>
           )}
 
-          {/* Theater Header (theater-first flow) */}
           {bookingFlow === 'theater-first' && theater && (
-            <div>
-              <h1 className={`${lexendBold.className} text-2xl md:text-3xl text-white mb-2`}>
+            <div className=" flex justify-between">
+             <div>
+               <h1 className={`${lexendBold.className} text-2xl md:text-3xl text-white mb-2`}>
                 {theater.theaterName ?? theater.name ?? "Unknown Theater"}
               </h1>
-              <div className="flex items-center gap-4 text-gray-300">
-                <span className={`${lexendSmall.className}`}>
-                  {formatLocation(theater)} {/* ✅ FIXED: Use helper function */}
-                </span>
-                {theater.distance && (
-                  <>
-                    <span className={`${lexendSmall.className}`}>•</span>
-                    <span className={`${lexendSmall.className}`}>{theater.distance} away</span>
-                  </>
-                )}
-              </div>
+              <p className={`${lexendSmall.className} text-gray-300 text-sm`}>
+                {theater.city}, {theater.state} • {theater.screens} Screens
+              </p>
+             </div>
+              <button
+                onClick={() => {
+                  const url = `https://www.google.com/maps?q=${theater.location?.coordinates[1]},${theater.location?.coordinates[0]}`;
+                  window.open(url, "_blank");
+                }}
+                className={`${lexendSmall.className} text-xs text-[#009ffc] hover:text-[#1975d0] underline`}
+              >
+                View Location
+              </button>
+           
               {theater.amenities?.length && (
                 <div className="flex flex-wrap gap-2 mt-4">
                   {theater.amenities.map((amenity, index) => (
@@ -131,7 +128,9 @@ export default function BookingHeader({
                   ))}
                 </div>
               )}
+
             </div>
+
           )}
         </div>
       </div>

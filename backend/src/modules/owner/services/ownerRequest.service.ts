@@ -565,7 +565,6 @@ console.log('the password for the new owner is :',randomPassword);
     try {
       const { files, folder } = uploadMultipleDto;
 
-      // Validate each file
       for (const file of files) {
         const allowedTypes = [
           "image/jpeg",
@@ -580,7 +579,7 @@ console.log('the password for the new owner is :',randomPassword);
           };
         }
 
-        const maxSize = 5 * 1024 * 1024; // 5MB
+        const maxSize = 5 * 1024 * 1024; 
         if (file.size > maxSize) {
           return {
             success: false,

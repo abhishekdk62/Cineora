@@ -41,6 +41,7 @@ export class TicketRepository implements ITicketRepository {
       .populate("movieId", "title poster")
       .populate("theaterId", "name")
       .populate("screenId", "name")
+      .populate('showtimeId','endTime showTime')
       .sort({ showDate: -1 })
       .skip(skip)
       .limit(limit);

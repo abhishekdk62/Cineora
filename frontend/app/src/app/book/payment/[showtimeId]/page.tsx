@@ -12,6 +12,7 @@ import { lexendBold } from "@/app/others/Utils/fonts";
 import { useSelector, useDispatch } from "react-redux";
 import { getShowTimeUser } from "@/app/others/services/userServices/showTimeServices";
 import { calculateTotalAmount, setBookingData } from "@/app/others/redux/slices/bookingSlice";
+import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
 
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
 
@@ -26,7 +27,7 @@ export default function PaymentPage() {
   const [showTimeData, setShowTimeData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [seatIdsUpdated, setSeatIdsUpdated] = useState(false); // Flag to prevent infinite dispatch
+  const [seatIdsUpdated, setSeatIdsUpdated] = useState(false); 
 
 
   useEffect(() => {
@@ -176,7 +177,9 @@ export default function PaymentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden">
+  <RouteGuard allowedRoles={['user']} >
+
+  <div className="min-h-screen bg-black relative overflow-hidden">
       <div className="fixed inset-0 z-10 opacity-30">
         <Prism
           animationType="rotate"
@@ -222,5 +225,8 @@ export default function PaymentPage() {
         />
       )}
     </div>
+
+
+  </RouteGuard>
   );
 }
