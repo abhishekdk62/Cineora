@@ -59,6 +59,9 @@ import { WalletController } from "./modules/wallet/controllers/wallet.controller
 import { PaymentController } from "./modules/payment/controllers/payment.controller";
 import { PaymentService } from "./modules/payment/services/payment.service";
 import { PaymentRepository } from "./modules/payment/repositories/payment.repository";
+import { WalletTransactionService } from "./modules/walletTransaction/services/walletTransaction.service";
+import { WalletTransactionRepository } from "./modules/walletTransaction/repositories/walletTransaction.repository";
+import { WalletTransactionController } from "./modules/walletTransaction/controllers/walletTransaction.controller";
 
 export class App {
   private app: Application;
@@ -101,7 +104,8 @@ export class App {
     const showtimeRepo = new ShowtimeRepository();
     const movieRepo = new MovieRepository();
     const ticketRepo = new TicketRepository();
-    const paymentRepo=new PaymentRepository()
+    const paymentRepo = new PaymentRepository();
+    const walletTransactionRepo = new WalletTransactionRepository();
     const bookingRepo = new BookingRepository();
     const userService = new UserService(
       userRepo,
@@ -127,11 +131,14 @@ export class App {
     const otpService = new OTPService(otpRepo);
     const theaterService = new TheaterService(theaterRepo, emailService);
     const screenService = new ScreenService(screenRepo, theaterRepo);
-    const ticketService = new TicketService(ticketRepo,emailService);
-    const paymentService=new PaymentService(paymentRepo)
+    const ticketService = new TicketService(ticketRepo, emailService);
+    const paymentService = new PaymentService(paymentRepo);
     const bookingService = new BookingService(bookingRepo, showtimeRepo);
     const walletService = new WalletService(walletRepo);
     const showtimeService = new ShowtimeService(showtimeRepo);
+    const walletTransactionService = new WalletTransactionService(
+      walletTransactionRepo
+    );
     const movieService = new MovieService(movieRepo);
     const authService = new AuthService(
       userRepo,
@@ -145,7 +152,6 @@ export class App {
     const userController = new UserController(
       userService,
       authService,
-      movieService,
       walletService
     );
     const ownerController = new OwnerController(ownerService);
@@ -154,11 +160,13 @@ export class App {
     );
     const screenController = new ScreenController(screenService);
 
-    const ticketController = new TicketController(ticketService,walletService);
+    const ticketController = new TicketController(ticketService, walletService,walletTransactionService);
     const bookingController = new BookingController(
       bookingService,
       ticketService,
-      userService
+      userService,
+      walletService,
+      walletTransactionService
     );
     const showtimeController = new ShowtimeController(showtimeService);
     const theaterController = new TheaterController(
@@ -167,9 +175,11 @@ export class App {
     );
     const moviesController = new MoviesController(movieService);
     const authController = new AuthController(authService);
-    const walletController = new WalletController(walletService);
-    const paymentController=new PaymentController(paymentService)
-
+    const walletController = new WalletController(walletService,walletTransactionService);
+    const paymentController = new PaymentController(paymentService);
+    const walletTransactionController = new WalletTransactionController(
+      walletTransactionService
+    );
     const adminRoutes = new AdminRoutes(
       express.Router(),
       moviesController,
@@ -184,7 +194,7 @@ export class App {
     const userRoutes = new UserRoutes(
       express.Router(),
       userController,
-      theaterController,
+      walletTransactionController,
       showtimeController,
       bookingController,
       ticketController,

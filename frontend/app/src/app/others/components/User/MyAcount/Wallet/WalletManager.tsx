@@ -1,20 +1,39 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import WalletCard from './WalletCard';
-import { getWallet } from '@/app/others/services/userServices/walletServices';
+import { creditWallet, getTransactionDetails, getWallet } from '@/app/others/services/userServices/walletServices';
+import WalletLoading from './WalletLoading';
+import WalletError from './WalletError';
+import TransactionHistory from './TransactionHistory';
+import WalletBalance from './WalletBalance';
+import AddMoneyModal from './AddMoneyModal';
+import toast from 'react-hot-toast';
+import { createRazorpayOrder, verifyRazorpayPayment } from '@/app/others/services/userServices/paypalServices';
+import FailureStep from './FailureStep';
+
 
 const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
-const lexendSmall = { className: "font-normal text-sm" };
 
+// Updated interfaces to match your backend data structure
 interface Transaction {
-  id: string;
+  _id: string;
   type: 'credit' | 'debit';
   amount: number;
   description: string;
-  timestamp: string;
+  createdAt: string;
   status: 'completed' | 'pending' | 'failed';
+  category: 'booking' | 'refund' | 'topup' | 'withdrawal' | 'revenue';
+  transactionId: string;
+  movieId?: {
+    _id: string;
+    title: string;
+  };
+  theaterId?: {
+    _id: string;
+    name: string;
+  };
+  referenceId?: string;
 }
 
 interface WalletData {
@@ -27,21 +46,27 @@ const WalletPage: React.FC = () => {
     balance: 0,
     transactions: []
   });
+  const [showAddMoneyModal, setShowAddMoneyModal] = useState(false);
+  const [isFailed, setIsFailed] = useState(false)
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchWalletData = async () => {
       try {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-     const result=await getWallet()
-     console.log(result.data);
-     
-        
-        setWalletData(result.data);
+        const walletResult = await getWallet();
+        console.log('Wallet data:', walletResult.data);
+        const transactionResult = await getTransactionDetails();
+        console.log('Transaction data:', transactionResult.data);
+        setWalletData({
+          balance: walletResult.data?.balance || 0,
+          transactions: transactionResult.data?.transactions || []
+        });
         setLoading(false);
       } catch (error) {
         console.error('Error fetching wallet data:', error);
+        setError('Failed to load wallet data');
+
         setLoading(false);
       }
     };
@@ -50,53 +75,205 @@ const WalletPage: React.FC = () => {
   }, []);
 
   const handleAddMoney = () => {
-    console.log('Opening add money modal...');
-   
+    setShowAddMoneyModal(true);
   };
 
-  const handleWithdraw = () => {
-    console.log('Opening withdraw modal...');
+
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [isRazorpayLoaded, setIsRazorpayLoaded] = useState(false)
+
+  useEffect(() => {
+    const loadRazorpayScript = () => {
+      return new Promise((resolve) => {
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.onload = () => {
+          setIsRazorpayLoaded(true);
+          resolve(true);
+        };
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+      });
+    };
+
+    if (!window.Razorpay) {
+      loadRazorpayScript();
+    } else {
+      setIsRazorpayLoaded(true);
+    }
+  }, []);
+  const handleAddMoneySubmit = async (amount: number, method: string) => {
+    if (!window.Razorpay || !isRazorpayLoaded) {
+      toast.error('Razorpay SDK failed to load. Please try again.');
+      return;
+    }
+
+    setIsProcessing(true);
+    let isPaymentProcessing = false;
+
+    try {
+      const orderResponse = await createRazorpayOrder({
+        amount: amount * 100,
+        currency: 'INR'
+      });
+
+      const orderId = orderResponse.data.id;
+
+      if (!orderId) {
+        setShowAddMoneyModal(false)
+        throw new Error('Invalid order response - missing order ID');
+
+      }
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: amount * 100,
+        currency: 'INR',
+        name: 'Wallet Top-up',
+        description: 'Add money to wallet',
+        order_id: orderId,
+        handler: async (response: any) => {
+          try {
+            isPaymentProcessing = true;
+            console.log('Payment successful:', response);
+
+            const verifyResponse = await verifyRazorpayPayment({
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+
+            if (verifyResponse.success) {
+              try {
+                await creditWallet({
+                  amount: amount,
+                  type: 'credit',
+                  description: `Money added via ${method}`
+                });
+                setWalletData(prev => ({
+                  ...prev,
+                  balance: prev.balance + amount,
+                  transactions: [{
+                    _id: Date.now().toString(),
+                    type: 'credit' as const,
+                    amount,
+                    description: `Money added via ${method}`,
+                    createdAt: new Date().toISOString(),
+                    status: 'completed' as const,
+                    category: 'topup' as const,
+                    transactionId: response.razorpay_payment_id
+                  }, ...prev.transactions]
+                }));
+
+                toast.success(`₹${amount} added to your wallet successfully!`);
+
+              } catch (creditError) {
+                setShowAddMoneyModal(false)
+
+                console.error('Failed to credit wallet:', creditError);
+                toast.error('Payment successful but failed to update wallet. Please contact support.');
+              }
+            } else {
+              setShowAddMoneyModal(false)
+              throw new Error('Payment verification failed');
+            }
+          } catch (error) {
+            setShowAddMoneyModal(false)
+            console.error('Payment verification failed:', error);
+            toast.error('Payment verification failed. Please contact support.');
+          } finally {
+            setIsProcessing(false);
+          }
+        },
+        prefill: {
+          name: 'Customer', // You can replace with actual user data
+          email: '', // You can replace with actual user email
+          contact: '', // You can replace with actual user phone
+        },
+        theme: {
+          color: '#ffffff',
+        },
+        modal: {
+          ondismiss: () => {
+            if (!isPaymentProcessing) {
+              console.log('Payment cancelled by user');
+              setIsProcessing(false);
+            }
+          },
+        },
+      };
+
+      const razorpayInstance = new window.Razorpay(options);
+
+      razorpayInstance.on('payment.failed', function (response: any) {
+        isPaymentProcessing = true;
+        console.error('Payment failed:', response.error);
+        razorpayInstance.close();
+
+        const errorMessage = response.error.description || 'Payment failed';
+        toast.error(errorMessage);
+        setShowAddMoneyModal(false)
+        setIsProcessing(false);
+        setIsFailed(true)
+      });
+
+      razorpayInstance.open();
+
+    } catch (error) {
+      toast.error('Payment Failed');
+      console.error('Payment initiation failed:', error);
+      setIsProcessing(false);
+    }
   };
 
-  const handleViewTransaction = (transaction: Transaction) => {
-    console.log('Viewing transaction details:', transaction);
 
-  };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-transparent p-6">
-        <div className="max-w-4xl mx-auto">
-          {/* Header Skeleton */}
-          <div className="mb-8">
-            <div className="h-8 bg-white/10 rounded-lg w-48 mb-2 animate-pulse"></div>
-            <div className="h-5 bg-white/5 rounded w-64 animate-pulse"></div>
-          </div>
-          
-          {/* Wallet Card Skeleton */}
-          <div className="bg-white/10 border border-white/10 rounded-2xl p-7 mb-6 animate-pulse">
-            <div className="h-6 bg-white/10 rounded w-32 mb-4"></div>
-            <div className="h-12 bg-white/10 rounded w-48 mb-6"></div>
-            <div className="flex gap-3">
-              <div className="h-12 bg-white/10 rounded-xl flex-1"></div>
-              <div className="h-12 bg-white/10 rounded-xl flex-1"></div>
-            </div>
-          </div>
-          
-          {/* Transactions Skeleton */}
-          <div className="bg-white/10 border border-white/10 rounded-2xl p-7 animate-pulse">
-            <div className="h-6 bg-white/10 rounded w-40 mb-6"></div>
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-16 bg-white/5 rounded-xl"></div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+
+  const handleCloseFailed = () => {
+    setIsFailed(false)
+
   }
 
+
+  const calculateMonthlySpent = () => {
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    return walletData.transactions
+      .filter(transaction => {
+        const transactionDate = new Date(transaction.createdAt);
+        return (
+          transaction.type === 'debit' &&
+          transaction.status === 'completed' &&
+          transactionDate.getMonth() === currentMonth &&
+          transactionDate.getFullYear() === currentYear
+        );
+      })
+      .reduce((sum, transaction) => sum + transaction.amount, 0);
+  };
+
+  // Calculate cashback earned
+  const calculateCashbackEarned = () => {
+    return walletData.transactions
+      .filter(transaction =>
+        transaction.type === 'credit' &&
+        transaction.description.toLowerCase().includes('cashback')
+      )
+      .reduce((sum, transaction) => sum + transaction.amount, 0);
+  };
+
+  // Show loading component
+  if (loading) {
+    return <WalletLoading />;
+  }
+
+  // Show error component
+  if (error) {
+    return <WalletError error={error} />;
+  }
+
+  // Main wallet page content
   return (
     <div className="min-h-screen bg-transparent p-6">
       <div className="max-w-4xl mx-auto">
@@ -109,46 +286,28 @@ const WalletPage: React.FC = () => {
             Manage your wallet balance and view transaction history
           </p>
         </div>
-        <WalletCard
-          balance={walletData?.balance}
-          transactions={walletData?.transactions}
-          onAddMoney={handleAddMoney}
-          onWithdraw={handleWithdraw}
-          onViewTransaction={handleViewTransaction}
-        />
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
-            <div className={`${lexendMedium.className} text-gray-300 text-sm mb-2`}>
-              This Month Spent
-            </div>
-            <div className={`${lexendBold.className} text-2xl text-white`}>
-              ₹{walletData?.transactions&&walletData?.transactions
-                .filter(t => t.type === 'debit' && t.status === 'completed')
-                .reduce((sum, t) => sum + t.amount, 0)
-                .toLocaleString()}
-            </div>
-          </div>
-          <div className="bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
-            <div className={`${lexendMedium.className} text-gray-300 text-sm mb-2`}>
-              Total Transactions
-            </div>
-            <div className={`${lexendBold.className} text-2xl text-white`}>
-              {walletData?.transactions?.length}
-            </div>
-          </div>
 
-          <div className="bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
-            <div className={`${lexendMedium.className} text-gray-300 text-sm mb-2`}>
-              Cashback Earned
-            </div>
-            <div className={`${lexendBold.className} text-2xl text-green-400`}>
-              ₹{walletData?.transactions&&walletData?.transactions
-                .filter(t => t.type === 'credit' && t.description.includes('Cashback'))
-                .reduce((sum, t) => sum + t.amount, 0)
-                .toLocaleString()}
-            </div>
-          </div>
-        </div>
+        <WalletBalance
+          balance={walletData.balance}
+          monthlySpent={calculateMonthlySpent()}
+          totalTransactions={walletData.transactions.length}
+          cashbackEarned={calculateCashbackEarned()}
+          onAddMoney={handleAddMoney}
+        />
+
+        <TransactionHistory
+          transactions={walletData.transactions}
+        />
+        <AddMoneyModal
+          isOpen={showAddMoneyModal}
+          onClose={() => setShowAddMoneyModal(false)}
+          currentBalance={walletData.balance}
+          onAddMoney={handleAddMoneySubmit}
+        />
+          <FailureStep
+          isOpen={isFailed}
+            onClose={handleCloseFailed}
+          />
       </div>
     </div>
   );

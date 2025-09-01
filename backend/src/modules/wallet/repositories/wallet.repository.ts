@@ -1,7 +1,6 @@
 import Wallet from "../models/wallet.model";
 import { IWalletRepository } from "../interfaces/wallet.repository.interface";
 import { IWallet } from "../interfaces/wallet.model.interface";
-import { IWalletForTransaction } from "../../transactions/interfaces/transactions.model.interface";
 
 export class WalletRepository implements IWalletRepository {
   async create(walletData: Partial<IWallet>): Promise<IWallet | null> {
@@ -9,7 +8,7 @@ export class WalletRepository implements IWalletRepository {
     return wallet.save();
   }
   
-  async findByUser(userId: string, userModel: 'User' | 'Owner'): Promise<IWalletForTransaction | null> {
+  async findByUser(userId: string, userModel: 'User' | 'Owner'): Promise<IWallet | null> {
     return Wallet.findOne({ userId, userModel });
   }
   

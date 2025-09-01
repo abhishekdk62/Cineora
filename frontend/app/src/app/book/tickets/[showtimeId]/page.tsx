@@ -322,7 +322,7 @@ export default function SeatSelectionPage() {
         releaseDate: showtimeData.movieId.releaseDate,
         tmdbId: showtimeData.movieId.tmdbId,
         trailer: showtimeData.movieId.trailer,
-      },
+      }, 
 
       theaterName: showtimeData.theaterId.name,
       theaterDetails: {

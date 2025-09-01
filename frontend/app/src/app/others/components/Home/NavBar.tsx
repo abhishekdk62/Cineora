@@ -38,6 +38,7 @@ export default function NavBar() {
   }, []);
 
   const handleClickAcc = () => {
+    localStorage.removeItem('selectedTab')
     router.push("/user/account");
   };
 

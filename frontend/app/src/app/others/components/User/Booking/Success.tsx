@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { CheckCircle, Download, Calendar, Clock, MapPin, Users, ArrowRight } from 'lucide-react';
+import { CheckCircle, Download, Calendar, Clock, MapPin, Users, ArrowRight, TicketIcon, TicketCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 const lexendBold = { className: "font-bold" };
@@ -28,7 +28,10 @@ const PaymentSuccessPage: React.FC<PaymentSuccessProps> = ({ bookingDetails }) =
     router.push('/search/movies'); 
   };
  
-
+const handleCickViewTicket=()=>{
+  router.push('/user/account')
+  localStorage.setItem('selectedTab','viewTicket')
+}
   return (
     <div className="min-h-screen bg-transparent p-6 flex items-center justify-center">
       <div className="max-w-md w-full space-y-8">
@@ -118,13 +121,19 @@ const PaymentSuccessPage: React.FC<PaymentSuccessProps> = ({ bookingDetails }) =
         {/* Action Buttons */}
         <div className="space-y-3">
           <button
-            onClick={handleBrowseMovies}
+            onClick={handleCickViewTicket}
             className={`${lexendMedium.className} w-full bg-white text-black px-6 py-4 rounded-xl hover:bg-gradient-to-tr hover:from-violet-300 hover:to-yellow-100 transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center gap-2`}
           >
-            <ArrowRight className="w-4 h-4" />
-            Browse More Movies
+            View Ticket
           </button>
 
+          <button
+            onClick={handleBrowseMovies}
+            className={`${lexendMedium.className} w-full bg-transparent text-white border border-white px-6 py-4 rounded-xl hover:bg-gradient-to-tr  transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center gap-2`}
+          >
+            Browse More Movies
+            <ArrowRight className="w-4 h-4" />
+          </button>
        
         </div>
 

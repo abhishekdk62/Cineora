@@ -14,7 +14,7 @@ export interface CreateBookingDto {
   theaterId: string;
   screenId: string;
   showtimeId: string;
-  
+  movieTitle:String;
   selectedRows?: SelectedRow[];
   
   selectedSeats?: string[];

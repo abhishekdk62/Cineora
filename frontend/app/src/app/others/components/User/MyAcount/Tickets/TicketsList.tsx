@@ -266,6 +266,7 @@ const TicketsList: React.FC = () => {
                 {/* Tickets List */}
                 {filteredBookings.map((booking) => (
                     <TicketCard
+                    getTickets={getTickets}
                         activeTab={activeTab}
                         key={booking._id}
                         booking={booking}

@@ -1,43 +1,44 @@
 import { Request, Response } from "express";
 import { PaymentService } from "../services/payment.service";
 import { IPaymentService } from "../interfaces/payment.service.interface";
-import { InitiatePaymentDto, PaymentCallbackDto, RefundPaymentDto } from "../dtos/dto";
+import {
+  InitiatePaymentDto,
+  PaymentCallbackDto,
+  RefundPaymentDto,
+} from "../dtos/dto";
 
 export class PaymentController {
   constructor(private readonly paymentService: IPaymentService) {}
-  
+
   async initiatePayment(req: Request, res: Response): Promise<any> {
     try {
       const paymentDto: InitiatePaymentDto = req.body;
-      
+
       const result = await this.paymentService.initiatePayment(paymentDto);
-      
+
       if (result.success) {
         res.status(201).json(result);
       } else {
-        
         res.status(400).json(result);
       }
     } catch (error: any) {
-      
-      
       res.status(500).json({
         success: false,
         message: error.message || "Internal server error",
       });
     }
   }
-  
+
   async paymentCallback(req: Request, res: Response): Promise<any> {
     try {
       const { paymentId } = req.params;
       const gatewayResponse = req.body;
-      
+
       const result = await this.paymentService.processPaymentCallback(
         paymentId,
         gatewayResponse
       );
-      
+
       if (result.success) {
         res.status(200).json(result);
       } else {
@@ -50,12 +51,12 @@ export class PaymentController {
       });
     }
   }
-  
+
   async getPaymentById(req: Request, res: Response): Promise<any> {
     try {
       const { paymentId } = req.params;
       const result = await this.paymentService.getPaymentById(paymentId);
-      
+
       if (result.success) {
         res.status(200).json(result);
       } else {
@@ -68,12 +69,12 @@ export class PaymentController {
       });
     }
   }
-  
+
   async getUserPayments(req: Request, res: Response): Promise<any> {
     try {
       const { userId } = req.params;
       const result = await this.paymentService.getUserPayments(userId);
-      
+
       res.status(200).json(result);
     } catch (error: any) {
       res.status(500).json({
@@ -82,18 +83,18 @@ export class PaymentController {
       });
     }
   }
-  
+
   async refundPayment(req: Request, res: Response): Promise<any> {
     try {
       const { paymentId } = req.params;
       const { refundAmount, refundReason }: RefundPaymentDto = req.body;
-      
+
       const result = await this.paymentService.refundPayment(
         paymentId,
         refundAmount,
         refundReason
       );
-      
+
       if (result.success) {
         res.status(200).json(result);
       } else {
@@ -107,65 +108,64 @@ export class PaymentController {
     }
   }
 
-async createRazorpayOrder(req: Request, res: Response): Promise<any> {
-  try {
-    const { amount, currency } = req.body;
-    
-    const result = await this.paymentService.createRazorpayOrder({
-      amount,
-      currency: currency || 'INR'
-    });
-    
-    if (result.success) {
-      res.status(201).json(result);
-    } else {
-      res.status(400).json(result);
-    }
-  } catch (error: any) {
+  async createRazorpayOrder(req: Request, res: Response): Promise<any> {
+    try {
+      const { amount, currency } = req.body;
 
-    res.status(500).json({
-      success: false,
-      message: error.message || "Internal server error",
-    });
-  }
-}
+      const result = await this.paymentService.createRazorpayOrder({
+        amount,
+        currency: currency || "INR",
+      });
 
-async verifyRazorpayPayment(req: Request, res: Response): Promise<any> {
-  try {
-    const { 
-      razorpay_payment_id, 
-      razorpay_order_id, 
-      razorpay_signature,
-      bookingData 
-    } = req.body;
-    const result = await this.paymentService.verifyRazorpayPayment({
-      razorpay_payment_id,
-      razorpay_order_id,
-      razorpay_signature,
-      bookingData
-    });
-    if (result.success) {
-      res.status(200).json(result);
-    } else {
-      console.log(result);
-      
-      res.status(400).json(result);
+      if (result.success) {
+        res.status(201).json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Internal server error",
+      });
     }
-  } catch (error: any) {
-    console.log(error);
-    
-    res.status(500).json({
-      success: false,
-      message: error.message || "Internal server error",
-    });
   }
-}
+
+  async verifyRazorpayPayment(req: Request, res: Response): Promise<any> {
+    try {
+      const {
+        razorpay_payment_id,
+        razorpay_order_id,
+        razorpay_signature,
+        bookingData,
+      } = req.body;
+      const result = await this.paymentService.verifyRazorpayPayment({
+        razorpay_payment_id,
+        razorpay_order_id,
+        razorpay_signature,
+        bookingData,
+      });
+      if (result.success) {
+        res.status(200).json(result);
+      } else {
+        console.log(result);
+
+        res.status(400).json(result);
+      }
+    } catch (error: any) {
+      console.log(error);
+
+      res.status(500).json({
+        success: false,
+        message: error.message || "Internal server error",
+      });
+    }
+  }
 
   async cancelPayment(req: Request, res: Response): Promise<any> {
     try {
       const { paymentId } = req.params;
       const result = await this.paymentService.cancelPayment(paymentId);
-      
+
       if (result.success) {
         res.status(200).json(result);
       } else {
@@ -178,17 +178,17 @@ async verifyRazorpayPayment(req: Request, res: Response): Promise<any> {
       });
     }
   }
-  
+
   async verifyPayment(req: Request, res: Response): Promise<any> {
     try {
       const { paymentId } = req.params;
       const { gatewayTransactionId } = req.body;
-      
+
       const result = await this.paymentService.verifyPayment(
         paymentId,
         gatewayTransactionId
       );
-      
+
       if (result.success) {
         res.status(200).json(result);
       } else {
@@ -201,12 +201,12 @@ async verifyRazorpayPayment(req: Request, res: Response): Promise<any> {
       });
     }
   }
-  
+
   async getPaymentStatus(req: Request, res: Response): Promise<any> {
     try {
       const { paymentId } = req.params;
       const result = await this.paymentService.getPaymentStatus(paymentId);
-      
+
       if (result.success) {
         res.status(200).json(result);
       } else {

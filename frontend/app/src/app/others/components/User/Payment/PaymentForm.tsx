@@ -3,27 +3,30 @@ import { PaymentButton } from './PaymentButton'
 import { PaymentMethodList } from './PaymentMethodList'
 import { lexendBold, lexendSmall } from '@/app/others/Utils/fonts'
 import { X } from 'lucide-react';
+import { paymentTypes } from './PaymentModal';
 
 interface PaymentFormProps {
     selectedPaymentMethod: string;
-    setSelectedPaymentMethod: React.Dispatch<React.SetStateAction<string>>;
+    onSelectPaymentMethod: (method: paymentTypes) => void;
     isProcessing: boolean;
     setIsProcessing: React.Dispatch<React.SetStateAction<boolean>>;
     handlePayment: () => void;
     onClose: () => void;
     totalAmount: number;
-    isRazorpayLoaded?: boolean; // Add this optional prop
+    walletBalance: null | number;
+    isRazorpayLoaded?: boolean;
 }
 
-const PaymentForm = ({ 
-    selectedPaymentMethod, 
-    setSelectedPaymentMethod, 
-    isProcessing, 
-    setIsProcessing, 
-    handlePayment, 
-    onClose, 
+const PaymentForm = ({
+    selectedPaymentMethod,
+    onSelectPaymentMethod,
+    isProcessing,
+    walletBalance,
+    setIsProcessing,
+    handlePayment,
+    onClose,
     totalAmount,
-    isRazorpayLoaded = true 
+    isRazorpayLoaded = true
 }: PaymentFormProps) => {
     return (
         <div className="w-full max-w-lg bg-black/90 rounded-2xl border border-gray-500/30 shadow-2xl">
@@ -46,7 +49,6 @@ const PaymentForm = ({
                     </button>
                 </div>
 
-                {/* Loading indicator for Razorpay */}
                 {!isRazorpayLoaded && (
                     <div className={`${lexendSmall.className} text-center text-gray-400 mb-4 p-3 bg-white/5 rounded-lg border border-gray-600/30`}>
                         <div className="flex items-center justify-center gap-2">
@@ -57,11 +59,12 @@ const PaymentForm = ({
                 )}
 
                 <PaymentMethodList
+                totalAmount={totalAmount}
+                    walletBalance={walletBalance}
                     selectedMethod={selectedPaymentMethod}
-                    onMethodSelect={setSelectedPaymentMethod}
+                    onMethodSelect={onSelectPaymentMethod}
                 />
 
-                {/* Total Amount - Updated to match PriceSummary style */}
                 <div className="pt-6 border-t border-gray-600/30">
                     <div className="flex justify-between items-center p-4 bg-white/5 rounded-xl border border-gray-500/20 mb-6">
                         <span className={`${lexendBold.className} text-white text-xl`}>TOTAL AMOUNT</span>
@@ -72,15 +75,15 @@ const PaymentForm = ({
                         </div>
                     </div>
                 </div>
-
                 <PaymentButton
+
                     totalAmount={totalAmount}
+                    walletBalance={walletBalance}
                     selectedMethod={selectedPaymentMethod}
                     isProcessing={isProcessing}
                     onPayment={handlePayment}
-                    isRazorpayLoaded={isRazorpayLoaded} // Pass the prop to PaymentButton
+                    isRazorpayLoaded={isRazorpayLoaded}
                 />
-
                 <p className={`${lexendSmall.className} text-gray-500 text-xs text-center mt-4`}>
                     Your payment is secured with 256-bit SSL encryption
                 </p>

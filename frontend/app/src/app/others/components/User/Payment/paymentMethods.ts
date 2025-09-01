@@ -20,7 +20,6 @@ export const paymentMethods = [
   {
     id: 'wallet',
     name: 'Digital Wallet',
-    description: 'PayTM, PhonePe, Google Pay',
     icon: Wallet,
     color: 'from-purple-500 to-pink-600',
     offers: 'Instant Refund',
