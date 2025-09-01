@@ -8,7 +8,7 @@ export interface PaymentVerificationData {
   razorpay_payment_id: string;
   razorpay_order_id: string;
   razorpay_signature: string;
-  bookingData: any; 
+  bookingData?: any; 
 }
 export interface CreateOrderResponse {
   id: string;

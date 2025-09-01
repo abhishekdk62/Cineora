@@ -6,18 +6,18 @@ import { BookingController } from "../../bookings/controllers/bookings.controlle
 import { TicketController } from "../../tickets/controllers/ticket.controller";
 import { WalletController } from "../../wallet/controllers/wallet.controller";
 import { PaymentController } from "../../payment/controllers/payment.controller";
+import { WalletTransactionController } from "../../walletTransaction/controllers/walletTransaction.controller";
 
 export class UserRoutes {
   constructor(
     private router: express.Router = express.Router(),
     private userController: UserController,
-    private theaterController: TheaterController,
+    private walletTransactionController: WalletTransactionController,
     private showtimeController: ShowtimeController,
     private bookingController: BookingController,
     private ticketController: TicketController,
     private walletController: WalletController,
-    private paymentController: PaymentController,
-  
+    private paymentController: PaymentController
   ) {
     this.setRoutes();
   }
@@ -64,6 +64,7 @@ export class UserRoutes {
     this.router.get("/tickets", (req, res) =>
       this.ticketController.getUserTickets(req, res)
     );
+
     this.router.get("/wallet", (req, res) =>
       this.walletController.getBalance(req, res)
     );
@@ -74,8 +75,20 @@ export class UserRoutes {
     this.router.post("/razorpay/verify-payment", (req, res) =>
       this.paymentController.verifyRazorpayPayment(req, res)
     );
+    this.router.post("/wallet/transactions", (req, res) =>
+      this.walletController.handleWalletTransaction(req, res)
+    );
 
-    this.router.delete('/cancel/ticket',(req,res)=>this.ticketController.cancelTicket(req,res))
+    this.router.delete("/cancel/ticket", (req, res) =>
+      this.ticketController.cancelTicket(req, res)
+    );
+    this.router.post("/wallet/debit", (req, res) =>
+      this.walletController.debitWallet(req, res)
+    );
+
+    this.router.get("/transaction", (req, res) =>
+      this.walletTransactionController.getUserTransactions(req, res)
+    );
   }
 
   public getRouter() {

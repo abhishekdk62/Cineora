@@ -105,6 +105,8 @@ const MyAccount: React.FC = () => {
       const data = await getOwnerProfile();
       let result = data.data;
       setProfile(result);
+      console.log(data);
+      
 
       setBankDetails({
         bankName: result.bankName || "",

@@ -8,29 +8,30 @@ interface PaymentButtonProps {
   selectedMethod: string;
   isProcessing: boolean;
   onPayment: () => void;
-  isRazorpayLoaded?: boolean; 
+  isRazorpayLoaded?: boolean;
+  walletBalance:number|null
 }
 
 export const PaymentButton: React.FC<PaymentButtonProps> = ({
   totalAmount,
   selectedMethod,
+  walletBalance,
   isProcessing,
   onPayment,
-  isRazorpayLoaded = true 
+  isRazorpayLoaded = true
 }) => {
-  const isDisabled = !selectedMethod || 
-                    isProcessing || 
-                    (selectedMethod === 'razorpay' && !isRazorpayLoaded);
+  const isDisabled = !selectedMethod || selectedMethod == 'upi' ||(walletBalance!==null&&selectedMethod=='wallet'&&Number(totalAmount) >walletBalance )||
+    isProcessing ||
+    (selectedMethod === 'razorpay' && !isRazorpayLoaded);
 
   return (
     <button
       onClick={onPayment}
       disabled={isDisabled}
-      className={`${lexendMedium.className} w-full py-4 rounded-xl text-lg transition-all duration-300 ${
-        isDisabled
+      className={`${lexendMedium.className} w-full py-4 rounded-xl text-lg transition-all duration-300 ${isDisabled
           ? 'bg-gray-600 text-gray-400 cursor-not-allowed border border-gray-600/30'
           : 'bg-white text-black hover:bg-gradient-to-tr hover:from-violet-300 border hover:to-yellow-100 font-medium py-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02]'
-      }`}
+        }`}
     >
       {isProcessing ? (
         <div className="flex items-center justify-center gap-2">

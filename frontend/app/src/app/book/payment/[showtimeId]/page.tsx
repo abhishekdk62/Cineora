@@ -21,14 +21,11 @@ export default function PaymentPage() {
   const router = useRouter();
   const dispatch = useDispatch();
   const showtimeId = params?.showtimeId as string;
-
   const bookingDatasRedux = useSelector((state: any) => state.booking.bookingData);
-
   const [showTimeData, setShowTimeData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [seatIdsUpdated, setSeatIdsUpdated] = useState(false); 
-
+  const [seatIdsUpdated, setSeatIdsUpdated] = useState(false);
 
   useEffect(() => {
     const fetchShowTimeData = async () => {
@@ -79,10 +76,13 @@ export default function PaymentPage() {
     const rowPricing = showTimeData.rowPricing.find((rp: any) => rp.rowLabel === rowLabel);
     return rowPricing ? { id: rowPricing._id } : { id: 'unknown' };
   }, [showTimeData?.rowPricing]);
+
+  // ✅ Fixed: Separated computation from side effects
   const seatBreakdown = useMemo(() => {
     if (!bookingDatasRedux?.selectedSeats || !showTimeData?.rowPricing) {
-      return [];
+      return { breakdown: [], selectedRowIds: [] };
     }
+    
     const breakdown: any[] = [];
     const selectedRowIds: string[] = [];
 
@@ -103,24 +103,28 @@ export default function PaymentPage() {
       selectedRowIds.push(seatIdObj.id);
     });
 
-    if (!seatIdsUpdated && selectedRowIds.length > 0) {
-      dispatch(setBookingData({ selectedRowIds }));
-      setSeatIdsUpdated(true);
-    }
-
-    return breakdown;
+    // ✅ Return both breakdown and selectedRowIds without dispatching
+    return { breakdown, selectedRowIds };
   }, [
     bookingDatasRedux?.selectedSeats,
     showTimeData?.rowPricing,
     getSeatPrice,
-    getSeatIds,
-    seatIdsUpdated,
-    dispatch
+    getSeatIds
   ]);
+
+  // ✅ Fixed: Moved dispatch to useEffect
+  useEffect(() => {
+    if (!seatIdsUpdated && seatBreakdown.selectedRowIds.length > 0) {
+      dispatch(setBookingData({ selectedRowIds: seatBreakdown.selectedRowIds }));
+      setSeatIdsUpdated(true);
+    }
+  }, [seatBreakdown.selectedRowIds, seatIdsUpdated, dispatch]);
 
   const paymentData = useMemo(() => {
     if (!bookingDatasRedux || !showTimeData) return null;
-    let finalSeatBreakdown = seatBreakdown;
+    
+    let finalSeatBreakdown = seatBreakdown.breakdown; // ✅ Updated to use breakdown property
+    
     if (finalSeatBreakdown.length === 0 && bookingDatasRedux.selectedSeats) {
       finalSeatBreakdown = bookingDatasRedux.selectedSeats.map((seatId: string) => ({
         type: "Standard",
@@ -132,13 +136,15 @@ export default function PaymentPage() {
         seatId: seatId
       }));
     }
+    
     const seatTotal = finalSeatBreakdown.reduce((sum: number, item: any) => sum + item.total, 0);
     const convenienceFee = Math.round(seatTotal * 0.05);
     const taxes = Math.round(seatTotal * 0.18);
     const totalAmount = seatTotal + convenienceFee + taxes;
+    
     return {
       movieTitle: showTimeData.movieId?.title || "Movie Title",
-      moviePoster:showTimeData.movieId?.poster,
+      moviePoster: showTimeData.movieId?.poster,
       movieRating: showTimeData.movieId?.rating || 0,
       theaterName: showTimeData.theaterId?.name || "Theater Name",
       screenName: `Screen ${showTimeData.screenId?.name || showTimeData.screenId || 1}`,
@@ -159,16 +165,17 @@ export default function PaymentPage() {
       total: totalAmount,
       savings: 0
     };
-  }, [bookingDatasRedux, showTimeData, seatBreakdown]);
+  }, [bookingDatasRedux, showTimeData, seatBreakdown.breakdown]); // ✅ Updated dependency
+
   const handleBack = useCallback(() => {
     router.back();
   }, [router]);
+
   const handleOpenPaymentModal = useCallback(() => {
     setShowPaymentModal(true);
-  }, [bookingDatasRedux]);
+  }, []);
 
   const handleClosePaymentModal = () => {
-
     setShowPaymentModal(false);
   }
 
@@ -177,56 +184,53 @@ export default function PaymentPage() {
   }
 
   return (
-  <RouteGuard allowedRoles={['user']} >
-
-  <div className="min-h-screen bg-black relative overflow-hidden">
-      <div className="fixed inset-0 z-10 opacity-30">
-        <Prism
-          animationType="rotate"
-          timeScale={0.5}
-          height={3.5}
-          baseWidth={5.5}
-          scale={3.6}
-          hueShift={0}
-          colorFrequency={1}
-          noise={0}
-          glow={1.3}
-        />
-      </div>
-      <NavBar />
-      <div className="relative z-20 pb-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative pt-12 pb-8">
-            <button
-              onClick={handleBack}
-              className={`${lexendSmall.className} flex items-center gap-2 text-gray-400 hover:text-white transition-all duration-300 absolute left-0 top-12 z-10`}
-            >
-              <div className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-all">
-                <ArrowLeft className="w-5 h-5" />
-              </div>
-              Back to Seats
-            </button>
-            <div className="flex justify-center">
-              <p className={`${lexendBold.className} text-4xl text-white mb-2`}>
-                Complete Your Booking
-              </p>
-            </div>
-          </div>
-          <BookingSummary
-            data={paymentData}
-            onPayment={handleOpenPaymentModal}
+    <RouteGuard allowedRoles={['user']} >
+      <div className="min-h-screen bg-black relative overflow-hidden">
+        <div className="fixed inset-0 z-10 opacity-30">
+          <Prism
+            animationType="rotate"
+            timeScale={0.5}
+            height={3.5}
+            baseWidth={5.5}
+            scale={3.6}
+            hueShift={0}
+            colorFrequency={1}
+            noise={0}
+            glow={1.3}
           />
         </div>
+        <NavBar />
+        <div className="relative z-20 pb-12">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="relative pt-12 pb-8">
+              <button
+                onClick={handleBack}
+                className={`${lexendSmall.className} flex items-center gap-2 text-gray-400 hover:text-white transition-all duration-300 absolute left-0 top-12 z-10`}
+              >
+                <div className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-all">
+                  <ArrowLeft className="w-5 h-5" />
+                </div>
+                Back to Seats
+              </button>
+              <div className="flex justify-center">
+                <p className={`${lexendBold.className} text-4xl text-white mb-2`}>
+                  Complete Your Booking
+                </p>
+              </div>
+            </div>
+            <BookingSummary
+              data={paymentData}
+              onPayment={handleOpenPaymentModal}
+            />
+          </div>
+        </div>
+        {showPaymentModal && (
+          <PaymentModal
+            totalAmount={paymentData.total}
+            onClose={handleClosePaymentModal}
+          />
+        )}
       </div>
-      {showPaymentModal && (
-        <PaymentModal
-          totalAmount={paymentData.total}
-          onClose={handleClosePaymentModal}
-        />
-      )}
-    </div>
-
-
-  </RouteGuard>
+    </RouteGuard>
   );
 }

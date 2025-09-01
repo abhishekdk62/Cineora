@@ -3,6 +3,8 @@ import { CreateBookingDto, UpdatePaymentStatusDto } from "../dtos/dto";
 import { IBookingService } from "../interfaces/bookings.service.interface";
 import { ITicketService } from "../../tickets/interfaces/ticket.service.interface";
 import { IUserService } from "../../user/interfaces/user.service.interface";
+import { IWalletTransactionService } from "../../walletTransaction/interfaces/walletTransaction.service.interface";
+import { IWalletService } from "../../wallet/interfaces/walletTransaction.service.interface";
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -15,7 +17,9 @@ export class BookingController {
   constructor(
     private readonly bookingService: IBookingService,
     private readonly ticketService: ITicketService,
-    private readonly userService: IUserService
+    private readonly userService: IUserService,
+    private readonly walletService:IWalletService,
+    private readonly walletTransactionService:IWalletTransactionService
   ) {}
 
   async createBooking(req: AuthenticatedRequest, res: Response): Promise<any> {
@@ -30,6 +34,41 @@ export class BookingController {
           message: "Authentication required",
         });
       }
+    if(bookingDto.paymentMethod=='wallet') {
+  const wallet = await this.walletService.getWalletDetails(userId,'User')
+  
+  if (!wallet.success) {
+    return res.status(400).json({
+      success: false,
+      message: "Wallet not found",
+    });
+  }
+
+  if (wallet.data.balance < bookingDto.priceDetails.total) {
+    return res.status(400).json({
+      success: false,
+      message: "Insufficient wallet balance",
+    });
+  }
+
+  const walletTransactionResult = await this.walletTransactionService.createWalletTransaction({
+    userId,
+    userModel:'User',
+    walletId: wallet.data._id,
+    type: 'debit',
+    amount: bookingDto.priceDetails.total,
+    category: 'booking',
+    description: `Movie ticket booking - ${bookingDto.movieTitle || 'Movie Ticket'}`,
+    movieId: bookingDto.movieId,
+    theaterId: bookingDto.theaterId,
+  });
+
+  if (!walletTransactionResult.success) {
+    console.error('Wallet transaction failed:', walletTransactionResult.message);
+    // Handle this error based on your business logic
+  }
+}
+
 
       const bookingDataWithUser = {
         ...bookingDto,

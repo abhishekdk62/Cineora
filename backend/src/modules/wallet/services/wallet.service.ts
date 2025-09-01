@@ -1,4 +1,4 @@
-import { IWalletService } from "../interfaces/wallet.service.interface";
+import { IWalletService } from "../interfaces/walletTransaction.service.interface";
 import { IWalletRepository } from "../interfaces/wallet.repository.interface";
 import { ServiceResponse } from "../../../interfaces/interface";
 import mongoose from "mongoose";

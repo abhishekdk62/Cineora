@@ -1,10 +1,9 @@
-import { IWalletForTransaction } from "../../transactions/interfaces/transactions.model.interface";
 import { IWallet } from "./wallet.model.interface";
 
 export interface IWalletRepository {
   create(walletData: Partial<IWallet>): Promise<IWallet | null>;
   
-  findByUser(userId: string, userModel: 'User' | 'Owner'): Promise<IWalletForTransaction | null>;
+  findByUser(userId: string, userModel: 'User' | 'Owner'): Promise<IWallet | null>;
   
   findById(id: string): Promise<IWallet | null>;
   

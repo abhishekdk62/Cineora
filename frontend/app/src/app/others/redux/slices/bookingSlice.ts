@@ -1,21 +1,21 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface SeatPricing {
-  rowId: string; 
-  rowLabel: string; 
+  rowId: string;
+  rowLabel: string;
   seatType: "VIP" | "Premium" | "Normal";
   basePrice: number;
   finalPrice: number;
-  seatsSelected: string[]; 
-  seatCount: number; 
+  seatsSelected: string[];
+  seatCount: number;
 }
 
 interface PriceDetails {
-  subtotal: number; 
-  convenienceFee: number; 
-  taxes: number; 
-  discount: number; 
-  total: number; 
+  subtotal: number;
+  convenienceFee: number;
+  taxes: number;
+  discount: number;
+  total: number;
 }
 
 interface ContactInfo {
@@ -24,9 +24,9 @@ interface ContactInfo {
 }
 
 interface SelectedRow {
-  rowId: string; 
-  rowLabel: string; 
-  seatsSelected: string[]; 
+  rowId: string;
+  rowLabel: string;
+  seatsSelected: string[];
   seatCount: number;
   seatType: "VIP" | "Premium" | "Normal";
   pricePerSeat: number;
@@ -38,16 +38,16 @@ interface BookingData {
   movieId?: string;
   theaterId?: string;
   screenId?: string;
-movieDetails?:{};
-theaterDetails?:{};
-screenDetails?:{};
-showDetails?:{};
-allRowPricing?:any;
+  movieDetails?: {};
+  theaterDetails?: {};
+  screenDetails?: {};
+  showDetails?: {};
+  allRowPricing?: any;
   selectedRows: SelectedRow[];
 
-  selectedSeats: string[]; 
-  selectedSeatIds: string[]; 
-  seatPricing: SeatPricing[]; 
+  selectedSeats: string[];
+  selectedSeatIds: string[];
+  seatPricing: SeatPricing[];
 
   priceDetails: PriceDetails;
 
@@ -56,13 +56,13 @@ allRowPricing?:any;
   amount: number;
   selectedRowIds: string[];
 
-  showDate?: string; 
-  showTime?: string; 
-  movieTitle?: string; 
-  theaterName?: string; 
-  screenName?: string; 
+  showDate?: string;
+  showTime?: string;
+  movieTitle?: string;
+  theaterName?: string;
+  screenName?: string;
 
-  paymentMethod?: "upi" | "card" | "netbanking" | "wallet" | "";
+  paymentMethod?: "upi" | "card" | "netbanking" | "wallet" | "razorpay" | '';
   paymentGateway?: "razorpay" | "stripe" | "paytm" | "phonepe " | "";
 
   userId?: string;
@@ -143,10 +143,10 @@ const bookingSlice = createSlice({
           0
         );
         state.bookingData.priceDetails.subtotal = subtotal;
-        state.bookingData.amount = subtotal; 
+        state.bookingData.amount = subtotal;
 
-        const convenienceFee = Math.round(subtotal * 0.05); 
-        const taxes = Math.round(subtotal * 0.18); 
+        const convenienceFee = Math.round(subtotal * 0.05);
+        const taxes = Math.round(subtotal * 0.18);
         const total =
           subtotal +
           convenienceFee +
@@ -156,8 +156,8 @@ const bookingSlice = createSlice({
         state.bookingData.priceDetails.convenienceFee = convenienceFee;
         state.bookingData.priceDetails.taxes = taxes;
         state.bookingData.priceDetails.total = total;
-        state.bookingData.tax = taxes; 
-        state.bookingData.totalAmount = total; 
+        state.bookingData.tax = taxes;
+        state.bookingData.totalAmount = total;
       }
     },
 
@@ -306,10 +306,10 @@ const bookingSlice = createSlice({
         }, 0);
 
         state.bookingData.priceDetails.subtotal = subtotal;
-        state.bookingData.amount = subtotal; 
+        state.bookingData.amount = subtotal;
 
-        const convenienceFee = Math.round(subtotal * 0.05); 
-        const taxes = Math.round(subtotal * 0.18); 
+        const convenienceFee = Math.round(subtotal * 0.05);
+        const taxes = Math.round(subtotal * 0.18);
         const total =
           subtotal +
           convenienceFee +
@@ -319,8 +319,8 @@ const bookingSlice = createSlice({
         state.bookingData.priceDetails.convenienceFee = convenienceFee;
         state.bookingData.priceDetails.taxes = taxes;
         state.bookingData.priceDetails.total = total;
-        state.bookingData.tax = taxes; 
-        state.bookingData.totalAmount = total; 
+        state.bookingData.tax = taxes;
+        state.bookingData.totalAmount = total;
       }
     },
 
@@ -425,7 +425,7 @@ const bookingSlice = createSlice({
         const total = subtotal + convenienceFee + taxes - discount;
 
         state.bookingData.priceDetails.total = total;
-        state.bookingData.totalAmount = total; 
+        state.bookingData.totalAmount = total;
       }
     },
 
@@ -446,7 +446,7 @@ const bookingSlice = createSlice({
           state.bookingData.priceDetails;
         const total = subtotal + convenienceFee + taxes - discount;
         state.bookingData.priceDetails.total = total;
-        state.bookingData.totalAmount = total; 
+        state.bookingData.totalAmount = total;
       }
     },
 
@@ -504,9 +504,9 @@ const bookingSlice = createSlice({
 
 export const {
   setBookingData,
-  updateSelectedRows, 
-  addSeatToRow, 
-  removeSeatFromRow, 
+  updateSelectedRows,
+  addSeatToRow,
+  removeSeatFromRow,
   updateSelectedSeats,
   updateSeatPricing,
   updatePriceDetails,
@@ -514,17 +514,17 @@ export const {
   updateUserDetails,
   updatePaymentDetails,
   updateBookingStatus,
-  updateAmount, 
-  updateTax, 
+  updateAmount,
+  updateTax,
   updateTotalAmount,
   calculateTotalAmount,
   applyDiscount,
-  removeDiscount, 
+  removeDiscount,
   setLoading,
   setError,
   resetBookingData,
   clearError,
-  clearSelectedSeats, 
+  clearSelectedSeats,
 } = bookingSlice.actions;
 
 export const selectBookingData = (state: { booking: BookingState }) =>
@@ -532,7 +532,7 @@ export const selectBookingData = (state: { booking: BookingState }) =>
 export const selectSelectedSeats = (state: { booking: BookingState }) =>
   state.booking.bookingData?.selectedSeats || [];
 export const selectSelectedRows = (state: { booking: BookingState }) =>
-  state.booking.bookingData?.selectedRows || []; 
+  state.booking.bookingData?.selectedRows || [];
 export const selectPriceDetails = (state: { booking: BookingState }) =>
   state.booking.bookingData?.priceDetails;
 export const selectIsLoading = (state: { booking: BookingState }) =>

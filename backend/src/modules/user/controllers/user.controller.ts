@@ -25,16 +25,15 @@ import {
 } from "../../../interfaces/interface";
 import { IUserService } from "../interfaces/user.service.interface";
 import { IAuthService } from "../../auth/interfaces/auth.service.interface";
-import { IMovieService } from "../../movies/interfaces/movies.service.interface";
-import { IWalletService } from "../../wallet/interfaces/wallet.service.interface";
-import { MovieService } from "../../movies/services/movies.service";
+import { IWalletService } from "../../wallet/interfaces/walletTransaction.service.interface";
 
 export class UserController {
   constructor(
     private readonly userService: IUserService,
     private readonly authService: IAuthService,
-    private readonly movieService: MovieService,
-    private readonly walletService: IWalletService
+   
+    private readonly walletService: IWalletService,
+    
   ) {}
 
   async signup(req: Request, res: Response): Promise<any> {
@@ -103,17 +102,17 @@ export class UserController {
           .status(400)
           .json(createResponse({ success: false, message: result.message }));
       }
- const walletResult = await this.walletService.createWallet(
-          result.data?.user._id,
-          "User"
-        );
+      const walletResult = await this.walletService.createWallet(
+        result.data?.user._id,
+        "User"
+      );
 
-        if (!walletResult.success) {
-          console.error(
-            `Failed to create wallet for user ${result.data?.user._id}:`,
-            walletResult.message
-          );
-        }
+      if (!walletResult.success) {
+        console.error(
+          `Failed to create wallet for user ${result.data?.user._id}:`,
+          walletResult.message
+        );
+      }
       const user = result.data?.user;
       if (!user) {
         return res.status(500).json(
@@ -134,7 +133,6 @@ export class UserController {
         );
 
         this.setAuthCookies(res, accessToken, refreshToken);
-       
 
         return res.status(200).json(
           createResponse({
@@ -163,7 +161,7 @@ export class UserController {
           createResponse({
             success: true,
             message: "Email verified successfully. Please login manually.",
-            data: result.data, 
+            data: result.data,
           })
         );
       }
@@ -845,4 +843,5 @@ export class UserController {
       );
     }
   }
+
 }

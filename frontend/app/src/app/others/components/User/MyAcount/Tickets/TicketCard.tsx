@@ -5,6 +5,7 @@ import Barcode from './Barcode';
 import { generateTicketPDF } from '@/app/others/Utils/pdfGenerator';
 import { cancelTicket } from '@/app/others/services/userServices/ticketServices';
 import { confirmAction, ConfirmDialog } from '../../../utils/ConfirmDialog';
+import toast from 'react-hot-toast';
 
 const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
@@ -14,15 +15,16 @@ interface TicketCardProps {
   booking: any;
   activeTab: string;
   onViewDetails: (booking: any) => void;
+  getTickets: (pageNumber: number) => void
 }
 
-const TicketCard: React.FC<TicketCardProps> = ({ booking, onViewDetails, activeTab }) => {
+const TicketCard: React.FC<TicketCardProps> = ({ booking, onViewDetails, activeTab, getTickets }) => {
   const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   const calculateTotalPrice = (booking: any) => {
     const baseTotal = booking.totalPrice;
-    const tax = baseTotal * 0.18; 
-    const convenienceFee = baseTotal * 0.05; 
+    const tax = baseTotal * 0.18;
+    const convenienceFee = baseTotal * 0.05;
     return baseTotal + tax + convenienceFee;
   };
 
@@ -80,10 +82,10 @@ const TicketCard: React.FC<TicketCardProps> = ({ booking, onViewDetails, activeT
           seats: booking.seats,
           count: booking.seats.length,
           price: booking.totalPrice / booking.seats.length,
-          totalPrice: calculateTotalPrice(booking) 
+          totalPrice: calculateTotalPrice(booking)
         }];
 
-      const totalAmount = calculateTotalPrice(booking); 
+      const totalAmount = calculateTotalPrice(booking);
       const totalSeats = booking.seats.length;
       const allSeats = booking.seats;
 
@@ -115,6 +117,9 @@ const TicketCard: React.FC<TicketCardProps> = ({ booking, onViewDetails, activeT
       }
       const data = await cancelTicket(booking.bookingId, Math.round(calculateTotalPrice(booking)))
       console.log(data.data);
+      toast.success('Ticket cancelled ')
+      getTickets(1)
+
 
     } catch (error) {
       console.log(error);
@@ -132,20 +137,20 @@ const TicketCard: React.FC<TicketCardProps> = ({ booking, onViewDetails, activeT
         />
       </div>
 
-     
+
       <div className="flex flex-col flex-1 px-7 py-6">
         <div className={` gap-1 flex items-center text-white mb-2`}>
-       
-<div className={`${lexendBold.className} text-xl`}>
 
-     {booking.movieId.title}
-</div>
-          
-            {booking.status=='cancelled'&& <button className=' bg-transparent text-red-400 border border-red-500 p-1 rounded-2xl'>
-        Cancelled
-      </button>}
+          <div className={`${lexendBold.className} text-xl`}>
+
+            {booking.movieId.title}
+          </div>
+
+          {booking.status == 'cancelled' && <button className=' bg-transparent text-red-400 border border-red-500 p-1 rounded-2xl'>
+            Cancelled
+          </button>}
         </div>
-   
+
         <p className={`${lexendSmall.className} text-gray-300 mb-4`}>
           {booking.theaterId.name} - {booking.screenId.name}
         </p>
