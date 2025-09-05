@@ -3,7 +3,7 @@ import { IOTPRepository } from "../interfaces/otp.repository.interface";
 import { IOTPService } from "../interfaces/otp.service.interface";
 
 export class OTPService implements IOTPService {
-  constructor(private readonly otpRepo: IOTPRepository) {}
+  constructor(private readonly _otpRepo: IOTPRepository) {}
 
   private generateOTP(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -22,7 +22,7 @@ export class OTPService implements IOTPService {
     const expiresAt =
       options?.expiresAt || new Date(Date.now() + 5 * 60 * 1000);
 
-    const otpRecord = await this.otpRepo.create({
+    const otpRecord = await this._otpRepo.create({
       email,
       otp,
       type,
@@ -45,7 +45,7 @@ export class OTPService implements IOTPService {
     message?: string;
     data?: any;
   }> {
-    const validOTP = await this.otpRepo.findValidOTP(email, otp, type);
+    const validOTP = await this._otpRepo.findValidOTP(email, otp, type);
 
     if (!validOTP) {
       console.log('valid not ');
@@ -56,7 +56,7 @@ export class OTPService implements IOTPService {
       };
     }
 
-    await this.otpRepo.markAsUsed(validOTP._id as string);
+    await this._otpRepo.markAsUsed(validOTP._id as string);
 
     return {
       success: true,
@@ -70,10 +70,10 @@ export class OTPService implements IOTPService {
     otp: string,
     type: string
   ): Promise<IOTP | null> {
-    const validOTP = await this.otpRepo.findValidOTP(email, otp, type);
+    const validOTP = await this._otpRepo.findValidOTP(email, otp, type);
 
     if (validOTP) {
-      await this.otpRepo.markAsUsed(validOTP._id as string);
+      await this._otpRepo.markAsUsed(validOTP._id as string);
     }
 
     return validOTP;
@@ -87,7 +87,7 @@ export class OTPService implements IOTPService {
     const otp = this.generateOTP();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-    await this.otpRepo.create({
+    await this._otpRepo.create({
       email,
       otp,
       type,

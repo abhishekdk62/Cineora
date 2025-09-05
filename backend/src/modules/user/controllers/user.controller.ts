@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { createResponse } from "../../../utils/createResponse";
 import {
-  AddXpPointsDto,
   ChangePasswordDto,
   GetUsersFilterDto,
   GetUsersResponseDto,
@@ -18,671 +17,591 @@ import {
   VerifyOTPDto,
   VerifyOTPResponseDto,
 } from "../dtos/dto";
-import {
-  RefreshTokenDto,
-  RefreshTokenResponseDto,
-  ServiceResponse,
-} from "../../../interfaces/interface";
+import { RefreshTokenDto, RefreshTokenResponseDto } from "../../../interfaces/interface";
 import { IUserService } from "../interfaces/user.service.interface";
 import { IAuthService } from "../../auth/interfaces/auth.service.interface";
-import { IWalletService } from "../../wallet/interfaces/walletTransaction.service.interface";
+import { IWalletService } from "../../wallet/interfaces/wallet.service.interface";
+import { StatusCodes } from "../../../utils/statuscodes";
+import { USER_MESSAGES } from "../../../utils/messages.constants";
+
+interface AuthenticatedRequest extends Request {
+  user?: { id: string; _id?: string };
+  owner?: { ownerId: string };
+}
 
 export class UserController {
   constructor(
     private readonly userService: IUserService,
     private readonly authService: IAuthService,
-   
-    private readonly walletService: IWalletService,
-    
+    private readonly walletService: IWalletService
   ) {}
 
-  async signup(req: Request, res: Response): Promise<any> {
+  async signup(req: Request, res: Response): Promise<void> {
     try {
       const userData: SignupDto = req.body;
-      if (!userData.username || !userData.email || !userData.password) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "Username, email and password are required",
-          })
-        );
-      }
-      const result: ServiceResponse<SignupResponseDto> =
-        await this.userService.signup(userData);
-      if (!result.success) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: result.message,
-          })
-        );
+      
+      const validationError = this._validateSignupData(userData);
+      if (validationError) {
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: validationError,
+        }));
+        return;
       }
 
-      return res.status(201).json(
-        createResponse({
-          success: true,
-          message: result.message,
-          data: {
-            ...result.data,
-          },
-        })
-      );
-    } catch (err) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: err.message,
-        })
-      );
+      const result = await this.userService.signup(userData);
+      
+      if (!result.success) {
+        res.status(StatusCodes.BAD_REQUEST).json(result);
+        return;
+      }
+
+      res.status(StatusCodes.CREATED).json(result);
+    } catch (error: unknown) {
+      this._handleControllerError(res, error, USER_MESSAGES.INTERNAL_SERVER_ERROR);
     }
   }
 
-  async verifyOTP(req: Request, res: Response): Promise<any> {
+  async verifyOTP(req: Request, res: Response): Promise<void> {
     try {
       const verifyOTPDto: VerifyOTPDto = {
-        email: String(req.body?.email || "")
-          .trim()
-          .toLowerCase(),
+        email: String(req.body?.email || "").trim().toLowerCase(),
         otp: String(req.body?.otp || "").trim(),
       };
 
-      if (!verifyOTPDto.email || !verifyOTPDto.otp) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "Email and OTP are required",
-          })
-        );
+      const validationError = this._validateVerifyOTPData(verifyOTPDto);
+      if (validationError) {
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: validationError,
+        }));
+        return;
       }
 
-      const result: ServiceResponse<VerifyOTPResponseDto> =
-        await this.userService.verifyOTP(verifyOTPDto.email, verifyOTPDto.otp);
+      const result = await this.userService.verifyOTP(verifyOTPDto.email, verifyOTPDto.otp);
+      
       if (!result.success) {
-        return res
-          .status(400)
-          .json(createResponse({ success: false, message: result.message }));
+        res.status(StatusCodes.BAD_REQUEST).json(result);
+        return;
       }
-      const walletResult = await this.walletService.createWallet(
-        result.data?.user._id,
-        "User"
-      );
 
-      if (!walletResult.success) {
-        console.error(
-          `Failed to create wallet for user ${result.data?.user._id}:`,
-          walletResult.message
-        );
-      }
+      // Create wallet for new user
+      await this._createUserWallet(result.data?.user._id);
+
       const user = result.data?.user;
       if (!user) {
-        return res.status(500).json(
-          createResponse({
-            success: false,
-            message: "Verification succeeded but user is missing",
-          })
-        );
-      }
-
-      try {
-        const { accessToken, refreshToken } =
-          this.authService.generateTokenPair(user, "user");
-        await this.authService.storeRefreshToken(
-          String(user._id),
-          refreshToken,
-          "user"
-        );
-
-        this.setAuthCookies(res, accessToken, refreshToken);
-
-        return res.status(200).json(
-          createResponse({
-            success: true,
-            message: "Email verified and logged in successfully",
-            data: {
-              user: {
-                id: user._id,
-                username: user.username,
-                email: user.email,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                isVerified: true,
-                xpPoints: user.xpPoints,
-                role: "user",
-              },
-              role: "user",
-              redirectTo: "/dashboard",
-              isNewUser: true,
-            },
-          })
-        );
-      } catch (tokenError) {
-        console.error("Token generation error:", tokenError);
-        return res.status(200).json(
-          createResponse({
-            success: true,
-            message: "Email verified successfully. Please login manually.",
-            data: result.data,
-          })
-        );
-      }
-    } catch (err) {
-      res.status(500).json(
-        createResponse({
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(createResponse({
           success: false,
-          message: err.message,
-        })
-      );
+          message: USER_MESSAGES.VERIFICATION_USER_MISSING,
+        }));
+        return;
+      }
+
+      await this._handleTokenGeneration(res, user, result.data);
+    } catch (error: unknown) {
+      this._handleControllerError(res, error, USER_MESSAGES.INTERNAL_SERVER_ERROR);
     }
   }
 
-  async resendOTP(req: Request, res: Response): Promise<any> {
+  async resendOTP(req: Request, res: Response): Promise<void> {
     try {
       const resendOTPDto: ResendOTPDto = req.body;
+      
       if (!resendOTPDto.email) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "Email is required",
-          })
-        );
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: USER_MESSAGES.EMAIL_REQUIRED,
+        }));
+        return;
       }
-      const result: ServiceResponse<void> = await this.userService.resendOTP(
-        resendOTPDto.email
-      );
+
+      const result = await this.userService.resendOTP(resendOTPDto.email);
 
       if (!result.success) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: result.message,
-          })
-        );
+        res.status(StatusCodes.BAD_REQUEST).json(result);
+        return;
       }
 
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          message: result.message,
-        })
-      );
-    } catch (err) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: err.message,
-        })
-      );
+      res.status(StatusCodes.OK).json(result);
+    } catch (error: unknown) {
+      this._handleControllerError(res, error, USER_MESSAGES.INTERNAL_SERVER_ERROR);
     }
   }
 
-  async getUserProfile(req: Request, res: Response): Promise<any> {
+  async getUserProfile(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const { id } = req.user;
-      if (!id) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "User ID is required",
-          })
-        );
+      const userId = this._extractUserId(req);
+      
+      if (!userId) {
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: USER_MESSAGES.USER_ID_REQUIRED,
+        }));
+        return;
       }
 
-      const result: ServiceResponse<UserResponseDto> =
-        await this.userService.getUserProfile(req.user.id);
+      const result = await this.userService.getUserProfile(userId);
 
       if (!result.success) {
-        return res.status(404).json(
-          createResponse({
-            success: false,
-            message: result.message,
-          })
-        );
+        res.status(StatusCodes.NOT_FOUND).json(result);
+        return;
       }
 
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          message: result.message,
-          data: result.data,
-        })
-      );
-    } catch (err) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: err.message,
-        })
-      );
+      res.status(StatusCodes.OK).json(result);
+    } catch (error: unknown) {
+      this._handleControllerError(res, error, USER_MESSAGES.INTERNAL_SERVER_ERROR);
     }
   }
 
-  refreshToken = async (req: Request, res: Response) => {
+  async refreshToken(req: Request, res: Response): Promise<void> {
     try {
       const refreshTokenDto: RefreshTokenDto = {
         refreshToken: req.cookies?.refreshToken,
       };
 
       if (!refreshTokenDto.refreshToken) {
-        return res.status(401).json(
-          createResponse({
-            success: false,
-            message: "Refresh token required.",
-          })
-        );
+        res.status(StatusCodes.UNAUTHORIZED).json(createResponse({
+          success: false,
+          message: USER_MESSAGES.TOKEN_REQUIRED,
+        }));
+        return;
       }
 
-      const refreshResult: ServiceResponse<RefreshTokenResponseDto> =
-        await this.authService.refreshAccessToken(refreshTokenDto.refreshToken);
+      const refreshResult = await this.authService.refreshAccessToken(refreshTokenDto.refreshToken);
 
       if (!refreshResult.success) {
-        res.clearCookie("accessToken");
-        res.clearCookie("refreshToken");
-
-        return res.status(401).json(
-          createResponse({
-            success: false,
-            message: "Invalid refresh token. Please login again.",
-          })
-        );
+        this._clearAuthCookies(res);
+        res.status(StatusCodes.UNAUTHORIZED).json(createResponse({
+          success: false,
+          message: USER_MESSAGES.INVALID_TOKEN,
+        }));
+        return;
       }
 
-      res.cookie("accessToken", refreshResult.data.accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 15 * 60 * 1000,
-      });
+      this._setAuthCookies(res, refreshResult.data.accessToken, refreshResult.data.refreshToken);
 
-      res.cookie("refreshToken", refreshResult.data.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
-
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          message: "Token refreshed successfully",
-        })
-      );
-    } catch (error) {
+      res.status(StatusCodes.OK).json(createResponse({
+        success: true,
+        message: USER_MESSAGES.TOKEN_REFRESHED,
+      }));
+    } catch (error: unknown) {
       console.error("Token refresh error:", error);
-      return res.status(401).json(
-        createResponse({
-          success: false,
-          message: "Token refresh failed.",
-        })
-      );
+      res.status(StatusCodes.UNAUTHORIZED).json(createResponse({
+        success: false,
+        message: USER_MESSAGES.TOKEN_REFRESH_FAILED,
+      }));
     }
-  };
+  }
 
-  async updateProfile(req: Request, res: Response): Promise<any> {
+  async updateUserProfile(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const { id } = req.user;
+      const userId = this._extractUserId(req);
       const updateData: UpdateProfileDto = req.body;
 
-      if (!id) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "User ID is required",
-          })
-        );
+      if (!userId) {
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: USER_MESSAGES.USER_ID_REQUIRED,
+        }));
+        return;
       }
-      const result: ServiceResponse<UserResponseDto> =
-        await this.userService.updateProfile(id, updateData);
+
+      const result = await this.userService.updateUserProfile(userId, updateData);
 
       if (!result.success) {
-        return res.status(404).json(
-          createResponse({
-            success: false,
-            message: result.message,
-          })
-        );
+        res.status(StatusCodes.BAD_REQUEST).json(result);
+        return;
       }
 
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          message: result.message,
-          data: result.data,
-        })
-      );
-    } catch (err) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: err.message,
-        })
-      );
+      res.status(StatusCodes.OK).json(result);
+    } catch (error: unknown) {
+      this._handleControllerError(res, error, USER_MESSAGES.INTERNAL_SERVER_ERROR);
     }
   }
-  async updateUserLocation(req: Request, res: Response): Promise<any> {
-    try {
-      const { id } = req.user;
 
+  async updateUserLocation(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const userId = this._extractUserId(req);
       const { latitude, longitude } = req.body;
 
-      if (!id) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "User ID is required",
-          })
-        );
+      if (!userId) {
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: USER_MESSAGES.USER_ID_REQUIRED,
+        }));
+        return;
       }
 
-      if (latitude === undefined || longitude === undefined) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "Latitude and longitude are required",
-          })
-        );
+      const coordinateValidationError = this._validateCoordinates(latitude, longitude);
+      if (coordinateValidationError) {
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: coordinateValidationError,
+        }));
+        return;
       }
 
-      if (
-        longitude < -180 ||
-        longitude > 180 ||
-        latitude < -90 ||
-        latitude > 90
-      ) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "Invalid coordinates range",
-          })
-        );
-      }
-
-      const locationData: {
-        location: { type: "Point"; coordinates: [number, number] };
-      } = {
-        location: {
-          type: "Point",
-          coordinates: [longitude, latitude],
-        },
-      };
-
-      const result = await this.userService.updateProfile(id, locationData);
+      const locationData = this._prepareLocationData(longitude, latitude);
+      const result = await this.userService.updateUserProfile(userId, locationData);
 
       if (!result.success) {
-        return res.status(404).json(
-          createResponse({
-            success: false,
-            message: result.message,
-          })
-        );
+        res.status(StatusCodes.BAD_REQUEST).json(result);
+        return;
       }
 
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          message: result.message,
-          data: result.data,
-        })
-      );
-    } catch (err) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: err.message,
-        })
-      );
+      res.status(StatusCodes.OK).json(result);
+    } catch (error: unknown) {
+      this._handleControllerError(res, error, USER_MESSAGES.INTERNAL_SERVER_ERROR);
     }
   }
-  async getNearbyUsers(req: Request, res: Response): Promise<any> {
+
+  async getNearbyUsers(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const { maxDistance } = req.query;
 
       if (!id) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "User ID is required",
-          })
-        );
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: USER_MESSAGES.USER_ID_REQUIRED,
+        }));
+        return;
       }
 
-      const result = await this.userService.getNearbyUsers(
-        id,
-        maxDistance ? parseInt(maxDistance as string) : 5000
-      );
+      const distance = maxDistance ? parseInt(maxDistance as string) : 5000;
+      const result = await this.userService.getNearbyUsers(id, distance);
 
       if (!result.success) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: result.message,
-          })
-        );
+        res.status(StatusCodes.NOT_FOUND).json(result);
+        return;
       }
 
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          message: result.message,
-          data: result.data,
-        })
-      );
-    } catch (err) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: err.message,
-        })
-      );
+      res.status(StatusCodes.OK).json(result);
+    } catch (error: unknown) {
+      this._handleControllerError(res, error, USER_MESSAGES.INTERNAL_SERVER_ERROR);
     }
   }
 
-  async addXpPoints(req: Request, res: Response): Promise<any> {
+  async resetPassword(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
-      const addXpDto: AddXpPointsDto = req.body;
-
-      if (!id || !addXpDto.points) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "User ID and points are required",
-          })
-        );
-      }
-      const result: ServiceResponse<void> = await this.userService.addXpPoints(
-        id,
-        addXpDto.points
-      );
-
-      if (!result.success) {
-        return res.status(404).json(
-          createResponse({
-            success: false,
-            message: result.message,
-          })
-        );
-      }
-
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          message: result.message,
-        })
-      );
-    } catch (err) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: err.message,
-        })
-      );
-    }
-  }
-
-  async resetPassword(req: Request, res: Response): Promise<any> {
-    try {
-      const { id } = req.user;
+      const userId = this._extractUserId(req);
       const changePasswordDto: ChangePasswordDto = {
         oldPassword: req.body.oldpassword,
         newPassword: req.body.newPassword,
       };
 
-      if (!id) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "User id is required",
-          })
-        );
+      if (!userId) {
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: USER_MESSAGES.USER_ID_REQUIRED,
+        }));
+        return;
       }
 
-      if (!changePasswordDto.oldPassword || !changePasswordDto.newPassword) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "Old password and new password required",
-          })
-        );
+      const validationError = this._validatePasswordData(changePasswordDto);
+      if (validationError) {
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: validationError,
+        }));
+        return;
       }
-      const result: ServiceResponse<void> =
-        await this.userService.changePassword(
-          req.user.id,
-          changePasswordDto.oldPassword,
-          changePasswordDto.newPassword
-        );
+
+      const result = await this.userService.changeUserPassword(
+        userId,
+        changePasswordDto.oldPassword,
+        changePasswordDto.newPassword
+      );
 
       if (!result.success) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: result.message,
-          })
-        );
+        res.status(StatusCodes.BAD_REQUEST).json(result);
+        return;
       }
 
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          message: "Password updated succusfully",
-        })
-      );
-    } catch (error) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: error.message,
-        })
-      );
+      res.status(StatusCodes.OK).json(createResponse({
+        success: true,
+        message: USER_MESSAGES.PASSWORD_UPDATED,
+      }));
+    } catch (error: unknown) {
+      this._handleControllerError(res, error, "Failed to reset password");
     }
   }
 
-  async changeEmail(req: Request, res: Response): Promise<any> {
+  async changeEmail(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const { id } = req.user;
+      const userId = this._extractUserId(req);
       const sendEmailOTPDto: SendEmailChangeOTPDto = {
         email: req.body.newEmail,
         password: req.body.password,
       };
 
-      if (!sendEmailOTPDto.email || !sendEmailOTPDto.password) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "New email and password are required",
-          })
-        );
-      }
-      const result: ServiceResponse<SendEmailChangeOTPResponseDto> =
-        await this.userService.sendEmailChangeOTP(
-          req.user.id,
-          sendEmailOTPDto.email,
-          sendEmailOTPDto.password
-        );
-      if (!result.success) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: result.message,
-          })
-        );
-      }
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          message: "Email changed successfully",
-        })
-      );
-    } catch (error) {
-      res.status(500).json(
-        createResponse({
+      const validationError = this._validateEmailChangeData(sendEmailOTPDto);
+      if (validationError) {
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
           success: false,
-          message: error.message,
-        })
+          message: validationError,
+        }));
+        return;
+      }
+
+      const result = await this.userService.sendEmailChangeOTP(
+        userId!,
+        sendEmailOTPDto.email,
+        sendEmailOTPDto.password
       );
+
+      if (!result.success) {
+        res.status(StatusCodes.BAD_REQUEST).json(result);
+        return;
+      }
+
+      res.status(StatusCodes.OK).json(createResponse({
+        success: true,
+        message: USER_MESSAGES.EMAIL_CHANGED,
+      }));
+    } catch (error: unknown) {
+      this._handleControllerError(res, error, USER_MESSAGES.INTERNAL_SERVER_ERROR);
     }
   }
 
-  async verifyChangeEmailOtp(req: Request, res: Response): Promise<any> {
+  async verifyChangeEmailOtp(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const { id } = req.user;
+      const userId = this._extractUserId(req);
       const verifyEmailOTPDto: VerifyEmailChangeOTPDto = req.body;
 
-      if (!id) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "user Id is required",
-          })
-        );
+      if (!userId) {
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: USER_MESSAGES.USER_ID_REQUIRED,
+        }));
+        return;
       }
 
-      if (!verifyEmailOTPDto.email || !verifyEmailOTPDto.otp) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "Email and otp required",
-          })
-        );
+      const validationError = this._validateVerifyEmailChangeData(verifyEmailOTPDto);
+      if (validationError) {
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: validationError,
+        }));
+        return;
       }
 
-      const result: ServiceResponse<VerifyEmailChangeOTPResponseDto> =
-        await this.userService.verifyEmailChangeOTP(
-          req.user.id,
-          verifyEmailOTPDto.email,
-          verifyEmailOTPDto.otp
-        );
+      const result = await this.userService.verifyEmailChangeOTP(
+        userId,
+        verifyEmailOTPDto.email,
+        verifyEmailOTPDto.otp
+      );
 
       if (!result.success) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: result.message,
-          })
-        );
+        res.status(StatusCodes.BAD_REQUEST).json(result);
+        return;
       }
 
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          message: "Email changed succesfully",
-        })
-      );
-    } catch (error) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: error.message,
-        })
-      );
+      res.status(StatusCodes.OK).json(createResponse({
+        success: true,
+        message: USER_MESSAGES.EMAIL_CHANGED,
+      }));
+    } catch (error: unknown) {
+      this._handleControllerError(res, error, USER_MESSAGES.INTERNAL_SERVER_ERROR);
     }
   }
 
-  setAuthCookies(
-    res: Response,
-    accessToken: string,
-    refreshToken: string
-  ): void {
+  async getUserCounts(req: Request, res: Response): Promise<void> {
+    try {
+      const result = await this.userService.getUserCounts();
+
+      if (!result.success) {
+        res.status(StatusCodes.NOT_FOUND).json(result);
+        return;
+      }
+
+      res.status(StatusCodes.OK).json(result);
+    } catch (error: unknown) {
+      this._handleControllerError(res, error, USER_MESSAGES.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async getUsers(req: Request, res: Response): Promise<void> {
+    try {
+      const filters: GetUsersFilterDto = req.query;
+      const result = await this.userService.getUsers(filters);
+
+      if (!result.success) {
+        res.status(StatusCodes.NOT_FOUND).json(result);
+        return;
+      }
+
+      res.status(StatusCodes.OK).json(result);
+    } catch (error: unknown) {
+      this._handleControllerError(res, error, USER_MESSAGES.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async toggleUserStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+
+      if (!id) {
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: USER_MESSAGES.USER_ID_REQUIRED,
+        }));
+        return;
+      }
+
+      const result = await this.userService.toggleUserStatus(id);
+
+      if (!result.success) {
+        res.status(StatusCodes.BAD_REQUEST).json(result);
+        return;
+      }
+
+      res.status(StatusCodes.OK).json(result);
+    } catch (error: unknown) {
+      this._handleControllerError(res, error, USER_MESSAGES.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async getUserDetails(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+
+      if (!id) {
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: USER_MESSAGES.USER_ID_REQUIRED,
+        }));
+        return;
+      }
+
+      const result = await this.userService.getUserDetails(id);
+
+      if (!result.success) {
+        res.status(StatusCodes.NOT_FOUND).json(result);
+        return;
+      }
+
+      res.status(StatusCodes.OK).json(result);
+    } catch (error: unknown) {
+      this._handleControllerError(res, error, USER_MESSAGES.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  // Private helper methods for controller logic (SRP - Single Responsibility)
+  private _extractUserId(req: AuthenticatedRequest): string | null {
+    return req.user?.id || req.user?._id || null;
+  }
+
+  private _validateSignupData(userData: SignupDto): string | null {
+    if (!userData.username || !userData.email || !userData.password) {
+      return USER_MESSAGES.SIGNUP_FIELDS_REQUIRED;
+    }
+    return null;
+  }
+
+  private _validateVerifyOTPData(verifyOTPDto: VerifyOTPDto): string | null {
+    if (!verifyOTPDto.email || !verifyOTPDto.otp) {
+      return USER_MESSAGES.OTP_REQUIRED;
+    }
+    return null;
+  }
+
+  private _validatePasswordData(changePasswordDto: ChangePasswordDto): string | null {
+    if (!changePasswordDto.oldPassword || !changePasswordDto.newPassword) {
+      return USER_MESSAGES.PASSWORDS_REQUIRED;
+    }
+    return null;
+  }
+
+  private _validateEmailChangeData(sendEmailOTPDto: SendEmailChangeOTPDto): string | null {
+    if (!sendEmailOTPDto.email || !sendEmailOTPDto.password) {
+      return USER_MESSAGES.EMAIL_PASSWORD_REQUIRED;
+    }
+    return null;
+  }
+
+  private _validateVerifyEmailChangeData(verifyEmailOTPDto: VerifyEmailChangeOTPDto): string | null {
+    if (!verifyEmailOTPDto.email || !verifyEmailOTPDto.otp) {
+      return USER_MESSAGES.OTP_REQUIRED;
+    }
+    return null;
+  }
+
+  private _validateCoordinates(latitude: number, longitude: number): string | null {
+    if (latitude === undefined || longitude === undefined) {
+      return USER_MESSAGES.COORDINATE_REQUIRED;
+    }
+
+    if (longitude < -180 || longitude > 180 || latitude < -90 || latitude > 90) {
+      return USER_MESSAGES.INVALID_COORDINATES;
+    }
+
+    return null;
+  }
+
+  private _prepareLocationData(longitude: number, latitude: number): any {
+    return {
+      location: {
+        type: "Point",
+        coordinates: [longitude, latitude],
+      },
+    };
+  }
+
+  private async _createUserWallet(userId: string | undefined): Promise<void> {
+    if (!userId) return;
+
+    try {
+      const walletResult = await this.walletService.createWallet({
+        userId,
+        userModel: "User"
+      });
+
+      if (!walletResult.success) {
+        console.error(`Failed to create wallet for user ${userId}:`, walletResult.message);
+      }
+    } catch (error) {
+      console.error("Error creating wallet:", error);
+    }
+  }
+
+  private async _handleTokenGeneration(res: Response, user: any, resultData: any): Promise<void> {
+    try {
+      const { accessToken, refreshToken } = this.authService.generateTokenPair(user, "user");
+      await this.authService.storeRefreshToken(String(user._id), refreshToken, "user");
+
+      this._setAuthCookies(res, accessToken, refreshToken);
+
+      res.status(StatusCodes.OK).json(createResponse({
+        success: true,
+        message: USER_MESSAGES.EMAIL_VERIFIED_AND_LOGGED_IN,
+        data: {
+          user: {
+            id: user._id,
+            username: user.username,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            isVerified: true,
+            xpPoints: user.xpPoints,
+            role: "user",
+          },
+          role: "user",
+          redirectTo: "/dashboard",
+          isNewUser: true,
+        },
+      }));
+    } catch (tokenError) {
+      console.error("Token generation error:", tokenError);
+      res.status(StatusCodes.OK).json(createResponse({
+        success: true,
+        message: USER_MESSAGES.EMAIL_VERIFIED_MANUAL_LOGIN,
+        data: resultData,
+      }));
+    }
+  }
+
+  private _setAuthCookies(res: Response, accessToken: string, refreshToken: string): void {
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -698,150 +617,17 @@ export class UserController {
     });
   }
 
-  async getUserCounts(req: Request, res: Response): Promise<any> {
-    try {
-      const result: ServiceResponse<UserCountsResponseDto> =
-        await this.userService.getUserCounts();
-
-      if (!result.success) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: result.message,
-          })
-        );
-      }
-
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          message: result.message,
-          data: result.data,
-        })
-      );
-    } catch (err) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: err.message,
-        })
-      );
-    }
+  private _clearAuthCookies(res: Response): void {
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
   }
 
-  async getUsers(req: Request, res: Response): Promise<any> {
-    try {
-      const filters: GetUsersFilterDto = req.query;
-      const result: ServiceResponse<GetUsersResponseDto> =
-        await this.userService.getUsers(filters);
-
-      if (!result.success) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: result.message,
-          })
-        );
-      }
-
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          message: result.message,
-          data: result.data,
-        })
-      );
-    } catch (err) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: err.message,
-        })
-      );
-    }
+  private _handleControllerError(res: Response, error: unknown, defaultMessage: string): void {
+    const errorMessage = error instanceof Error ? error.message : defaultMessage;
+    
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(createResponse({
+      success: false,
+      message: errorMessage,
+    }));
   }
-
-  async toggleUserStatus(req: Request, res: Response): Promise<any> {
-    try {
-      const { id } = req.params;
-
-      if (!id) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "User ID is required",
-          })
-        );
-      }
-      const result: ServiceResponse<UserResponseDto> =
-        await this.userService.toggleUserStatus(id);
-
-      if (!result.success) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: result.message,
-          })
-        );
-      }
-
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          message: result.message,
-          data: result.data,
-        })
-      );
-    } catch (err) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: err.message,
-        })
-      );
-    }
-  }
-
-  async getUserDetails(req: Request, res: Response): Promise<any> {
-    try {
-      const { id } = req.params;
-
-      if (!id) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "User ID is required",
-          })
-        );
-      }
-
-      const result: ServiceResponse<UserResponseDto> =
-        await this.userService.getUserDetails(id);
-
-      if (!result.success) {
-        return res.status(404).json(
-          createResponse({
-            success: false,
-            message: result.message,
-          })
-        );
-      }
-
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          message: result.message,
-          data: result.data,
-        })
-      );
-    } catch (err) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: err.message,
-        })
-      );
-    }
-  }
-
 }

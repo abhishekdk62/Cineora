@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 import SearchBar from "./SearchBar";
 import SortDropdown from "./SortDropdown";
 import TheaterList from "./TheaterList";
-import Pagination from "@/app/others/components/utils/Pagination";
 import FilterSidebar from "./FiltersSideBar";
 import { useRouter } from "next/navigation";
 
@@ -38,41 +37,39 @@ type SortOption = "nearby" | "rating-high" | "rating-low" | "a-z" | "z-a";
 interface TheaterListManagerProps {
   theaters: Theater[];
   isLoading: boolean;
-  searchLoading?: boolean; 
+  searchLoading?: boolean;
+  scrollLoading?: boolean;
   searchTerm: string;
   sortBy: SortOption;
-  currentPage: number;
-  totalPages: number;
   totalCount: number;
   error: string | null;
   onSearchChange: (searchTerm: string) => void;
   onSortChange: (sortBy: SortOption) => void;
-  onPageChange: (page: number) => void;
   selectedFacilities: string[];
   onFacilityChange: (facilities: string[]) => void;
+  hasMore: boolean;
 }
-
 
 const TheaterListManager: React.FC<TheaterListManagerProps> = ({
   theaters,
   isLoading,
-  searchLoading = false, 
+  searchLoading = false,
+  scrollLoading = false,
   searchTerm,
   sortBy,
-  currentPage,
-  totalPages,
   totalCount,
   error,
   onSearchChange,
   onSortChange,
-  onPageChange,
   selectedFacilities = [],
   onFacilityChange,
+  hasMore,
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const router = useRouter()
+  const router = useRouter();
+  
   const handleViewNowShowing = (theaterId: string) => {
-
+    // Your existing logic here
   };
 
   return (
@@ -93,19 +90,18 @@ const TheaterListManager: React.FC<TheaterListManagerProps> = ({
             <SearchBar
               searchTerm={searchTerm}
               onSearchChange={onSearchChange}
-              searchLoading={searchLoading} 
+              searchLoading={searchLoading}
               placeholder="Search theaters by name or location..."
             />
 
-            {/* Filter button stays the same */}
             <motion.button
               onClick={() => setIsSidebarOpen(true)}
-              className={`${lexendMedium.className} relative flex items-center gap-2 px-4 py-4 bg-white/10 backdrop-blur-sm border border-gray-500/30 rounded-2xl text-white hover:bg-white/20 transition-all duration-300 ${selectedFacilities.length > 0 ? 'bg-blue-600/20 border-blue-500/50' : ''
-                }`}
+              className={`${lexendMedium.className} relative flex items-center gap-2 px-4 py-4 bg-white/10 backdrop-blur-sm border border-gray-500/30 rounded-2xl text-white hover:bg-white/20 transition-all duration-300 ${
+                selectedFacilities.length > 0 ? 'bg-blue-600/20 border-blue-500/50' : ''
+              }`}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              {/* Filter button content stays the same */}
               <motion.svg
                 className="w-5 h-5"
                 fill="none"
@@ -114,7 +110,12 @@ const TheaterListManager: React.FC<TheaterListManagerProps> = ({
                 animate={{ rotate: isSidebarOpen ? 180 : 0 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" 
+                />
               </motion.svg>
               <span className="hidden sm:inline">Filters</span>
 
@@ -145,7 +146,6 @@ const TheaterListManager: React.FC<TheaterListManagerProps> = ({
           </div>
         </div>
 
-        {/* Rest of component stays the same */}
         {error && (
           <div className="mb-6 p-4 bg-red-900/50 border border-red-500 rounded-lg">
             <p className={`${lexendSmall.className} text-red-300`}>{error}</p>
@@ -154,7 +154,7 @@ const TheaterListManager: React.FC<TheaterListManagerProps> = ({
 
         <div className="mb-6">
           <p className={`${lexendSmall.className} text-gray-400`}>
-            {isLoading ? 'Loading...' : `${totalCount} theater${totalCount !== 1 ? 's' : ''} found`}
+            {isLoading && theaters.length === 0 ? 'Loading...' : `${totalCount} theater${totalCount !== 1 ? 's' : ''} found`}
             {selectedFacilities.length > 0 && (
               <motion.span
                 className="ml-2 text-blue-400"
@@ -174,15 +174,31 @@ const TheaterListManager: React.FC<TheaterListManagerProps> = ({
           onViewNowShowing={handleViewNowShowing}
         />
 
-        {totalPages > 1 && !isLoading && (
-          <div className="mt-8 flex justify-center">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={onPageChange}
-              showPages={5}
-              className="mb-8"
-            />
+        {/* Infinite Scroll Loading Indicators */}
+        {scrollLoading && (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <span className={`${lexendSmall.className} ml-3 text-gray-400`}>
+              Loading more theaters...
+            </span>
+          </div>
+        )}
+
+        {!hasMore && theaters.length > 0 && (
+          <div className="text-center py-8">
+            <p className={`${lexendSmall.className} text-gray-400`}>
+              No more theaters to load
+            </p>
+          </div>
+        )}
+
+        {/* Auto-load trigger for when content is too short */}
+        {hasMore && theaters.length > 0 && !isLoading && !scrollLoading && (
+          <div 
+            id="load-more-trigger" 
+            className="h-10 flex items-center justify-center opacity-0"
+          >
+            Loading trigger
           </div>
         )}
       </div>
@@ -196,6 +212,5 @@ const TheaterListManager: React.FC<TheaterListManagerProps> = ({
     </div>
   );
 };
-
 
 export default TheaterListManager;

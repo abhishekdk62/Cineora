@@ -1,31 +1,41 @@
 import { FormData } from "../../components/Owner/Screens/types";
+import OWNER_SCREENS from "../../constants/ownerConstants/screenConstants";
 import apiClient from "../../Utils/apiClient";
+import {
+  CreateScreenOwnerResponseDto,
+  GetScreensByTheaterIdResponseDto,
+  GetScreensStatsOwnerResponseDto,
+  ToggleScreenStatusOwnerResponseDto,
+  DeleteScreenOwnerResponseDto,
+  EditScreenOwnerResponseDto
+} from '../../dtos/screen.dto';
 
-export const createScreen = async (data: FormData & any) => {
-  const result = await apiClient.post("/owner/screens", data);
+export const createScreen = async (data: FormData & any): Promise<CreateScreenOwnerResponseDto> => {
+  const result = await apiClient.post(OWNER_SCREENS.BASE, data);
   return result.data;
 };
 
-export const getScreensByTheaterId = async (theaterId: string) => {
-  const result = await apiClient.get(`/owner/screens/theater/${theaterId}`);
-  return result;
-};
-
-export const getScreensStatsOwner = async (theaterId: string) => {
-  const result = await apiClient.get(`/owner/screens/stats/${theaterId}`);
+export const getScreensByTheaterId = async (theaterId: string): Promise<GetScreensByTheaterIdResponseDto> => {
+  const result = await apiClient.get(OWNER_SCREENS.BY_THEATER_ID(theaterId));
   return result.data;
 };
 
-export const toggleScreenStatusOwner = async (id: string) => {
-  const result = await apiClient.patch(`/owner/screens/${id}`);
+export const getScreensStatsOwner = async (theaterId: string): Promise<GetScreensStatsOwnerResponseDto> => {
+  const result = await apiClient.get(OWNER_SCREENS.STATS(theaterId));
   return result.data;
 };
 
-export const deleteScreenOwner=async(id:string)=>{
-  const result=await apiClient.delete(`/owner/screens/${id}`)
-}
+export const toggleScreenStatusOwner = async (id: string): Promise<ToggleScreenStatusOwnerResponseDto> => {
+  const result = await apiClient.patch(OWNER_SCREENS.BY_ID(id));
+  return result.data;
+};
 
-export const editScreenOwner=async(id:string,data:any)=>{
-  const result=await apiClient.put(`/owner/screens/${id}`,data)
-  return result.data
-}
+export const deleteScreenOwner = async (id: string): Promise<DeleteScreenOwnerResponseDto> => {
+  const result = await apiClient.delete(OWNER_SCREENS.BY_ID(id));
+  return result.data;
+};
+
+export const editScreenOwner = async (id: string, data: any): Promise<EditScreenOwnerResponseDto> => {
+  const result = await apiClient.put(OWNER_SCREENS.BY_ID(id), data);
+  return result.data;
+};

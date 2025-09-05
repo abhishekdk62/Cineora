@@ -61,7 +61,6 @@ const MoviesManager: React.FC = () => {
   const [itemsPerPage] = useState(10);
 
   const getMoviesList = async () => {
-    console.log("yes");
 
     try {
       setIsLoading(true);
@@ -300,7 +299,6 @@ const MoviesManager: React.FC = () => {
           </div>
         </div>
 
-        {/* Top Bar */}
         <MoviesTopBar
           activeView={activeView}
           setActiveView={setActiveView}
@@ -308,7 +306,6 @@ const MoviesManager: React.FC = () => {
           expiredCount={expiredMovies.length}
         />
 
-        {/* Views */}
         {activeView === "current" && (
           <MoviesList
             movies={getDisplayMovies()}

@@ -1,40 +1,14 @@
-
+import COMMON_THEATERS from "../../constants/userConstants/theaterConstants";
 import apiClient from "../../Utils/apiClient";
-
-export interface GetTheatersFilters {
-  search?: string;
-  sortBy?: "nearby" | "rating-high" | "rating-low" | "a-z" | "z-a";
-  page?: number;
-  limit?: number;
-  facilities?: string[];
-  latitude?: number;
-  longitude?: number;
-}
-
-export interface Theater {
-  _id: string;
-  name: string;
-  city: string;
-  state: string;
-  location: {
-    coordinates: [number, number];
-  };
-  rating: number;
-  facilities: string[];
-  distance?: string;
-}
-
-export interface TheaterResponse {
-  theaters: Theater[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPrevPage: boolean;
-}
+import { 
+  TheaterFilters,
+  TheaterResponse,
+  GetTheatersResponseDto,
+  GetTheatersByMovieResponseDto
+} from '../../dtos/theater.dto';
 
 export const getTheatersWithFilters = async (
-  filters: GetTheatersFilters = {}
+  filters: TheaterFilters = {}
 ): Promise<TheaterResponse> => {
   const params = new URLSearchParams();
 
@@ -42,25 +16,20 @@ export const getTheatersWithFilters = async (
   if (filters.sortBy) params.append("sortBy", filters.sortBy);
   if (filters.page) params.append("page", filters.page.toString());
   if (filters.limit) params.append("limit", filters.limit.toString());
-  if (filters.latitude !== undefined)
-    params.append("latitude", filters.latitude.toString());
-  if (filters.longitude !== undefined)
-    params.append("longitude", filters.longitude.toString());
-  if (filters.facilities !== undefined)
-    params.append("facilities", filters.facilities?.toString());
+  if (filters.latitude !== undefined) params.append("latitude", filters.latitude.toString());
+  if (filters.longitude !== undefined) params.append("longitude", filters.longitude.toString());
+  if (filters.facilities !== undefined) params.append("facilities", filters.facilities.toString());
 
-  const res = await apiClient.get(
-    `/common/theaters/filter?${params.toString()}`
-  );
+  const res = await apiClient.get(`${COMMON_THEATERS.FILTER}?${params.toString()}`);
   return res.data;
-}; 
+};
 
-export const getTheaterById = async (theaterId: string) => {
-  const response = await apiClient.get(`/common/theater/${theaterId}`);
+export const getTheaterById = async (theaterId: string): Promise<GetTheatersResponseDto> => {
+  const response = await apiClient.get(COMMON_THEATERS.BY_ID(theaterId));
   return response.data;
 };
 
-export const getTheatersByMovie = async (movieId: string,date:string) => {
-  const result = await apiClient.get(`/common/theaters/from-movie/${movieId}?date=${date}`);
+export const getTheatersByMovie = async (movieId: string, date: string): Promise<GetTheatersByMovieResponseDto> => {
+  const result = await apiClient.get(COMMON_THEATERS.BY_MOVIE(movieId, date));
   return result.data;
 };

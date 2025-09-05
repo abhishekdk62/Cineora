@@ -11,6 +11,7 @@ import {
   toggleUserStatus,
 } from "@/app/others/services/adminServices/userService";
 import UserDetailsModal from "./UserDetailsModal";
+import { confirmAction } from "../../../utils/ConfirmDialog";
 
 export interface User {
   _id: string;
@@ -155,11 +156,9 @@ const UsersManager: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [itemsPerPage] = useState(10);
-
+  const [itemsPerPage] = useState(3);
   const [searchTerm, setSearchTerm] = useState("");
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
-
   const [activeCounts, setActiveCounts] = useState({
     activeUsers: 0,
     inactiveUsers: 0,
@@ -168,7 +167,6 @@ const UsersManager: React.FC = () => {
   });
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const fetchCounts = async () => {
     try {
       setCountsLoading(true);
@@ -187,11 +185,9 @@ const UsersManager: React.FC = () => {
       setCountsLoading(false);
     }
   };
-
   useEffect(() => {
     fetchCounts();
   }, []);
-
   const handlePageChange = useCallback(
     (page: number) => {
       setCurrentPage(page);
@@ -200,7 +196,6 @@ const UsersManager: React.FC = () => {
     },
     [currentFilters, itemsPerPage]
   );
-
   const handleFiltersChange = async (
     filters: UserFilters,
     resetPage: boolean = true
@@ -242,15 +237,12 @@ const UsersManager: React.FC = () => {
       setIsLoading(false);
     }
   };
-
   const handleSearchChange = useCallback((newSearchTerm: string) => {
     setSearchTerm(newSearchTerm);
     setCurrentFilters(prev => ({ ...prev, search: newSearchTerm }));
-
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
-
     searchTimeoutRef.current = setTimeout(() => {
       const newFilters = { ...currentFilters, search: newSearchTerm };
       handleFiltersChange(newFilters, true);
@@ -277,22 +269,33 @@ const UsersManager: React.FC = () => {
     setSelectedUser(user);
     setIsModalOpen(true);
   };
+const handleToggleUserStatus = async (user: User) => {
+  try {
+    const willDeactivate = user.isActive;
+    const action = willDeactivate ? "Deactivate" : "Activate";
+    const actionPast = willDeactivate ? "deactivated" : "activated";
 
-  const handleToggleUserStatus = async (user: User) => {
-    try {
-      await toggleUserStatus(user._id);
-      const action = user.isActive ? "deactivated" : "activated";
-      toast.success(`User ${action} successfully!`);
+    const confirmed = await confirmAction({
+      title: `${action} User?`,
+      message: `Are you sure you want to ${action.toLowerCase()} "${user.name}"?`,
+      confirmText: action,
+      cancelText: "Cancel",
+    });
 
-      fetchCounts();
-      if (Object.keys(currentFilters).length > 0) {
-        handleFiltersChange(currentFilters, false);
-      }
-    } catch (error: any) {
-      console.error("Error toggling user status:", error);
-      toast.error("Failed to update user status");
+    if (!confirmed) return;
+
+    await toggleUserStatus(user._id);
+    toast.success(`User ${actionPast} successfully!`);
+
+    fetchCounts();
+    if (Object.keys(currentFilters).length > 0) {
+      handleFiltersChange(currentFilters, false);
     }
-  };
+  } catch (error: any) {
+    console.error("Error toggling user status:", error);
+    toast.error("Failed to update user status");
+  }
+};
 
   const renderContent = () => {
     const commonProps = {

@@ -4,34 +4,35 @@ import { IAdminRepository } from "../interfaces/admin.repository.interface";
 import { Admin } from "../models/admin.model";
 
 export class AdminRepository implements IAdminRepository {
-  async findByEmail(email: string): Promise<IAdmin | null> {
-    return Admin.findOne({ email }).exec();
+  async findByEmail(adminEmail: string): Promise<IAdmin | null> {
+    return Admin.findOne({ email: adminEmail }).exec();
   }
 
-  async findById(id: string):Promise<IAdmin | null> {
-    return await Admin.findById(id);
+  async findById(adminId: string): Promise<IAdmin | null> {
+    return await Admin.findById(adminId);
   }
-  async updateRefreshToken(userId: string, hashedRefreshToken: string):Promise<AdminResponseDto | null>
- {
+
+  async updateRefreshToken(
+    adminId: string,
+    hashedRefreshToken: string
+  ): Promise<AdminResponseDto | null> {
     return await Admin.findByIdAndUpdate(
-      userId,
-      { 
+      adminId,
+      {
         refreshToken: hashedRefreshToken,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       { new: true }
     );
   }
-  
-  async clearRefreshToken(userId: string): Promise<AdminResponseDto | null>
-{
+
+  async clearRefreshToken(adminId: string): Promise<AdminResponseDto | null> {
     return await Admin.findByIdAndUpdate(
-      userId,
-      { 
+      adminId,
+      {
         $unset: { refreshToken: 1 },
-        updatedAt: new Date()
+        updatedAt: new Date(),
       }
     );
   }
 }
-

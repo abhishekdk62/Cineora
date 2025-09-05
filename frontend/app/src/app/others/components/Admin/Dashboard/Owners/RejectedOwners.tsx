@@ -5,6 +5,7 @@ import { Lexend } from "next/font/google"
 import { Search, Eye, XCircle, ChevronLeft, ChevronRight } from "lucide-react"
 import { OwnerRequest, OwnerRequestFilters } from "./OwnerManager"
 import OwnerRequestCard from "./OwnerRequestCard"
+import { useDebounce } from "@/app/others/Utils/debounce"
 
 const lexend = Lexend({
   weight: "500",
@@ -34,12 +35,17 @@ const RejectedRequests: React.FC<RejectedRequestsProps> = ({
   onFiltersChange,
   onViewDetails,
 }) => {
-  const handleSearch = (searchTerm: string) => {
-    onFiltersChange({
-      ...currentFilters,
-      search: searchTerm,
-    })
-  }
+const debouncedSearch = useDebounce((searchTerm: string) => {
+  onFiltersChange({
+    ...currentFilters,
+    search: searchTerm,
+  });
+}, 500);
+
+const handleSearch = (searchTerm: string) => {
+  debouncedSearch(searchTerm);
+};
+
 
   const handleSortChange = (sortBy: string, sortOrder: 'asc' | 'desc') => {
     onFiltersChange({

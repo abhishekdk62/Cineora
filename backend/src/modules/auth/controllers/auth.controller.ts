@@ -9,41 +9,42 @@ import {
   SendPasswordResetOtpRequestDto,
   VerifyPasswordResetOtpRequestDto,
 } from "../dtos/dtos";
-
+import { StatusCodes } from "../../../utils/statuscodes";
+import { AUTH_MESSAGES } from "../../../utils/messages.constants";
 
 export class AuthController {
-  constructor(private readonly authService: IAuthService) {}
+  constructor(private readonly _authService: IAuthService) {}
 
   async login(req: Request, res: Response): Promise<any> {
     try {
       const loginData: LoginRequestDto = req.body;
 
       if (!loginData.email || !loginData.password) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Email and password are required",
+            message: AUTH_MESSAGES.EMAIL_PASSWORD_REQUIRED,
           })
         );
       }
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(loginData.email)) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Please enter a valid email address",
+            message: AUTH_MESSAGES.INVALID_EMAIL,
           })
         );
       }
 
-      const result = await this.authService.login(
+      const result = await this._authService.login(
         loginData.email,
         loginData.password
       );
 
       if (!result.success) {
-        return res.status(401).json(
+        return res.status(StatusCodes.UNAUTHORIZED).json(
           createResponse({
             success: false,
             message: result.message,
@@ -67,7 +68,7 @@ export class AuthController {
 
       const { accessToken, refreshToken, ...restData } = result.data;
 
-      return res.status(200).json(
+      return res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
           message: result.message,
@@ -75,7 +76,7 @@ export class AuthController {
         })
       );
     } catch (err) {
-      res.status(500).json(
+     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
           message: err.message,
@@ -89,19 +90,19 @@ export class AuthController {
       const requestData: SendPasswordResetOtpRequestDto = req.body;
 
       if (!requestData.email) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Email is required",
+            message: AUTH_MESSAGES.EMAIL_REQUIRED,
           })
         );
       }
 
-      const result = await this.authService.sendPasswordResetOTP(
+      const result = await this._authService.sendPasswordResetOTP(
         requestData.email
       );
       if (!result.success) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
             message: result.message,
@@ -109,7 +110,7 @@ export class AuthController {
         );
       }
 
-      return res.status(200).json(
+      return res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
           message: result.message,
@@ -117,7 +118,7 @@ export class AuthController {
         })
       );
     } catch (error) {
-      res.status(500).json(
+     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
           message: error.message,
@@ -131,20 +132,20 @@ export class AuthController {
       const requestData: VerifyPasswordResetOtpRequestDto = req.body;
 
       if (!requestData.email || !requestData.otp) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Email and otp required",
+            message: AUTH_MESSAGES.OTP_REQUIRED,
           })
         );
       }
-      const result = await this.authService.verifyPasswordResetOtp(
+      const result = await this._authService.verifyPasswordResetOtp(
         requestData.email,
         requestData.otp
       );
 
       if (!result.success) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
             message: result.message,
@@ -152,14 +153,14 @@ export class AuthController {
         );
       }
 
-      return res.status(200).json(
+      return res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
-          message: "Otp verified successfully",
+          message: AUTH_MESSAGES.OTP_VERIFIED,
         })
       );
     } catch (error) {
-      res.status(500).json(
+    return  res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
           message: error.message,
@@ -173,21 +174,21 @@ export class AuthController {
       const requestData: ResetPasswordRequestDto = req.body;
 
       if (!requestData.email || !requestData.otp || !requestData.newPassword) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Email,otp and newpassword required",
+            message: AUTH_MESSAGES.EMAIL_OTP_PASSWORD_REQUIRED,
           })
         );
       }
 
-      const result = await this.authService.resetPasswordWithOTP(
+      const result = await this._authService.resetPasswordWithOTP(
         requestData.email,
         requestData.otp,
         requestData.newPassword
       );
       if (!result.success) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
             message: result.message,
@@ -195,14 +196,14 @@ export class AuthController {
         );
       }
 
-      return res.status(200).json(
+      return res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
-          message: "Password changed successfully",
+          message: AUTH_MESSAGES.PASSWORD_CHANGED,
         })
       );
     } catch (error) {
-      res.status(500).json(
+    return  res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
           message: error.message,
@@ -211,18 +212,19 @@ export class AuthController {
     }
   }
 
-  async googleAuthenticate(req: Request, res: Response): Promise<void> {
+  async googleAuthenticate(req: Request, res: Response): Promise<any> {
     try {
       const requestData: GoogleAuthRequestDto = req.body;
 
       if (!requestData.credential) {
-        res.status(400).json({
-          success: false,
-          message: "Google credential is required",
-        });
-        return;
+        return res.status(StatusCodes.BAD_REQUEST).json(
+          createResponse({
+            success: false,
+            message: AUTH_MESSAGES.GOOGLE_CREDENTIAL_REQUIRED,
+          })
+        );
       }
-      const result = await this.authService.googleAuth(requestData.credential);
+      const result = await this._authService.googleAuth(requestData.credential);
       if (result.success) {
         res.cookie("accessToken", result.data.accessToken, {
           httpOnly: true,
@@ -237,7 +239,7 @@ export class AuthController {
           sameSite: "strict",
           maxAge: 7 * 24 * 60 * 60 * 1000,
         });
-        res.status(200).json(
+       return res.status(StatusCodes.OK).json(
           createResponse({
             success: true,
             message: result.message,
@@ -250,46 +252,26 @@ export class AuthController {
           })
         );
       } else {
-        res.status(400).json({
-          success: false,
-          message: result.message,
-        });
+        return res.status(StatusCodes.BAD_REQUEST).json(
+          createResponse({
+            success: false,
+            message: result.message,
+          })
+        );
       }
     } catch (error) {
       console.error("Google Auth Controller Error:", error);
 
-      res.status(500).json({
-        success: false,
-        message: "Internal server error during Google authentication",
-      });
-    }
-  }
-
-  async checkAuthProvider(req: Request, res: Response): Promise<any> {
-    try {
-      const params = req.params;
-
-      if (!params.email) {
-        res.status(400).json({
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
+        createResponse({
           success: false,
-          message: "Email is required",
-        });
-        return;
-      }
-      const result = await this.authService.checkAuthProvider(params.email);
-      if (result.success) {
-        res.status(200).json(result);
-      } else {
-        res.status(404).json(result);
-      }
-    } catch (error) {
-      console.error("Check auth provider error:", error);
-      res.status(500).json({
-        success: false,
-        message: "Failed to check authentication provider",
-      });
+          message: AUTH_MESSAGES.INTERNAL_GOOGLE_AUTH_ERROR,
+        })
+      );
     }
   }
+
+
 
   async logout(req: Request, res: Response): Promise<any> {
     try {
@@ -297,16 +279,16 @@ export class AuthController {
       const userType = req.user?.role;
 
       if (userId && userType) {
-        await this.authService.logout(userId, userType);
+        await this._authService.logout(userId, userType);
       }
 
       res.clearCookie("accessToken");
       res.clearCookie("refreshToken");
 
-      return res.status(200).json(
+      return res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
-          message: "Logged out successfully",
+          message: AUTH_MESSAGES.LOGGED_OUT,
         })
       );
     } catch (error) {
@@ -315,10 +297,10 @@ export class AuthController {
       res.clearCookie("accessToken");
       res.clearCookie("refreshToken");
 
-      return res.status(500).json(
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: "Logout failed",
+          message: AUTH_MESSAGES.LOGOUT_FAILED,
         })
       );
     }
@@ -340,29 +322,29 @@ export class AuthController {
       }
 
       if (!userId) {
-        return res.status(401).json(
+        return res.status(StatusCodes.UNAUTHORIZED).json(
           createResponse({
             success: false,
-            message: "Invalid token data",
+            message: AUTH_MESSAGES.INVALID_TOKEN,
           })
         );
       }
 
-      const user = await this.authService.getUserByIdAndRole(userId, userRole);
+      const user = await this._authService.getUserByIdAndRole(userId, userRole);
 
       if (!user) {
-        return res.status(404).json(
+        return res.status(StatusCodes.UNAUTHORIZED).json(
           createResponse({
             success: false,
-            message: "User not found",
+            message: AUTH_MESSAGES.USER_NOT_FOUND,
           })
         );
       }
 
-      return res.status(200).json(
+      return res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
-          message: "User retrieved successfully",
+          message: AUTH_MESSAGES.USER_RETRIEVED,
           data: {
             id: user._id,
             email: user.email,
@@ -374,7 +356,7 @@ export class AuthController {
       );
     } catch (error) {
       console.error("Get current user controller error:", error);
-      res.status(500).json(
+     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
           message: error.message,

@@ -1,70 +1,84 @@
-export interface SelectedRow {
-  rowId: string;
-  rowLabel: string;
-  seatsSelected: string[];
-  seatCount: number;
-  seatType: "VIP" | "Premium" | "Normal";
-  pricePerSeat: number;
-  totalPrice: number;
+import { Request } from "express";
+import { IBooking } from "../interfaces/bookings.model.interface";
+
+// Authentication interface
+export interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    email: string;
+  };
 }
 
+// Request DTOs
 export interface CreateBookingDto {
-  userId: string;
+  userId?: string;
+  bookingId?:string;
   movieId: string;
+  paymentStatus?:any;
+  bookingStatus?:any;
   theaterId: string;
   screenId: string;
   showtimeId: string;
-  movieTitle:String;
-  selectedRows?: SelectedRow[];
-  
   selectedSeats?: string[];
-  selectedSeatIds?: string[];
-  seatPricing?: any[];
-  
+  // FIX: Update selectedRows to match ticket service expectations
+  selectedRows?: Array<{
+    rowLabel: string;
+    seatsSelected: number[]; // Changed from string[] to number[]
+    seatType: "VIP" | "Premium" | "Normal"; // Added required property
+    pricePerSeat: number; // Added required property
+  }>;
+  selectedSeatIds: string[];
+  seatPricing: Array<{
+    rowId: string;
+    seatType: "VIP" | "Premium" | "Normal";
+    basePrice: number;
+    finalPrice: number;
+    rowLabel: string;
+  }>;
   priceDetails: {
     subtotal: number;
     convenienceFee: number;
     taxes: number;
-    discount: number;
+    discount?: number;
     total: number;
   };
-  
-  showDate: Date;
+  showDate: string;
   showTime: string;
-  paymentMethod?: string;
-  paymentGateway?: string;
-  contactInfo?: {
+  contactInfo: {
     email: string;
-    phone: string;
   };
+  paymentMethod?: string;
+  movieTitle?: string;
+  theaterName?: string;
+}
+
+
+export interface UpdateBookingDto {
+  bookingStatus?: "confirmed" | "cancelled" | "expired";
+  paymentStatus?: "pending" | "completed" | "failed" | "refunded";
+  paymentId?: string;
+  paymentMethod?: string;
+  cancelledAt?: Date;
 }
 
 export interface UpdatePaymentStatusDto {
-  paymentStatus: "pending" | "completed" | "failed" | "refunded";
-  paymentId?: string;
-  transactionId?: string;
-  gatewayResponse?: any;
-  failureReason?: string;
-  refundAmount?: number;
-  refundReason?: string;
-}
-
-export interface CancelBookingDto {
-  bookingId: string;
-  userId: string;
-  reason?: string;
-}
-
-export interface BookingResponseDto {
-  bookingId: string;
-  userId: string;
-  movieTitle: string;
-  theaterName: string;
-  selectedSeats: string[];
-  showDate: string;
-  showTime: string;
-  totalAmount: number;
   paymentStatus: string;
-  bookingStatus: string;
-  bookedAt: string;
+  paymentId?: string;
+}
+
+export interface BookingParamsDto {
+  bookingId?: string;
+  userId?: string;
+  showtimeId?: string;
+}
+
+// Response DTOs
+export interface BookingResponseDto extends IBooking {}
+
+// Repository Result DTOs
+export interface BookingRepositoryFindResult {
+  bookings: IBooking[];
+  total: number;
+  page: number;
+  totalPages: number;
 }

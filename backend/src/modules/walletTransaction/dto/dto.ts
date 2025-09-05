@@ -1,129 +1,65 @@
-export interface CreateTransactionDto {
+// All DTOs for WalletTransaction module
+
+export interface CreateWalletTransactionDto {
   userId: string;
+  userModel: 'User' | 'Owner';
   walletId: string;
   type: 'credit' | 'debit';
   amount: number;
-  category: string;
-  subCategory?: string;
+  category: 'booking' | 'refund' | 'topup' | 'withdrawal' | 'revenue';
   description: string;
-  metadata?: any;
-  paymentMethod?: string;
   referenceId?: string;
+  movieId?: string;
+  theaterId?: string;
 }
 
-export interface BookingPaymentDto {
+export interface UpdateWalletTransactionStatusDto {
+  transactionId: string;
+  status: 'pending' | 'completed' | 'failed';
+}
+
+export interface GetUserWalletTransactionsDto {
   userId: string;
-  ownerId: string;
-  bookingId: string;
-  theaterId: string;
-  movieId: string;
-  totalAmount: number;
-  platformFeePercentage: number;
-  movieTitle: string;
-  theaterName: string;
-  seats: string[];
-  showDate: string;
-  showTime: string;
-}
-
-export interface PayoutRequestDto {
-  ownerId: string;
-  amount: number;
-  bankDetails: {
-    accountNumber: string;
-    ifscCode: string;
-    accountHolderName: string;
-  };
-}
-
-export interface TransactionFiltersDto {
-  category?: string;
-  status?: string;
-  type?: string;
-  startDate?: Date;
-  endDate?: Date;
-}
-
-export interface TransactionQueryDto {
   page?: number;
   limit?: number;
-  category?: string;
-  status?: string;
-  type?: string;
-  startDate?: string;
-  endDate?: string;
 }
 
-export interface RefundRequestDto {
-  bookingId: string;
-  refundAmount: number;
-  reason: string;
-}
-
-export interface TransactionStatsDto {
-  userId: string;
-  year?: number;
-  month?: number;
-}
-
-export interface RevenueStatsDto {
-  ownerId: string;
-  startDate: Date;
-  endDate: Date;
-}
-
-// Response DTOs
-export interface TransactionResponseDto {
-  transactionId: string;
-  type: 'credit' | 'debit';
-  amount: number;
-  category: string;
-  subCategory?: string;
-  description: string;
-  status: string;
-  createdAt: Date;
-  metadata?: any;
-}
-
-export interface TransactionListResponseDto {
-  transactions: TransactionResponseDto[];
-  total: number;
+export interface WalletTransactionPaginationDto {
   page: number;
   limit: number;
+  total: number;
   totalPages: number;
 }
 
-export interface TransactionStatsResponseDto {
-  totalCredits: number;
-  totalDebits: number;
-  transactionCount: number;
-  monthlyBreakdown: {
-    month: string;
-    credits: number;
-    debits: number;
-    count: number;
-  }[];
+export interface WalletTransactionFilterDto {
+  userId?: string;
+  walletId?: string;
+  type?: 'credit' | 'debit';
+  category?: 'booking' | 'refund' | 'topup' | 'withdrawal' | 'revenue';
+  status?: 'pending' | 'completed' | 'failed';
+  referenceId?: string;
+  movieId?: string;
+  theaterId?: string;
+  startDate?: Date;
+  endDate?: Date;
+  page?: number;
+  limit?: number;
 }
 
-export interface PayoutResponseDto {
-  payoutId: string;
+export interface WalletTransactionResponseDto {
+  id: string;
+  userId: string;
+  userModel: string;
+  walletId: string;
+  transactionId: string;
+  type: string;
   amount: number;
+  category: string;
+  description: string;
   status: string;
-  bankDetails: {
-    accountNumber: string;
-    ifscCode: string;
-    accountHolderName: string;
-  };
-  utrNumber?: string;
+  referenceId?: string;
+  movieId?: string;
+  theaterId?: string;
   createdAt: Date;
+  updatedAt: Date;
 }
-export interface PayoutRequestDto {
-  ownerId: string;
-  amount: number;
-  bankDetails: {
-    accountNumber: string; 
-    ifscCode: string;
-    accountHolderName: string;
-  };
-}
-

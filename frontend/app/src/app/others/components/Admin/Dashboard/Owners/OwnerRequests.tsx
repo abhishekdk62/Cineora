@@ -6,6 +6,7 @@ import { Search, Eye, CheckCircle, XCircle, UserCheck, ChevronLeft, ChevronRight
 import OwnerRequestCard from "./OwnerRequestCard"
 import toast from "react-hot-toast"
 import { OwnerRequest, OwnerRequestFilters } from "./OwnerManager"
+import { useDebounce } from "@/app/others/Utils/debounce"
 
 const lexend = Lexend({
   weight: "500",
@@ -43,12 +44,17 @@ const OwnerRequests: React.FC<OwnerRequestsProps> = ({
   const [pendingRejectRequest, setPendingRejectRequest] = useState<OwnerRequest | null>(null)
   const [rejectionReason, setRejectionReason] = useState("")
 
-  const handleSearch = (searchTerm: string) => {
-    onFiltersChange({
-      ...currentFilters,
-      search: searchTerm,
-    })
-  }
+const debouncedSearch = useDebounce((searchTerm: string) => {
+  onFiltersChange({
+    ...currentFilters,
+    search: searchTerm,
+  });
+}, 500);
+
+const handleSearch = (searchTerm: string) => {
+  debouncedSearch(searchTerm);
+};
+
 
   const handleSortChange = (sortBy: string, sortOrder: 'asc' | 'desc') => {
     onFiltersChange({

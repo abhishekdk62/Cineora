@@ -9,7 +9,6 @@ import MoviesGrid from "./MoviesGrid";
 import MoviesStatsCards from "./MoviesStatsCards";
 import MoviesListView from "./MoviesListView";
 
-
 const lexend = Lexend({
   weight: "500",
   subsets: ["latin"],
@@ -31,7 +30,6 @@ export interface Movie {
   language: string;
   isActive: boolean;
 }
-
 
 interface MoviesListProps {
   movies: Movie[];
@@ -68,13 +66,20 @@ const MoviesListComponent: React.FC<MoviesListProps> = ({
 }) => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [localFilters, setLocalFilters] = useState<MovieFilters>(currentFilters);
+  const [isFiltering, setIsFiltering] = useState(false);
 
   useEffect(() => {
+    setIsFiltering(true); // Set loading immediately when filters change
+    
     const delayedFilter = setTimeout(() => {
       onFiltersChange(localFilters, true);
+      setIsFiltering(false); // Clear loading after API call
     }, 500);
 
-    return () => clearTimeout(delayedFilter);
+    return () => {
+      clearTimeout(delayedFilter);
+      setIsFiltering(false);
+    };
   }, [localFilters, onFiltersChange]);
 
   const handleFilterChange = (key: keyof MovieFilters, value: any) => {
@@ -99,16 +104,17 @@ const MoviesListComponent: React.FC<MoviesListProps> = ({
         totalItems={totalItems}
       />
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className={`${lexend.className} text-2xl font-bold text-white`}>
           {title}
         </h2>
         <div className="flex items-center gap-4">
-          {isLoading && (
+          {(isLoading || isFiltering) && (
             <div className="flex items-center gap-2 text-gray-400">
               <Loader2 className="animate-spin" size={16} />
-              <span className="text-sm">Loading...</span>
+              <span className="text-sm">
+                {isFiltering ? "Applying filters..." : "Loading..."}
+              </span>
             </div>
           )}
           <div className="text-sm text-gray-400">
@@ -148,32 +154,42 @@ const MoviesListComponent: React.FC<MoviesListProps> = ({
         activeFilterCount={activeFilterCount}
       />
 
-      {/* Results */}
-      {movies.length === 0 ? (
-        <MoviesEmptyState
-          isLoading={isLoading}
-          activeFilterCount={activeFilterCount}
-          emptyMessage={emptyMessage}
-        />
-      ) : (
-        <>
-          {viewMode === "grid" ? (
-            <MoviesGrid
-              movies={movies}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onToggleStatus={onToggleStatus}
-            />
-          ) : (
-            <MoviesListView
-              movies={movies}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onToggleStatus={onToggleStatus}
-            />
-          )}
-        </>
-      )}
+      <div className="relative">
+        {isFiltering && (
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
+            <div className="flex items-center gap-2 text-white">
+              <Loader2 className="animate-spin" size={20} />
+              <span>Loading......</span>
+            </div>
+          </div>
+        )}
+        
+        {movies.length === 0 ? (
+          <MoviesEmptyState
+            isLoading={isLoading || isFiltering}
+            activeFilterCount={activeFilterCount}
+            emptyMessage={emptyMessage}
+          />
+        ) : (
+          <>
+            {viewMode === "grid" ? (
+              <MoviesGrid
+                movies={movies}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onToggleStatus={onToggleStatus}
+              />
+            ) : (
+              <MoviesListView
+                movies={movies}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onToggleStatus={onToggleStatus}
+              />
+            )}
+          </>
+        )}
+      </div>
 
       <Pagination
         currentPage={currentPage}

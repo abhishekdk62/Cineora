@@ -1,15 +1,23 @@
-// interfaces/walletTransaction.repository.interface.ts
-import { IWalletTransaction } from "./walletTransaction.model.interface";
+import { IWalletTransaction } from './walletTransaction.model.interface';
 
-export interface IWalletTransactionRepository {
-  create(data: Partial<IWalletTransaction>): Promise<IWalletTransaction>;
-  findById(id: string): Promise<IWalletTransaction | null>;
-  findByTransactionId(transactionId: string): Promise<IWalletTransaction | null>;
-  findByUserId(userId: string, page: number, limit: number): Promise<{
-    transactions: IWalletTransaction[];
-    total: number;
-  }>;
-  findByWalletId(walletId: string): Promise<IWalletTransaction[]>;
-  findByReferenceId(referenceId: string): Promise<IWalletTransaction[]>;
-  updateStatus(transactionId: string, status: string): Promise<IWalletTransaction | null>;
+// Interface Segregation Principle - separate read and write operations
+export interface IReadWalletTransactionRepository {
+  findWalletTransactionById(transactionId: string): Promise<IWalletTransaction | null>;
+  findWalletTransactionByTransactionId(transactionId: string): Promise<IWalletTransaction | null>;
+  findWalletTransactionsByUserId(
+    userId: string, 
+    page: number, 
+    limit: number
+  ): Promise<{ transactions: IWalletTransaction[]; total: number }>;
+  findWalletTransactionsByWalletId(walletId: string): Promise<IWalletTransaction[]>;
+  findWalletTransactionsByReferenceId(referenceId: string): Promise<IWalletTransaction[]>;
 }
+
+export interface IWriteWalletTransactionRepository {
+  createWalletTransaction(data: Partial<IWalletTransaction>): Promise<IWalletTransaction>;
+  updateWalletTransactionStatus(transactionId: string, status: string): Promise<IWalletTransaction | null>;
+}
+
+// Combined interface following ISP
+export interface IWalletTransactionRepository 
+  extends IReadWalletTransactionRepository, IWriteWalletTransactionRepository {}

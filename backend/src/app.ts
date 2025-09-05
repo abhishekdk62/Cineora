@@ -62,35 +62,42 @@ import { PaymentRepository } from "./modules/payment/repositories/payment.reposi
 import { WalletTransactionService } from "./modules/walletTransaction/services/walletTransaction.service";
 import { WalletTransactionRepository } from "./modules/walletTransaction/repositories/walletTransaction.repository";
 import { WalletTransactionController } from "./modules/walletTransaction/controllers/walletTransaction.controller";
+import { NotificationService } from "./modules/notification/services/notification.service";
+import { NotificationRepository } from "./modules/notification/repositories/notification.repository";
+import { NotificationScheduler } from "./services/scheduler.service";
+import { NotificationController } from "./modules/notification/controllers/notification.controller";
+import { errorLogger, requestLogger } from "./utils/logger";
 
 export class App {
-  private app: Application;
+  private _app: Application;
 
   constructor() {
-    this.app = express();
-    this.setMiddlewares();
-    this.setUtilityRoutes();
-    this.setModuleRoutes();
+    this._app = express();
+    this._setMiddlewares();
+    this._setUtilityRoutes();
+    this._setModuleRoutes();
+    this._setErrorHandling()
   }
-  private setMiddlewares() {
-    this.app.use(helmet());
-    this.app.use(cookieParser());
-    this.app.use(express.json({ limit: "10mb" }));
-    this.app.use(express.urlencoded({ limit: "10mb", extended: true }));
-    this.app.use(
+  private _setMiddlewares() {
+    this._app.use(helmet());
+    this._app.use(cookieParser());
+    this._app.use(express.json({ limit: "10mb" }));
+    this._app.use(express.urlencoded({ limit: "10mb", extended: true }));
+    this._app.use(morgan("dev"));
+    this._app.use(requestLogger);
+    this._app.use(
       cors({
         origin: process.env.CORS_ALLOWED_ORIGIN || "http://localhost:3000",
         credentials: true,
       })
     );
-    this.app.use(morgan("dev"));
   }
 
-  private setUtilityRoutes() {
-    this.app.use("/api/sign-cloudinary", getSignedUrl);
+  private _setUtilityRoutes() {
+    this._app.use("/api/sign-cloudinary", getSignedUrl);
   }
 
-  private setModuleRoutes() {
+  private _setModuleRoutes() {
     const emailService = new EmailService();
 
     const userRepo = new UserRepository();
@@ -105,6 +112,7 @@ export class App {
     const movieRepo = new MovieRepository();
     const ticketRepo = new TicketRepository();
     const paymentRepo = new PaymentRepository();
+    const notificationRepo = new NotificationRepository();
     const walletTransactionRepo = new WalletTransactionRepository();
     const bookingRepo = new BookingRepository();
     const userService = new UserService(
@@ -136,6 +144,10 @@ export class App {
     const bookingService = new BookingService(bookingRepo, showtimeRepo);
     const walletService = new WalletService(walletRepo);
     const showtimeService = new ShowtimeService(showtimeRepo);
+    const notificationService = new NotificationService(notificationRepo);
+    const notificationScheduler = new NotificationScheduler(
+      notificationService
+    );
     const walletTransactionService = new WalletTransactionService(
       walletTransactionRepo
     );
@@ -160,13 +172,22 @@ export class App {
     );
     const screenController = new ScreenController(screenService);
 
-    const ticketController = new TicketController(ticketService, walletService,walletTransactionService);
+    const ticketController = new TicketController(
+      ticketService,
+      walletService,
+      walletTransactionService,
+      bookingService,
+      notificationService,
+      notificationScheduler
+    );
     const bookingController = new BookingController(
       bookingService,
       ticketService,
       userService,
       walletService,
-      walletTransactionService
+      walletTransactionService,
+      notificationService,
+      notificationScheduler
     );
     const showtimeController = new ShowtimeController(showtimeService);
     const theaterController = new TheaterController(
@@ -175,8 +196,17 @@ export class App {
     );
     const moviesController = new MoviesController(movieService);
     const authController = new AuthController(authService);
-    const walletController = new WalletController(walletService,walletTransactionService);
-    const paymentController = new PaymentController(paymentService);
+    const walletController = new WalletController(
+      walletService,
+      walletTransactionService
+    );
+    const notificationController = new NotificationController(
+      notificationService
+    );
+    const paymentController = new PaymentController(
+      paymentService,
+      notificationService
+    );
     const walletTransactionController = new WalletTransactionController(
       walletTransactionService
     );
@@ -199,7 +229,8 @@ export class App {
       bookingController,
       ticketController,
       walletController,
-      paymentController
+      paymentController,
+      notificationController
     );
 
     const ownerRoutes = new OwnerMainRoute(
@@ -208,7 +239,8 @@ export class App {
       showtimeController,
       moviesController,
       theaterController,
-      ownerController
+      ownerController,
+      bookingController
     );
 
     const ownerReqRoutes = new OwnerRequestRoute(
@@ -230,34 +262,37 @@ export class App {
       userController
     );
 
-    this.app.use("/api/auth", authRoutes.getRouter());
-    this.app.use(
+    this._app.use("/api/auth", authRoutes.getRouter());
+    this._app.use(
       "/api/users",
       authenticateToken,
       requireUser,
       userRoutes.getRouter()
     );
-    this.app.use("/api/owners", ownerReqRoutes.getRouter());
-    this.app.use(
+    this._app.use("/api/owners", ownerReqRoutes.getRouter());
+    this._app.use(
       "/api/owner",
       authenticateToken,
       requireOwner,
       ownerRoutes.getRouter()
     );
-    this.app.use(
+    this._app.use(
       "/api/admin",
       authenticateToken,
       requireAdmin,
       adminRoutes.getRouter()
     );
-    this.app.use("/api/common", commonRoutes.getRouter());
+    this._app.use("/api/common", commonRoutes.getRouter());
 
-    this.app.use((req, res) =>
+    this._app.use((req, res) =>
       res.status(404).json({ success: false, message: "Route not found" })
     );
   }
+  private _setErrorHandling() {
+    this._app.use(errorLogger);
+  }
 
   public getApp() {
-    return this.app;
+    return this._app;
   }
 }

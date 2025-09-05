@@ -1,14 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Lexend } from "next/font/google";
-import { User, UserCheck, UserX, Clock } from "lucide-react";
-import ActiveOwners from "./ActiveOwners";
-import OwnerRequests from "./OwnerRequests";
-import Theaters from "./Theaters";
-import InactiveOwners from "./InactiveOwners";
-import { confirmAction, ConfirmDialog } from "@/app/others/components/utils/ConfirmDialog";
-
+import { confirmAction } from "@/app/others/components/utils/ConfirmDialog";
 import toast from "react-hot-toast";
 import {
   getOwners,
@@ -18,7 +11,9 @@ import {
   rejectOwnerRequest,
   toggleOwnerStatus,
 } from "@/app/others/services/adminServices/ownerServices";
-import RejectedRequests from "./RejectedOwners";
+import OwnersContent from "./OwnersContent";
+import OwnersStats from "./OwnersStats";
+import OwnersHeader from "./OwnersHeader";
 
 export interface Owner {
   _id: string;
@@ -81,6 +76,14 @@ export interface OwnerFilters {
   limit?: number;
   status?: "active" | "inactive";
 }
+export type ActiveView = 
+  | "active" 
+  | "inactive" 
+  | "pending" 
+  | "approved" 
+  | "rejected" 
+  | "active-theaters" 
+  | "inactive-theaters";
 
 export interface OwnerRequestFilters {
   search?: string;
@@ -105,145 +108,31 @@ export interface OwnerRequestResponse {
   totalPages: number;
 }
 
-const lexend = Lexend({
-  weight: "500",
-  subsets: ["latin"],
-});
-
-const lexendSmall = Lexend({
-  weight: "300",
-  subsets: ["latin"],
-});
-
-interface OwnersTopBarProps {
-  activeView?:
-    | "active"
-    | "inactive"
-    | "pending"
-    | "approved"
-    | "rejected"
-    | "active-theaters"
-    | "inactive-theaters";
-
-  setActiveView: (
-    view: "active" | "inactive" | "pending" | "approved" | "rejected"
-  ) => void;
-  activeCounts: {
-    activeOwners: number;
-    inactiveOwners: number;
-    pendingRequests: number;
-    rejectedRequests: number;
-  };
-}
-
-const OwnersTopBar: React.FC<OwnersTopBarProps> = ({
-  activeView,
-  setActiveView,
-  activeCounts,
-}) => {
-  const safeActiveCounts = activeCounts || {
-    activeOwners: 0,
-    inactiveOwners: 0,
-    pendingRequests: 0,
-    rejectedRequests: 0,
-  };
-
-  const tabs = [
-    {
-      id: "active" as const,
-      label: "Active Owners",
-      icon: User,
-      count: safeActiveCounts.activeOwners,
-      color: "text-green-400",
-    },
-    {
-      id: "inactive" as const,
-      label: "Inactive Owners",
-      icon: Clock,
-      count: safeActiveCounts.inactiveOwners,
-      color: "text-orange-400",
-    },
-    {
-      id: "pending" as const,
-      label: "Pending Requests",
-      icon: UserCheck,
-      count: safeActiveCounts.pendingRequests,
-      color: "text-blue-400",
-    },
-    {
-      id: "rejected" as const,
-      label: "Rejected Requests",
-      icon: UserX,
-      count: safeActiveCounts.rejectedRequests,
-      color: "text-red-400",
-    },
-  ];
-
-  return (
-    <div className="bg-[#1a1a1a] border border-gray-600 rounded-lg p-4 shadow-lg">
-      <div className="flex flex-wrap gap-2">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeView === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => {
-                setActiveView(tab.id);
-              }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-                isActive
-                  ? "bg-[#e78f03] text-black font-medium shadow-lg"
-                  : "text-gray-300 hover:text-white hover:bg-[#2a2a2a] border border-gray-500"
-              }`}
-            >
-              <Icon size={16} className={isActive ? "text-black" : tab.color} />
-              <span className={`${lexendSmall.className}`}>{tab.label}</span>
-              <span
-                className={`${
-                  isActive
-                    ? "bg-black/20 text-black"
-                    : "bg-[#2a2a2a] text-gray-300"
-                } text-xs px-2 py-1 rounded-full ml-1`}
-              >
-                {tab.count}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
 const OwnersManager: React.FC = () => {
-  const [activeView, setActiveView] = useState<
-    | "active"
-    | "inactive"
-    | "pending"
-    | "approved"
-    | "rejected"
-    | "active-theaters"
-    | "inactive-theaters"
-  >("active");
+  const [activeView, setActiveView] = useState<ActiveView>("active");
   const [owners, setOwners] = useState<Owner[]>([]);
   const [ownerRequests, setOwnerRequests] = useState<OwnerRequest[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-
   const [ownerFilters, setOwnerFilters] = useState<OwnerFilters>({});
   const [requestFilters, setRequestFilters] = useState<OwnerRequestFilters>({});
   const [ownerId, setOwnerId] = useState<string>("");
   const [countsLoading, setCountsLoading] = useState(true);
-
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(1);
+  const [activeCounts, setActiveCounts] = useState({
+    activeOwners: 0,
+    inactiveOwners: 0,
+    pendingRequests: 0,
+    rejectedRequests: 0,
+  });
 
   const setViewThaeter = (id: string) => {
     setActiveView("active-theaters");
     setOwnerId(id);
   };
+
   const setViewInactiveTheater = () => {
     if (activeView == "active-theaters") {
       setActiveView("inactive-theaters");
@@ -251,16 +140,10 @@ const OwnersManager: React.FC = () => {
       setActiveView("active-theaters");
     }
   };
-  const onClose = () => {
-    setActiveView("approved");
-  };
 
-  const [activeCounts, setActiveCounts] = useState({
-    activeOwners: 0,
-    inactiveOwners: 0,
-    pendingRequests: 0,
-    rejectedRequests: 0,
-  });
+  const onClose = () => {
+    setActiveView("active");
+  };
 
   const fetchCounts = async () => {
     try {
@@ -407,7 +290,7 @@ const OwnersManager: React.FC = () => {
 
     if (activeView === "inactive" || activeView === "active") {
       handleOwnerFiltersChange({}, true);
-    } else {
+    } else if (activeView === "pending" || activeView === "rejected") {
       handleRequestFiltersChange({}, true);
     }
   }, [activeView]);
@@ -487,117 +370,39 @@ const OwnersManager: React.FC = () => {
     }
   };
 
-  const renderContent = () => {
-    const ownerCommonProps = {
-      isLoading,
-      currentFilters: ownerFilters,
-      currentPage,
-      totalPages,
-      totalItems,
-      onPageChange: handlePageChange,
-      onFiltersChange: handleOwnerFiltersChange,
-      onViewDetails: handleViewDetails,
-    };
-
-    const requestCommonProps = {
-      isLoading,
-      currentFilters: requestFilters,
-      currentPage,
-      totalPages,
-      totalItems,
-      onPageChange: handlePageChange,
-      onFiltersChange: handleRequestFiltersChange,
-      onViewDetails: handleViewDetails,
-    };
-
-    switch (activeView) {
-      case "active":
-        return (
-          <ActiveOwners
-            {...ownerCommonProps}
-            owners={owners}
-            onToggleStatus={handleToggleOwnerStatus}
-            setViewThaeter={setViewThaeter}
-          />
-        );
-      case "inactive":
-        return (
-          <InactiveOwners
-            {...ownerCommonProps}
-            owners={owners}
-            onToggleStatus={handleToggleOwnerStatus}
-                setViewThaeter={setViewThaeter}
-          />
-        );
-      case "pending":
-        return (
-          <OwnerRequests
-            {...requestCommonProps}
-            requests={ownerRequests}
-            onAcceptRequest={handleAcceptRequest}
-            onRejectRequest={handleRejectRequest}
-          />
-        );
-      case "rejected":
-        return (
-          <RejectedRequests {...requestCommonProps} requests={ownerRequests} />
-        );
-      case "active-theaters":
-        return (
-          <Theaters
-            setViewInactiveTheater={setViewInactiveTheater}
-            ownerId={ownerId}
-            onClose={onClose}
-            status="active"
-          />
-        );
-      case "inactive-theaters":
-        return (
-          <Theaters
-            setViewInactiveTheater={setViewInactiveTheater}
-            ownerId={ownerId}
-            onClose={onClose}
-            status="inactive"
-          />
-        );
-      default:
-        return (
-          <ActiveOwners
-            {...ownerCommonProps}
-            owners={owners}
-            onToggleStatus={handleToggleOwnerStatus}
-            setViewThaeter={setViewThaeter}
-          />
-        );
-    }
-  };
-
   return (
     <div className="space-y-6">
-      <div>
-        <h1
-          className={`${lexend.className} text-3xl font-bold text-white mb-2`}
-        >
-          Owners Management
-        </h1>
-        <p className="text-gray-400">Manage cinema owners and their requests</p>
-      </div>
+      <OwnersHeader />
+      
+      <OwnersStats
+        activeView={activeView}
+        setActiveView={setActiveView}
+        activeCounts={activeCounts}
+        countsLoading={countsLoading}
+      />
 
-      {countsLoading ? (
-        <div className="bg-[#1a1a1a] border border-gray-600 rounded-lg p-4 shadow-lg">
-          <div className="flex items-center justify-center py-8">
-            <div className="text-gray-400">Loading counts...</div>
-          </div>
-        </div>
-      ) : (
-        <OwnersTopBar
-          activeView={activeView}
-          setActiveView={setActiveView}
-          activeCounts={activeCounts}
-        />
-      )}
-
-      {renderContent()}
+      <OwnersContent
+        activeView={activeView}
+        owners={owners}
+        ownerRequests={ownerRequests}
+        isLoading={isLoading}
+        ownerFilters={ownerFilters}
+        requestFilters={requestFilters}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        ownerId={ownerId}
+        onPageChange={handlePageChange}
+        onOwnerFiltersChange={handleOwnerFiltersChange}
+        onRequestFiltersChange={handleRequestFiltersChange}
+        onViewDetails={handleViewDetails}
+        onToggleOwnerStatus={handleToggleOwnerStatus}
+        onAcceptRequest={handleAcceptRequest}
+        onRejectRequest={handleRejectRequest}
+        setViewThaeter={setViewThaeter}
+        setViewInactiveTheater={setViewInactiveTheater}
+        onClose={onClose}
+      />
     </div>
   );
 };

@@ -1,6 +1,15 @@
 import { Request, Response } from "express";
-import { IWalletService } from "../interfaces/walletTransaction.service.interface";
+import { IWalletService } from "../interfaces/wallet.service.interface";
 import { IWalletTransactionService } from "../../walletTransaction/interfaces/walletTransaction.service.interface";
+import { CreateWalletDto, CreditWalletDto, DebitWalletDto } from "../dtos/dto";
+import { StatusCodes } from "../../../utils/statuscodes";
+import { WALLET_MESSAGES } from "../../../utils/messages.constants";
+import { createResponse } from "../../../utils/createResponse";
+
+interface AuthenticatedRequest extends Request {
+  user?: { id: string; role?: string };
+  owner?: { ownerId: string; role?: string };
+}
 
 export class WalletController {
   constructor(
@@ -8,198 +17,262 @@ export class WalletController {
     private readonly walletTransactionService: IWalletTransactionService
   ) {}
 
-  async createWallet(req: Request, res: Response): Promise<any> {
+  async createWallet(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const userId = req.user.id;
+      const userId = req.user?.id;
       const { userModel } = req.body;
 
-      const result = await this.walletService.createWallet(userId, userModel);
-
-      if (result.success) {
-        res.status(201).json(result);
-      } else {
-        res.status(400).json(result);
-      }
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
-    }
-  }
-
-  async getBalance(req: Request, res: Response): Promise<any> {
-    try {
-      const userId = req.user.id || req.owner.ownerId;
-      const userModel = req.user.role || req.owner.role;
-      let person = userModel[0].toUpperCase() + userModel.slice(1);
-
-      const result = await this.walletService.getBalance(userId, person);
-      res.status(200).json(result);
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
-    }
-  }
-
-  async creditWallet(req: Request, res: Response): Promise<any> {
-    try {
-      const userId = req.user.id;
-      const { amount, userModel } = req.body;
-
-      const result = await this.walletService.creditWallet(
-        userId,
-        userModel,
-        amount
-      );
-
-      if (result.success) {
-        res.status(200).json(result);
-      } else {
-        res.status(400).json(result);
-      }
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
-    }
-  }
-
-  async debitWallet(req: Request, res: Response): Promise<any> {
-    try {
-      const userId = req.user.id;
-      const { amount, userModel } = req.body;
-
-      const result = await this.walletService.debitWallet(
-        userId,
-        userModel,
-        amount
-      );
-
-      if (result.success) {
-        res.status(200).json(result);
-      } else {
-        res.status(400).json(result);
-      }
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
-    }
-  }
-  async handleWalletTransaction(req: Request, res: Response): Promise<any> {
-    try {
-      let userId: string;
-      let userModel: "User" | "Owner";
-
-      if (req.user?.id) {
-        userId = req.user.id;
-        userModel = "User";
-      } else if (req.owner?.ownerId) {
-        userId = req.owner.ownerId;
-        userModel = "Owner";
-      } else {
-        return res.status(400).json({
+      if (!userId) {
+        res.status(StatusCodes.UNAUTHORIZED).json(createResponse({
           success: false,
-          message: "User authentication required",
-        });
+          message: WALLET_MESSAGES.USER_AUTH_REQUIRED,
+        }));
+        return;
+      }
+
+      const createDto: CreateWalletDto = {
+        userId,
+        userModel
+      };
+
+      const result = await this.walletService.createWallet(createDto);
+
+      if (result.success) {
+        res.status(StatusCodes.CREATED).json(result);
+      } else {
+        res.status(StatusCodes.BAD_REQUEST).json(result);
+      }
+    } catch (error: unknown) {
+      this._handleControllerError(res, error, WALLET_MESSAGES.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async getWalletBalance(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const userInfo = this._extractUserInfo(req);
+
+      if (!userInfo) {
+        res.status(StatusCodes.UNAUTHORIZED).json(createResponse({
+          success: false,
+          message: WALLET_MESSAGES.USER_AUTH_REQUIRED,
+        }));
+        return;
+      }
+
+      const result = await this.walletService.getWalletBalance(userInfo.userId, userInfo.userModel);
+
+      res.status(StatusCodes.OK).json(result);
+    } catch (error: unknown) {
+      this._handleControllerError(res, error, WALLET_MESSAGES.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async creditWallet(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      const { amount, userModel } = req.body;
+
+      if (!userId) {
+        res.status(StatusCodes.UNAUTHORIZED).json(createResponse({
+          success: false,
+          message: WALLET_MESSAGES.USER_AUTH_REQUIRED,
+        }));
+        return;
+      }
+
+      const creditDto: CreditWalletDto = {
+        userId,
+        userModel,
+        amount: parseFloat(amount)
+      };
+
+      const result = await this.walletService.creditWallet(creditDto);
+
+      if (result.success) {
+        res.status(StatusCodes.OK).json(result);
+      } else {
+        res.status(StatusCodes.BAD_REQUEST).json(result);
+      }
+    } catch (error: unknown) {
+      this._handleControllerError(res, error, WALLET_MESSAGES.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async debitWallet(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      const { amount, userModel } = req.body;
+
+      if (!userId) {
+        res.status(StatusCodes.UNAUTHORIZED).json(createResponse({
+          success: false,
+          message: WALLET_MESSAGES.USER_AUTH_REQUIRED,
+        }));
+        return;
+      }
+
+      const debitDto: DebitWalletDto = {
+        userId,
+        userModel,
+        amount: parseFloat(amount)
+      };
+
+      const result = await this.walletService.debitWallet(debitDto);
+
+      if (result.success) {
+        res.status(StatusCodes.OK).json(result);
+      } else {
+        res.status(StatusCodes.BAD_REQUEST).json(result);
+      }
+    } catch (error: unknown) {
+      this._handleControllerError(res, error, WALLET_MESSAGES.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async handleWalletTransaction(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const userInfo = this._extractUserInfo(req);
+
+      if (!userInfo) {
+        res.status(StatusCodes.UNAUTHORIZED).json(createResponse({
+          success: false,
+          message: WALLET_MESSAGES.USER_AUTH_REQUIRED,
+        }));
+        return;
       }
 
       const { amount, type, description } = req.body;
 
-      if (!amount || !type) {
-        return res.status(400).json({
+      // Validate request data
+      const validationError = this._validateTransactionRequest(amount, type);
+      if (validationError) {
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
           success: false,
-          message: "Amount and type are required",
-        });
+          message: validationError,
+        }));
+        return;
       }
 
-      if (!["credit", "debit"].includes(type)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid transaction type. Must be 'credit' or 'debit'",
-        });
-      }
-
-      if (amount <= 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Amount must be greater than 0",
-        });
-      }
-
+      const parsedAmount = parseFloat(amount);
       let result;
 
       if (type === "credit") {
-        result = await this.walletService.creditWallet(
-          userId,
-          userModel,
-          parseFloat(amount),
+        const creditDto: CreditWalletDto = {
+          userId: userInfo.userId,
+          userModel: userInfo.userModel,
+          amount: parsedAmount,
           description
-        );
-      } else if (type === "debit") {
-        result = await this.walletService.debitWallet(
-          userId,
-          userModel,
-          parseFloat(amount),
+        };
+        result = await this.walletService.creditWallet(creditDto);
+      } else {
+        const debitDto: DebitWalletDto = {
+          userId: userInfo.userId,
+          userModel: userInfo.userModel,
+          amount: parsedAmount,
           description
-        );
+        };
+        result = await this.walletService.debitWallet(debitDto);
       }
 
       if (result.success) {
-        res.status(200).json({
+        // Create wallet transaction record
+        await this._createWalletTransactionRecord(
+          userInfo.userId,
+          userInfo.userModel,
+          result.data,
+          type,
+          parsedAmount,
+          description
+        );
+
+        res.status(StatusCodes.OK).json(createResponse({
           success: true,
           message: result.message,
           data: {
             wallet: result.data,
-            userModel: userModel,
+            userModel: userInfo.userModel,
             transactionType: type,
-            amount: parseFloat(amount),
+            amount: parsedAmount,
           },
-        });
-
-        const wallet = await this.walletService.getWalletDetails(
-          userId,
-          "User"
-        );
-
-        if (!wallet.success) {
-          return res.status(400).json({
-            success: false,
-            message: "Wallet not found",
-          });
-        }
-
-        const transactionResult =
-          await this.walletTransactionService.createWalletTransaction({
-            userId: userId,
-            userModel: userModel,
-            walletId: wallet.data._id,
-            type: type,
-            amount: parseFloat(amount),
-            category: type === "credit" ? "topup" : "withdrawal",
-            description: description || `Wallet ${type} transaction`,
-          });
-        if (!transactionResult.success) {
-          console.error(
-            "Failed to create transaction record:",
-            transactionResult.message
-          );
-        }
+        }));
       } else {
-        res.status(400).json(result);
+        res.status(StatusCodes.BAD_REQUEST).json(result);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Wallet transaction error:", error);
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-        data: null,
-      });
+      this._handleControllerError(res, error, WALLET_MESSAGES.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  // Private helper methods for controller logic (SRP - Single Responsibility)
+  private _extractUserInfo(req: AuthenticatedRequest): { userId: string; userModel: "User" | "Owner" } | null {
+    if (req.user?.id) {
+      return {
+        userId: req.user.id,
+        userModel: "User"
+      };
+    }
+
+    if (req.owner?.ownerId) {
+      return {
+        userId: req.owner.ownerId,
+        userModel: "Owner"
+      };
+    }
+
+    return null;
+  }
+
+  private _validateTransactionRequest(amount: string, type: string): string | null {
+    if (!amount || !type) {
+      return WALLET_MESSAGES.AMOUNT_TYPE_REQUIRED;
+    }
+
+    if (!["credit", "debit"].includes(type)) {
+      return WALLET_MESSAGES.INVALID_TRANSACTION_TYPE;
+    }
+
+    const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      return WALLET_MESSAGES.AMOUNT_MUST_BE_POSITIVE;
+    }
+
+    return null;
+  }
+
+  private async _createWalletTransactionRecord(
+    userId: string,
+    userModel: "User" | "Owner",
+    walletData: any,
+    type: string,
+    amount: number,
+    description?: string
+  ): Promise<void> {
+    try {
+      const transactionResult = await this.walletTransactionService.createWalletTransaction({
+        userId: userId,
+        userModel: userModel,
+        walletId: walletData._id,
+        type: type as "credit" | "debit",
+        amount: amount,
+        category: type === "credit" ? "topup" : "withdrawal",
+        description: description || `Wallet ${type} transaction`,
+      });
+
+      if (!transactionResult.success) {
+        console.error("Failed to create transaction record:", transactionResult.message);
+      }
+    } catch (error) {
+      console.error("Error creating wallet transaction record:", error);
+    }
+  }
+
+  private _handleControllerError(res: Response, error: unknown, defaultMessage: string): void {
+    const errorMessage = error instanceof Error ? error.message : defaultMessage;
+    
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(createResponse({
+      success: false,
+      message: errorMessage,
+    }));
   }
 }

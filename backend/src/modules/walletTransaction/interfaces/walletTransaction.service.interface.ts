@@ -1,22 +1,15 @@
-// interfaces/walletTransaction.service.interface.ts
-import { ServiceResponse } from '../../../interfaces/interface';
+import { IWalletTransaction } from './walletTransaction.model.interface';
+import { CreateWalletTransactionDto } from '../dto/dto';
+import { ApiResponse } from '../../../utils/createResponse';
 
 export interface IWalletTransactionService {
-  createWalletTransaction(data: {
-    userId: string;
-    userModel: 'User' | 'Owner';
-    walletId: string;
-    type: 'credit' | 'debit';
-    amount: number;
-
-    category: 'booking' | 'refund' | 'topup' | 'withdrawal' | 'revenue';
-    description: string;
-    referenceId?: string;
-    movieId?: string;
-    theaterId?: string;
-  }): Promise<ServiceResponse>;
-
-  getTransactionById(transactionId: string): Promise<ServiceResponse>;
-  getUserTransactions(userId: string, page: number, limit: number): Promise<ServiceResponse>;
-  getWalletTransactions(walletId: string): Promise<ServiceResponse>;
+  createWalletTransaction(data: CreateWalletTransactionDto): Promise<ApiResponse<IWalletTransaction>>;
+  getUserWalletTransactions(
+    userId: string,
+    page: number,
+    limit: number
+  ): Promise<ApiResponse<{
+    transactions: IWalletTransaction[];
+    pagination: { page: number; limit: number; total: number; totalPages: number };
+  }>>;
 }

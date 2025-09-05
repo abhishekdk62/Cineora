@@ -1,15 +1,9 @@
+import { TheaterFilters, CreateTheaterDTO, UpdateTheaterDTO } from "../dtos/dto";
 import { ITheater } from "./theater.model.interface";
-import { TheaterFilters } from "../dtos/dto";
-import { Types } from "mongoose";
 
-export interface ITheaterRepository {
-  create(
-    ownerId: string,
-    theaterData: Partial<ITheater>
-  ): Promise<ITheater | null>;
-
-  findById(theaterId: string): Promise<ITheater | null>;
-  findByOwnerId(
+export interface ITheaterReadRepository {
+  getTheaterById(theaterId: string): Promise<ITheater | null>;
+  getTheatersByOwnerId(
     ownerId: string,
     filters?: TheaterFilters
   ): Promise<{
@@ -19,67 +13,53 @@ export interface ITheaterRepository {
     activeAll: number;
     totalAll: number;
   }>;
-
-  findAll(
+  getAllTheaters(
     page: number,
     limit: number,
     filters?: TheaterFilters
-  ): Promise<{
-    theaters: ITheater[];
-    total: number;
-  }>;
-
-  findByFilters(
+  ): Promise<{ theaters: ITheater[]; total: number }>;
+  getTheatersByFilters(
     filters: TheaterFilters,
     page: number,
     limit: number
-  ): Promise<{
-    theaters: ITheater[];
-    total: number;
-  }>;
-
-  update(
-    theaterId: string,
-    updateData: Partial<ITheater>
-  ): Promise<ITheater | null>;
-
-  toggleStatus(theaterId: string): Promise<ITheater | null>;
-
-  verifyTheater(theaterId: string): Promise<ITheater | null>;
-
-  rejectTheater(theaterId: string): Promise<ITheater | null>;
-
-  incrementScreenCount(theaterId: string): Promise<void>;
-
-  decrementScreenCount(theaterId: Types.ObjectId): Promise<void>;
-
-  getDistanceFromLatLonInKm(
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number
-  ): number;
-
-  findWithFilters(filters: TheaterFilters): Promise<{
-    theaters: ITheater[];
-    total: number;
-    totalPages: number;
-  }>;
-
-  delete(theaterId: string): Promise<boolean>;
-
-  findNearby(
+  ): Promise<{ theaters: ITheater[]; total: number }>;
+  getNearbyTheaters(
     longitude: number,
     latitude: number,
     maxDistance: number
   ): Promise<ITheater[]>;
-
-  existsByNameAndCity(
+  theaterExistsByNameAndCity(
     name: string,
     city: string,
     state: string,
     excludeId?: string
   ): Promise<boolean>;
-
-  findByOwnerIdAndName(ownerId: string, name: string): Promise<ITheater | null>;
+  getTheaterByOwnerIdAndName(
+    ownerId: string,
+    name: string
+  ): Promise<ITheater | null>;
+  getTheatersWithFilters(filters: TheaterFilters): Promise<{
+    theaters: ITheater[];
+    total: number;
+    totalPages: number;
+  }>;
 }
+
+export interface ITheaterWriteRepository {
+  createTheater(
+    ownerId: string,
+    theaterData: CreateTheaterDTO
+  ): Promise<ITheater>;
+  updateTheater(
+    theaterId: string,
+    updateData: UpdateTheaterDTO
+  ): Promise<ITheater | null>;
+  deleteTheater(theaterId: string): Promise<boolean>;
+  incrementTheaterScreenCount(theaterId: string): Promise<void>;
+  decrementTheaterScreenCount(theaterId: string): Promise<void>;
+  toggleTheaterStatus(theaterId: string): Promise<ITheater | null>;
+  verifyTheater(theaterId: string): Promise<ITheater | null>;
+  rejectTheater(theaterId: string): Promise<ITheater | null>;
+}
+
+export interface ITheaterRepository extends ITheaterReadRepository, ITheaterWriteRepository {}

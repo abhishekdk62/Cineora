@@ -1,297 +1,243 @@
-import { IWalletService } from "../interfaces/walletTransaction.service.interface";
+import { IWalletService } from "../interfaces/wallet.service.interface";
 import { IWalletRepository } from "../interfaces/wallet.repository.interface";
-import { ServiceResponse } from "../../../interfaces/interface";
+import { CreateWalletDto, CreditWalletDto, DebitWalletDto } from "../dtos/dto";
+import { ApiResponse, createResponse } from "../../../utils/createResponse";
+import { IWallet } from "../interfaces/wallet.model.interface";
 import mongoose from "mongoose";
 
 export class WalletService implements IWalletService {
-  constructor(private readonly walletRepo: IWalletRepository) {}
+  constructor(
+    private readonly walletRepository: IWalletRepository
+  ) {}
 
-  async createWallet(
-    userId: string,
-    userModel: "User" | "Owner"
-  ): Promise<ServiceResponse> {
+  async createWallet(data: CreateWalletDto): Promise<ApiResponse<IWallet>> {
     try {
-      const existingWallet = await this.walletRepo.findByUser(
-        userId,
-        userModel
+      this._validateCreateWalletData(data);
+
+      const existingWallet = await this.walletRepository.findWalletByUser(
+        data.userId,
+        data.userModel
       );
+
       if (existingWallet) {
-        return {
+        return createResponse({
           success: false,
-          message: "Wallet already exists for this user",
-          data: null,
-        };
+          message: "Wallet already exists for this user"
+        });
       }
 
-      const wallet = await this.walletRepo.create({
-        userId: new mongoose.Types.ObjectId(userId),
-        userModel,
-        balance: 0,
-        currency: "INR",
-        status: "active",
-      });
+      const walletData = this._prepareWalletData(data);
+      const wallet = await this.walletRepository.createWallet(walletData);
 
-      return {
+      return createResponse({
         success: true,
         message: "Wallet created successfully",
-        data: wallet,
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Failed to create wallet",
-        data: null,
-      };
+        data: wallet
+      });
+    } catch (error: unknown) {
+      return this._handleServiceError(error, "Failed to create wallet");
     }
   }
 
-  async creditWallet(
-    userId: string,
-    userModel: "User" | "Owner",
-    amount: number,
-    description?: string
-  ): Promise<ServiceResponse> {
+  async creditWallet(data: CreditWalletDto): Promise<ApiResponse<IWallet>> {
     try {
-      if (amount <= 0) {
-        return {
-          success: false,
-          message: "Amount must be greater than 0",
-          data: null,
-        };
-      }
+      // Business logic validation
+      this._validateCreditWalletData(data);
 
-      const wallet = await this.walletRepo.updateBalance(
-        userId,
-        userModel,
-        amount
+      const wallet = await this.walletRepository.updateWalletBalance(
+        data.userId,
+        data.userModel,
+        data.amount
       );
+
       if (!wallet) {
-        return {
+        return createResponse({
           success: false,
-          message: "Wallet not found",
-          data: null,
-        };
+          message: "Wallet not found"
+        });
       }
 
-      return {
+      return createResponse({
         success: true,
         message: "Wallet credited successfully",
-        data: wallet,
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Failed to credit wallet",
-        data: null,
-      };
+        data: wallet
+      });
+    } catch (error: unknown) {
+      return this._handleServiceError(error, "Failed to credit wallet");
     }
   }
 
-  async debitWallet(
-    userId: string,
-    userModel: "User" | "Owner",
-    amount: number,
-    description?: string
-  ): Promise<ServiceResponse> {
+  async debitWallet(data: DebitWalletDto): Promise<ApiResponse<IWallet>> {
     try {
-      if (amount <= 0) {
-        return {
+      this._validateDebitWalletData(data);
+
+      const currentBalance = await this.walletRepository.getWalletBalance(
+        data.userId,
+        data.userModel
+      );
+
+      if (currentBalance < data.amount) {
+        return createResponse({
           success: false,
-          message: "Amount must be greater than 0",
-          data: null,
-        };
+          message: "Insufficient balance"
+        });
       }
 
-      const currentBalance = await this.walletRepo.getBalance(
-        userId,
-        userModel
+      const wallet = await this.walletRepository.updateWalletBalance(
+        data.userId,
+        data.userModel,
+        -data.amount
       );
-      if (currentBalance < amount) {
-        return {
-          success: false,
-          message: "Insufficient balance",
-          data: null,
-        };
-      }
 
-      const wallet = await this.walletRepo.updateBalance(
-        userId,
-        userModel,
-        -amount
-      );
       if (!wallet) {
-        return {
+        return createResponse({
           success: false,
-          message: "Wallet not found",
-          data: null,
-        };
+          message: "Wallet not found"
+        });
       }
 
-      return {
+      return createResponse({
         success: true,
         message: "Wallet debited successfully",
-        data: wallet,
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Failed to debit wallet",
-        data: null,
-      };
+        data: wallet
+      });
+    } catch (error: unknown) {
+      return this._handleServiceError(error, "Failed to debit wallet");
     }
   }
 
-  async getBalance(
+  async getWalletBalance(
     userId: string,
     userModel: "User" | "Owner"
-  ): Promise<ServiceResponse> {
+  ): Promise<ApiResponse<{ balance: number }>> {
     try {
-      const balance = await this.walletRepo.getBalance(userId, userModel);
+      // Business logic validation
+      this._validateUserParams(userId, userModel);
 
-      return {
+      const balance = await this.walletRepository.getWalletBalance(userId, userModel);
+
+      return createResponse({
         success: true,
         message: "Balance retrieved successfully",
-        data: { balance },
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Failed to get balance",
-        data: null,
-      };
+        data: { balance }
+      });
+    } catch (error: unknown) {
+      return this._handleServiceError(error, "Failed to get balance");
     }
   }
 
   async getWalletDetails(
     userId: string,
     userModel: "User" | "Owner"
-  ): Promise<ServiceResponse> {
+  ): Promise<ApiResponse<IWallet>> {
     try {
-      const wallet = await this.walletRepo.findByUser(userId, userModel);
+      // Business logic validation
+      this._validateUserParams(userId, userModel);
+
+      const wallet = await this.walletRepository.findWalletByUser(userId, userModel);
 
       if (!wallet) {
-        return {
+        return createResponse({
           success: false,
-          message: "Wallet not found",
-          data: null,
-        };
+          message: "Wallet not found"
+        });
       }
 
-      return {
+      return createResponse({
         success: true,
         message: "Wallet details retrieved successfully",
-        data: wallet,
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Failed to get wallet details",
-        data: null,
-      };
+        data: wallet
+      });
+    } catch (error: unknown) {
+      return this._handleServiceError(error, "Failed to get wallet details");
     }
   }
 
-  async freezeWallet(
-    userId: string,
-    userModel: "User" | "Owner"
-  ): Promise<ServiceResponse> {
-    try {
-      const wallet = await this.walletRepo.freezeWallet(userId, userModel);
+  private _validateCreateWalletData(data: CreateWalletDto): void {
+    if (!data.userId || !data.userModel) {
+      throw new Error("Required fields are missing: userId, userModel");
+    }
 
-      if (!wallet) {
-        return {
-          success: false,
-          message: "Wallet not found",
-          data: null,
-        };
+    if (!this._isValidObjectId(data.userId)) {
+      throw new Error("Invalid userId format");
+    }
+
+    const validUserModels = ['User', 'Owner'];
+    if (!validUserModels.includes(data.userModel)) {
+      throw new Error(`User model must be one of: ${validUserModels.join(', ')}`);
+    }
+
+    if (data.balance !== undefined && data.balance < 0) {
+      throw new Error("Balance cannot be negative");
+    }
+
+    if (data.status) {
+      const validStatuses = ['active', 'frozen', 'closed'];
+      if (!validStatuses.includes(data.status)) {
+        throw new Error(`Status must be one of: ${validStatuses.join(', ')}`);
       }
-
-      return {
-        success: true,
-        message: "Wallet frozen successfully",
-        data: wallet,
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Failed to freeze wallet",
-        data: null,
-      };
     }
   }
 
-  async unfreezeWallet(
-    userId: string,
-    userModel: "User" | "Owner"
-  ): Promise<ServiceResponse> {
-    try {
-      const wallet = await this.walletRepo.unfreezeWallet(userId, userModel);
+  private _validateCreditWalletData(data: CreditWalletDto): void {
+    this._validateUserParams(data.userId, data.userModel);
 
-      if (!wallet) {
-        return {
-          success: false,
-          message: "Wallet not found",
-          data: null,
-        };
-      }
+    if (data.amount <= 0) {
+      throw new Error("Amount must be greater than 0");
+    }
 
-      return {
-        success: true,
-        message: "Wallet unfrozen successfully",
-        data: wallet,
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Failed to unfreeze wallet",
-        data: null,
-      };
+    if (typeof data.amount !== 'number' || isNaN(data.amount)) {
+      throw new Error("Amount must be a valid number");
     }
   }
 
-  async transferMoney(
-    fromUserId: string,
-    toUserId: string,
-    amount: number
-  ): Promise<ServiceResponse> {
-    try {
-      const debitResult = await this.debitWallet(
-        fromUserId,
-        "User",
-        amount,
-        "Transfer to user"
-      );
-      if (!debitResult.success) {
-        return debitResult;
-      }
+  private _validateDebitWalletData(data: DebitWalletDto): void {
+    this._validateUserParams(data.userId, data.userModel);
 
-      const creditResult = await this.creditWallet(
-        toUserId,
-        "Owner",
-        amount,
-        "Transfer from user"
-      );
-      if (!creditResult.success) {
-        await this.creditWallet(
-          fromUserId,
-          "User",
-          amount,
-          "Rollback failed transfer"
-        );
-        return creditResult;
-      }
-
-      return {
-        success: true,
-        message: "Money transferred successfully",
-        data: { amount, from: fromUserId, to: toUserId },
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Failed to transfer money",
-        data: null,
-      };
+    if (data.amount <= 0) {
+      throw new Error("Amount must be greater than 0");
     }
+
+    if (typeof data.amount !== 'number' || isNaN(data.amount)) {
+      throw new Error("Amount must be a valid number");
+    }
+  }
+
+  private _validateUserParams(userId: string, userModel: "User" | "Owner"): void {
+    if (!userId || !userModel) {
+      throw new Error("UserId and userModel are required");
+    }
+
+    if (!this._isValidObjectId(userId)) {
+      throw new Error("Invalid userId format");
+    }
+
+    const validUserModels = ['User', 'Owner'];
+    if (!validUserModels.includes(userModel)) {
+      throw new Error(`User model must be one of: ${validUserModels.join(', ')}`);
+    }
+  }
+
+  private _prepareWalletData(data: CreateWalletDto): Partial<IWallet> {
+    return {
+      userId: new mongoose.Types.ObjectId(data.userId),
+      userModel: data.userModel,
+      balance: data.balance || 0,
+      currency: data.currency || "INR",
+      status: data.status || "active"
+    };
+  }
+
+  private _isValidObjectId(id: string): boolean {
+    return mongoose.Types.ObjectId.isValid(id);
+  }
+
+  private _handleServiceError(error: unknown, defaultMessage: string): ApiResponse<any> {
+    const errorMessage = error instanceof Error ? error.message : defaultMessage;
+    
+    return createResponse({
+      success: false,
+      message: errorMessage
+    });
   }
 }

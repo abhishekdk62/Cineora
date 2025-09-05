@@ -1,5 +1,130 @@
-import { IScreen } from "../interfaces/screens.model.interface";
+import { Types } from "mongoose";
 
+// Screen DTOs
+export interface CreateScreenDto {
+  theaterId?: Types.ObjectId;
+  theater?: { _id: Types.ObjectId };
+  name: string;
+  totalSeats: number;
+  layout: {
+    rows: number;
+    seatsPerRow: number;
+    advancedLayout: {
+      rows: Array<{
+        rowNumber: number;
+        seats: Array<{
+          seatNumber: string;
+          type: string;
+          price: number;
+          isAvailable: boolean;
+        }>;
+      }>;
+    };
+    seatMap?: Record<string, any>;
+  };
+  screenType?: string;
+  features?: string[];
+  isActive?: boolean;
+}
+
+export interface UpdateScreenDto {
+  name?: string;
+  totalSeats?: number;
+  layout?: {
+    rows?: number;
+    seatsPerRow?: number;
+    advancedLayout?: {
+      rows: Array<{
+        rowNumber: number;
+        seats: Array<{
+          seatNumber: string;
+          type: string;
+          price: number;
+          isAvailable: boolean;
+        }>;
+      }>;
+    };
+    seatMap?: Record<string, any>;
+  };
+  screenType?: string;
+  features?: string[];
+  isActive?: boolean;
+  theaterId?: Types.ObjectId;
+}
+
+// Filter DTOs
+export interface ScreenFilterDto {
+  isActive?: boolean;
+  screenType?: string;
+  theaterId?: string;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}
+
+export interface AdvancedScreenFilterDto {
+  page: number;
+  limit: number;
+  isActive?: boolean;
+  screenType?: string;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}
+
+// Response DTOs
+export interface PaginatedScreenResultDto {
+  screens: any[];
+  total: number;
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+}
+
+export interface ScreenStatisticsDto {
+  screens: any[];
+  totalFiltered: number;
+  totalAll: number;
+  activeAll: number;
+  inactiveAll: number;
+}
+
+export interface ScreenStatsDto {
+  overview: {
+    totalScreens: number;
+    activeScreens: number;
+    inactiveScreens: number;
+    totalSeats: number;
+    avgSeatsPerScreen: number;
+  };
+  seatDistribution: {
+    byType: {
+      Normal: number;
+      Premium: number;
+      VIP: number;
+    };
+    totalRevenuePotential: number;
+  };
+  screenTypes: Record<string, number>;
+  popularFeatures: Record<string, number>;
+  utilizationRate: number;
+}
+
+export interface ScreenExistsDto {
+  exists: boolean;
+}
+
+export interface ScreenCountDto {
+  count: number;
+}
+
+// Utility DTOs
+export interface PaginationDto {
+  page: number;
+  limit: number;
+}
+
+// Legacy DTOs (if you still need them from your original dtos/dtos file)
 export interface ScreenFilters {
   isActive?: boolean;
   screenType?: string;
@@ -10,17 +135,17 @@ export interface ScreenFilters {
 }
 
 export interface AdvancedScreenFilters {
+  page?: number;
+  limit?: number;
   isActive?: boolean;
   screenType?: string;
   search?: string;
-  page?: number;
-  limit?: number;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
 }
 
 export interface PaginatedScreenResult {
-  screens: IScreen[];
+  screens: any[];
   total: number;
   currentPage: number;
   totalPages: number;
@@ -28,162 +153,25 @@ export interface PaginatedScreenResult {
 }
 
 export interface ScreenWithStatisticsResult {
-  screens: IScreen[];
+  screens: any[];
   totalFiltered: number;
+  totalAll: number;
   activeAll: number;
   inactiveAll: number;
-  totalAll: number;
 }
 
-export interface CreateScreenDto {
-  theater: {
-    _id: string; 
-  };
-  name: string;
-  totalSeats: number;
-  layout: {
-    rows: number;
-    seatsPerRow: number;
-    advancedLayout: any;
-    seatMap?: any;
-  };
-  screenType?: string;
-  features?: string[];
-}
-
-
-
-export interface ScreenByTheaterQueryDto {
-  theaterId: string;
-  name: string;
-}
-
-export interface ScreenExistsQueryDto {
-  name: string;
-  theaterId: string;
-  excludedId?: string;
-}
-
-export interface GetAllScreensQueryDto {
-  page?: number;
-  limit?: number;
-  filters?: ScreenFilters;
-}
 export interface ScreenResponseDto {
-  id?: string;
-  theaterId: any; 
-  name: string;
-  totalSeats: number;
-  layout: {
-    rows: number;
-    seatsPerRow: number;
-    advancedLayout: any;
-    seatMap?: any;
-  };
-  screenType?: string;
-  features?: string[];
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  screen: any;
 }
 
 export interface ScreenStatsResponseDto {
-  overview: {
-    totalScreens: number;
-    activeScreens: number;
-    inactiveScreens: number;
-    totalSeats: number;
-    avgSeatsPerScreen: number;
-  };
-  seatDistribution: {
-    byType: {
-      Normal: number;
-      Premium: number;
-      VIP: number;
-    };
-    totalRevenuePotential: number;
-  };
-  screenTypes: Record<string, number>;
-  popularFeatures: Record<string, number>;
-  utilizationRate: number;
+  stats: ScreenStatsDto;
 }
 
 export interface ScreenCountResponseDto {
   count: number;
 }
 
-export interface ScreenExistsResponseDto {
-  exists: boolean;
-}
-
-
-export interface UpdateScreenDto {
-  name?: string;
-  totalSeats?: number;
-  layout?: {
-    rows: number;
-    seatsPerRow: number;
-    advancedLayout: any;
-    seatMap: any;
-  };
-  screenType?: string;
-  features?: string[];
-  isActive?: boolean;
-}
-
-export interface ScreenStatsResponseDto {
-  overview: {
-    totalScreens: number;
-    activeScreens: number;
-    inactiveScreens: number;
-    totalSeats: number;
-    avgSeatsPerScreen: number;
-  };
-  seatDistribution: {
-    byType: {
-      Normal: number;
-      Premium: number;
-      VIP: number;
-    };
-    totalRevenuePotential: number;
-  };
-  screenTypes: Record<string, number>;
-  popularFeatures: Record<string, number>;
-  utilizationRate: number;
-}
-
-export interface ScreenCountResponseDto {
-  count: number;
-}
-
-export interface ScreenExistsResponseDto {
-  exists: boolean;
-}
-
-export interface ScreenCountResponseDto {
-  count: number;
-}
-
-export interface ScreenStatsResponseDto {
-  overview: {
-    totalScreens: number;
-    activeScreens: number;
-    inactiveScreens: number;
-    totalSeats: number;
-    avgSeatsPerScreen: number;
-  };
-  seatDistribution: {
-    byType: {
-      Normal: number;
-      Premium: number;
-      VIP: number;
-    };
-    totalRevenuePotential: number;
-  };
-  screenTypes: Record<string, number>;
-  popularFeatures: Record<string, number>;
-  utilizationRate: number;
-}
 export interface ScreenExistsResponseDto {
   exists: boolean;
 }

@@ -22,9 +22,10 @@ interface KYCModalProps {
   show: boolean;
   onClose: () => void;
   profile: UserProfile;
+  docs:any
 }
 
-const KYCModal: React.FC<KYCModalProps> = ({ show, onClose, profile }) => {
+const KYCModal: React.FC<KYCModalProps> = ({ show, onClose, profile,docs }) => {
   if (!show) return null;
 
   return (
@@ -57,7 +58,7 @@ const KYCModal: React.FC<KYCModalProps> = ({ show, onClose, profile }) => {
             <div className="bg-white/5 rounded-xl p-4 aspect-video flex items-center justify-center">
               {profile.aadhaarUrl ? (
                 <img
-                  src={profile.aadhaarUrl}
+                  src={docs.aadhaarUrl}
                   alt="Aadhaar Document"
                   className="max-w-full max-h-full object-contain rounded-lg"
                 />
@@ -86,7 +87,7 @@ const KYCModal: React.FC<KYCModalProps> = ({ show, onClose, profile }) => {
             <div className="bg-white/5 rounded-xl p-4 aspect-video flex items-center justify-center">
               {profile.panUrl ? (
                 <img
-                  src={profile.panUrl}
+                  src={docs.panUrl}
                   alt="PAN Document"
                   className="max-w-full max-h-full object-contain rounded-lg"
                 />
@@ -115,7 +116,7 @@ const KYCModal: React.FC<KYCModalProps> = ({ show, onClose, profile }) => {
             <div className="bg-white/5 rounded-xl p-4 aspect-video flex items-center justify-center">
               {profile.ownerPhotoUrl ? (
                 <img
-                  src={profile.ownerPhotoUrl}
+                  src={docs.ownerPhotoUrl}
                   alt="Owner Photo"
                   className="max-w-full max-h-full object-contain rounded-lg"
                 />

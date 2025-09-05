@@ -1,5 +1,6 @@
 import { IMovie } from "../interfaces/movies.model.interface";
 
+// Request DTOs
 export interface CreateMovieDto {
   tmdbId: string;
   title: string;
@@ -13,16 +14,11 @@ export interface CreateMovieDto {
   cast: string[];
   director: string;
   language: string;
+  isActive?: boolean;
 }
-
-export interface MovieRepositoryFindResult {
-  movies: IMovie[];
-  total: number;
-  totalPages: number;
-}
-
 
 export interface UpdateMovieDto {
+  tmdbId?: string;
   title?: string;
   genre?: string[];
   releaseDate?: Date;
@@ -41,14 +37,10 @@ export interface MovieFiltersDto {
   search?: string;
   isActive?: boolean;
   rating?: string;
-  minDuration?: number;
-  maxDuration?: number;
-  releaseYearStart?: number;
-  releaseYearEnd?: number;
   genre?: string;
   language?: string;
-  sortBy?: 'title' | 'releaseDate' | 'rating' | 'duration';
-  sortOrder?: 'asc' | 'desc';
+  sortBy?: string;
+  sortOrder?: string;
   page?: number;
   limit?: number;
 }
@@ -58,9 +50,16 @@ export interface PaginationQueryDto {
   limit?: number;
 }
 
-export interface MovieResponseDto extends IMovie {
-  
+export interface MovieParamsDto {
+  movieId: string;
 }
+
+export interface UpdateMovieParamsDto {
+  movieId: string;
+}
+
+// Response DTOs
+export interface MovieResponseDto extends IMovie {}
 
 export interface PaginatedMoviesResponseDto {
   movies: MovieResponseDto[];
@@ -71,28 +70,27 @@ export interface PaginatedMoviesResponseDto {
   hasPrevPage: boolean;
 }
 
-export interface MovieByIdParamsDto {
-  movieId: string;
+// Repository Result DTOs
+export interface MovieRepositoryFindResult {
+  movies: IMovie[];
+  total: number;
+  totalPages: number;
 }
 
-export interface ToggleStatusParamsDto {
-  movieId: string;
+// Configuration Types
+export interface MovieSortConfiguration {
+  title: (order: number) => Record<string, number>;
+  releaseDate: (order: number) => Record<string, number>;
+  rating: (order: number) => Record<string, number>;
+  duration: (order: number) => Record<string, number>;
+  popularity: (order: number) => Record<string, number>;
+  revenue: (order: number) => Record<string, number>;
 }
 
-export interface UpdateMovieParamsDto {
-  movieId: string;
+export interface MovieFilterConfiguration {
+  search: (value: string) => Record<string, any>;
+  isActive: (value: boolean) => Record<string, boolean>;
+  rating: (value: string) => Record<string, string>;
+  genre: (value: string) => Record<string, any>;
+  language: (value: string) => Record<string, RegExp>;
 }
-
-export interface ApiSuccessResponseDto<T> {
-  success: true;
-  data?: T;
-  message?: string;
-  meta?: any;
-}
-
-export interface ApiErrorResponseDto {
-  success: false;
-  message: string;
-}
-
-export type ApiResponseDto<T> = ApiSuccessResponseDto<T> | ApiErrorResponseDto;

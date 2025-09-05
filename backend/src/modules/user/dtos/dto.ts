@@ -1,3 +1,53 @@
+// All DTOs for User module
+
+export interface CreateUserDto {
+  username: string;
+  email: string;
+  password?: string;
+  firstName?: string;
+  lastName?: string;
+  dateOfBirth?: Date;
+  language?: string;
+  gender?: 'male' | 'female' | 'other';
+  phone?: string;
+  profilePicture?: string;
+  locationCity?: string;
+  locationState?: string;
+  coordinates?: [number, number];
+}
+
+export interface UpdateUserProfileDto {
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  dateOfBirth?: Date;
+  language?: string;
+  gender?: 'male' | 'female' | 'other';
+  phone?: string;
+  profilePicture?: string;
+  locationCity?: string;
+  locationState?: string;
+  coordinates?: [number, number];
+}
+
+export interface UserResponseDto {
+  id?: string;
+  username: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  isVerified: boolean;
+  xpPoints: number;
+  joinedAt: Date;
+  lastActive: Date;
+  isActive: boolean;
+}
+
+
+import { IUser } from '../interfaces/user.model.interface';
+
+// All DTOs for User module
+
 export interface SignupDto {
   username: string;
   email: string;
@@ -6,75 +56,38 @@ export interface SignupDto {
   lastName?: string;
   dateOfBirth?: Date;
   language?: string;
-  gender?: "male" | "female" | "other";
-  phone?: string;
-  locationCity?: string;
-  locationState?: string;
-  location?: {
-    type: "Point";
-    coordinates: [number, number];
-  };
-}
-
-export interface VerifyOTPDto {
-  email: string;
-  otp: string;
-}
-
-export interface ResendOTPDto {
-  email: string;
-}
-
-export interface UpdateProfileDto {
-  firstName?: string;
-  lastName?: string;
-  dateOfBirth?: Date;
-  language?: string;
-  gender?: "male" | "female" | "other";
+  gender?: 'male' | 'female' | 'other';
   phone?: string;
   profilePicture?: string;
   locationCity?: string;
   locationState?: string;
-  location?: {
-    type: "Point";
-    coordinates: [number, number];
-  };
+  coordinates?: [number, number];
 }
 
-export interface ChangePasswordDto {
-  oldPassword: string;
-  newPassword: string;
-}
-
-export interface SendEmailChangeOTPDto {
+export interface SignupResponseDto {
   email: string;
-  password: string;
+  username: string;
 }
 
-export interface VerifyEmailChangeOTPDto {
-  email: string;
-  otp: string;
+export interface VerifyOTPResponseDto {
+  user: IUser;
+  xpBonus: number;
 }
 
-export interface GetUsersFilterDto {
-  search?: string;
-  status?: string;
-  isVerified?: boolean;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-  page?: number;
-  limit?: number;
+export interface UpdateProfileDto {
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  dateOfBirth?: Date;
+  language?: string;
+  gender?: 'male' | 'female' | 'other';
+  phone?: string;
+  profilePicture?: string;
+  locationCity?: string;
+  locationState?: string;
+  coordinates?: [number, number];
 }
 
-export interface GetNearbyUsersDto {
-  maxDistance?: number;
-}
-
-export interface AddXpPointsDto {
-  points: number;
-}
-
-// Output DTOs
 export interface UserResponseDto {
   _id: string;
   username: string;
@@ -83,38 +96,31 @@ export interface UserResponseDto {
   lastName?: string;
   dateOfBirth?: Date;
   language?: string;
-  gender?: "male" | "female" | "other";
+  gender?: string;
   phone?: string;
-  profilePicture?: string;
   locationCity?: string;
   locationState?: string;
-  location?: {
-    type: "Point";
-    coordinates: [number, number];
-  };
+  location?: any;
   isVerified: boolean;
   xpPoints: number;
-  updatedAt: Date;
   joinedAt: Date;
   lastActive: Date;
   isActive: boolean;
-  authProvider: "email" | "google";
+  profilePicture?: string;
 }
 
-export interface SignupResponseDto {
-  email?:string,
-  username?:string;
-  user?: {
-    _id: string;
-    email: string;
-    username: string;
-  };
+export interface UserResponseDtoWithUrl extends UserResponseDto {
+  profilePictureUrl?: string;
 }
 
+export interface SendEmailChangeOTPResponseDto {
+  email: string;
+  expiresIn: number;
+}
 
-export interface VerifyOTPResponseDto {
-  user: UserResponseDto;
-  xpBonus: number;
+export interface VerifyEmailChangeOTPResponseDto {
+  email: string;
+  oldEmail?: string;
 }
 
 export interface UserCountsResponseDto {
@@ -127,7 +133,7 @@ export interface UserCountsResponseDto {
 }
 
 export interface GetUsersResponseDto {
-  users: UserResponseDto[];
+  users: any[];
   meta: {
     pagination: {
       currentPage: number;
@@ -138,43 +144,108 @@ export interface GetUsersResponseDto {
   };
 }
 
-export interface EmailChangeResponseDto {
-  email: string;
-  oldEmail?: string;
-  expiresIn?: number;
+
+// ... your existing DTOs ...
+
+export interface ChangePasswordDto {
+  oldPassword: string;
+  newPassword: string;
 }
 
+export interface GetUsersFilterDto {
+  search?: string;
+  status?: 'active' | 'inactive';
+  isVerified?: boolean;
+  sortBy?: 'username' | 'email' | 'joinedAt' | 'lastActive';
+  sortOrder?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
+  startDate?: Date;
+  endDate?: Date;
+}
 
-export interface SendEmailChangeOTPResponseDto {
+export interface ResendOTPDto {
   email: string;
-  expiresIn: number;
+}
+
+export interface SendEmailChangeOTPDto {
+  email: string;
+  password: string;
+}
+
+export interface VerifyEmailChangeOTPDto {
+  email: string;
+  otp: string;
 }
 
 export interface VerifyEmailChangeOTPResponseDto {
   email: string;
-  oldEmail: string;
+  oldEmail?: string;
+  message?: string;
 }
 
-
-
-
-export interface UserResponseDtoWithUrl {
-  _id: string;
-  username: string;
+export interface VerifyOTPDto {
   email: string;
-  firstName: string;
-  lastName: string;
-  dateOfBirth: Date | string; 
+  otp: string;
+}
+
+// Additional DTOs you might need
+export interface AddXpPointsDto {
+  userId: string;
+  points: number;
+  reason?: string;
+}
+
+export interface UserLocationDto {
+  latitude: number;
+  longitude: number;
+}
+
+export interface UserNotificationPreferencesDto {
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  smsNotifications: boolean;
+  marketingEmails: boolean;
+}
+
+export interface UserSettingsDto {
   language: string;
-  gender: string;
-  phone: string;
-  locationCity: string;
-  locationState: string;
-  location: string;
-  isVerified: boolean;
-  xpPoints: number;
-  joinedAt: Date | string;
-  lastActive: Date | string;
-  isActive: boolean;
-  profilePicture: string; 
+  timezone: string;
+  theme: 'light' | 'dark';
+  notifications: UserNotificationPreferencesDto;
+}
+
+export interface UserSearchDto {
+  query: string;
+  filters?: {
+    isActive?: boolean;
+    isVerified?: boolean;
+    location?: {
+      latitude: number;
+      longitude: number;
+      radius: number;
+    };
+  };
+  page?: number;
+  limit?: number;
+}
+
+export interface BulkUserActionDto {
+  userIds: string[];
+  action: 'activate' | 'deactivate' | 'verify' | 'delete';
+  reason?: string;
+}
+
+export interface UserExportDto {
+  format: 'csv' | 'excel' | 'json';
+  filters?: GetUsersFilterDto;
+  fields?: string[];
+}
+
+export interface UserImportDto {
+  file: Express.Multer.File;
+  options?: {
+    skipDuplicates: boolean;
+    sendWelcomeEmail: boolean;
+  };
 }

@@ -42,7 +42,6 @@ export default function LoginPage() {
 
     try {
       const resultAction = await dispatch(loginUser({ email, password }));
-      console.log('reslt acn login page is :',resultAction);
       
 
       if (loginUser.fulfilled.match(resultAction)) {

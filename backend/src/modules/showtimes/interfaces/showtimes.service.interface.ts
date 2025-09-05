@@ -1,74 +1,121 @@
+import { ServiceResponse } from "../../../interfaces/interface";
+import { CreateShowtimeDTO, UpdateShowtimeDTO, ShowtimeFilters, PaginatedShowtimeResult } from "../dtos/dto";
+import { IMovieShowtime } from "./showtimes.model.interfaces";
 
 export interface IShowtimeService {
   createBulkShowtimes(
-    showtimeList: IShowtimeInput[],
+    showtimeList: CreateShowtimeDTO[],
     ownerId: string
-  ): Promise<ServiceResponse>;
+  ): Promise<ServiceResponse<{
+    created: number;
+    skipped: number;
+    showtimes: IMovieShowtime[];
+    errors?: string[];
+  }>>;
 
   createShowtime(
-    showtimeData: IShowtimeInput,
+    showtimeData: CreateShowtimeDTO,
     ownerId: string
-  ): Promise<ServiceResponse>;
+  ): Promise<ServiceResponse<IMovieShowtime>>;
 
   updateShowtime(
     id: string,
-    updateData: any,
+    updateData: UpdateShowtimeDTO,
     ownerId?: string
-  ): Promise<ServiceResponse>;
+  ): Promise<ServiceResponse<IMovieShowtime>>;
 
-  getShowtimeById(id: string): Promise<ServiceResponse>;
+  getShowtimeById(id: string): Promise<ServiceResponse<IMovieShowtime>>;
 
   getShowtimesByScreenAdmin(
     screenId: string,
     page: number,
     limit: number,
     filters?: ShowtimeFilters
-  ): Promise<ServiceResponse>;
+  ): Promise<ServiceResponse<PaginatedShowtimeResult>>;
 
   getAllShowtimesAdmin(
     page: number,
     limit: number,
     filters?: ShowtimeFilters
-  ): Promise<ServiceResponse>;
+  ): Promise<ServiceResponse<PaginatedShowtimeResult>>;
 
   updateShowtimeStatus(
     showtimeId: string,
     isActive: boolean
-  ): Promise<ServiceResponse>;
+  ): Promise<ServiceResponse<IMovieShowtime>>;
 
-  getShowtimesByScreen(screenId: string, date: Date): Promise<ServiceResponse>;
+  getShowtimesByScreen(
+    screenId: string,
+    date: Date
+  ): Promise<ServiceResponse<IMovieShowtime[]>>;
 
-  getShowtimesByMovie(movieId: string, date: Date): Promise<ServiceResponse>;
+  getShowtimesByMovie(
+    movieId: string,
+    date: Date
+  ): Promise<ServiceResponse<IMovieShowtime[]>>;
 
-  getShowtimesByTheater(theaterId: string, date: Date): Promise<ServiceResponse>;
+  getShowtimesByTheater(
+    theaterId: string,
+    date: Date
+  ): Promise<ServiceResponse<IMovieShowtime[]>>;
 
-  getShowtimesByOwnerId(ownerId: string): Promise<ServiceResponse>;
+  getShowtimesByOwnerIdPaginated(
+    ownerId: string,
+    page: number,
+    limit: number
+  ): Promise<ServiceResponse<{ items: IMovieShowtime[]; total: number }>>;
 
-  blockSeats(
+  getShowtimesByOwnerId(ownerId: string): Promise<ServiceResponse<IMovieShowtime[]>>;
+
+  getShowtimesByFilters(
+    theaterId: string,
+    screenId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<ServiceResponse<IMovieShowtime[]>>;
+
+  blockShowtimeSeats(
     showtimeId: string,
     seatIds: string[],
     userId: string,
     sessionId: string
-  ): Promise<ServiceResponse>;
+  ): Promise<ServiceResponse<void>>;
 
-  releaseSeats(
+  releaseShowtimeSeats(
     showtimeId: string,
     seatIds: string[],
     userId: string,
-    sessionId: string
-  ): Promise<ServiceResponse>;
+    reason: string
+  ): Promise<ServiceResponse<void>>;
 
-  bookSeats(showtimeId: string, seatIds: string[]): Promise<ServiceResponse>;
+  bookShowtimeSeats(
+    showtimeId: string,
+    seatIds: string[]
+  ): Promise<ServiceResponse<void>>;
 
-  deleteShowtime(id: string): Promise<ServiceResponse>;
+  deleteShowtime(id: string): Promise<ServiceResponse<void>>;
 
   getAllShowtimes(
     page?: number,
     limit?: number,
-    filters?: any
-  ): Promise<ServiceResponse>;
+    filters?: ShowtimeFilters
+  ): Promise<ServiceResponse<{
+    showtimes: IMovieShowtime[];
+    pagination: {
+      current: number;
+      pages: number;
+      total: number;
+      limit: number;
+    };
+  }>>;
 
-  getTheatersByMovie(movieId: string, date: Date): Promise<ServiceResponse>;
+  getTheatersByMovie(
+    movieId: string,
+    date: Date
+  ): Promise<ServiceResponse<any[]>>;
 
-  changeShowtimeStatus(id: string, isActive: boolean): Promise<ServiceResponse>;
+  toggleShowtimeStatus(
+    id: string,
+    currentStatus: boolean
+  ): Promise<ServiceResponse<IMovieShowtime>>;
 }

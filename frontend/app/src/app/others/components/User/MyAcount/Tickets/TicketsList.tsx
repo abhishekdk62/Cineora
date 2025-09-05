@@ -65,15 +65,15 @@ const TicketsList: React.FC = () => {
     const [activeTab, setActiveTab] = useState<TabType>('upcoming');
 
     const [currentPage, setCurrentPage] = useState(1);
-    const [limit] = useState(4); 
+    const [limit] = useState(4);
 
     const getTickets = async (pageNumber: number = 1) => {
         try {
             setLoading(true);
             const response = await getTicketsApi(
             );
-            console.log(response.data);
-            setTicketsData(response.data);
+            console.log(response);
+            setTicketsData(response);
             setError(null);
         } catch (error) {
             console.log(error);
@@ -95,9 +95,7 @@ const TicketsList: React.FC = () => {
         }
     }, [activeTab]);
 
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page);
-    };
+
 
     const isShowInPast = (showDate: string, endTime: string) => {
         const showDateTime = new Date(showDate);
@@ -127,20 +125,20 @@ const TicketsList: React.FC = () => {
                 ...firstTicket,
                 seats: ticketGroup.map(t => `${t.seatRow}${t.seatNumber}`),
                 allTickets: ticketGroup,
-                totalPrice: totalPrice 
+                totalPrice: totalPrice
             };
         });
     };
 
     const getFilteredBookings = () => {
-        if (!ticketsData?.tickets) return [];
+        if (!ticketsData?.data) return [];
 
-        const allBookings = groupTicketsByBooking(ticketsData.tickets);
+        const allBookings = groupTicketsByBooking(ticketsData.data);
 
         return allBookings.filter(booking => {
             const endTime = booking.showtimeId?.endTime || booking.showTime;
-            const isPast = isShowInPast(booking.showDate, endTime)||booking.status=='cancelled';
-            
+            const isPast = isShowInPast(booking.showDate, endTime) || booking.status == 'cancelled';
+
 
             return activeTab === 'upcoming' ? !isPast : isPast;
         });
@@ -155,7 +153,7 @@ const TicketsList: React.FC = () => {
 
         allBookings.forEach(booking => {
             const endTime = booking.showtimeId?.endTime || booking.showTime;
-            const isPast = isShowInPast(booking.showDate, endTime)||booking.status=='cancelled';
+            const isPast = isShowInPast(booking.showDate, endTime) || booking.status == 'cancelled';
 
             if (isPast) {
                 history++;
@@ -211,8 +209,8 @@ const TicketsList: React.FC = () => {
                     <button
                         onClick={() => setActiveTab('upcoming')}
                         className={`${lexendMedium.className} border px-6 py-3 rounded-xl transition-all duration-200 flex items-center gap-2 ${activeTab === 'upcoming'
-                                ? 'bg-transparent border-white text-white'
-                                : 'bg-white/10 text-gray-300 border-white/20 hover:bg-white/20 hover:text-white'
+                            ? 'bg-transparent border-white text-white'
+                            : 'bg-white/10 text-gray-300 border-white/20 hover:bg-white/20 hover:text-white'
                             }`}
                     >
                         <p
@@ -227,8 +225,8 @@ const TicketsList: React.FC = () => {
                         </p>
                         {tabCounts.upcoming > 0 && (
                             <span className={`px-2 py-1 rounded-full text-xs ${activeTab === 'upcoming'
-                                    ? 'bg-gray-500 text-white border border-white'
-                                    : 'bg-white/20 text-white'
+                                ? 'bg-gray-500 text-white border border-white'
+                                : 'bg-white/20 text-white'
                                 }`}>
                                 {tabCounts.upcoming}
                             </span>
@@ -238,8 +236,8 @@ const TicketsList: React.FC = () => {
                     <button
                         onClick={() => setActiveTab('history')}
                         className={`${lexendMedium.className} border px-6 py-3 rounded-xl transition-all duration-200 flex items-center gap-2 ${activeTab === 'history'
-                                ? 'bg-transparent border-white text-white'
-                                : 'bg-white/10 text-gray-300 border-white/20 hover:bg-white/20 hover:text-white'
+                            ? 'bg-transparent border-white text-white'
+                            : 'bg-white/10 text-gray-300 border-white/20 hover:bg-white/20 hover:text-white'
                             }`}
                     >
                         <p
@@ -254,8 +252,8 @@ const TicketsList: React.FC = () => {
                         </p>
                         {tabCounts.history > 0 && (
                             <span className={`px-2 py-1 rounded-full text-xs ${activeTab === 'history'
-                                    ? 'bg-gray-500 text-white border border-white'
-                                    : 'bg-white/20 text-white'
+                                ? 'bg-gray-500 text-white border border-white'
+                                : 'bg-white/20 text-white'
                                 }`}>
                                 {tabCounts.history}
                             </span>
@@ -266,7 +264,7 @@ const TicketsList: React.FC = () => {
                 {/* Tickets List */}
                 {filteredBookings.map((booking) => (
                     <TicketCard
-                    getTickets={getTickets}
+                        getTickets={getTickets}
                         activeTab={activeTab}
                         key={booking._id}
                         booking={booking}
@@ -318,7 +316,7 @@ const TicketsList: React.FC = () => {
                 {/* Modal */}
                 {showModal && selectedTicket && (
                     <TicketDetailsModal
-                    activeTab={activeTab}
+                        activeTab={activeTab}
                         ticket={selectedTicket}
                         onClose={handleCloseModal}
                     />

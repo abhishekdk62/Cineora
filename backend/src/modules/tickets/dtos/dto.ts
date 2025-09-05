@@ -1,45 +1,38 @@
+import { ITicket } from '../interfaces/ticket.model.interface';
+
+// All DTOs for Ticket module
+
 export interface CreateTicketDto {
+  ticketId: string;
   bookingId: string;
   userId: string;
+  movieId: string;
+  theaterId: string;
+  screenId: string;
+  showtimeId: string;
   seatNumber: string;
-  seatType: "VIP" | "Premium" | "Normal";
+  seatRow: string;
+  seatType: 'VIP' | 'Premium' | 'Normal';
   price: number;
-  movieTitle: string;
-  theaterName: string;
-  screenName: string;
   showDate: Date;
   showTime: string;
+  status?: 'confirmed' | 'cancelled' | 'used' | 'expired';
+  qrCode?: string;
+}
+
+export interface UpdateTicketDto {
+  seatNumber?: string;
+  seatRow?: string;
+  seatType?: 'VIP' | 'Premium' | 'Normal';
+  price?: number;
+  showDate?: Date;
+  showTime?: string;
+  status?: 'confirmed' | 'cancelled' | 'used' | 'expired';
+  qrCode?: string;
 }
 
 export interface CreateBulkTicketsDto {
-  bookingId: string;
-  userId: string;
-  tickets: {
-    seatNumber: string;
-    seatType: "VIP" | "Premium" | "Normal";
-    price: number;
-  }[];
-  movieTitle: string;
-  theaterName: string;
-  screenName: string;
-  showDate: Date;
-  showTime: string;
-}
-
-export interface TicketResponseDto {
-  ticketId: string;
-  bookingId: string;
-  seatNumber: string;
-  seatType: string;
-  price: number;
-  movieTitle: string;
-  theaterName: string;
-  screenName: string;
-  showDate: string;
-  showTime: string;
-  qrCode?: string;
-  isUsed: boolean;
-  usedAt?: string;
+  tickets: CreateTicketDto[];
 }
 
 export interface ValidateTicketDto {
@@ -47,8 +40,134 @@ export interface ValidateTicketDto {
   qrCode: string;
 }
 
-export interface UserTicketsQueryDto {
+export interface GetTicketsByUserDto {
+  userId: string;
   page?: number;
   limit?: number;
-  status?: "upcoming" | "used" | "all";
+}
+
+export interface TicketFilterDto {
+  userId?: string;
+  bookingId?: string;
+  movieId?: string;
+  theaterId?: string;
+  screenId?: string;
+  status?: 'confirmed' | 'cancelled' | 'used' | 'expired';
+  isUsed?: boolean;
+  startDate?: Date;
+  endDate?: Date;
+  seatType?: 'VIP' | 'Premium' | 'Normal';
+  page?: number;
+  limit?: number;
+}
+
+export interface TicketResponseDto {
+  id: string;
+  ticketId: string;
+  bookingId: string;
+  userId: string;
+  movieId: string;
+  theaterId: string;
+  screenId: string;
+  showtimeId: string;
+  seatNumber: string;
+  seatRow: string;
+  seatType: string;
+  price: number;
+  showDate: Date;
+  showTime: string;
+  status: string;
+  qrCode?: string;
+  isUsed: boolean;
+  usedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PaginatedTicketsResponseDto {
+  tickets: TicketResponseDto[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export interface TicketValidationResponseDto {
+  isValid: boolean;
+  ticket?: TicketResponseDto;
+  message: string;
+}
+
+
+export interface CreateTicketFromRowsDto {
+  bookingId: string;
+  selectedRows: {
+    rowLabel: string;
+    seatsSelected: number[];
+    seatType: 'VIP' | 'Premium' | 'Normal';
+    pricePerSeat: number;
+  }[];
+  bookingInfo: {
+    userId: string;
+    movieId: string;
+    theaterId: string;
+    screenId: string;
+    showtimeId: string;
+    showDate: Date;
+    showTime: string;
+    email: string;
+  };
+}
+
+export interface CreateTicketFromBookingDto {
+  bookingId: string;
+  bookingData: {
+    userId: string;
+    movieId: string;
+    theaterId: string;
+    screenId: string;
+    showtimeId: string;
+    selectedSeats: string[];
+    seatBreakdown: {
+      type: 'VIP' | 'Premium' | 'Normal';
+      price: number;
+    }[];
+    showDate: Date;
+    showTime: string;
+  };
+}
+
+export interface CancelTicketDto {
+  bookingId: string;
+  userId: string;
+  amount: number;
+}
+
+export interface RefundCalculationDto {
+  cancelledTickets: ITicket[];
+  refundPercentage: number;
+  originalAmount: number;
+  refundAmount: number;
+  showDate: Date;
+  showTime: string;
+}
+
+// ... existing DTOs ...
+
+export interface GetUserTicketsDto {
+  userId: string;
+  page?: number;  // Optional, defaults to 1
+  limit?: number; // Optional, defaults to 10
+}
+
+// Additional filter options you might want to add
+export interface GetUserTicketsFilterDto {
+  userId: string;
+  page?: number;
+  limit?: number;
+  status?: 'confirmed' | 'cancelled' | 'used' | 'expired';
+  isUsed?: boolean;
+  startDate?: Date;
+  endDate?: Date;
+  movieId?: string;
+  theaterId?: string;
 }

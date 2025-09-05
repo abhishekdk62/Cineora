@@ -9,36 +9,38 @@ import {
   UpdateRequestStatusDto,
   VerifyOTPDto,
 } from "../dtos/owner.dtos";
+import { StatusCodes } from "../../../utils/statuscodes";
+import { OWNER_REQUEST_MESSAGES } from "../../../utils/messages.constants";
 
 export class OwnerRequestController {
-  constructor(private readonly ownerRequestService: IOwnerRequestService) {}
+  constructor(private readonly _ownerRequestService: IOwnerRequestService) {}
 
   async sendOTP(req: Request, res: Response): Promise<any> {
     try {
       const sendOTPDto: SendOTPDto = req.body;
 
       if (!sendOTPDto.email) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Email is required",
+            message: OWNER_REQUEST_MESSAGES.EMAIL_REQUIRED,
           })
         );
       }
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(sendOTPDto.email)) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Please enter a valid email address",
+            message: OWNER_REQUEST_MESSAGES.INVALID_EMAIL,
           })
         );
       }
-      const result = await this.ownerRequestService.sendOTP(sendOTPDto.email);
+      const result = await this._ownerRequestService.sendOTP(sendOTPDto.email);
 
       if (!result.success) {
-        return res.status(400).json(
+        return res.status(StatusCodes.NOT_FOUND).json(
           createResponse({
             success: false,
             message: result.message,
@@ -46,14 +48,14 @@ export class OwnerRequestController {
         );
       }
 
-      return res.status(200).json(
+      return res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
           message: result.message,
         })
       );
     } catch (err) {
-      res.status(500).json(
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
           message: err.message,
@@ -67,50 +69,50 @@ export class OwnerRequestController {
       const verifyOTPDto: VerifyOTPDto = req.body;
 
       if (!verifyOTPDto.email || !verifyOTPDto.otp) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Email and OTP are required",
+            message: OWNER_REQUEST_MESSAGES.EMAIL_OTP_REQUIRED,
           })
         );
       }
 
       if (!/^\d{6}$/.test(verifyOTPDto.otp)) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "OTP must be a 6-digit number",
+            message: OWNER_REQUEST_MESSAGES.INVALID_OTP_FORMAT,
           })
         );
       }
       console.log('going to berify');
       
-      const result = await this.ownerRequestService.verifyOTP(
+      const result = await this._ownerRequestService.verifyOTP(
         verifyOTPDto.email,
         verifyOTPDto.otp
       );
-      console.log('after to berify');
+ 
 
       if (!result.success) {
-      console.log('we fd up berify');
+  
 
-        return res.status(400).json(
+        return res.status(StatusCodes.NOT_FOUND).json(
           createResponse({
             success: false,
             message: result.message,
           })
         );
       }
-      console.log('no run berify');
 
-      return res.status(200).json(
+
+      return res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
           message: result.message,
         })
       );
     } catch (err) {
-      res.status(500).json(
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
           message: err.message,
@@ -138,27 +140,27 @@ export class OwnerRequestController {
 
       for (const field of requiredFields) {
         if (!ownerData[field]) {
-          return res.status(400).json(
+          return res.status(StatusCodes.BAD_REQUEST).json(
             createResponse({
               success: false,
-              message: `${field} is required`,
+              message: OWNER_REQUEST_MESSAGES.FIELD_REQUIRED(field),
             })
           );
         }
       }
 
       if (ownerData.declaration !== true || ownerData.agree !== true) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Declaration and agreement must be accepted",
+            message: OWNER_REQUEST_MESSAGES.DECLARATION_AGREEMENT_REQUIRED,
           })
         );
       }
-      const result = await this.ownerRequestService.submitKYC(submitKYCDto);
+      const result = await this._ownerRequestService.submitKYC(submitKYCDto);
 
       if (!result.success) {
-        return res.status(400).json(
+        return res.status(StatusCodes.NOT_FOUND).json(
           createResponse({
             success: false,
             message: result.message,
@@ -166,7 +168,7 @@ export class OwnerRequestController {
         );
       }
 
-      return res.status(201).json(
+      return res.status(StatusCodes.CREATED).json(
         createResponse({
           success: true,
           message: result.message,
@@ -174,7 +176,7 @@ export class OwnerRequestController {
         })
       );
     } catch (err) {
-      res.status(500).json(
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
           message: err.message,
@@ -188,18 +190,18 @@ export class OwnerRequestController {
       const { requestId } = req.params;
 
       if (!requestId) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Request ID is required",
+            message: OWNER_REQUEST_MESSAGES.REQUEST_ID_REQUIRED,
           })
         );
       }
 
-      const result = await this.ownerRequestService.getRequestStatus(requestId);
+      const result = await this._ownerRequestService.getRequestStatus(requestId);
 
       if (!result.success) {
-        return res.status(404).json(
+        return res.status(StatusCodes.NOT_FOUND).json(
           createResponse({
             success: false,
             message: result.message,
@@ -207,7 +209,7 @@ export class OwnerRequestController {
         );
       }
 
-      return res.status(200).json(
+      return res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
           message: result.message,
@@ -215,7 +217,7 @@ export class OwnerRequestController {
         })
       );
     } catch (err) {
-      res.status(500).json(
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
           message: err.message,
@@ -233,14 +235,14 @@ export class OwnerRequestController {
         limit: Number(req.query.limit) || 10,
         status: req.query.status as string,
       };
-      const result = await this.ownerRequestService.getAllRequests(
+      const result = await this._ownerRequestService.getAllRequests(
         getAllRequestsDto.page,
         getAllRequestsDto.limit,
         getAllRequestsDto.status
       );
 
       if (!result.success) {
-        return res.status(400).json(
+        return res.status(StatusCodes.NOT_FOUND).json(
           createResponse({
             success: false,
             message: result.message,
@@ -248,7 +250,7 @@ export class OwnerRequestController {
         );
       }
 
-      return res.status(200).json(
+      return res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
           message: result.message,
@@ -256,7 +258,7 @@ export class OwnerRequestController {
         })
       );
     } catch (err) {
-      res.status(500).json(
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
           message: err.message,
@@ -271,23 +273,23 @@ export class OwnerRequestController {
       const updateRequestStatusDto: UpdateRequestStatusDto = req.body;
 
       if (!requestId) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Request ID is required",
+            message: OWNER_REQUEST_MESSAGES.REQUEST_ID_REQUIRED,
           })
         );
       }
 
       if (!updateRequestStatusDto.status) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Status is required",
+            message: OWNER_REQUEST_MESSAGES.STATUS_REQUIRED,
           })
         );
       }
-      const result = await this.ownerRequestService.updateRequestStatus(
+      const result = await this._ownerRequestService.updateRequestStatus(
         requestId,
         updateRequestStatusDto.status,
         updateRequestStatusDto.reviewedBy,
@@ -295,7 +297,7 @@ export class OwnerRequestController {
       );
 
       if (!result.success) {
-        return res.status(400).json(
+        return res.status(StatusCodes.NOT_FOUND).json(
           createResponse({
             success: false,
             message: result.message,
@@ -303,7 +305,7 @@ export class OwnerRequestController {
         );
       }
 
-      return res.status(200).json(
+      return res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
           message: result.message,
@@ -311,7 +313,7 @@ export class OwnerRequestController {
         })
       );
     } catch (err) {
-      res.status(500).json(
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
           message: err.message,
@@ -323,10 +325,10 @@ export class OwnerRequestController {
   async getOwnerRequests(req: Request, res: Response): Promise<any> {
     try {
       const filters = req.query;
-      const result = await this.ownerRequestService.getOwnerRequests(filters);
+      const result = await this._ownerRequestService.getOwnerRequests(filters);
 
       if (!result.success) {
-        return res.status(400).json(
+        return res.status(StatusCodes.NOT_FOUND).json(
           createResponse({
             success: false,
             message: result.message,
@@ -334,7 +336,7 @@ export class OwnerRequestController {
         );
       }
 
-      return res.status(200).json(
+      return res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
           message: result.message,
@@ -342,7 +344,7 @@ export class OwnerRequestController {
         })
       );
     } catch (err) {
-      res.status(500).json(
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
           message: err.message,
@@ -357,31 +359,31 @@ export class OwnerRequestController {
       const adminId = req.admin.adminId;
 
       if (!requestId) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Request ID is required",
+            message: OWNER_REQUEST_MESSAGES.REQUEST_ID_REQUIRED,
           })
         );
       }
 
       if (!adminId) {
-        return res.status(400).json(
+        return res.status(StatusCodes.UNAUTHORIZED).json(
           createResponse({
             success: false,
-            message: "Admin authentication required",
+            message: OWNER_REQUEST_MESSAGES.ADMIN_AUTH_REQUIRED,
           })
         );
       }
 
-      const result = await this.ownerRequestService.updateRequestStatus(
+      const result = await this._ownerRequestService.updateRequestStatus(
         requestId,
         "approved",
         adminId
       );
 
       if (!result.success) {
-        return res.status(400).json(
+        return res.status(StatusCodes.NOT_FOUND).json(
           createResponse({
             success: false,
             message: result.message,
@@ -389,7 +391,7 @@ export class OwnerRequestController {
         );
       }
 
-      return res.status(200).json(
+      return res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
           message: result.message,
@@ -397,7 +399,7 @@ export class OwnerRequestController {
         })
       );
     } catch (err) {
-      res.status(500).json(
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
           message: err.message,
@@ -413,33 +415,33 @@ export class OwnerRequestController {
       const adminId = req.admin.adminId;
 
       if (!requestId) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Request ID is required",
+            message: OWNER_REQUEST_MESSAGES.REQUEST_ID_REQUIRED,
           })
         );
       }
 
       if (!rejectionReason) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Rejection reason is required",
+            message: OWNER_REQUEST_MESSAGES.REJECTION_REASON_REQUIRED,
           })
         );
       }
 
       if (!adminId) {
-        return res.status(400).json(
+        return res.status(StatusCodes.UNAUTHORIZED).json(
           createResponse({
             success: false,
-            message: "Admin authentication required",
+            message: OWNER_REQUEST_MESSAGES.ADMIN_AUTH_REQUIRED,
           })
         );
       }
 
-      const result = await this.ownerRequestService.updateRequestStatus(
+      const result = await this._ownerRequestService.updateRequestStatus(
         requestId,
         "rejected",
         adminId,
@@ -447,7 +449,7 @@ export class OwnerRequestController {
       );
 
       if (!result.success) {
-        return res.status(400).json(
+        return res.status(StatusCodes.NOT_FOUND).json(
           createResponse({
             success: false,
             message: result.message,
@@ -455,7 +457,7 @@ export class OwnerRequestController {
         );
       }
 
-      return res.status(200).json(
+      return res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
           message: result.message,
@@ -463,7 +465,7 @@ export class OwnerRequestController {
         })
       );
     } catch (err) {
-      res.status(500).json(
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
           message: err.message,
@@ -475,10 +477,10 @@ export class OwnerRequestController {
     async uploadFile(req: Request, res: Response): Promise<any> {
     try {
       if (!req.file) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "No file uploaded",
+            message: OWNER_REQUEST_MESSAGES.NO_FILE_UPLOADED,
           })
         );
       }
@@ -486,10 +488,10 @@ export class OwnerRequestController {
       const { folder } = req.body;
       
       if (!folder) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Folder parameter is required",
+            message: OWNER_REQUEST_MESSAGES.FOLDER_REQUIRED,
           })
         );
       }
@@ -499,10 +501,10 @@ export class OwnerRequestController {
         folder: folder,
       };
 
-      const result = await this.ownerRequestService.uploadFile(uploadFileDto);
+      const result = await this._ownerRequestService.uploadFile(uploadFileDto);
 
       if (!result.success) {
-        return res.status(400).json(
+        return res.status(StatusCodes.NOT_FOUND).json(
           createResponse({
             success: false,
             message: result.message,
@@ -510,7 +512,7 @@ export class OwnerRequestController {
         );
       }
 
-      return res.status(200).json(
+      return res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
           message: result.message,
@@ -518,10 +520,10 @@ export class OwnerRequestController {
         })
       );
     } catch (err) {
-      res.status(500).json(
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: err.message || "File upload failed",
+          message: err.message || OWNER_REQUEST_MESSAGES.FILE_UPLOAD_FAILED,
         })
       );
     }
@@ -530,10 +532,10 @@ export class OwnerRequestController {
   async uploadMultipleFiles(req: Request, res: Response): Promise<any> {
     try {
       if (!req.files || (req.files as Express.Multer.File[]).length === 0) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "No files uploaded",
+            message: OWNER_REQUEST_MESSAGES.NO_FILES_UPLOADED,
           })
         );
       }
@@ -541,10 +543,10 @@ export class OwnerRequestController {
       const { folder } = req.body;
       
       if (!folder) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Folder parameter is required",
+            message: OWNER_REQUEST_MESSAGES.FOLDER_REQUIRED,
           })
         );
       }
@@ -554,10 +556,10 @@ export class OwnerRequestController {
         folder: folder,
       };
 
-      const result = await this.ownerRequestService.uploadMultipleFiles(uploadMultipleDto);
+      const result = await this._ownerRequestService.uploadMultipleFiles(uploadMultipleDto);
 
       if (!result.success) {
-        return res.status(400).json(
+        return res.status(StatusCodes.NOT_FOUND).json(
           createResponse({
             success: false,
             message: result.message,
@@ -565,7 +567,7 @@ export class OwnerRequestController {
         );
       }
 
-      return res.status(200).json(
+      return res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
           message: result.message,
@@ -573,10 +575,10 @@ export class OwnerRequestController {
         })
       );
     } catch (err) {
-      res.status(500).json(
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: err.message || "Multiple file upload failed",
+          message: err.message || OWNER_REQUEST_MESSAGES.MULTIPLE_UPLOAD_FAILED,
         })
       );
     }
@@ -587,10 +589,10 @@ export class OwnerRequestController {
       const { publicId, width, height, crop } = req.body;
       
       if (!publicId) {
-        return res.status(400).json(
+        return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Public ID is required",
+            message: OWNER_REQUEST_MESSAGES.PUBLIC_ID_REQUIRED,
           })
         );
       }
@@ -602,10 +604,10 @@ export class OwnerRequestController {
         crop,
       };
 
-      const result = await this.ownerRequestService.generateSignedUrl(signedUrlDto);
+      const result = await this._ownerRequestService.generateSignedUrl(signedUrlDto);
 
       if (!result.success) {
-        return res.status(400).json(
+        return res.status(StatusCodes.NOT_FOUND).json(
           createResponse({
             success: false,
             message: result.message,
@@ -613,7 +615,7 @@ export class OwnerRequestController {
         );
       }
 
-      return res.status(200).json(
+      return res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
           message: result.message,
@@ -621,10 +623,10 @@ export class OwnerRequestController {
         })
       );
     } catch (err) {
-      res.status(500).json(
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: err.message || "Failed to generate signed URL",
+          message: err.message || OWNER_REQUEST_MESSAGES.SIGNED_URL_FAILED,
         })
       );
     }

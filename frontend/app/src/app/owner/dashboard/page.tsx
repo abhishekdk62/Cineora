@@ -8,6 +8,7 @@ import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
 import ScreensManager from "@/app/others/components/Owner/Screens/ScreensManager";
 import ShowtimesManager from "@/app/others/components/Owner/Showtimes/ShowtimesManager";
 import { lexendMedium, lexendSmall } from "@/app/others/Utils/fonts";
+import BookingsManager from "@/app/others/components/Owner/Bookings/BookingsManager";
 const OwnerManager = () => {
   const [activeTab, setActiveTab] = useState("theaters");
   const renderContent = () => {
@@ -18,6 +19,10 @@ const OwnerManager = () => {
         return <ScreensManager />;
       case "shows":
         return <ShowtimesManager lexendMedium={lexendMedium} lexendSmall={lexendSmall} />;
+      case "bookings":
+        return <BookingsManager lexendMedium={lexendMedium} lexendSmall={lexendSmall} />;
+
+
       case "wallet":
         return (
           <div className="text-white">Wallet component coming soon...</div>

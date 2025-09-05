@@ -202,7 +202,7 @@ const TheaterManager: React.FC = () => {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className={`${lexendBold.className} text-3xl text-white mb-2`}>
-            Theater Management
+            Th002eater Management
           </h1>
           <p className={`${lexendSmall.className} text-gray-400`}>
             Manage your cinema theaters and their settings
@@ -218,7 +218,6 @@ const TheaterManager: React.FC = () => {
         </button>
       </div>
 
-      {/* Theater Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-black/90 backdrop-blur-sm border border-gray-500/30 rounded-2xl p-6">
           <div className="flex items-center justify-between">

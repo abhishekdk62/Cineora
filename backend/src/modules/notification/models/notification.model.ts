@@ -1,108 +1,53 @@
 import mongoose, { Schema } from "mongoose";
-import { INotification, INotificationData } from "../interfaces/notification.model.interface";
+import { INotification } from "../interfaces/notification.model.interface";
+export type NotificationType = "booking" | "payment" | "reminder" | "cancellation" | "offer";
 
-const NotificationDataSchema = new Schema<INotificationData>({
-  bookingId: {
-    type: String,
+const notificationSchema = new Schema<INotification>(
+  {
+    notificationId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    title: {
+      type: String,
+      required: true,
+    },
+    message: {
+      type: String,
+      required: true,
+    },
+    type: {
+      type: String,
+      enum: ["booking", "payment", "reminder", "cancellation", "offer"],
+      required: true,
+    },
+    isRead: {
+      type: Boolean,
+      default: false,
+    },
+    readAt: {
+      type: Date,
+    },
+    data: {
+      type: Schema.Types.Mixed,
+    },
+    scheduledTime: { type: Date }, 
+    sent: { type: Boolean, default: false }, 
   },
-  movieTitle: {
-    type: String,
-  },
-  theaterName: {
-    type: String,
-  },
-  showDate: {
-    type: String,
-  },
-  showTime: {
-    type: String,
-  },
-  amount: {
-    type: Number,
-  },
-  url: {
-    type: String,
-  },
-});
+  {
+    timestamps: true,
+  }
+);
 
-const NotificationSchema = new Schema<INotification>({
-  notificationId: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  userId: {
-    type: Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-    index: true,
-  },
-  
-  title: {
-    type: String,
-    required: true,
-    maxlength: 100,
-  },
-  message: {
-    type: String,
-    required: true,
-    maxlength: 500,
-  },
-  type: {
-    type: String,
-    enum: ["booking", "payment", "reminder", "offer", "general", "cancellation"],
-    required: true,
-    index: true,
-  },
-  priority: {
-    type: String,
-    enum: ["low", "medium", "high"],
-    default: "medium",
-  },
-  
-  status: {
-    type: String,
-    enum: ["pending", "sent", "delivered", "failed", "read"],
-    default: "pending",
-    index: true,
-  },
-  isRead: {
-    type: Boolean,
-    default: false,
-    index: true,
-  },
-  readAt: {
-    type: Date,
-  },
-  
-  channels: {
-    type: [String],
-    enum: ["app", "email", "sms", "push"],
-    default: ["app"],
-  },
-  sentVia: {
-    type: [String],
-    enum: ["app", "email", "sms", "push"],
-    default: [],
-  },
-  
-  data: {
-    type: NotificationDataSchema,
-  },
-  
-  scheduledFor: {
-    type: Date,
-  },
-  sentAt: {
-    type: Date,
-  },
-}, {
-  timestamps: true,
-});
+notificationSchema.index({ userId: 1, createdAt: -1 });
+notificationSchema.index({ userId: 1, isRead: 1 });
 
-NotificationSchema.index({ userId: 1, isRead: 1, createdAt: -1 });
-NotificationSchema.index({ type: 1, createdAt: -1 });
-NotificationSchema.index({ status: 1, scheduledFor: 1 });
-NotificationSchema.index({ notificationId: 1 });
+const Notification = mongoose.model<INotification>("Notification", notificationSchema);
 
-export default mongoose.model<INotification>("Notification", NotificationSchema);
+export default Notification;

@@ -2,14 +2,14 @@
 
 import React from "react"
 import { Lexend } from "next/font/google"
-import { 
-  Building2, 
-  Monitor, 
-  Calendar, 
-  Wallet, 
-  BarChart3, 
-  Gift, 
-  User, 
+import {
+  Building2,
+  Monitor,
+  Calendar,
+  Wallet,
+  BarChart3,
+  Gift,
+  User,
   LogOut,
   Menu
 } from "lucide-react"
@@ -38,14 +38,15 @@ const OwnerSidebar: React.FC<OwnerSidebarProps> = ({ activeTab, setActiveTab }) 
     { id: "theaters", label: "My Theaters", icon: Building2 },
     { id: "screens", label: "Screens", icon: Monitor },
     { id: "shows", label: "Shows & Pricing", icon: Calendar },
+    { id: "bookings",label: "Bookings", icon: Calendar},
     { id: "wallet", label: "Wallet", icon: Wallet },
     { id: "analytics", label: "Analytics", icon: BarChart3 },
     { id: "offers", label: "Offers", icon: Gift },
     { id: "account", label: "My Account", icon: User },
   ]
 
-   const dispatch = useDispatch<AppDispatch>();
-const router=useRouter()
+  const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter()
   const handleLogout = async () => {
     try {
       await dispatch(logoutUser()).unwrap();
@@ -80,15 +81,15 @@ const router=useRouter()
           {menuItems.map((item) => {
             const Icon = item.icon
             const isActive = activeTab === item.id
-            
+
             return (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
                 className={`
                   w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300
-                  ${isActive 
-                    ? 'bg-white text-black' 
+                  ${isActive
+                    ? 'bg-white text-black'
                     : 'text-gray-300 hover:bg-white/10 hover:text-white'
                   }
                 `}

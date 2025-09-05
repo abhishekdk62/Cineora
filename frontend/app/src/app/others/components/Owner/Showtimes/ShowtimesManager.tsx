@@ -26,11 +26,19 @@ const ShowtimeManager: React.FC<ShowtimeManagerProps> = ({
   const [activeTodayCount, setActiveTodayCount] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit" | "view">("create");
+  const [page, setPage] = useState(1);
+  const [items, setItems] = useState([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [scrollLoading, setScrollLoading] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+  const ITEMS_PER_PAGE = 10;
+
 
   useEffect(() => {
     setMounted(true);
-    fetchShowtimes();
+    fetchShowtimes(1, true); // Reset and fetch first page
   }, []);
+
 
   useEffect(() => {
     if (mounted && showtimes.length > 0) {
@@ -44,55 +52,138 @@ const ShowtimeManager: React.FC<ShowtimeManagerProps> = ({
       setActiveTodayCount(todayCount);
     }
   }, [showtimes, mounted]);
+useEffect(() => {
+  let timeoutId: NodeJS.Timeout;
 
-  const fetchShowtimes = async () => {
-    try {
-      setLoading(true);
-      const data = await getShowTimesOwner();
-      setShowtimes(data.data.data || []);
-    } catch (error) {
-      console.error("Error fetching showtimes:", error);
-      toast.error("Failed to fetch showtimes");
-    } finally {
-      setLoading(false);
-    }
+  function handleScroll() {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      if (
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 100 &&
+        hasMore &&
+        !loading &&
+        !scrollLoading
+      ) {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        fetchShowtimes(nextPage, false);
+      }
+    }, 100); // 100ms debounce
+  }
+
+  window.addEventListener('scroll', handleScroll);
+  return () => {
+    window.removeEventListener('scroll', handleScroll);
+    clearTimeout(timeoutId);
   };
+}, [hasMore, loading, scrollLoading, page]);
+
+const fetchShowtimes = async (pageNumber = 1, reset = false) => {
+  if (loading && !reset) {
+    console.log('⚠️ Already loading, skipping request');
+    return;
+  }
+
+  try {
+    if (reset) {
+      setLoading(true);
+    } else {
+      setScrollLoading(true);
+    }
+
+    const data = await getShowTimesOwner({
+      page: pageNumber,
+      limit: ITEMS_PER_PAGE,
+    });
+    
+    console.log('the showtime data:', data);
+
+    // ✅ CORRECTED: Use the actual response structure
+    const newShowtimes = data.data || [];
+    const total = data.meta.pagination.total || 0; // ✅ Correct path
+    const currentPage = data.meta.pagination.currentPage || pageNumber; // ✅ Get current page
+    const hasNextPage = data.meta.pagination.hasNextPage || false; // ✅ Get hasNext from backend
+
+    console.log(`📦 Received ${newShowtimes.length} items`);
+
+    if (reset || pageNumber === 1) {
+      setShowtimes(newShowtimes);
+    } else {
+      setShowtimes(prev => {
+        const existingIds = prev.map(item => item._id);
+        const filteredNew = newShowtimes.filter((item: any) => !existingIds.includes(item._id));
+        console.log(`✅ Added ${filteredNew.length} new items`);
+        return [...prev, ...filteredNew];
+      });
+    }
+
+    // ✅ CORRECTED: Use the correct pagination data
+    setTotalCount(total);
+    
+    // ✅ SIMPLIFIED: Just use the hasNextPage from backend
+    setHasMore(hasNextPage);
+    
+    console.log(`📊 Current Page: ${currentPage}, Total Items: ${total}, HasNext: ${hasNextPage}`);
+
+  } catch (error) {
+    console.error("❌ Error fetching showtimes:", error);
+    toast.error("Failed to fetch showtimes");
+  } finally {
+    if (reset) {
+      setLoading(false);
+    } else {
+      setScrollLoading(false);
+    }
+  }
+};
+
+
+
 
   const handleAddShowtime = () => {
     setEditingShowtime(null);
     setFormMode("create");
     setIsFormOpen(true);
   };
-
   const handleEditShowtime = (showtime: IShowtime) => {
+    const now = new Date();
+    const showDate = new Date(showtime.showDate).toISOString().split('T')[0];
+    const showDateTime = new Date(`${showDate}T${showtime.showTime}:00`);
+    if (showDateTime < now) {
+      toast.error("Cannot edit past showtimes");
+      return;
+    }
+    const daysUntilShow = Math.ceil((showDateTime.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysUntilShow < 7) {
+      toast.error("Cannot edit showtime within 7 days of show date");
+      return;
+    }
     setEditingShowtime(showtime);
     setFormMode("edit");
     setIsFormOpen(true);
   };
-
   const handleViewShowtime = (showtime: IShowtime) => {
     setEditingShowtime(showtime);
     setFormMode("view");
     setIsFormOpen(true);
   };
-
   const handleCloseForm = () => {
     setIsFormOpen(false);
     setEditingShowtime(null);
     setFormMode("create");
   };
-
   const handleFormSubmit = async (data: any) => {
     try {
       setSubmitting(true);
       if (formMode === "edit") {
-        console.log('the data is   :',data);
+        console.log('the data is   :', data);
 
-      
-    
-        const result=await editShowtimeOwner(data.showtime)
+
+
+        const result = await editShowtimeOwner(data.showtime)
         console.log(result);
-        
+
         toast.success("Showtime updated successfully");
       } else if (formMode === "create") {
         const result = await createShowtimeOwner(data);
@@ -114,23 +205,20 @@ const ShowtimeManager: React.FC<ShowtimeManagerProps> = ({
       fetchShowtimes();
       handleCloseForm();
     } catch (error: any) {
-     
+
       console.error("Error saving showtime:", error);
       toast.error(error.response.data.message || "Failed to save showtime");
     } finally {
       setSubmitting(false);
     }
   };
-
   const getUpcomingShowtimes = () => {
     const today = new Date();
     return showtimes.filter(s => new Date(s.showDate) >= today && s.isActive).length;
   };
-
   const getTotalAvailableSeats = () => {
     return showtimes.reduce((acc, s) => acc + (s.availableSeats || 0), 0);
   };
-
   if (loading) {
     return (
       <div className="bg-black/90 backdrop-blur-sm border border-gray-500/30 rounded-2xl p-6">
@@ -140,7 +228,6 @@ const ShowtimeManager: React.FC<ShowtimeManagerProps> = ({
       </div>
     );
   }
-
   return (
     <div className="space-y-6">
       <div className="bg-black/90 backdrop-blur-sm border border-gray-500/30 rounded-2xl p-6">
@@ -182,8 +269,9 @@ const ShowtimeManager: React.FC<ShowtimeManagerProps> = ({
                   Total Showtimes
                 </p>
                 <p className={`${lexendMedium.className} text-white text-lg`}>
-                  {showtimes.length}
+                  {totalCount > 0 ? totalCount : showtimes.length}
                 </p>
+
               </div>
             </div>
           </div>
@@ -232,10 +320,14 @@ const ShowtimeManager: React.FC<ShowtimeManagerProps> = ({
         showtimes={showtimes}
         onEdit={handleEditShowtime}
         onView={handleViewShowtime}
-        onRefresh={fetchShowtimes}
+        onRefresh={() => {
+          setPage(1);
+          fetchShowtimes(1, true);
+        }}
         lexendMedium={lexendMedium}
         lexendSmall={lexendSmall}
       />
+
       {isFormOpen && (
         <ShowtimeForm
           submitting={submitting}
@@ -247,6 +339,19 @@ const ShowtimeManager: React.FC<ShowtimeManagerProps> = ({
           lexendSmall={lexendSmall}
         />
       )}
+      {hasMore && showtimes.length > 0 && (
+        <div className="flex items-center justify-center py-4">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+          <span className="ml-2 text-gray-400">Loading more showtimes...</span>
+        </div>
+      )}
+
+      {!hasMore && showtimes.length > 0 && (
+        <div className="text-center py-4">
+          <p className="text-gray-400">No more showtimes to load</p>
+        </div>
+      )}
+
     </div>
   );
 };

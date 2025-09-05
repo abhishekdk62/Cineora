@@ -2,22 +2,21 @@
 
 import React from "react";
 import { Lexend } from "next/font/google";
-import { 
-  X, 
-  User, 
-  Mail, 
-  Phone, 
-  Calendar, 
-  MapPin, 
-  Shield, 
+import {
+  X,
+  User,
+  Mail,
+  Calendar,
+  MapPin,
+  Shield,
   Clock,
   Activity,
-  BookOpen,
-  Heart,
+  Star,
+  Globe,
   CheckCircle,
-  XCircle
+  XCircle,
+  Award
 } from "lucide-react";
-import { User as UserType } from "./UserManager";
 
 const lexend = Lexend({
   weight: "500",
@@ -29,16 +28,18 @@ const lexendSmall = Lexend({
   subsets: ["latin"],
 });
 
+
+
 interface UserDetailsModalProps {
-  user: UserType | null;
+  user: any | null;
   isOpen: boolean;
   onClose: () => void;
 }
 
-const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ 
-  user, 
-  isOpen, 
-  onClose 
+const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
+  user,
+  isOpen,
+  onClose
 }) => {
   if (!isOpen || !user) return null;
 
@@ -62,17 +63,35 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
     });
   };
 
-  const getLastLoginText = (lastLogin?: string) => {
-    if (!lastLogin || lastLogin === '0') return "Never logged in";
-    const date = new Date(lastLogin);
+  const getLastActiveText = (lastActive: string) => {
+    if (!lastActive) return "Never active";
+    const date = new Date(lastActive);
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    if (diffInHours < 24) {
-      return `${diffInHours} hours ago`;
-    } else {
-      const diffInDays = Math.floor(diffInHours / 24);
-      return `${diffInDays} days ago`;
-    }
+
+    if (diffInHours < 1) return "Active now";
+    if (diffInHours < 24) return `${diffInHours} hours ago`;
+
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays} days ago`;
+
+    return formatDate(lastActive);
+  };
+
+  const getLocationString = (location: { coordinates: [number, number] }) => {
+    if (!location?.coordinates) return "Unknown";
+    const [lng, lat] = location.coordinates;
+    return `${lat.toFixed(4)}°, ${lng.toFixed(4)}°`;
+  };
+
+  const getLanguageDisplay = (langCode: string) => {
+    const languages: Record<string, string> = {
+      'en': 'English',
+      'hi': 'Hindi',
+      'es': 'Spanish',
+      'fr': 'French'
+    };
+    return languages[langCode] || langCode.toUpperCase();
   };
 
   return (
@@ -99,7 +118,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
               {user.profilePicture ? (
                 <img
                   src={user.profilePicture}
-                  alt={user.name}
+                  alt={user.username}
                   className="w-24 h-24 rounded-full object-cover border-4 border-gray-600"
                 />
               ) : (
@@ -117,57 +136,51 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <h3 className={`${lexend.className} text-3xl font-bold text-white`}>
-                  {user.name}
+                  {user.username}
                 </h3>
                 <div className="flex gap-2">
-                  {user.emailVerified && (
-                    <div className="bg-green-900/50 text-green-400 border border-green-500/30 px-2 py-1 rounded-full flex items-center gap-1">
-                      <Mail size={12} />
-                      <span className="text-xs">Email Verified</span>
-                    </div>
-                  )}
-                  {user.phoneVerified && (
-                    <div className="bg-green-900/50 text-green-400 border border-green-500/30 px-2 py-1 rounded-full flex items-center gap-1">
-                      <Phone size={12} />
-                      <span className="text-xs">Phone Verified</span>
-                    </div>
-                  )}
+                  <div className="bg-purple-900/50 text-purple-400 border border-purple-500/30 px-2 py-1 rounded-full flex items-center gap-1">
+                    <Award size={12} />
+                    <span className="text-xs">{user.xpPoints} XP</span>
+                  </div>
+                  <div className="bg-blue-900/50 text-blue-400 border border-blue-500/30 px-2 py-1 rounded-full flex items-center gap-1">
+                    <Globe size={12} />
+                    <span className="text-xs">{getLanguageDisplay(user.language)}</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Status Badges */}
               <div className="flex gap-3 mb-4">
                 <span
-                  className={`px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 ${
-                    user.isActive
+                  className={`px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 ${user.isActive
                       ? "bg-green-900/50 text-green-400 border border-green-500/30"
                       : "bg-red-900/50 text-red-400 border border-red-500/30"
-                  }`}
+                    }`}
                 >
                   {user.isActive ? <CheckCircle size={14} /> : <XCircle size={14} />}
                   {user.isActive ? "Active" : "Inactive"}
                 </span>
                 <span
-                  className={`px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 ${
-                    user.isVerified
+                  className={`px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 ${user.isVerified
                       ? "bg-blue-900/50 text-blue-400 border border-blue-500/30"
                       : "bg-gray-900/50 text-gray-400 border border-gray-500/30"
-                  }`}
+                    }`}
                 >
                   <Shield size={14} />
                   {user.isVerified ? "Verified" : "Unverified"}
                 </span>
+
               </div>
             </div>
           </div>
 
           {/* Details Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Personal Information */}
+            {/* Account Information */}
             <div className="bg-[#2a2a2a] border border-gray-700 rounded-lg p-4">
               <h4 className={`${lexend.className} text-lg font-semibold text-white mb-4 flex items-center gap-2`}>
                 <User size={20} className="text-[#e78f03]" />
-                Personal Information
+                Account Information
               </h4>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
@@ -178,38 +191,34 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Phone size={16} className="text-gray-400" />
+                  <User size={16} className="text-gray-400" />
                   <div>
-                    <span className="text-gray-500 text-sm">Phone:</span>
-                    <p className="text-white">{user.phone}</p>
+                    <span className="text-gray-500 text-sm">Username:</span>
+                    <p className="text-white">{user.username}</p>
                   </div>
                 </div>
-                {user.gender && (
-                  <div className="flex items-center gap-3">
-                    <User size={16} className="text-gray-400" />
-                    <div>
-                      <span className="text-gray-500 text-sm">Gender:</span>
-                      <p className="text-white capitalize">{user.gender}</p>
-                    </div>
+                <div className="flex items-center gap-3">
+                  <Shield size={16} className="text-gray-400" />
+                  <div>
+                    <span className="text-gray-500 text-sm">Auth Provider:</span>
+                    <p className="text-white capitalize">{user.authProvider}</p>
                   </div>
-                )}
-                {user.dateOfBirth && (
-                  <div className="flex items-center gap-3">
-                    <Calendar size={16} className="text-gray-400" />
-                    <div>
-                      <span className="text-gray-500 text-sm">Date of Birth:</span>
-                      <p className="text-white">{formatDate(user.dateOfBirth)}</p>
-                    </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Globe size={16} className="text-gray-400" />
+                  <div>
+                    <span className="text-gray-500 text-sm">Language:</span>
+                    <p className="text-white">{getLanguageDisplay(user.language)}</p>
                   </div>
-                )}
+                </div>
               </div>
             </div>
 
-            {/* Account Information */}
+            {/* Activity Information */}
             <div className="bg-[#2a2a2a] border border-gray-700 rounded-lg p-4">
               <h4 className={`${lexend.className} text-lg font-semibold text-white mb-4 flex items-center gap-2`}>
                 <Activity size={20} className="text-[#e78f03]" />
-                Account Information
+                Activity Information
               </h4>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
@@ -222,8 +231,8 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
                 <div className="flex items-center gap-3">
                   <Clock size={16} className="text-gray-400" />
                   <div>
-                    <span className="text-gray-500 text-sm">Last Login:</span>
-                    <p className="text-white">{getLastLoginText(user.lastActive)}</p>
+                    <span className="text-gray-500 text-sm">Last Active:</span>
+                    <p className="text-white">{getLastActiveText(user.lastActive)}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -233,60 +242,40 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
                     <p className="text-white">{formatDateTime(user.updatedAt)}</p>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Activity Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Booking History */}
-            <div className="bg-[#2a2a2a] border border-gray-700 rounded-lg p-4">
-              <h4 className={`${lexend.className} text-lg font-semibold text-white mb-4 flex items-center gap-2`}>
-                <BookOpen size={20} className="text-[#e78f03]" />
-                Booking History
-              </h4>
-              <div className="flex items-center justify-center h-20">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-white">
-                    {user.bookingHistory?.length || 0}
-                  </p>
-                  <p className="text-gray-400 text-sm">Total Bookings</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Favorite Theatres */}
-            <div className="bg-[#2a2a2a] border border-gray-700 rounded-lg p-4">
-              <h4 className={`${lexend.className} text-lg font-semibold text-white mb-4 flex items-center gap-2`}>
-                <Heart size={20} className="text-[#e78f03]" />
-                Favorite Theatres
-              </h4>
-              <div className="flex items-center justify-center h-20">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-white">
-                    {user.favoriteTheatres?.length || 0}
-                  </p>
-                  <p className="text-gray-400 text-sm">Favorites</p>
+                <div className="flex items-center gap-3">
+                  <Star size={16} className="text-gray-400" />
+                  <div>
+                    <span className="text-gray-500 text-sm">XP Points:</span>
+                    <p className="text-white font-bold ">{user.xpPoints}</p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Additional Information */}
+          {/* Location & Additional Info */}
           <div className="bg-[#2a2a2a] border border-gray-700 rounded-lg p-4">
-            <h4 className={`${lexend.className} text-lg font-semibold text-white mb-4`}>
-              User ID & Technical Details
+            <h4 className={`${lexend.className} text-lg font-semibold text-white mb-4 flex items-center gap-2`}>
+              <MapPin size={20} className="text-[#e78f03]" />
+              Location & Status
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <span className="text-gray-500 text-sm">User ID:</span>
-                <p className="text-white font-mono text-sm">{user._id}</p>
+                <span className="text-gray-500 text-sm">Location:</span>
+                <a
+                  href={`https://www.google.com/maps?q=${user.location.coordinates[1]},${user.location.coordinates[0]}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 hover:text-blue-300 underline transition-colors"
+                >
+                  View Location on google maps
+                </a>
+
               </div>
               <div>
                 <span className="text-gray-500 text-sm">Account Status:</span>
-                <p className={`text-sm font-medium ${
-                  user.isActive ? "text-green-400" : "text-red-400"
-                }`}>
+                <p className={`text-sm font-medium ${user.isActive ? "text-green-400" : "text-red-400"
+                  }`}>
                   {user.isActive ? "Active Account" : "Inactive Account"}
                 </p>
               </div>

@@ -395,26 +395,8 @@ const TheaterDetailsModal: React.FC<TheaterDetailsModalProps> = ({
                   System Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-400 mb-1">Theater ID</p>
-                    <p
-                      className={`${lexendSmall.className} text-gray-300 font-mono text-xs break-all`}
-                    >
-                      {theater._id}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400 mb-1">Owner ID</p>
-                    <p
-                      className={`${lexendSmall.className} text-gray-300 font-mono text-xs break-all`}
-                    >
-                      {typeof theater.ownerId === "string"
-                        ? theater.ownerId
-                        : theater.ownerId?._id || "N/A"}
-                    </p>
-                  </div>
-
-                  {/* Add Owner Details Section if ownerId is populated */}
+           
+                
                   {typeof theater.ownerId === "object" && theater.ownerId && (
                     <>
                       <div>
@@ -434,20 +416,6 @@ const TheaterDetailsModal: React.FC<TheaterDetailsModalProps> = ({
                     </>
                   )}
 
-                  <div>
-                    <p className="text-sm text-gray-400 mb-1">Location Type</p>
-                    <p className={`${lexendSmall.className} text-gray-300`}>
-                      {theater.location?.type || "Not specified"}
-                    </p>
-                  </div>
-                  {theater.__v !== undefined && (
-                    <div>
-                      <p className="text-sm text-gray-400 mb-1">Version</p>
-                      <p className={`${lexendSmall.className} text-gray-300`}>
-                        v{theater.__v}
-                      </p>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>

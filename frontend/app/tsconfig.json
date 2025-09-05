@@ -39,7 +39,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
-  ],
+, "src/app/others/services/userServices/.interfaces.ts"  ],
   "exclude": [
     "node_modules"
   ]

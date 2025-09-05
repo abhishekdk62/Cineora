@@ -1,52 +1,41 @@
 import { IScreen } from "./screens.model.interface";
+import { 
+  CreateScreenDto, 
+  UpdateScreenDto, 
+  ScreenFilterDto, 
+  AdvancedScreenFilterDto,
+  PaginatedScreenResultDto,
+  ScreenStatisticsDto
+} from "../dtos/dtos";
 
-export interface IScreenRepository {
-  create(screenData: Partial<IScreen>): Promise<IScreen | null>;
-  findById(screenId: string): Promise<IScreen | null>;
-  findByTheaterId(theaterId: string): Promise<IScreen[]>;
-  deleteMany(theaterId: string): Promise<number>;
-  findAll(
-    page: number,
-    limit: number,
-    filters?: any
-  ): Promise<{ screens: IScreen[]; total: number }>;
-  findByIdGetTheaterDetails(screenId: string): Promise<IScreen>;
-  
-  findByTheaterIdWithFilters(
-    theaterId: string,
-    filters?: {
-      isActive?: boolean;
-      screenType?: string;
-      search?: string;
-      page?: number;
-      limit?: number;
-      sortBy?: string;
-      sortOrder?: "asc" | "desc";
-    }
-  ): Promise<{
-    screens: IScreen[];
-    totalFiltered: number;
-    activeAll: number;
-    inactiveAll: number;
-    totalAll: number;
-  }>;
-
-  update(
-    screenId: string,
-    updateData: Partial<IScreen>
-  ): Promise<IScreen | null>;
-
-  toggleStatus(screenId: string): Promise<IScreen | null>;
-  delete(screenId: string): Promise<IScreen>;
-  existsByNameAndTheater(
-    name: string,
-    theaterId: string,
-    excludedId?: string
-  ): Promise<boolean>;
-  findByTheaterIdAndName(
-    theaterId: string,
-    name: string
-  ): Promise<IScreen | null>;
-  countByTheaterId(theaterId: string): Promise<number>;
-  findActiveByTheaterId(theaterId: string): Promise<IScreen[]>;
+export interface IScreenReadRepository {
+  getScreenById(screenId: string): Promise<IScreen | null>;
+  getScreensByTheaterId(theaterId: string): Promise<IScreen[]>;
+  getAllScreensPaginated(page: number, limit: number, filters?: ScreenFilterDto): Promise<PaginatedScreenResultDto>;
+  getScreenByIdWithTheaterDetails(screenId: string): Promise<IScreen | null>;
+  getScreensByTheaterIdWithAdvancedFilters(theaterId: string, filters: AdvancedScreenFilterDto): Promise<ScreenStatisticsDto>;
+  getScreenByTheaterIdAndName(theaterId: string, name: string): Promise<IScreen | null>;
+  getActiveScreensByTheaterId(theaterId: string): Promise<IScreen[]>;
 }
+
+export interface IScreenWriteRepository {
+  createScreen(screenData: CreateScreenDto): Promise<IScreen>;
+  updateScreen(screenId: string, updateData: UpdateScreenDto): Promise<IScreen>;
+  toggleScreenStatus(screenId: string): Promise<IScreen>;
+  deleteScreen(screenId: string): Promise<IScreen>;
+  deleteScreensByTheaterId(theaterId: string): Promise<number>;
+}
+
+export interface IScreenValidationRepository {
+  checkScreenExistsByNameAndTheater(name: string, theaterId: string, excludedId?: string): Promise<boolean>;
+}
+
+export interface IScreenStatisticsRepository {
+  countScreensByTheaterId(theaterId: string): Promise<number>;
+}
+
+export interface IScreenRepository extends 
+  IScreenReadRepository, 
+  IScreenWriteRepository, 
+  IScreenValidationRepository, 
+  IScreenStatisticsRepository {}

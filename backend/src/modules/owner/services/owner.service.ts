@@ -1,106 +1,57 @@
 import * as bcrypt from "bcryptjs";
 import { IEmailService } from "../../../services/email.service";
-
 import { config } from "../../../config";
-
 import { IUserRepository } from "../../user/interfaces/user.repository.interface";
 import { IOwnerService } from "../interfaces/owner.services.interfaces";
-import {
-  IOwnerRepository,
-  IOwnerRequestRepository,
-} from "../interfaces/owner.repository.interface";
+import { IOwnerRepository, IOwnerRequestRepository } from "../interfaces/owner.repository.interface";
 import { ServiceResponse } from "../../../interfaces/interface";
 import { OwnerFilterDto, UpdateOwnerProfileDto } from "../dtos/owner.dtos";
 import { IOTPRepository } from "../../otp/interfaces/otp.repository.interface";
-import { generateSignedUrl } from "../../../utils/signCloudinaryUpload";
+import { IOwner } from "../interfaces/owner.model.interface";
 
 export class OwnerService implements IOwnerService {
   constructor(
     private readonly emailService: IEmailService,
-    private readonly ownerRepo: IOwnerRepository,
-    private readonly ownerRequestRepo: IOwnerRequestRepository,
-    private readonly otpRepo: IOTPRepository,
-    private readonly userRepo: IUserRepository
+    private readonly ownerRepository: IOwnerRepository,
+    private readonly ownerRequestRepository: IOwnerRequestRepository,
+    private readonly otpRepository: IOTPRepository,
+    private readonly userRepository: IUserRepository
   ) {}
 
- async getOwnerProfile(requestId: string): Promise<ServiceResponse> {
-  try {
-    let owner = await this.ownerRepo.findById(requestId);
+  async getOwnerProfile(requestId: string): Promise<ServiceResponse> {
+    try {
+      this.validateId(requestId);
 
-    if (!owner) {
+      const owner = await this.ownerRepository.findById(requestId);
+
+      if (!owner) {
+        return {
+          success: false,
+          message: "Owner account not found",
+        };
+      }
+
+      const profileData = this._transformOwnerProfileData(owner);
+
+      return {
+        success: true,
+        message: "Owner account fetched successfully",
+        data: profileData,
+      };
+    } catch (error) {
+      console.error("Get owner account error:", error);
       return {
         success: false,
-        message: "Owner account not found",
+        message: error instanceof Error ? error.message : "Something went wrong",
       };
     }
-
-    const extractPublicId = (urlOrPublicId: string): string | null => {
-      if (!urlOrPublicId) return null;
-      
-      if (!urlOrPublicId.startsWith('https://')) {
-        return urlOrPublicId;
-      }
-      
-      const urlParts = urlOrPublicId.split('/');
-      
-      let startIndex = -1;
-      for (let i = 0; i < urlParts.length; i++) {
-        if (urlParts[i] === 'upload' || urlParts[i] === 'authenticated' || urlParts[i].startsWith('v')) {
-          startIndex = i + 1;
-          break;
-        }
-      }
-      
-      if (startIndex === -1) return null;
-      
-      const publicIdWithExt = urlParts.slice(startIndex).join('/');
-      return publicIdWithExt.replace(/\.[^/.]+$/, ''); 
-    };
-
-    owner = {
-      ...owner,
-      aadhaarUrl: owner.aadhaarUrl
-        ? generateSignedUrl(extractPublicId(owner.aadhaarUrl), {
-            width: 800,
-            height: 600,
-            crop: "fit",
-          })
-        : null,
-
-      panUrl: owner.panUrl
-        ? generateSignedUrl(extractPublicId(owner.panUrl), {
-            width: 800,
-            height: 600,
-            crop: "fit",
-          })
-        : null,
-
-      ownerPhotoUrl: owner.ownerPhotoUrl
-        ? generateSignedUrl(extractPublicId(owner.ownerPhotoUrl), {
-            width: 400,
-            height: 400,
-            crop: "fill",
-          })
-        : null,
-    };
-
-    return {
-      success: true,
-      message: "Owner account fetched successfully",
-      data: owner,
-    };
-  } catch (error) {
-    console.error("Get owner account error:", error);
-    return {
-      success: false,
-      message: "Something went wrong",
-    };
   }
-}
 
   async getOwnerById(ownerId: string): Promise<ServiceResponse> {
     try {
-      const owner = await this.ownerRepo.findById(ownerId);
+      this.validateId(ownerId);
+
+      const owner = await this.ownerRepository.findById(ownerId);
 
       if (!owner) {
         return {
@@ -118,144 +69,41 @@ export class OwnerService implements IOwnerService {
       console.error("Get owner by ID error:", error);
       return {
         success: false,
-        message: "Something went wrong",
+        message: error instanceof Error ? error.message : "Something went wrong",
       };
     }
   }
 
   async getOwnerCounts(): Promise<ServiceResponse> {
     try {
-      const [
-        activeOwners,
-        inactiveOwners,
-        pendingRequests,
-        approvedRequests,
-        rejectedRequests,
-      ] = await Promise.all([
-        this.ownerRepo
-          .findByStatus("active", 1, 1)
-          .then((result) => result.total),
-        this.ownerRepo
-          .findByStatus("inactive", 1, 1)
-          .then((result) => result.total),
-        this.ownerRequestRepo
-          .findByStatus("pending", 1, 1)
-          .then((result) => result.total),
-        this.ownerRequestRepo
-          .findByStatus("approved", 1, 1)
-          .then((result) => result.total),
-        this.ownerRequestRepo
-          .findByStatus("rejected", 1, 1)
-          .then((result) => result.total),
-      ]);
+      const counts = await this.fetchOwnerCounts();
 
       return {
         success: true,
         message: "Owner counts fetched successfully",
         data: {
-          counts: {
-            activeOwners,
-            inactiveOwners,
-            pendingRequests,
-            approvedRequests,
-            rejectedRequests,
-          },
+          counts,
         },
       };
     } catch (error) {
       console.error("Get owner counts error:", error);
       return {
         success: false,
-        message: "Something went wrong",
+        message: error instanceof Error ? error.message : "Something went wrong",
       };
     }
   }
 
-async getOwners(filters: OwnerFilterDto): Promise<ServiceResponse> {
+  async getOwners(filters: OwnerFilterDto): Promise<ServiceResponse> {
     try {
-      const {
-        search,
-        status,
-        sortBy,
-        sortOrder,
-        page = 1,
-        limit = 10,
-      } = filters;
+      this.validateOwnerFilters(filters);
 
-      let result;
-      if (status) {
-        result = await this.ownerRepo.findByStatus(
-          status,
-          Number(page),
-          Number(limit)
-        );
-      } else {
-        result = await this.ownerRepo.findAll(Number(page), Number(limit));
-      }
+      const { page = 1, limit = 10 } = filters;
+      let result = await this._fetchOwnersWithFilters(filters);
 
-      if (search) {
-        result.owners = result.owners.filter(
-          (owner: any) =>
-            owner.ownerName.toLowerCase().includes(search.toLowerCase()) ||
-            owner.email.toLowerCase().includes(search.toLowerCase()) ||
-            owner.phone.includes(search)
-        );
-      }
-
-      if (sortBy) {
-        result.owners.sort((a: any, b: any) => {
-          let aValue = a[sortBy];
-          let bValue = b[sortBy];
-
-          if (sortBy.includes("Date") || sortBy.includes("At")) {
-            aValue = new Date(aValue);
-            bValue = new Date(bValue);
-          }
-
-          if (sortOrder === "desc") {
-            return bValue > aValue ? 1 : -1;
-          }
-          return aValue > bValue ? 1 : -1;
-        });
-      }
-
-   
-         result.owners = result.owners.map((request) => {
-           return {
-             ...request,
-             aadhaarUrl: request.aadhaarUrl
-               ? generateSignedUrl(request.aadhaarUrl, {
-                   width: 800,
-                   height: 600,
-                   crop: "fit",
-                 })
-               : null,
-             ownerPhotoUrl: request.ownerPhotoUrl
-               ? generateSignedUrl(request.ownerPhotoUrl, {
-                   width: 800,
-                   height: 600,
-                   crop: "fit",
-                 })
-               : null,
-   
-             panUrl: request.panUrl
-               ? generateSignedUrl(request.panUrl, {
-                   width: 800,
-                   height: 600,
-                   crop: "fit",
-                 })
-               : null,
-   
-             profilePictureUrl: request.ownerPhotoUrl
-               ? generateSignedUrl(request.ownerPhotoUrl, {
-                   width: 400,
-                   height: 400,
-                   crop: "fill",
-                 })
-               : null,
-           };
-         });
-         
+      result = this._applyClientSideFilters(result, filters);
+      result = this._applySorting(result, filters);
+      result = this._transformOwnersData(result);
 
       return {
         success: true,
@@ -276,21 +124,16 @@ async getOwners(filters: OwnerFilterDto): Promise<ServiceResponse> {
       console.error("Get owners error:", error);
       return {
         success: false,
-        message: "Something went wrong",
+        message: error instanceof Error ? error.message : "Something went wrong",
       };
     }
   }
 
   async toggleOwnerStatus(ownerId: string): Promise<ServiceResponse> {
     try {
-      if (!ownerId) {
-        return {
-          success: false,
-          message: "Owner ID is required",
-        };
-      }
+      this.validateId(ownerId);
 
-      const updatedOwner = await this.ownerRepo.toggleStatus(ownerId);
+      const updatedOwner = await this.ownerRepository.toggleStatus(ownerId);
 
       if (!updatedOwner) {
         return {
@@ -301,26 +144,24 @@ async getOwners(filters: OwnerFilterDto): Promise<ServiceResponse> {
 
       return {
         success: true,
-        message: `Owner ${
-          updatedOwner.isActive ? "activated" : "blocked"
-        } successfully`,
+        message: `Owner ${updatedOwner.isActive ? "activated" : "blocked"} successfully`,
         data: updatedOwner,
       };
     } catch (error) {
       console.error("Toggle owner status error:", error);
       return {
         success: false,
-        message: "Something went wrong",
+        message: error instanceof Error ? error.message : "Something went wrong",
       };
     }
   }
 
-  async updateOwner(
-    ownerId: string,
-    updateData: UpdateOwnerProfileDto
-  ): Promise<ServiceResponse> {
+  async updateOwner(ownerId: string, updateData: UpdateOwnerProfileDto): Promise<ServiceResponse> {
     try {
-      const updatedOwner = await this.ownerRepo.update(ownerId, updateData);
+      this.validateId(ownerId);
+      this.validateUpdateData(updateData);
+
+      const updatedOwner = await this.ownerRepository.update(ownerId, updateData);
 
       if (!updatedOwner) {
         return {
@@ -338,14 +179,16 @@ async getOwners(filters: OwnerFilterDto): Promise<ServiceResponse> {
       console.error("Update owner error:", error);
       return {
         success: false,
-        message: "Something went wrong",
+        message: error instanceof Error ? error.message : "Something went wrong",
       };
     }
   }
 
   async deleteOwner(ownerId: string): Promise<ServiceResponse> {
     try {
-      const deletedOwner = await this.ownerRepo.delete(ownerId);
+      this.validateId(ownerId);
+
+      const deletedOwner = await this.ownerRepository.delete(ownerId);
 
       if (!deletedOwner) {
         return {
@@ -362,153 +205,79 @@ async getOwners(filters: OwnerFilterDto): Promise<ServiceResponse> {
       console.error("Delete owner error:", error);
       return {
         success: false,
-        message: "Something went wrong",
+        message: error instanceof Error ? error.message : "Something went wrong",
       };
     }
   }
 
-  async sendEmailChangeOtp(
-    ownerId: string,
-    newEmail: string,
-    password: string
-  ): Promise<ServiceResponse> {
+  async sendEmailChangeOtp(ownerId: string, newEmail: string, password: string): Promise<ServiceResponse> {
     try {
-      const owner = await this.ownerRepo.findById(ownerId);
+      this.validateId(ownerId);
+      this.validateEmailChangeData({ newEmail, password });
 
+      const owner = await this.ownerRepository.findById(ownerId);
       if (!owner) {
         return {
           success: false,
           message: "Owner not found",
         };
       }
-      const isMatch = await bcrypt.compare(password, owner.password);
-      if (!isMatch) {
+
+      const isPasswordValid = await this.verifyOwnerPassword(owner, password);
+      if (!isPasswordValid) {
         return {
           success: false,
           message: "Invalid password",
         };
       }
 
-      if (owner.email === newEmail) {
+      const emailValidation = await this.validateEmailAvailability(newEmail, ownerId, owner.email);
+      if (!emailValidation.isValid) {
         return {
           success: false,
-          message: "New email cannot be the same as current email",
+          message: emailValidation.message,
         };
       }
 
-      const existingUser = await this.userRepo.findByEmail(newEmail);
-      if (existingUser) {
-        return { success: false, message: "Email already in use" };
-      }
-
-      const existingOwner = await this.ownerRepo.findByEmail(newEmail);
-      if (existingOwner && existingOwner._id.toString() !== ownerId) {
-        return { success: false, message: "Email already in use" };
-      }
-
-      const existingOwnerRequest = await this.ownerRequestRepo.findByEmail(
-        newEmail
-      );
-      if (
-        existingOwnerRequest &&
-        existingOwnerRequest.status !== "rejected" &&
-        existingOwnerRequest.status !== "approved"
-      ) {
-        return { success: false, message: "Email already in use" };
-      }
-
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
-
-      await this.otpRepo.create({
-        email: newEmail,
-        otp,
-        expiresAt,
-        type: "owner_email_change",
-        userData: {
-          id: ownerId,
-          oldEmail: owner.email,
-        },
-      });
-
-      const emailSent = await this.emailService.sendEmailChangeOTP(
-        newEmail,
-        otp,
-        owner.ownerName || "Owner"
-      );
-
-      if (!emailSent) {
-        return {
-          success: false,
-          message: "Failed to send OTP email",
-        };
-      }
-
-      return {
-        success: true,
-        message: "OTP sent successfully to your new email",
-        data: {
-          email: newEmail,
-          expiresIn: "5 minutes",
-        },
-      };
+      const otpResult = await this._generateAndSendEmailChangeOtp(newEmail, owner);
+      
+      return otpResult;
     } catch (error) {
       console.error("Send email change OTP error:", error);
       return {
         success: false,
-        message: "Something went wrong",
+        message: error instanceof Error ? error.message : "Something went wrong",
       };
     }
   }
 
-  async verifyEmailChangeOtp(
-    id: string,
-    email: string,
-    otp: string
-  ): Promise<ServiceResponse> {
+  async verifyEmailChangeOtp(id: string, email: string, otp: string): Promise<ServiceResponse> {
     try {
-      const otpRecord = await this.otpRepo.findValidOTP(
+      this.validateId(id);
+      this.validateEmailOtpData({ email, otp });
+
+      const otpRecord = await this.otpRepository.findValidOTP(
         email,
         otp,
         "owner_email_change"
       );
 
-      if (!otpRecord) {
-      console.log('valid not thohza suui');
-
+      if (!otpRecord || otpRecord.userData?.id !== id) {
         return {
           success: false,
           message: "Invalid or expired OTP",
         };
       }
 
-      if (otpRecord.userData?.id != id) {
+      const emailValidation = await this.validateEmailAvailability(email, id);
+      if (!emailValidation.isValid) {
         return {
           success: false,
-          message: "Invalid OTP",
+          message: emailValidation.message,
         };
       }
 
-      const existingUser = await this.userRepo.findByEmail(email);
-      if (existingUser && existingUser._id.toString() !== id) {
-        return { success: false, message: "Email already in use" };
-      }
-
-      const isRequestedOwner = await this.ownerRequestRepo.findByEmail(email);
-      if (
-        isRequestedOwner &&
-        isRequestedOwner.status !== "rejected" &&
-        isRequestedOwner.status !== "approved"
-      ) {
-        return { success: false, message: "Email already in use" };
-      }
-
-      const existingOwner = await this.ownerRepo.findByEmail(email);
-      if (existingOwner && existingOwner._id.toString() !== id) {
-        return { success: false, message: "Email already in use" };
-      }
-
-      const updatedOwner = await this.ownerRepo.updateProfile(id, { email });
+      const updatedOwner = await this.ownerRepository.updateProfile(id, { email });
 
       if (!updatedOwner) {
         return {
@@ -517,18 +286,16 @@ async getOwners(filters: OwnerFilterDto): Promise<ServiceResponse> {
         };
       }
 
-      const emailSent =
-        await this.emailService.sendEmailChangeSuccessNotification(
-          updatedOwner.email,
-          otpRecord.userData?.oldEmail || "Unknown"
-        );
+      const emailSent = await this.emailService.sendEmailChangeSuccessNotification(
+        updatedOwner.email,
+        otpRecord.userData?.oldEmail || "Unknown"
+      );
 
       if (!emailSent) {
         return { success: false, message: "Failed to send success email" };
       }
 
-      await this.otpRepo.markAsUsed(otpRecord._id as string);
-      await this.otpRepo.deleteByEmail(email, "owner_email_change");
+      await this._cleanupOtpRecords(otpRecord._id as string, email);
 
       return {
         success: true,
@@ -542,33 +309,243 @@ async getOwners(filters: OwnerFilterDto): Promise<ServiceResponse> {
       console.error("Verify email change OTP error:", error);
       return {
         success: false,
-        message: "Something went wrong",
+        message: error instanceof Error ? error.message : "Something went wrong",
       };
     }
   }
-  async changeOwnerPassword(
-    userId: string,
-    oldPassword: string,
-    newPassword: string
-  ): Promise<ServiceResponse> {
+
+  async changeOwnerPassword(userId: string, oldPassword: string, newPassword: string): Promise<ServiceResponse> {
     try {
-      const owner = await this.ownerRepo.findById(userId);
+      this.validateId(userId);
+      this.validatePasswordChangeData({ oldPassword, newPassword });
+
+      const owner = await this.ownerRepository.findById(userId);
       if (!owner) {
         return { success: false, message: "User not found" };
       }
-      const isMatch = await bcrypt.compare(oldPassword, owner.password);
-      if (!isMatch) {
+
+      const isOldPasswordValid = await this.verifyOwnerPassword(owner, oldPassword);
+      if (!isOldPasswordValid) {
         return { success: false, message: "Old password is incorrect" };
       }
-      const hash = await bcrypt.hash(newPassword, config.bcryptRounds);
-      const updated = await this.ownerRepo.updatePassword(userId, hash);
+
+      const hashedNewPassword = await this.hashPassword(newPassword);
+      const updated = await this.ownerRepository.updatePassword(userId, hashedNewPassword);
+
       if (!updated) {
         return { success: false, message: "Failed to update password" };
       }
+
       return { success: true, message: "Password changed successfully" };
     } catch (error) {
       console.error("Change password error:", error);
-      return { success: false, message: "Something went wrong" };
+      return { success: false, message: error instanceof Error ? error.message : "Something went wrong" };
     }
+  }
+
+  // Private helper methods
+  private validateId(id: string): void {
+    if (!id || id.trim() === "") {
+      throw new Error("Valid ID is required");
+    }
+  }
+
+  private validateOwnerFilters(filters: OwnerFilterDto): void {
+    if (!filters) {
+      throw new Error("Filters are required");
+    }
+  }
+
+  private validateUpdateData(updateData: UpdateOwnerProfileDto): void {
+    if (!updateData || Object.keys(updateData).length === 0) {
+      throw new Error("Update data cannot be empty");
+    }
+  }
+
+  private validateEmailChangeData(data: { newEmail: string; password: string }): void {
+    if (!data.newEmail || !data.password) {
+      throw new Error("New email and password are required");
+    }
+    if (!this.isValidEmail(data.newEmail)) {
+      throw new Error("Invalid email format");
+    }
+  }
+
+  private validateEmailOtpData(data: { email: string; otp: string }): void {
+    if (!data.email || !data.otp) {
+      throw new Error("Email and OTP are required");
+    }
+  }
+
+  private validatePasswordChangeData(data: { oldPassword: string; newPassword: string }): void {
+    if (!data.oldPassword || !data.newPassword) {
+      throw new Error("Old password and new password are required");
+    }
+    if (data.newPassword.length < 6) {
+      throw new Error("New password must be at least 6 characters long");
+    }
+  }
+
+  private isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  private async verifyOwnerPassword(owner: IOwner, password: string): Promise<boolean> {
+    return await bcrypt.compare(password, owner.password);
+  }
+
+  private async hashPassword(password: string): Promise<string> {
+    return await bcrypt.hash(password, config.bcryptRounds);
+  }
+
+  private async validateEmailAvailability(email: string, ownerId?: string, currentEmail?: string): Promise<{ isValid: boolean; message?: string }> {
+    if (currentEmail && email === currentEmail) {
+      return { isValid: false, message: "New email cannot be the same as current email" };
+    }
+
+    const existingUser = await this.userRepository.findUserByEmail(email);
+    if (existingUser) {
+      return { isValid: false, message: "Email already in use" };
+    }
+
+    const existingOwner = await this.ownerRepository.findByEmail(email);
+    if (existingOwner && existingOwner._id.toString() !== ownerId) {
+      return { isValid: false, message: "Email already in use" };
+    }
+
+    const existingOwnerRequest = await this.ownerRequestRepository.findByEmail(email);
+    if (existingOwnerRequest && !["rejected", "approved"].includes(existingOwnerRequest.status)) {
+      return { isValid: false, message: "Email already in use" };
+    }
+
+    return { isValid: true };
+  }
+
+  private async fetchOwnerCounts(): Promise<Record<string, number>> {
+    const [
+      activeOwners,
+      inactiveOwners,
+      pendingRequests,
+      approvedRequests,
+      rejectedRequests,
+    ] = await Promise.all([
+      this.ownerRepository.findByStatus("active", 1, 1).then((result) => result.total),
+      this.ownerRepository.findByStatus("inactive", 1, 1).then((result) => result.total),
+      this.ownerRequestRepository.findByStatus("pending", 1, 1).then((result) => result.total),
+      this.ownerRequestRepository.findByStatus("approved", 1, 1).then((result) => result.total),
+      this.ownerRequestRepository.findByStatus("rejected", 1, 1).then((result) => result.total),
+    ]);
+
+    return {
+      activeOwners,
+      inactiveOwners,
+      pendingRequests,
+      approvedRequests,
+      rejectedRequests,
+    };
+  }
+
+  private async _fetchOwnersWithFilters(filters: OwnerFilterDto): Promise<{ owners: IOwner[]; total: number }> {
+    const { status, page = 1, limit = 10 } = filters;
+
+    if (status) {
+      return await this.ownerRepository.findByStatus(status, Number(page), Number(limit));
+    } else {
+      return await this.ownerRepository.findAll(Number(page), Number(limit));
+    }
+  }
+
+  private _applyClientSideFilters(result: { owners: IOwner[]; total: number }, filters: OwnerFilterDto): { owners: IOwner[]; total: number } {
+    const { search } = filters;
+
+    if (search) {
+      result.owners = result.owners.filter(
+        (owner: IOwner) =>
+          owner.ownerName.toLowerCase().includes(search.toLowerCase()) ||
+          owner.email.toLowerCase().includes(search.toLowerCase()) ||
+          owner.phone.includes(search)
+      );
+    }
+
+    return result;
+  }
+
+  private _applySorting(result: { owners: IOwner[]; total: number }, filters: OwnerFilterDto): { owners: IOwner[]; total: number } {
+    const { sortBy, sortOrder } = filters;
+
+    if (sortBy) {
+      result.owners.sort((a: IOwner, b: IOwner) => {
+        let aValue = (a as any)[sortBy];
+        let bValue = (b as any)[sortBy];
+
+        if (sortBy.includes("Date") || sortBy.includes("At")) {
+          aValue = new Date(aValue);
+          bValue = new Date(bValue);
+        }
+
+        if (sortOrder === "desc") {
+          return bValue > aValue ? 1 : -1;
+        }
+        return aValue > bValue ? 1 : -1;
+      });
+    }
+
+    return result;
+  }
+
+  private _transformOwnerProfileData(owner: IOwner): IOwner {
+   
+    return {
+      ...owner,
+  
+    };
+  }
+
+  private _transformOwnersData(result: { owners: IOwner[]; total: number }): { owners: IOwner[]; total: number } {
+    return result;
+  }
+
+  private async _generateAndSendEmailChangeOtp(newEmail: string, owner: IOwner): Promise<ServiceResponse> {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    await this.otpRepository.create({
+      email: newEmail,
+      otp,
+      expiresAt,
+      type: "owner_email_change",
+      userData: {
+        id: owner._id.toString(),
+        oldEmail: owner.email,
+      },
+    });
+
+    const emailSent = await this.emailService.sendEmailChangeOTP(
+      newEmail,
+      otp,
+      owner.ownerName || "Owner"
+    );
+
+    if (!emailSent) {
+      return {
+        success: false,
+        message: "Failed to send OTP email",
+      };
+    }
+
+    return {
+      success: true,
+      message: "OTP sent successfully to your new email",
+      data: {
+        email: newEmail,
+        expiresIn: "5 minutes",
+      },
+    };
+  }
+
+  private async _cleanupOtpRecords(otpId: string, email: string): Promise<void> {
+    await this.otpRepository.markAsUsed(otpId);
+    await this.otpRepository.deleteByEmail(email, "owner_email_change");
   }
 }

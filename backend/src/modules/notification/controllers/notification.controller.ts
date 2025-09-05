@@ -1,151 +1,115 @@
 import { Request, Response } from "express";
-import { NotificationService } from "../services/notification.service";
 import { INotificationService } from "../interfaces/notification.service.interface";
-import { CreateNotificationDto, BulkNotificationDto } from "../dtos/dto";
+import { StatusCodes } from "../../../utils/statuscodes";
+import { NOTIFICATION_MESSAGES } from "../../../utils/messages.constants";
+import { createResponse } from "../../../utils/createResponse";
+
 
 export class NotificationController {
   constructor(private readonly notificationService: INotificationService) {}
   
-  async getUserNotifications(req: Request, res: Response): Promise<any> {
+  async getUserNotifications(req: Request, res: Response): Promise<void> {
     try {
-      const { userId } = req.params;
-      const { page = 1, limit = 20, type, isRead } = req.query;
+      const userId = req.user?.id;
       
-      const result = await this.notificationService.getUserNotifications(
-        userId,
-        Number(page),
-        Number(limit),
-        type as string,
-        isRead ? isRead === "true" : undefined
-      );
+      if (!userId) {
+        res.status(StatusCodes.UNAUTHORIZED).json(createResponse({
+          success: false,
+          message: NOTIFICATION_MESSAGES.AUTH_REQUIRED
+        }));
+        return;
+      }
       
-      res.status(200).json(result);
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
-    }
-  }
-  
-  async getNotificationById(req: Request, res: Response): Promise<any> {
-    try {
-      const { notificationId } = req.params;
-      const result = await this.notificationService.getNotificationById(notificationId);
+      const result = await this.notificationService.getUserNotifications(userId);
       
       if (result.success) {
-        res.status(200).json(result);
+        res.status(StatusCodes.OK).json(createResponse({
+          success: true,
+          message: result.message || "Notifications retrieved successfully",
+          data: result.data,
+        }));
       } else {
-        res.status(404).json(result);
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: result.message,
+        }));
       }
-    } catch (error: any) {
-      res.status(500).json({
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : NOTIFICATION_MESSAGES.INTERNAL_SERVER_ERROR;
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(createResponse({
         success: false,
-        message: error.message || "Internal server error",
-      });
+        message: errorMessage,
+      }));
     }
   }
   
-  async markAsRead(req: Request, res: Response): Promise<any> {
+  async markNotificationAsRead(req: Request, res: Response): Promise<void> {
     try {
       const { notificationId } = req.params;
-      const result = await this.notificationService.markAsRead(notificationId);
+      
+      if (!notificationId) {
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: "NotificationId parameter is required",
+        }));
+        return;
+      }
+      
+      const result = await this.notificationService.markNotificationAsRead(notificationId);
       
       if (result.success) {
-        res.status(200).json(result);
+        res.status(StatusCodes.OK).json(createResponse({
+          success: true,
+          message: result.message,
+          data: result.data,
+        }));
       } else {
-        res.status(404).json(result);
+        res.status(StatusCodes.NOT_FOUND).json(createResponse({
+          success: false,
+          message: result.message,
+        }));
       }
-    } catch (error: any) {
-      res.status(500).json({
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : NOTIFICATION_MESSAGES.INTERNAL_SERVER_ERROR;
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(createResponse({
         success: false,
-        message: error.message || "Internal server error",
-      });
+        message: errorMessage,
+      }));
     }
   }
   
-  async markAllAsRead(req: Request, res: Response): Promise<any> {
-    try {
-      const { userId } = req.params;
-      const result = await this.notificationService.markAllAsRead(userId);
-      
-      res.status(200).json(result);
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
-    }
-  }
-  
-  async deleteNotification(req: Request, res: Response): Promise<any> {
+  async deleteNotification(req: Request, res: Response): Promise<void> {
     try {
       const { notificationId } = req.params;
+      
+      if (!notificationId) {
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: "NotificationId parameter is required",
+        }));
+        return;
+      }
+      
       const result = await this.notificationService.deleteNotification(notificationId);
       
       if (result.success) {
-        res.status(200).json(result);
+        res.status(StatusCodes.OK).json(createResponse({
+          success: true,
+          message: result.message,
+          data: result.data,
+        }));
       } else {
-        res.status(404).json(result);
+        res.status(StatusCodes.NOT_FOUND).json(createResponse({
+          success: false,
+          message: result.message,
+        }));
       }
-    } catch (error: any) {
-      res.status(500).json({
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : NOTIFICATION_MESSAGES.INTERNAL_SERVER_ERROR;
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(createResponse({
         success: false,
-        message: error.message || "Internal server error",
-      });
-    }
-  }
-  
-  async clearUserNotifications(req: Request, res: Response): Promise<any> {
-    try {
-      const { userId } = req.params;
-      const result = await this.notificationService.clearUserNotifications(userId);
-      
-      res.status(200).json(result);
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
-    }
-  }
-  
-  async getUnreadCount(req: Request, res: Response): Promise<any> {
-    try {
-      const { userId } = req.params;
-      const result = await this.notificationService.getUnreadCount(userId);
-      
-      res.status(200).json(result);
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
-    }
-  }
-  
-  async sendBulkNotifications(req: Request, res: Response): Promise<any> {
-    try {
-      const { userIds, title, message, type, channels }: BulkNotificationDto = req.body;
-      
-      const result = await this.notificationService.sendBulkNotifications(
-        userIds,
-        title,
-        message,
-        type,
-        channels
-      );
-      
-      if (result.success) {
-        res.status(201).json(result);
-      } else {
-        res.status(400).json(result);
-      }
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
+        message: errorMessage,
+      }));
     }
   }
 }
