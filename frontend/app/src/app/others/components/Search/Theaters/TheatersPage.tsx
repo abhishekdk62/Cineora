@@ -13,65 +13,130 @@ const TheatersPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [theaters, setTheaters] = useState<Theater[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchLoading, setSearchLoading] = useState(false); 
-  const [totalPages, setTotalPages] = useState(1);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [scrollLoading, setScrollLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<any>();
   const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
-  const [currentFilters, setCurrentFilters] = useState({}); 
+  const [currentFilters, setCurrentFilters] = useState({});
 
-  const itemsPerPage = 6;
+  const itemsPerPage = 2;
 
-  const loadTheaters = useCallback(async (
-    search: string = searchTerm,
-    sort: SortOption = sortBy,
-    page: number = currentPage,
-    facilities: string[] = selectedFacilities 
-  ) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      let locationData = userLocation;
-      if (!locationData) {
-        try {
-          locationData = JSON.parse(localStorage.getItem('userLocation') || 'null');
-        } catch {
-          locationData = null;
-        }
+  useEffect(() => {
+    let isScrolling = false;
+    
+    function handleScroll() {
+      if (isScrolling) return;
+      
+      if (
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 100 &&
+        hasMore &&
+        !isLoading &&
+        !scrollLoading
+      ) {
+        isScrolling = true;
+        console.log(`🔄 Loading page ${currentPage + 1}`);
+        
+        const nextPage = currentPage + 1;
+        setCurrentPage(nextPage);
+        loadMoreTheaters(nextPage);
+        
+        setTimeout(() => {
+          isScrolling = false;
+        }, 1000);
       }
-
-      const filters: GetTheatersFilters = {
-        search,
-        sortBy: sort,
-        page,
-        limit: itemsPerPage,
-        facilities, 
-        ...(locationData ? { latitude: locationData.latitude, longitude: locationData.longitude } : {}),
-      };
-
-      const data = await getTheatersWithFilters(filters);
-      setTheaters(data.theaters);
-      setTotalPages(data.totalPages);
-      setTotalCount(data.totalCount);
-    } catch (err) {
-      setError("Failed to load theaters.");
-      setTheaters([]);
-    } finally {
-      setIsLoading(false);
-      setSearchLoading(false); 
     }
-  }, [currentPage, userLocation]);
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hasMore, isLoading, scrollLoading, currentPage]);
+
+const loadTheaters = useCallback(async (
+  search: string = searchTerm,
+  sort: SortOption = sortBy,
+  page: number = currentPage,
+  facilities: string[] = selectedFacilities,
+  reset: boolean = true
+) => {
+  try {
+    if (reset) {
+      setIsLoading(true);
+    } else {
+      setScrollLoading(true);
+    }
+    setError(null);
+
+    let locationData = userLocation;
+    if (!locationData) {
+      try {
+        locationData = JSON.parse(localStorage.getItem('userLocation') || 'null');
+      } catch {
+        locationData = null;
+      }
+    }
+
+    const filters: GetTheatersFilters = {
+      search,
+      sortBy: sort,
+      page,
+      limit: itemsPerPage,
+      facilities,
+      ...(locationData ? { latitude: locationData.latitude, longitude: locationData.longitude } : {}),
+    };
+
+    const data = await getTheatersWithFilters(filters);
+    console.log('Theater response:', data);
+    
+    if (reset || page === 1) {
+      setTheaters(data.data);
+    } else {
+      setTheaters(prev => {
+        const existingIds = prev.map(item => item._id);
+        const filteredNew = data.data.filter((theater: Theater) => !existingIds.includes(theater._id));
+        return [...prev, ...filteredNew];
+      });
+    }
+    
+    // ✅ FIXED: Use correct pagination structure
+    setTotalCount(data.meta.pagination.total);
+    setHasMore(data.meta.pagination.hasNextPage);
+    
+  } catch (err) {
+    setError("Failed to load theaters.");
+    if (reset) {
+      setTheaters([]);
+    }
+  } finally {
+    if (reset) {
+      setIsLoading(false);
+    } else {
+      setScrollLoading(false);
+    }
+    setSearchLoading(false);
+  }
+}, [currentPage, userLocation, theaters.length]);
+
+  const loadMoreTheaters = useCallback(async (page: number) => {
+    await loadTheaters(searchTerm, sortBy, page, selectedFacilities, false);
+  }, [loadTheaters, searchTerm, sortBy, selectedFacilities]);
 
   const debouncedSearch = useDebounce((searchValue: string) => {
-    const newFilters = { ...currentFilters, search: searchValue };
-    loadTheaters(searchValue, sortBy, 1, selectedFacilities);
+    resetAndSearch(searchValue, sortBy, selectedFacilities);
   }, 550);
+
+  const resetAndSearch = useCallback((search: string, sort: SortOption, facilities: string[]) => {
+    setCurrentPage(1);
+    setHasMore(true);
+    setTheaters([]);
+    loadTheaters(search, sort, 1, facilities, true);
+  }, [loadTheaters]);
 
   const handleSearchChange = useCallback((newSearchTerm: string) => {
     setSearchTerm(newSearchTerm);
-    setSearchLoading(true); 
+    setSearchLoading(true);
     debouncedSearch(newSearchTerm);
   }, [debouncedSearch]);
 
@@ -79,42 +144,37 @@ const TheatersPage: React.FC = () => {
     setSortBy(sort);
     setSelectedFacilities(facilities);
     setCurrentFilters({ sortBy: sort, facilities });
-    loadTheaters(searchTerm, sort, 1, facilities);
-    setCurrentPage(1);
-  }, [searchTerm, loadTheaters]);
+    resetAndSearch(searchTerm, sort, facilities);
+  }, [searchTerm, resetAndSearch]);
 
   const handleSortChange = (newSortBy: SortOption) => {
     handleFiltersChange(newSortBy, selectedFacilities);
   };
 
-  const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage);
-  };
-  
   const handleFacilityChange = (facilities: string[]) => {
     handleFiltersChange(sortBy, facilities);
   };
 
+  // Initial load
   useEffect(() => {
-    loadTheaters(searchTerm, sortBy, currentPage, selectedFacilities);
-  }, [currentPage]);
+    loadTheaters(searchTerm, sortBy, 1, selectedFacilities, true);
+  }, []);
 
   return (
     <TheaterListManager
       theaters={theaters}
-      isLoading={isLoading || searchLoading} 
+      isLoading={isLoading || searchLoading}
       searchLoading={searchLoading}
+      scrollLoading={scrollLoading}
       searchTerm={searchTerm}
       sortBy={sortBy}
-      currentPage={currentPage}
-      totalPages={totalPages}
       totalCount={totalCount}
       error={error}
-      selectedFacilities={selectedFacilities} 
-      onSearchChange={handleSearchChange} 
+      selectedFacilities={selectedFacilities}
+      hasMore={hasMore}
+      onSearchChange={handleSearchChange}
       onSortChange={handleSortChange}
-      onPageChange={handlePageChange}
-      onFacilityChange={handleFacilityChange} 
+      onFacilityChange={handleFacilityChange}
     />
   );
 };

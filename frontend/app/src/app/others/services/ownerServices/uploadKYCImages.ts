@@ -1,3 +1,5 @@
+import OWNER_KYC from "../../constants/ownerConstants/kycConstants";
+
 export async function uploadKYCImage(
   file: File,
   folder: string,
@@ -8,7 +10,9 @@ export async function uploadKYCImage(
     formData.append("file", file);
     formData.append("folder", folder);
 
-    const response = await fetch(`${backendUrl}/owners/upload`, {
+    const uploadUrl = `${backendUrl}${OWNER_KYC.UPLOAD}`;
+
+    const response = await fetch(uploadUrl, {
       method: "POST",
       body: formData,
     });

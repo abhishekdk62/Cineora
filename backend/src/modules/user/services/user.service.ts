@@ -1,8 +1,6 @@
 import * as bcrypt from "bcryptjs";
-
 import { IEmailService } from "../../../services/email.service";
 import { config } from "../../../config";
-
 import {
   GetUsersResponseDto,
   SendEmailChangeOTPResponseDto,
@@ -11,11 +9,10 @@ import {
   UpdateProfileDto,
   UserCountsResponseDto,
   UserResponseDto,
-  UserResponseDtoWithUrl,
   VerifyEmailChangeOTPResponseDto,
   VerifyOTPResponseDto,
 } from "../dtos/dto";
-import { ServiceResponse } from "../../../interfaces/interface";
+import { ApiResponse, createResponse } from "../../../utils/createResponse";
 import { IUserRepository } from "../interfaces/user.repository.interface";
 import { IUserService } from "../interfaces/user.service.interface";
 import { IOTPRepository } from "../../otp/interfaces/otp.repository.interface";
@@ -27,58 +24,31 @@ import { generateSignedUrl, uploadToCloudinary } from "../../../utils/cloudinary
 
 export class UserService implements IUserService {
   constructor(
-    private readonly userRepo: IUserRepository,
-    private readonly ownerRepo: IOwnerRepository,
-    private readonly ownerRequestRepo: IOwnerRequestRepository,
-    private readonly otpRepo: IOTPRepository,
+    private readonly userRepository: IUserRepository,
+    private readonly ownerRepository: IOwnerRepository,
+    private readonly ownerRequestRepository: IOwnerRequestRepository,
+    private readonly otpRepository: IOTPRepository,
     private readonly emailService: IEmailService
   ) {}
 
-  private generateOTP(): string {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-  }
-
-  async signup(
-    userData: SignupDto
-  ): Promise<ServiceResponse<SignupResponseDto>> {
+  async signup(userData: SignupDto): Promise<ApiResponse<SignupResponseDto>> {
     try {
       const { username, email, password, ...otherData } = userData;
 
-      const existingUser = await this.userRepo.findByEmail(email);
-      if (existingUser && existingUser.isVerified) {
-        return {
+      // Business logic validation
+      const validationError = await this._validateSignupData(email, username);
+      if (validationError) {
+        return createResponse({
           success: false,
-          message: "User with this email already exists",
-        };
-      }
-
-      const isOwner = await this.ownerRequestRepo.findByEmail(email);
-      if (isOwner) {
-        return {
-          success: false,
-          message: "User with this email already exists",
-        };
-      }
-
-      const isRequestedOwner = await this.ownerRepo.findByEmail(email);
-      if (isRequestedOwner) {
-        return {
-          success: false,
-          message: "User with this email already exists",
-        };
-      }
-
-      const existingUsername = await this.userRepo.findByUsername(username);
-      if (existingUsername && existingUsername.isVerified) {
-        return { success: false, message: "Username already taken" };
+          message: validationError
+        });
       }
 
       const hashedPassword = await bcrypt.hash(password, config.bcryptRounds);
-
-      const otp = this.generateOTP();
+      const otp = this._generateOTP();
       const expiresAt = new Date(Date.now() + config.otpExpiry);
 
-      await this.otpRepo.create({
+      await this.otpRepository.create({
         email,
         otp,
         type: "signup",
@@ -94,43 +64,43 @@ export class UserService implements IUserService {
       const emailSent = await this.emailService.sendOTPEmail(email, otp);
 
       if (!emailSent) {
-        return { success: false, message: "Failed to send verification email" };
+        return createResponse({
+          success: false,
+          message: "Failed to send verification email"
+        });
       }
 
-      return {
+      return createResponse({
         success: true,
-        message:
-          "Verification code sent to your email. Please verify to complete registration.",
-        data: { email, username },
-      };
-    } catch (error) {
-      console.error("Signup error:", error);
-      return { success: false, message: "Something went wrong during signup" };
+        message: "Verification code sent to your email. Please verify to complete registration.",
+        data: { email, username }
+      });
+    } catch (error: unknown) {
+      return this._handleServiceError(error, "Something went wrong during signup");
     }
   }
 
-  async verifyOTP(
-    email: string,
-    otp: string
-  ): Promise<ServiceResponse<VerifyOTPResponseDto>> {
+  async verifyOTP(email: string, otp: string): Promise<ApiResponse<VerifyOTPResponseDto>> {
     try {
-      email = String(email || "")
-        .trim()
-        .toLowerCase(); 
+      email = String(email || "").trim().toLowerCase();
 
-      const validOTP = await this.otpRepo.findValidOTP(email, otp, "signup");
+      const validOTP = await this.otpRepository.findValidOTP(email, otp, "signup");
       if (!validOTP || !validOTP.userData) {
-      console.log('valid not at veit');
-
-        return { success: false, message: "Invalid or expired OTP" };
+        return createResponse({
+          success: false,
+          message: "Invalid or expired OTP"
+        });
       }
 
-      const existingUser = await this.userRepo.findByEmail(email);
+      const existingUser = await this.userRepository.findUserByEmail(email);
       if (existingUser && existingUser.isVerified) {
-        return { success: false, message: "User already exists and verified" };
+        return createResponse({
+          success: false,
+          message: "User already exists and verified"
+        });
       }
 
-      const newUser = await this.userRepo.create({
+      const newUser = await this.userRepository.createUser({
         ...validOTP.userData,
         isVerified: true,
         xpPoints: 100,
@@ -139,48 +109,43 @@ export class UserService implements IUserService {
         isActive: true,
       });
 
-      await this.otpRepo.markAsUsed(validOTP._id as string);
+      await this.otpRepository.markAsUsed(validOTP._id as string);
 
-      return {
+      return createResponse({
         success: true,
-        message:
-          "Account created and verified successfully! Welcome bonus: 100 XP added.",
+        message: "Account created and verified successfully! Welcome bonus: 100 XP added.",
         data: {
           user: newUser,
           xpBonus: 100,
-        },
-      };
-    } catch (error) {
-      console.error("OTP verification error:", error);
-      return {
-        success: false,
-        message: "Something went wrong during verification",
-      };
+        }
+      });
+    } catch (error: unknown) {
+      return this._handleServiceError(error, "Something went wrong during verification");
     }
   }
 
-  async resendOTP(email: string): Promise<ServiceResponse<void>> {
+  async resendOTP(email: string): Promise<ApiResponse<void>> {
     try {
-      const existingUser = await this.userRepo.findByEmail(email);
+      const existingUser = await this.userRepository.findUserByEmail(email);
       if (existingUser && existingUser.isVerified) {
-        return {
+        return createResponse({
           success: false,
-          message: "User already verified. Please login instead.",
-        };
+          message: "User already verified. Please login instead."
+        });
       }
 
-      const existingOTP = await this.otpRepo.findByEmail(email, "signup");
+      const existingOTP = await this.otpRepository.findByEmail(email, "signup");
       if (!existingOTP || !existingOTP.userData) {
-        return {
+        return createResponse({
           success: false,
-          message: "No pending signup found. Please signup again.",
-        };
+          message: "No pending signup found. Please signup again."
+        });
       }
 
-      const otp = this.generateOTP();
+      const otp = this._generateOTP();
       const expiresAt = new Date(Date.now() + config.otpExpiry);
 
-      await this.otpRepo.create({
+      await this.otpRepository.create({
         email,
         otp,
         type: "signup",
@@ -191,73 +156,79 @@ export class UserService implements IUserService {
       const emailSent = await this.emailService.sendOTPEmail(email, otp);
 
       if (!emailSent) {
-        return { success: false, message: "Failed to send verification email" };
+        return createResponse({
+          success: false,
+          message: "Failed to send verification email"
+        });
       }
 
-      return {
+      return createResponse({
         success: true,
-        message: "Verification code sent to your email!",
-      };
-    } catch (error) {
-      console.error("Resend OTP error:", error);
-      return { success: false, message: "Something went wrong" };
+        message: "Verification code sent to your email!"
+      });
+    } catch (error: unknown) {
+      return this._handleServiceError(error, "Something went wrong");
     }
   }
 
-  async getUserProfile(id: string): Promise<ServiceResponse> {
+  async getUserProfile(id: string): Promise<ApiResponse<any>> {
     try {
-      const user = await this.userRepo.findById(id);
+      const user = await this.userRepository.findUserById(id);
 
       if (!user) {
-        return { success: false, message: "User not found" };
+        return createResponse({
+          success: false,
+          message: "User not found"
+        });
       }
 
-      await this.userRepo.updateLastActive(id);
-    let profilePicUrl = null;
-    if (user.profilePicture && !user.profilePicture.startsWith('http')) {
-      profilePicUrl = generateSignedUrl(user.profilePicture, {
-        width: 200,
-        height: 200,
-        crop: 'fill'
-      });
-    }
-  
-const userResponse = {
-      _id: user._id,
-      username: user.username,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      dateOfBirth: user.dateOfBirth,
-      language: user.language,
-      gender: user.gender,
-      phone: user.phone,
-      locationCity: user.locationCity,
-      locationState: user.locationState,
-      location: user.location,
-      isVerified: user.isVerified,
-      xpPoints: user.xpPoints,
-      joinedAt: user.joinedAt,
-      lastActive: user.lastActive,
-      isActive: user.isActive,
-      profilePicture: profilePicUrl 
-    };
-      return {
+      await this.userRepository.updateUserLastActive(id);
+      
+      let profilePicUrl = null;
+      if (user.profilePicture && !user.profilePicture.startsWith('http')) {
+        profilePicUrl = generateSignedUrl(user.profilePicture, {
+          width: 200,
+          height: 200,
+          crop: 'fill'
+        });
+      }
+
+      const userResponse = {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        dateOfBirth: user.dateOfBirth,
+        language: user.language,
+        gender: user.gender,
+        phone: user.phone,
+        locationCity: user.locationCity,
+        locationState: user.locationState,
+        location: user.location,
+        isVerified: user.isVerified,
+        xpPoints: user.xpPoints,
+        joinedAt: user.joinedAt,
+        lastActive: user.lastActive,
+        isActive: user.isActive,
+        profilePicture: profilePicUrl 
+      };
+
+      return createResponse({
         success: true,
         message: "Profile fetched successfully",
-        data: userResponse,
-      };
-    } catch (error) {
-      console.error("Get profile error:", error);
-      return { success: false, message: "Something went wrong" };
+        data: userResponse
+      });
+    } catch (error: unknown) {
+      return this._handleServiceError(error, "Something went wrong");
     }
   }
 
-  async updateProfile(
+  async updateUserProfile(
     id: string,
     updateData: UpdateProfileDto,
     file?: Express.Multer.File
-  ): Promise<ServiceResponse<UserResponseDto>> {
+  ): Promise<ApiResponse<UserResponseDto>> {
     try {
       if (updateData.profilePicture?.startsWith("data:image") || file) {
         try {
@@ -283,108 +254,119 @@ const userResponse = {
             updateData.profilePicture = uploadResult.public_id;
           }
         } catch (uploadError) {
-          console.error("Image upload failed:", uploadError);
-          return {
+          return createResponse({
             success: false,
-            message: "Failed to upload profile picture. Please try again.",
-          };
+            message: "Failed to upload profile picture. Please try again."
+          });
         }
       }
 
-      const updatedUser = await this.userRepo.updateProfile(id, updateData);
+      const updatedUser = await this.userRepository.updateUserProfile(id, updateData);
 
       if (!updatedUser) {
-        return { success: false, message: "User not found" };
+        return createResponse({
+          success: false,
+          message: "User not found"
+        });
       }
 
-      return {
+      return createResponse({
         success: true,
         message: "Profile updated successfully",
-        data: updatedUser,
-      };
-    } catch (error) {
-      console.error("Update profile error:", error);
-      return { success: false, message: "Something went wrong" };
+        data: updatedUser
+      });
+    } catch (error: unknown) {
+      return this._handleServiceError(error, "Something went wrong");
     }
   }
 
   async getNearbyUsers(
     userId: string,
     maxDistance: number = 5000
-  ): Promise<ServiceResponse<UserResponseDto[]>> {
+  ): Promise<ApiResponse<UserResponseDto[]>> {
     try {
-      const user = await this.userRepo.findById(userId);
+      const user = await this.userRepository.findUserById(userId);
 
       if (!user || !user.location.coordinates) {
-        return {
+        return createResponse({
           success: false,
-          message: "User not found or location not set",
-        };
+          message: "User not found or location not set"
+        });
       }
 
-      const nearbyUsers = await this.userRepo.findNearbyUsers(
+      const nearbyUsers = await this.userRepository.findNearbyUsers(
         user.location.coordinates,
         maxDistance
       );
-      return {
+
+      return createResponse({
         success: true,
         message: "Nearby users fetched successfully",
-        data: nearbyUsers,
-      };
-    } catch (error) {
-      console.error("Get nearby users error:", error);
-      return { success: false, message: "Something went wrong" };
+        data: nearbyUsers
+      });
+    } catch (error: unknown) {
+      return this._handleServiceError(error, "Something went wrong");
     }
   }
 
-  async addXpPoints(
-    userId: string,
-    points: number
-  ): Promise<ServiceResponse<void>> {
+  async addUserXpPoints(userId: string, points: number): Promise<ApiResponse<void>> {
     try {
-      const success = await this.userRepo.addXpPoints(userId, points);
+      const success = await this.userRepository.addUserXpPoints(userId, points);
 
       if (!success) {
-        return { success: false, message: "User not found" };
+        return createResponse({
+          success: false,
+          message: "User not found"
+        });
       }
 
-      return {
+      return createResponse({
         success: true,
-        message: `${points} XP points added successfully`,
-      };
-    } catch (error) {
-      console.error("Add XP points error:", error);
-      return { success: false, message: "Something went wrong" };
+        message: `${points} XP points added successfully`
+      });
+    } catch (error: unknown) {
+      return this._handleServiceError(error, "Something went wrong");
     }
   }
 
-  async changePassword(
+  async changeUserPassword(
     userId: string,
     oldPassword: string,
     newPassword: string
-  ): Promise<ServiceResponse<void>> {
+  ): Promise<ApiResponse<void>> {
     try {
-      const user = await this.userRepo.findByIdWithPassword(userId);
+      const user = await this.userRepository.findUserByIdWithPassword(userId);
       if (!user) {
-        return { success: false, message: "User not found" };
+        return createResponse({
+          success: false,
+          message: "User not found"
+        });
       }
 
       const isMatch = await bcrypt.compare(oldPassword, user.password);
       if (!isMatch) {
-        return { success: false, message: "Old password is incorrect" };
+        return createResponse({
+          success: false,
+          message: "Old password is incorrect"
+        });
       }
 
       const hash = await bcrypt.hash(newPassword, config.bcryptRounds);
-      const updated = await this.userRepo.updatePassword(userId, hash);
+      const updated = await this.userRepository.updateUserPassword(userId, hash);
 
       if (!updated) {
-        return { success: false, message: "Failed to update password" };
+        return createResponse({
+          success: false,
+          message: "Failed to update password"
+        });
       }
 
-      return { success: true, message: "Password changed successfully" };
-    } catch (error) {
-      console.error("Change password error:", error);
-      return { success: false, message: "Something went wrong" };
+      return createResponse({
+        success: true,
+        message: "Password changed successfully"
+      });
+    } catch (error: unknown) {
+      return this._handleServiceError(error, "Something went wrong");
     }
   }
 
@@ -392,50 +374,45 @@ const userResponse = {
     id: string,
     email: string,
     password: string
-  ): Promise<ServiceResponse<SendEmailChangeOTPResponseDto>> {
+  ): Promise<ApiResponse<SendEmailChangeOTPResponseDto>> {
     try {
-      const user = await this.userRepo.findByIdWithPassword(id);
+      const user = await this.userRepository.findUserByIdWithPassword(id);
       if (!user) {
-        return { success: false, message: "User not found" };
+        return createResponse({
+          success: false,
+          message: "User not found"
+        });
       }
 
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        return { success: false, message: "Invalid password" };
+        return createResponse({
+          success: false,
+          message: "Invalid password"
+        });
       }
 
       if (user.email.toLowerCase() === email.toLowerCase()) {
-        return {
+        return createResponse({
           success: false,
-          message: "New email must be different from current email",
-        };
+          message: "New email must be different from current email"
+        });
       }
 
-      const existingUser = await this.userRepo.findByEmail(email);
-      if (existingUser) {
-        return { success: false, message: "Email already in use" };
+      const emailValidation = await this._validateEmailAvailability(email);
+      if (emailValidation) {
+        return createResponse({
+          success: false,
+          message: emailValidation
+        });
       }
 
-      const isRequestedOwner = await this.ownerRequestRepo.findByEmail(email);
-      if (
-        isRequestedOwner &&
-        isRequestedOwner.status !== "rejected" &&
-        isRequestedOwner.status !== "approved"
-      ) {
-        return { success: false, message: "Email already in use" };
-      }
+      await this.otpRepository.deleteByEmail(email, "email_change");
 
-      const existingOwner = await this.ownerRepo.findByEmail(email);
-      if (existingOwner) {
-        return { success: false, message: "Email already in use" };
-      }
-
-      await this.otpRepo.deleteByEmail(email, "email_change");
-
-      const otp = this.generateOTP();
+      const otp = this._generateOTP();
       const expiresAt = new Date(Date.now() + config.otpExpiry);
 
-      await this.otpRepo.create({
+      await this.otpRepository.create({
         email,
         otp,
         type: "email_change",
@@ -454,20 +431,22 @@ const userResponse = {
       );
 
       if (!emailSent) {
-        return { success: false, message: "Failed to send verification email" };
+        return createResponse({
+          success: false,
+          message: "Failed to send verification email"
+        });
       }
 
-      return {
+      return createResponse({
         success: true,
         message: `Verification code sent to ${email}. Please check your email.`,
         data: {
           email,
           expiresIn: Math.floor(config.otpExpiry / 1000 / 60),
-        },
-      };
-    } catch (error) {
-      console.error("Send email change OTP error:", error);
-      return { success: false, message: "Something went wrong" };
+        }
+      });
+    } catch (error: unknown) {
+      return this._handleServiceError(error, "Something went wrong");
     }
   }
 
@@ -475,116 +454,103 @@ const userResponse = {
     id: string,
     email: string,
     otp: string
-  ): Promise<ServiceResponse<VerifyEmailChangeOTPResponseDto>> {
+  ): Promise<ApiResponse<VerifyEmailChangeOTPResponseDto>> {
     try {
-      const otpRecord = await this.otpRepo.findValidOTP(
+      const otpRecord = await this.otpRepository.findValidOTP(
         email,
         otp,
         "email_change"
       );
 
       if (!otpRecord) {
-        return {
+        return createResponse({
           success: false,
-          message: "Invalid or expired verification code",
-        };
+          message: "Invalid or expired verification code"
+        });
       }
 
       if (otpRecord.userData?.id !== id) {
-        return {
+        return createResponse({
           success: false,
-          message: "Invalid verification code",
-        };
+          message: "Invalid verification code"
+        });
       }
 
       const isValidOTP = otp === otpRecord.otp;
       if (!isValidOTP) {
-        return {
+        return createResponse({
           success: false,
-          message: "Invalid verification code",
-        };
+          message: "Invalid verification code"
+        });
       }
 
-      const existingUser = await this.userRepo.findByEmail(email);
-      if (existingUser && existingUser._id.toString() !== id) {
-        return { success: false, message: "Email already in use" };
+      const emailValidation = await this._validateEmailAvailabilityForUser(email, id);
+      if (emailValidation) {
+        return createResponse({
+          success: false,
+          message: emailValidation
+        });
       }
 
-      const isRequestedOwner = await this.ownerRequestRepo.findByEmail(email);
-      if (
-        isRequestedOwner &&
-        isRequestedOwner.status !== "rejected" &&
-        isRequestedOwner.status !== "approved"
-      ) {
-        return { success: false, message: "Email already in use" };
-      }
-
-      const existingOwner = await this.ownerRequestRepo.findByEmail(email);
-      if (existingOwner) {
-        return { success: false, message: "Email already in use" };
-      }
-
-      const updatedUser = await this.userRepo.updateProfile(id, {
+      const updatedUser = await this.userRepository.updateUserProfile(id, {
         email,
         isVerified: true,
       });
 
       if (!updatedUser) {
-        return {
+        return createResponse({
           success: false,
-          message: "Failed to update email",
-        };
+          message: "Failed to update email"
+        });
       }
 
-      const emailSent =
-        await this.emailService.sendEmailChangeSuccessNotification(
-          updatedUser.email,
-          otpRecord.userData?.oldEmail || "Unknown"
-        );
+      const emailSent = await this.emailService.sendEmailChangeSuccessNotification(
+        updatedUser.email,
+        otpRecord.userData?.oldEmail || "Unknown"
+      );
 
       if (!emailSent) {
-        return { success: false, message: "Failed to send Success email" };
+        return createResponse({
+          success: false,
+          message: "Failed to send Success email"
+        });
       }
 
-      await this.otpRepo.markAsUsed(otpRecord._id as string);
-      await this.otpRepo.deleteByEmail(email, "email_change");
+      await this.otpRepository.markAsUsed(otpRecord._id as string);
+      await this.otpRepository.deleteByEmail(email, "email_change");
 
-      return {
+      return createResponse({
         success: true,
         message: "Email changed successfully",
         data: {
           email: updatedUser.email,
           oldEmail: otpRecord.userData?.oldEmail,
-        },
-      };
-    } catch (error) {
-      console.error("Verify email change OTP error:", error);
-      return {
-        success: false,
-        message: "Something went wrong",
-      };
+        }
+      });
+    } catch (error: unknown) {
+      return this._handleServiceError(error, "Something went wrong");
     }
   }
 
-  async getUserCounts(): Promise<ServiceResponse<UserCountsResponseDto>> {
+  async getUserCounts(): Promise<ApiResponse<UserCountsResponseDto>> {
     try {
       const [activeUsers, inactiveUsers, verifiedUsers, unverifiedUsers] =
         await Promise.all([
-          this.userRepo
-            .findByStatus("active", 1, 1)
+          this.userRepository
+            .findUsersByStatus("active", 1, 1)
             .then((result) => result.total),
-          this.userRepo
-            .findByStatus("inactive", 1, 1)
+          this.userRepository
+            .findUsersByStatus("inactive", 1, 1)
             .then((result) => result.total),
-          this.userRepo
-            .findByVerification(true, 1, 1)
+          this.userRepository
+            .findUsersByVerification(true, 1, 1)
             .then((result) => result.total),
-          this.userRepo
-            .findByVerification(false, 1, 1)
+          this.userRepository
+            .findUsersByVerification(false, 1, 1)
             .then((result) => result.total),
         ]);
 
-      return {
+      return createResponse({
         success: true,
         message: "User counts fetched successfully",
         data: {
@@ -594,15 +560,14 @@ const userResponse = {
             verifiedUsers,
             unverifiedUsers,
           },
-        },
-      };
-    } catch (error) {
-      console.error("Get user counts error:", error);
-      return { success: false, message: "Something went wrong" };
+        }
+      });
+    } catch (error: unknown) {
+      return this._handleServiceError(error, "Something went wrong");
     }
   }
 
-  async getUsers(filters: any): Promise<ServiceResponse<GetUsersResponseDto>> {
+  async getUsers(filters: any): Promise<ApiResponse<GetUsersResponseDto>> {
     try {
       const {
         search,
@@ -616,25 +581,17 @@ const userResponse = {
 
       let result;
       if (status) {
-        result = await this.userRepo.findByStatus(
+        result = await this.userRepository.findUsersByStatus(
           status,
           Number(page),
           Number(limit)
         );
       } else {
-        result = await this.userRepo.findAll(Number(page), Number(limit));
+        result = await this.userRepository.findAllUsers(Number(page), Number(limit));
       }
 
       if (search) {
-        result.users = result.users.filter(
-          (user: any) =>
-            user.username.toLowerCase().includes(search.toLowerCase()) ||
-            user.email.toLowerCase().includes(search.toLowerCase()) ||
-            (user.firstName &&
-              user.firstName.toLowerCase().includes(search.toLowerCase())) ||
-            (user.lastName &&
-              user.lastName.toLowerCase().includes(search.toLowerCase()))
-        );
+        result.users = this._filterUsersBySearch(result.users, search);
       }
 
       if (isVerified !== undefined) {
@@ -644,39 +601,12 @@ const userResponse = {
       }
 
       if (sortBy) {
-        result.users.sort((a: any, b: any) => {
-          let aValue = a[sortBy];
-          let bValue = b[sortBy];
-
-          if (
-            sortBy.includes("Date") ||
-            sortBy.includes("At") ||
-            sortBy === "joinedAt"
-          ) {
-            aValue = new Date(aValue);
-            bValue = new Date(bValue);
-          }
-
-          if (sortOrder === "desc") {
-            return bValue > aValue ? 1 : -1;
-          }
-          return aValue > bValue ? 1 : -1;
-        });
+        result.users = this._sortUsers(result.users, sortBy, sortOrder);
       }
 
-         result.users = result.users.map((request) => {
-           return {
-             ...request,
-             profilePicture: request.profilePicture
-               ? generateSignedUrl(request.profilePicture, {
-                   width: 800,
-                   height: 600,
-                   crop: "fit",
-                 })
-               : null,
-           };
-         });
-      return {
+      result.users = this._processUserProfilePictures(result.users);
+
+      return createResponse({
         success: true,
         message: "Users fetched successfully",
         data: {
@@ -689,63 +619,199 @@ const userResponse = {
               limit: Number(limit),
             },
           },
-        },
-      };
-    } catch (error) {
-      console.error("Get users error:", error);
-      return { success: false, message: "Something went wrong" };
+        }
+      });
+    } catch (error: unknown) {
+      return this._handleServiceError(error, "Something went wrong");
     }
   }
 
-  async toggleUserStatus(
-    userId: string
-  ): Promise<ServiceResponse<UserResponseDto>> {
+  async toggleUserStatus(userId: string): Promise<ApiResponse<UserResponseDto>> {
     try {
       if (!userId) {
-        return { success: false, message: "User ID is required" };
+        return createResponse({
+          success: false,
+          message: "User ID is required"
+        });
       }
 
-      const updatedUser = await this.userRepo.toggleStatus(userId);
+      const updatedUser = await this.userRepository.toggleUserStatus(userId);
 
       if (!updatedUser) {
-        return { success: false, message: "User not found" };
+        return createResponse({
+          success: false,
+          message: "User not found"
+        });
       }
 
-      return {
+      return createResponse({
         success: true,
-        message: `User ${
-          updatedUser.isActive ? "activated" : "deactivated"
-        } successfully`,
-        data: updatedUser,
-      };
-    } catch (error) {
-      console.error("Toggle user status error:", error);
-      return { success: false, message: "Something went wrong" };
+        message: `User ${updatedUser.isActive ? "activated" : "deactivated"} successfully`,
+        data: updatedUser
+      });
+    } catch (error: unknown) {
+      return this._handleServiceError(error, "Something went wrong");
     }
   }
 
-  async getUserDetails(
-    userId: string
-  ): Promise<ServiceResponse<UserResponseDto>> {
+  async getUserDetails(userId: string): Promise<ApiResponse<UserResponseDto>> {
     try {
       if (!userId) {
-        return { success: false, message: "User ID is required" };
+        return createResponse({
+          success: false,
+          message: "User ID is required"
+        });
       }
 
-      const user = await this.userRepo.findById(userId);
+      const user = await this.userRepository.findUserById(userId);
 
       if (!user) {
-        return { success: false, message: "User not found" };
+        return createResponse({
+          success: false,
+          message: "User not found"
+        });
       }
 
-      return {
+      return createResponse({
         success: true,
         message: "User details fetched successfully",
-        data: user,
-      };
-    } catch (error) {
-      console.error("Get user details error:", error);
-      return { success: false, message: "Something went wrong" };
+        data: user
+      });
+    } catch (error: unknown) {
+      return this._handleServiceError(error, "Something went wrong");
     }
+  }
+
+  // Private helper methods for business logic (SRP - Single Responsibility)
+  private _generateOTP(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  private async _validateSignupData(email: string, username: string): Promise<string | null> {
+    const existingUser = await this.userRepository.findUserByEmail(email);
+    if (existingUser && existingUser.isVerified) {
+      return "User with this email already exists";
+    }
+
+    const isOwner = await this.ownerRequestRepository.findByEmail(email);
+    if (isOwner) {
+      return "User with this email already exists";
+    }
+
+    const isRequestedOwner = await this.ownerRepository.findByEmail(email);
+    if (isRequestedOwner) {
+      return "User with this email already exists";
+    }
+
+    const existingUsername = await this.userRepository.findUserByUsername(username);
+    if (existingUsername && existingUsername.isVerified) {
+      return "Username already taken";
+    }
+
+    return null;
+  }
+
+  private async _validateEmailAvailability(email: string): Promise<string | null> {
+    const existingUser = await this.userRepository.findUserByEmail(email);
+    if (existingUser) {
+      return "Email already in use";
+    }
+
+    const isRequestedOwner = await this.ownerRequestRepository.findByEmail(email);
+    if (
+      isRequestedOwner &&
+      isRequestedOwner.status !== "rejected" &&
+      isRequestedOwner.status !== "approved"
+    ) {
+      return "Email already in use";
+    }
+
+    const existingOwner = await this.ownerRepository.findByEmail(email);
+    if (existingOwner) {
+      return "Email already in use";
+    }
+
+    return null;
+  }
+
+  private async _validateEmailAvailabilityForUser(email: string, userId: string): Promise<string | null> {
+    const existingUser = await this.userRepository.findUserByEmail(email);
+    if (existingUser && existingUser._id.toString() !== userId) {
+      return "Email already in use";
+    }
+
+    const isRequestedOwner = await this.ownerRequestRepository.findByEmail(email);
+    if (
+      isRequestedOwner &&
+      isRequestedOwner.status !== "rejected" &&
+      isRequestedOwner.status !== "approved"
+    ) {
+      return "Email already in use";
+    }
+
+    const existingOwner = await this.ownerRequestRepository.findByEmail(email);
+    if (existingOwner) {
+      return "Email already in use";
+    }
+
+    return null;
+  }
+
+  private _filterUsersBySearch(users: any[], search: string): any[] {
+    return users.filter(
+      (user: any) =>
+        user.username.toLowerCase().includes(search.toLowerCase()) ||
+        user.email.toLowerCase().includes(search.toLowerCase()) ||
+        (user.firstName &&
+          user.firstName.toLowerCase().includes(search.toLowerCase())) ||
+        (user.lastName &&
+          user.lastName.toLowerCase().includes(search.toLowerCase()))
+    );
+  }
+
+  private _sortUsers(users: any[], sortBy: string, sortOrder: string): any[] {
+    return users.sort((a: any, b: any) => {
+      let aValue = a[sortBy];
+      let bValue = b[sortBy];
+
+      if (
+        sortBy.includes("Date") ||
+        sortBy.includes("At") ||
+        sortBy === "joinedAt"
+      ) {
+        aValue = new Date(aValue);
+        bValue = new Date(bValue);
+      }
+
+      if (sortOrder === "desc") {
+        return bValue > aValue ? 1 : -1;
+      }
+      return aValue > bValue ? 1 : -1;
+    });
+  }
+
+  private _processUserProfilePictures(users: any[]): any[] {
+    return users.map((user) => {
+      return {
+        ...user,
+        profilePicture: user.profilePicture
+          ? generateSignedUrl(user.profilePicture, {
+              width: 800,
+              height: 600,
+              crop: "fit",
+            })
+          : null,
+      };
+    });
+  }
+
+  private _handleServiceError(error: unknown, defaultMessage: string): ApiResponse<any> {
+    console.error("Service error:", error);
+    const errorMessage = error instanceof Error ? error.message : defaultMessage;
+    
+    return createResponse({
+      success: false,
+      message: errorMessage
+    });
   }
 }

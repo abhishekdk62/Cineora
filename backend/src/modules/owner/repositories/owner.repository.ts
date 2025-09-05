@@ -1,271 +1,365 @@
 import { IOwner } from "../interfaces/owner.model.interface";
 import { IOwnerRepository } from "../interfaces/owner.repository.interface";
-import {  Owner } from "../models/owner.model";
+import { Owner } from "../models/owner.model";
 
 export class OwnerRepository implements IOwnerRepository {
-  async findByEmail(email: string): Promise<IOwner | null> {
-    return await Owner.findOne({ email });
-  }
-
-  async findByKycRequestId(requestId: string): Promise<IOwner | null> {
-    return await Owner.findOne({ kycRequestId: requestId });
-  }
-
-  async findById(id: string): Promise<IOwner | null> {
-    return await Owner.findById(id);
-  }
-
-  async findAll(
-    page: number = 1,
-    limit: number = 10
-  ): Promise<{ owners: IOwner[]; total: number }> {
-    const skip = (page - 1) * limit;
-
-    const [owners, total] = await Promise.all([
-      Owner.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).lean() as Promise<IOwner[]>
-,
-      Owner.countDocuments({}),
-    ]);
-
-    return { owners, total };
-  }
-  async updateRefreshToken(
-    userId: string,
-    hashedRefreshToken: string
-  ): Promise<IOwner | null> {
-    return await Owner.findByIdAndUpdate(
-      userId,
-      {
-        refreshToken: hashedRefreshToken,
-        updatedAt: new Date(),
-      },
-      { new: true }
-    );
-  }
-
-  async clearRefreshToken(userId: string): Promise<IOwner | null> {
-    return await Owner.findByIdAndUpdate(userId, {
-      $unset: { refreshToken: 1 },
-      updatedAt: new Date(),
-    });
-  }
-  async findByStatus(
-    status: string,
-    page: number = 1,
-    limit: number = 10
-  ): Promise<{ owners: IOwner[]; total: number }> {
-    const skip = (page - 1) * limit;
-
-    let query: any = {};
-
-    if (status === "active") {
-      query = { isActive: true };
-    } else if (status === "inactive" || status === "blocked") {
-      query = { isActive: false };
-    } else if (status === "verified") {
-      query = { isVerified: true };
-    } else if (status === "unverified") {
-      query = { isVerified: false };
+  // Read Operations - matching interface exactly
+  async findByEmail(ownerEmail: string): Promise<IOwner | null> {
+    try {
+      return await Owner.findOne({ email: ownerEmail });
+    } catch (error) {
+      throw new Error(`Error finding owner by email: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-
-    const [owners, total] = await Promise.all([
-      Owner.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).lean()  as Promise<IOwner[]>
-,
-      Owner.countDocuments(query),
-    ]);
-
-    return { owners, total };
   }
 
+  async findByKycRequestId(kycRequestId: string): Promise<IOwner | null> {
+    try {
+      return await Owner.findOne({ kycRequestId });
+    } catch (error) {
+      throw new Error(`Error finding owner by KYC request ID: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async findById(ownerId: string): Promise<IOwner | null> {
+    try {
+      return await Owner.findById(ownerId);
+    } catch (error) {
+      throw new Error(`Error finding owner by ID: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async findAll(page: number = 1, limit: number = 10): Promise<{ owners: IOwner[]; total: number }> {
+    try {
+      const skipCount = (page - 1) * limit;
+
+      const [owners, total] = await Promise.all([
+        Owner.find({}).sort({ createdAt: -1 }).skip(skipCount).limit(limit).lean() as Promise<IOwner[]>,
+        Owner.countDocuments({}),
+      ]);
+
+      return { owners, total };
+    } catch (error) {
+      throw new Error(`Error finding all owners: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async findByStatus(status: string, page: number = 1, limit: number = 10): Promise<{ owners: IOwner[]; total: number }> {
+    try {
+      const skipCount = (page - 1) * limit;
+      const query = this._buildStatusQuery(status);
+
+      const [owners, total] = await Promise.all([
+        Owner.find(query).sort({ createdAt: -1 }).skip(skipCount).limit(limit).lean() as Promise<IOwner[]>,
+        Owner.countDocuments(query),
+      ]);
+
+      return { owners, total };
+    } catch (error) {
+      throw new Error(`Error finding owners by status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async findByPhone(phoneNumber: string): Promise<IOwner | null> {
+    try {
+      return await Owner.findOne({ phone: phoneNumber });
+    } catch (error) {
+      throw new Error(`Error finding owner by phone: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async findByPan(panNumber: string): Promise<IOwner | null> {
+    try {
+      return await Owner.findOne({ pan: panNumber });
+    } catch (error) {
+      throw new Error(`Error finding owner by PAN: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async findByAadhaar(aadhaarNumber: string): Promise<IOwner | null> {
+    try {
+      return await Owner.findOne({ aadhaar: aadhaarNumber });
+    } catch (error) {
+      throw new Error(`Error finding owner by Aadhaar: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async searchOwners(searchTerm: string, page: number = 1, limit: number = 10): Promise<{ owners: IOwner[]; total: number }> {
+    try {
+      const skipCount = (page - 1) * limit;
+      const searchQuery = this._buildSearchQuery(searchTerm);
+
+      const [owners, total] = await Promise.all([
+        Owner.find(searchQuery).sort({ createdAt: -1 }).skip(skipCount).limit(limit).lean() as Promise<IOwner[]>,
+        Owner.countDocuments(searchQuery),
+      ]);
+
+      return { owners, total };
+    } catch (error) {
+      throw new Error(`Error searching owners: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async getOwnerStats(ownerId: string): Promise<IOwner | null> {
+    try {
+      return await Owner.findById(ownerId)
+        .populate("theatres")
+        .select("ownerName email phone theatres isActive isVerified createdAt");
+    } catch (error) {
+      throw new Error(`Error getting owner stats: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  // Write Operations - matching interface exactly
   async create(data: Partial<IOwner>): Promise<IOwner> {
-    const owner = new Owner({
-      ...data,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-    return await owner.save();
-  }
-
-  async toggleStatus(id: string): Promise<IOwner | null> {
-    const owner = await Owner.findById(id);
-    if (!owner) {
-      throw new Error("Owner not found");
+    try {
+      const owner = new Owner({
+        ...data,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      const savedOwner = await owner.save();
+      if (!savedOwner) {
+        throw new Error("Failed to create owner");
+      }
+      return savedOwner;
+    } catch (error) {
+      throw new Error(`Error creating owner: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-
-    owner.isActive = !owner.isActive;
-    owner.updatedAt = new Date();
-    return await owner.save();
   }
 
-  async updateLastLogin(id: string): Promise<IOwner | null> {
-    return await Owner.findByIdAndUpdate(
-      id,
-      {
-        lastLogin: new Date(),
-        updatedAt: new Date(),
-      },
-      { new: true }
-    );
+  async update(ownerId: string, updateData: Partial<IOwner>): Promise<IOwner | null> {
+    try {
+      const { _id, createdAt, password, kycRequestId, ...safeUpdateData } = updateData;
+
+      const updatedOwner = await Owner.findByIdAndUpdate(
+        ownerId,
+        {
+          ...safeUpdateData,
+          updatedAt: new Date(),
+        },
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+
+      return updatedOwner;
+    } catch (error) {
+      throw new Error(`Error updating owner: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
-  async updatePassword(id: string, hashedPassword: string): Promise<boolean> {
-    const result = await Owner.updateOne(
-      { _id: id },
-      {
-        password: hashedPassword,
-        updatedAt: new Date(),
+  async updateRefreshToken(ownerId: string, hashedRefreshToken: string): Promise<IOwner | null> {
+    try {
+      const updatedOwner = await Owner.findByIdAndUpdate(
+        ownerId,
+        {
+          refreshToken: hashedRefreshToken,
+          updatedAt: new Date(),
+        },
+        { new: true }
+      );
+
+      return updatedOwner;
+    } catch (error) {
+      throw new Error(`Error updating refresh token: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async clearRefreshToken(ownerId: string): Promise<IOwner | null> {
+    try {
+      const updatedOwner = await Owner.findByIdAndUpdate(
+        ownerId, 
+        {
+          $unset: { refreshToken: 1 },
+          updatedAt: new Date(),
+        },
+        { new: true }
+      );
+
+      return updatedOwner;
+    } catch (error) {
+      throw new Error(`Error clearing refresh token: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async updateLastLogin(ownerId: string): Promise<IOwner | null> {
+    try {
+      const updatedOwner = await Owner.findByIdAndUpdate(
+        ownerId,
+        {
+          lastLogin: new Date(),
+          updatedAt: new Date(),
+        },
+        { new: true }
+      );
+
+      return updatedOwner;
+    } catch (error) {
+      throw new Error(`Error updating last login: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async updatePassword(ownerId: string, hashedPassword: string): Promise<boolean> {
+    try {
+      const result = await Owner.updateOne(
+        { _id: ownerId },
+        {
+          password: hashedPassword,
+          updatedAt: new Date(),
+        }
+      );
+      return result.modifiedCount > 0;
+    } catch (error) {
+      throw new Error(`Error updating password: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async updateProfile(ownerId: string, profileData: Partial<IOwner>): Promise<IOwner | null> {
+    try {
+      const allowedUpdates = [
+        "ownerName",
+        "phone",
+        "email",
+        "accountHolder",
+        "bankName",
+        "accountNumber",
+        "ifsc",
+        "ownerPhotoUrl",
+      ];
+
+      const filteredData = Object.keys(profileData)
+        .filter((key) => allowedUpdates.includes(key))
+        .reduce((obj: Record<string, unknown>, key) => {
+          obj[key] = profileData[key as keyof Partial<IOwner>];
+          return obj;
+        }, {});
+
+      const updatedOwner = await Owner.findByIdAndUpdate(
+        ownerId,
+        {
+          ...filteredData,
+          updatedAt: new Date(),
+        },
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+
+      return updatedOwner;
+    } catch (error) {
+      throw new Error(`Error updating owner profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async toggleStatus(ownerId: string): Promise<IOwner | null> {
+    try {
+      const owner = await Owner.findById(ownerId);
+      if (!owner) {
+        throw new Error("Owner not found");
       }
-    );
-    return result.modifiedCount > 0;
+
+      owner.isActive = !owner.isActive;
+      owner.updatedAt = new Date();
+      const savedOwner = await owner.save();
+      return savedOwner;
+    } catch (error) {
+      throw new Error(`Error toggling owner status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
-  async update(
-    id: string,
-    updateData: Partial<IOwner>
-  ): Promise<IOwner | null> {
-    const { _id, createdAt, password, kycRequestId, ...safeUpdateData } =
-      updateData;
+  async delete(ownerId: string): Promise<IOwner | null> {
+    try {
+      const deletedOwner = await Owner.findByIdAndUpdate(
+        ownerId,
+        {
+          isActive: false,
+          isDeleted: true,
+          deletedAt: new Date(),
+          updatedAt: new Date(),
+        },
+        { new: true }
+      );
 
-    return await Owner.findByIdAndUpdate(
-      id,
-      {
-        ...safeUpdateData,
-        updatedAt: new Date(),
-      },
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
-  }
-
-  async delete(id: string): Promise<IOwner | null> {
-    return await Owner.findByIdAndUpdate(
-      id,
-      {
-        isActive: false,
-        isDeleted: true,
-        deletedAt: new Date(),
-        updatedAt: new Date(),
-      },
-      { new: true }
-    );
-  }
-
-  async findByPhone(phone: string): Promise<IOwner | null> {
-    return await Owner.findOne({ phone });
-  }
-
-  async findByPan(pan: string): Promise<IOwner | null> {
-    return await Owner.findOne({ pan });
-  }
-
-  async findByAadhaar(aadhaar: string): Promise<IOwner | null> {
-    return await Owner.findOne({ aadhaar });
-  }
-
-  async updateProfile(
-    id: string,
-    profileData: Partial<IOwner>
-  ): Promise<IOwner | null> {
-    const allowedUpdates = [
-      "ownerName",
-      "phone",
-      "accountHolder",
-      "bankName",
-      "accountNumber",
-      "ifsc",
-      "ownerPhotoUrl",
-    ];
-
-    const filteredData = Object.keys(profileData)
-      .filter((key) => allowedUpdates.includes(key))
-      .reduce((obj: any, key) => {
-        obj[key] = profileData[key];
-        return obj;
-      }, {});
-
-    return await Owner.findByIdAndUpdate(
-      id,
-      {
-        ...filteredData,
-        updatedAt: new Date(),
-      },
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+      return deletedOwner;
+    } catch (error) {
+      throw new Error(`Error deleting owner: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   async addTheatre(ownerId: string, theatreId: string): Promise<IOwner | null> {
-    return await Owner.findByIdAndUpdate(
-      ownerId,
-      {
-        $addToSet: { theatres: theatreId },
-        updatedAt: new Date(),
-      },
-      { new: true }
-    );
+    try {
+      const updatedOwner = await Owner.findByIdAndUpdate(
+        ownerId,
+        {
+          $addToSet: { theatres: theatreId },
+          updatedAt: new Date(),
+        },
+        { new: true }
+      );
+
+      return updatedOwner;
+    } catch (error) {
+      throw new Error(`Error adding theatre to owner: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
-  async removeTheatre(
-    ownerId: string,
-    theatreId: string
-  ): Promise<IOwner | null> {
-    return await Owner.findByIdAndUpdate(
-      ownerId,
-      {
-        $pull: { theatres: theatreId },
-        updatedAt: new Date(),
-      },
-      { new: true }
-    );
+  async removeTheatre(ownerId: string, theatreId: string): Promise<IOwner | null> {
+    try {
+      const updatedOwner = await Owner.findByIdAndUpdate(
+        ownerId,
+        {
+          $pull: { theatres: theatreId },
+          updatedAt: new Date(),
+        },
+        { new: true }
+      );
+
+      return updatedOwner;
+    } catch (error) {
+      throw new Error(`Error removing theatre from owner: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
-  async searchOwners(
-    searchTerm: string,
-    page: number = 1,
-    limit: number = 10
-  ): Promise<{ owners: IOwner[]; total: number }> {
-    const skip = (page - 1) * limit;
+  async bulkUpdateStatus(ownerIds: string[], isActive: boolean): Promise<{ modifiedCount: number }> {
+    try {
+      return await Owner.updateMany(
+        { _id: { $in: ownerIds } },
+        {
+          isActive,
+          updatedAt: new Date(),
+        }
+      );
+    } catch (error) {
+      throw new Error(`Error bulk updating owner status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
 
-    const searchQuery = {
+  // Private helper methods
+  private _buildStatusQuery(status: string): Record<string, unknown> {
+    switch (status) {
+      case "active":
+        return { isActive: true };
+      case "inactive":
+      case "blocked":
+        return { isActive: false };
+      case "verified":
+        return { isVerified: true };
+      case "unverified":
+        return { isVerified: false };
+      default:
+        return {};
+    }
+  }
+
+  private _buildSearchQuery(searchTerm: string): Record<string, unknown> {
+    return {
       $or: [
         { ownerName: { $regex: searchTerm, $options: "i" } },
         { email: { $regex: searchTerm, $options: "i" } },
         { phone: { $regex: searchTerm, $options: "i" } },
       ],
     };
-
-    const [owners, total] = await Promise.all([
-      Owner.find(searchQuery)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean()  as Promise<IOwner[]>,
-      Owner.countDocuments(searchQuery),
-    ]);
-
-    return { owners, total };
-  }
-
-  async getOwnerStats(ownerId: string): Promise<IOwner | null> {
-    return await Owner.findById(ownerId)
-      .populate("theatres")
-      .select("ownerName email phone theatres isActive isVerified createdAt");
-  }
-
-  async bulkUpdateStatus(
-    ownerIds: string[],
-    isActive: boolean
-  ): Promise<{ modifiedCount: number }> {
-    return await Owner.updateMany(
-      { _id: { $in: ownerIds } },
-      {
-        isActive,
-        updatedAt: new Date(),
-      }
-    );
   }
 }

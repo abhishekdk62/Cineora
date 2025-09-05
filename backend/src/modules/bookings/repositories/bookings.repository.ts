@@ -1,151 +1,220 @@
+import { 
+  CreateBookingDto, 
+  UpdateBookingDto, 
+  BookingRepositoryFindResult 
+} from "../dtos/dto";
 import { IBooking } from "../interfaces/bookings.model.interface";
-import { IBookingRepository } from "../interfaces/bookings.repository.interface";
-import Booking from '../models/bookings.model'
+import { 
+  IBookingReadRepository, 
+  IBookingWriteRepository, 
+  IBookingRepository 
+} from "../interfaces/bookings.repository.interface";
+import Booking from "../models/bookings.model";
 
 export class BookingRepository implements IBookingRepository {
-  async create(bookingData: Partial<IBooking>): Promise<IBooking | null> {
-    const booking = new Booking(bookingData);
-    return booking.save();
-  }
   
-  async findById(id: string): Promise<IBooking | null> {
-    return Booking.findById(id)
-      .populate("movieId")
-      .populate("theaterId")
-      .populate("screenId")
-      .populate("userId", "firstName lastName email phone");
+  // Read Operations
+  async findBookingById(bookingId: string): Promise<IBooking | null> {
+    try {
+      return await Booking.findById(bookingId)
+        .populate("movieId")
+        .populate("theaterId")
+        .populate("screenId")
+        .populate("userId", "firstName lastName email phone")
+        .exec();
+    } catch (error) {
+      throw new Error(`Failed to find booking by id: ${error.message}`);
+    }
   }
-  
-  async findByBookingId(bookingId: string): Promise<IBooking | null> {
-    return Booking.findOne({ bookingId })
-      .populate("movieId")
-      .populate("theaterId")
-      .populate("screenId")
-      .populate("userId", "firstName lastName email phone");
+
+  async findBookingByBookingId(bookingId: string): Promise<IBooking | null> {
+    try {
+      return await Booking.findById(bookingId)
+        .populate("movieId")
+        .populate("theaterId")
+        .populate("screenId")
+        .populate("userId", "firstName lastName email phone")
+        .exec();
+    } catch (error) {
+      throw new Error(`Failed to find booking by booking id: ${error.message}`);
+    }
   }
-  
-  async findByUserId(userId: string): Promise<IBooking[]> {
-    return Booking.find({ userId })
-      .populate("movieId")
-      .populate("theaterId")
-      .populate("screenId")
-      .sort({ bookedAt: -1 });
+
+  async findBookingsByUserId(userId: string): Promise<IBooking[]> {
+    try {
+      return await Booking.find({ userId })
+        .populate("movieId")
+        .populate("theaterId")
+        .populate("screenId")
+        .sort({ bookedAt: -1 })
+        .exec();
+    } catch (error) {
+      throw new Error(`Failed to find bookings by user id: ${error.message}`);
+    }
   }
-  
-  async findByUserIdPaginated(
+
+  async findBookingsByUserIdPaginated(
     userId: string,
     page: number = 1,
     limit: number = 10
-  ): Promise<{
-    bookings: IBooking[];
-    total: number;
-    page: number;
-    totalPages: number;
-  }> {
-    const skip = (page - 1) * limit;
-    const bookings = await Booking.find({ userId })
-      .populate("movieId")
-      .populate("theaterId")
-      .populate("screenId")
-      .sort({ bookedAt: -1 })
-      .skip(skip)
-      .limit(limit);
-      
-    const total = await Booking.countDocuments({ userId });
-    
-    return {
-      bookings,
-      total,
-      page,
-      totalPages: Math.ceil(total / limit),
-    };
+  ): Promise<BookingRepositoryFindResult> {
+    try {
+      const skip = (page - 1) * limit;
+      const [bookings, total] = await Promise.all([
+        Booking.find({ userId })
+          .populate("movieId")
+          .populate("theaterId")
+          .populate("screenId")
+          .sort({ bookedAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .exec(),
+        Booking.countDocuments({ userId }).exec()
+      ]);
+
+      return {
+        bookings,
+        total,
+        page,
+        totalPages: Math.ceil(total / limit),
+      };
+    } catch (error) {
+      throw new Error(`Failed to find bookings paginated: ${error.message}`);
+    }
   }
-  
-  async findByShowtimeId(showtimeId: string): Promise<IBooking[]> {
-    return Booking.find({ showtimeId, bookingStatus: "confirmed" })
-      .populate("userId", "firstName lastName email phone");
+
+  async findBookingsByShowtimeId(showtimeId: string): Promise<IBooking[]> {
+    try {
+      return await Booking.find({ showtimeId })
+        .populate("userId", "firstName lastName email phone")
+        .exec();
+    } catch (error) {
+      throw new Error(`Failed to find bookings by showtime id: ${error.message}`);
+    }
   }
-  
-  async updateById(
-    id: string,
-    updateData: Partial<IBooking>
-  ): Promise<IBooking | null> {
-    return Booking.findByIdAndUpdate(id, updateData, { new: true });
+
+  async findUpcomingBookings(userId: string): Promise<IBooking[]> {
+    try {
+      const currentDate = new Date();
+      return await Booking.find({
+        userId,
+        showDate: { $gte: currentDate },
+        bookingStatus: "confirmed",
+      })
+        .populate("movieId")
+        .populate("theaterId")
+        .populate("screenId")
+        .sort({ showDate: 1 })
+        .exec();
+    } catch (error) {
+      throw new Error(`Failed to find upcoming bookings: ${error.message}`);
+    }
   }
-  
-  async updateByBookingId(
+
+  async findBookingHistory(userId: string): Promise<IBooking[]> {
+    try {
+      return await Booking.find({ userId })
+        .populate("movieId")
+        .populate("theaterId")
+        .populate("screenId")
+        .sort({ bookedAt: -1 })
+        .exec();
+    } catch (error) {
+      throw new Error(`Failed to find booking history: ${error.message}`);
+    }
+  }
+
+  async findExpiredBookings(): Promise<IBooking[]> {
+    try {
+      const currentDate = new Date();
+      currentDate.setDate(currentDate.getDate() - 1);
+      return await Booking.find({
+        bookedAt: { $lt: currentDate },
+        paymentStatus: "pending",
+        bookingStatus: "confirmed",
+      }).exec();
+    } catch (error) {
+      throw new Error(`Failed to find expired bookings: ${error.message}`);
+    }
+  }
+
+  async findBookingByPaymentId(paymentId: string): Promise<IBooking | null> {
+    try {
+      return await Booking.findOne({ paymentId }).exec();
+    } catch (error) {
+      throw new Error(`Failed to find booking by payment id: ${error.message}`);
+    }
+  }
+
+  // Write Operations
+  async createBooking(bookingData: CreateBookingDto): Promise<IBooking | null> {
+    try {
+      const booking = new Booking(bookingData);
+      return await booking.save();
+    } catch (error) {
+      throw new Error(`Failed to create booking: ${error.message}`);
+    }
+  }
+
+  async updateBookingById(
     bookingId: string,
-    updateData: Partial<IBooking>
+    updateData: UpdateBookingDto
   ): Promise<IBooking | null> {
-    return Booking.findOneAndUpdate({ bookingId }, updateData, { new: true });
+    try {
+      return await Booking.findByIdAndUpdate(bookingId, updateData, { new: true }).exec();
+    } catch (error) {
+      throw new Error(`Failed to update booking by id: ${error.message}`);
+    }
   }
-  
+
+  async updateBookingByBookingId(
+    bookingId: string,
+    updateData: UpdateBookingDto
+  ): Promise<IBooking | null> {
+    try {
+      return await Booking.findOneAndUpdate({ bookingId }, updateData, { new: true }).exec();
+    } catch (error) {
+      throw new Error(`Failed to update booking by booking id: ${error.message}`);
+    }
+  }
+
   async cancelBooking(bookingId: string): Promise<IBooking | null> {
-    return Booking.findOneAndUpdate(
-      { bookingId },
-      {
-        bookingStatus: "cancelled",
-        cancelledAt: new Date(),
-      },
-      { new: true }
-    );
+    try {
+      return await Booking.findOneAndUpdate(
+        { _id: bookingId },
+        {
+          bookingStatus: "cancelled",
+          cancelledAt: new Date(),
+        },
+        { new: true }
+      ).exec();
+    } catch (error) {
+      throw new Error(`Failed to cancel booking: ${error.message}`);
+    }
   }
-  
+
   async updatePaymentStatus(
     bookingId: string,
     paymentStatus: string,
     paymentId?: string
   ): Promise<IBooking | null> {
-    const updateData: any = { paymentStatus };
-    if (paymentId) {
-      updateData.paymentId = paymentId;
+    try {
+      const updateData: Record<string, any> = { paymentStatus };
+      if (paymentId) {
+        updateData.paymentId = paymentId;
+      }
+      return await Booking.findOneAndUpdate({ _id: bookingId }, updateData, { new: true }).exec();
+    } catch (error) {
+      throw new Error(`Failed to update payment status: ${error.message}`);
     }
-    
-    return Booking.findOneAndUpdate(
-      { bookingId },
-      updateData,
-      { new: true }
-    );
   }
-  
-  async findUpcomingBookings(userId: string): Promise<IBooking[]> {
-    const currentDate = new Date();
-    return Booking.find({
-      userId,
-      showDate: { $gte: currentDate },
-      bookingStatus: "confirmed",
-    })
-      .populate("movieId")
-      .populate("theaterId")
-      .populate("screenId")
-      .sort({ showDate: 1 });
-  }
-  
-  async findBookingHistory(userId: string): Promise<IBooking[]> {
-    return Booking.find({ userId })
-      .populate("movieId")
-      .populate("theaterId")
-      .populate("screenId")
-      .sort({ bookedAt: -1 });
-  }
-  
-  async deleteById(id: string): Promise<boolean> {
-    const result = await Booking.findByIdAndDelete(id);
-    return !!result;
-  }
-  
-  async findByPaymentId(paymentId: string): Promise<IBooking | null> {
-    return Booking.findOne({ paymentId });
-  }
-  
-  async findExpiredBookings(): Promise<IBooking[]> {
-    const currentDate = new Date();
-    currentDate.setDate(currentDate.getDate() - 1); 
-    
-    return Booking.find({
-      bookedAt: { $lt: currentDate },
-      paymentStatus: "pending",
-      bookingStatus: "confirmed",
-    });
+
+  async deleteBookingById(bookingId: string): Promise<boolean> {
+    try {
+      const result = await Booking.findByIdAndDelete(bookingId).exec();
+      return !!result;
+    } catch (error) {
+      throw new Error(`Failed to delete booking: ${error.message}`);
+    }
   }
 }

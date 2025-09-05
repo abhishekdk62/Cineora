@@ -5,51 +5,51 @@ import { authenticateToken } from "../middleware/auth.middleware";
 
 export class AuthRoute {
   constructor(
-    private router: express.Router = express.Router(),
-    private authController: AuthController,
-    private userController: UserController,
-    private authMiddleware = authenticateToken
+    private _router: express.Router = express.Router(),
+    private _authController: AuthController,
+    private _userController: UserController,
+    private _authMiddleware = authenticateToken
   ) {
-    this.setRoutes();
+    this._setRoutes();
   }
 
-  private setRoutes() {
-    this.router.post("/login", (req, res) =>
-      this.authController.login(req, res)
+  private _setRoutes() {
+    this._router.post("/login", (req, res) =>
+      this._authController.login(req, res)
     );
-    this.router.post("/logout", (req, res) =>
-      this.authController.logout(req, res)
+    this._router.post("/logout", (req, res) =>
+      this._authController.logout(req, res)
     );
-    this.router.post("/google", (req, res) =>
-      this.authController.googleAuthenticate(req, res)
+    this._router.post("/google", (req, res) =>
+      this._authController.googleAuthenticate(req, res)
     );
-    this.router.get("/me", this.authMiddleware, (req, res) =>
-      this.authController.getCurrentUser(req, res)
+    this._router.get("/me", this._authMiddleware, (req, res) =>
+      this._authController.getCurrentUser(req, res)
     );
-    this.router.post("/signup", (req, res) =>
-      this.userController.signup(req, res)
+    this._router.post("/signup", (req, res) =>
+      this._userController.signup(req, res)
     );
-    this.router.post("/verify-otp", (req, res) =>
-      this.userController.verifyOTP(req, res)
+    this._router.post("/verify-otp", (req, res) =>
+      this._userController.verifyOTP(req, res)
     );
-    this.router.post("/resend-otp", (req, res) =>
-      this.userController.resendOTP(req, res)
+    this._router.post("/resend-otp", (req, res) =>
+      this._userController.resendOTP(req, res)
     );
-    this.router.post("/refresh", (req, res) =>
-      this.userController.refreshToken(req, res)
+    this._router.post("/refresh", (req, res) =>
+      this._userController.refreshToken(req, res)
     );
-    this.router.post("/forgot-password/send-otp", (req, res) =>
-      this.authController.sendPasswordResetOTP(req, res)
+    this._router.post("/forgot-password/send-otp", (req, res) =>
+      this._authController.sendPasswordResetOTP(req, res)
     );
-    this.router.post("/forgot-password/verify-otp", (req, res) =>
-      this.authController.verifyPasswordResetOtp(req, res)
+    this._router.post("/forgot-password/verify-otp", (req, res) =>
+      this._authController.verifyPasswordResetOtp(req, res)
     );
-    this.router.post("/forgot-password/reset-password", (req, res) =>
-      this.authController.resetPasswordWithOTP(req, res)
+    this._router.post("/forgot-password/reset-password", (req, res) =>
+      this._authController.resetPasswordWithOTP(req, res)
     );
   }
 
   public getRouter() {
-    return this.router;
+    return this._router;
   }
 }

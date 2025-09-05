@@ -6,43 +6,44 @@ import { TicketController } from "../tickets/controllers/ticket.controller";
 
 export class CommonRoutes {
   constructor(
-    private router: express.Router = express.Router(),
-    private moviesController: MoviesController,
-    private theaterController: TheaterController,
-    private showTimeController: ShowtimeController,
-    private ticketController: TicketController
+    private _router: express.Router = express.Router(),
+    private _moviesController: MoviesController,
+    private _theaterController: TheaterController,
+    private _showTimeController: ShowtimeController,
+    private _ticketController: TicketController
   ) {
-    this.setRoutes();
+    this._setRoutes();
   }
 
-  private setRoutes() {
-    this.router.get("/movies/filter", (req, res) =>
-      this.moviesController.getMoviesWithFilters(req, res)
+  private _setRoutes() {
+    this._router.get("/movies/filter", (req, res) =>
+      this._moviesController.getMoviesWithFilters(req, res)
     );
 
-    this.router.get("/movies/:movieId", (req, res) =>
-      this.moviesController.getMovieById(req, res)
+    this._router.get("/movies/:movieId", (req, res) =>
+      this._moviesController.getMovieById(req, res)
     );
 
-    this.router.get("/theaters/filter", (req, res) =>
-      this.theaterController.getTheatersWithFilters(req, res)
+    this._router.get("/theaters/filter", (req, res) =>
+      this._theaterController.getTheatersWithFilters(req, res)
     );
-    this.router.get("/theater/:theatreId", (req, res) =>
-      this.theaterController.getTheaterById(req, res)
+    this._router.get("/theater/:theatreId", (req, res) =>
+      this._theaterController.getTheaterById(req, res)
     );
 
-    this.router.get("/theaters/from-movie/:movieId", (req, res) =>
-      this.showTimeController.getTheatersByMovie(req, res)
+    this._router.get("/theaters/from-movie/:movieId", (req, res) =>
+      this._showTimeController.getTheatersByMovie(req, res)
     );
-    this.router.get("/movies/from-theater/:theaterId", (req, res) =>
-      this.showTimeController.getShowtimesByTheater(req, res)
+    this._router.get("/movies/from-theater/:theaterId", (req, res) =>
+      this._showTimeController.getShowtimesByTheater(req, res)
     );
-    this.router.get("/verify-ticket/:data", (req, res) =>
-      this.ticketController.verifyTicketFromQrCode(req, res)
+    this._router.get("/verify-ticket/:data", (req, res) =>
+      this._ticketController.verifyTicketFromQrCode(req, res)
     );
+    
   }
 
   public getRouter() {
-    return this.router;
+    return this._router;
   }
 }

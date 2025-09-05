@@ -79,24 +79,20 @@ const MovieShowtimeSchema = new Schema<IMovieShowtime>(
       type: Schema.Types.ObjectId,
       ref: "Movie",
       required: true,
-      index: true,
     },
     theaterId: {
       type: Schema.Types.ObjectId,
       ref: "Theater",
       required: true,
-      index: true,
     },
     screenId: {
       type: Schema.Types.ObjectId,
       ref: "Screen", 
       required: true,
-      index: true,
     },
     showDate: {
       type: Date,
       required: true,
-      index: true,
     },
     showTime: {
       type: String,

@@ -1,52 +1,39 @@
+import { 
+  CreateBookingDto, 
+  UpdateBookingDto, 
+  BookingRepositoryFindResult 
+} from "../dtos/dto";
 import { IBooking } from "./bookings.model.interface";
 
-export interface IBookingRepository {
-  create(bookingData: Partial<IBooking>): Promise<IBooking | null>;
-  
-  findById(id: string): Promise<IBooking | null>;
-  
-  findByBookingId(bookingId: string): Promise<IBooking | null>;
-  
-  findByUserId(userId: string): Promise<IBooking[]>;
-  
-  findByUserIdPaginated(
-    userId: string,
-    page: number,
-    limit: number
-  ): Promise<{
-    bookings: IBooking[];
-    total: number;
-    page: number;
-    totalPages: number;
-  }>;
-  
-  findByShowtimeId(showtimeId: string): Promise<IBooking[]>;
-  
-  updateById(
-    id: string,
-    updateData: Partial<IBooking>
-  ): Promise<IBooking | null>;
-  
-  updateByBookingId(
-    bookingId: string,
-    updateData: Partial<IBooking>
-  ): Promise<IBooking | null>;
-  
+// Interface Segregation Principle - Separate read and write operations
+export interface IBookingReadRepository {
+  findBookingById(bookingId: string): Promise<IBooking | null>;
+  findBookingByBookingId(bookingId: string): Promise<IBooking | null>;
+  findBookingsByUserId(userId: string): Promise<IBooking[]>;
+  findBookingsByUserIdPaginated(
+    userId: string, 
+    page?: number, 
+    limit?: number
+  ): Promise<BookingRepositoryFindResult>;
+  findBookingsByShowtimeId(showtimeId: string): Promise<IBooking[]>;
+  findUpcomingBookings(userId: string): Promise<IBooking[]>;
+  findBookingHistory(userId: string): Promise<IBooking[]>;
+  findExpiredBookings(): Promise<IBooking[]>;
+  findBookingByPaymentId(paymentId: string): Promise<IBooking | null>;
+}
+
+export interface IBookingWriteRepository {
+  createBooking(bookingData: CreateBookingDto): Promise<IBooking | null>;
+  updateBookingById(bookingId: string, updateData: UpdateBookingDto): Promise<IBooking | null>;
+  updateBookingByBookingId(bookingId: string, updateData: UpdateBookingDto): Promise<IBooking | null>;
   cancelBooking(bookingId: string): Promise<IBooking | null>;
-  
   updatePaymentStatus(
-    bookingId: string,
-    paymentStatus: string,
+    bookingId: string, 
+    paymentStatus: string, 
     paymentId?: string
   ): Promise<IBooking | null>;
-  
-  findUpcomingBookings(userId: string): Promise<IBooking[]>;
-  
-  findBookingHistory(userId: string): Promise<IBooking[]>;
-  
-  deleteById(id: string): Promise<boolean>;
-  
-  findByPaymentId(paymentId: string): Promise<IBooking | null>;
-  
-  findExpiredBookings(): Promise<IBooking[]>;
+  deleteBookingById(bookingId: string): Promise<boolean>;
 }
+
+// Combined interface following Interface Segregation Principle
+export interface IBookingRepository extends IBookingReadRepository, IBookingWriteRepository {}

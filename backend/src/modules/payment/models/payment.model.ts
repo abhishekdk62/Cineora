@@ -26,13 +26,11 @@ const PaymentSchema = new Schema<IPayment>({
     type: Schema.Types.ObjectId,
     ref: "Booking",
     required: true,
-    index: true,
   },
   userId: {
     type: Schema.Types.ObjectId,
     ref: "User",
     required: true,
-    index: true,
   },
   
   amount: {
@@ -60,7 +58,6 @@ const PaymentSchema = new Schema<IPayment>({
     type: String,
     enum: ["pending", "processing", "completed", "failed", "cancelled", "refunded"],
     default: "pending",
-    index: true,
   },
   transactionDetails: {
     type: TransactionDetailsSchema,
@@ -83,7 +80,6 @@ const PaymentSchema = new Schema<IPayment>({
   initiatedAt: {
     type: Date,
     default: Date.now,
-    index: true,
   },
   completedAt: {
     type: Date,

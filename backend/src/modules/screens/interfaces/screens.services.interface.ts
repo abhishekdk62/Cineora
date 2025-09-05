@@ -1,58 +1,30 @@
-import { ServiceResponse } from "../../../interfaces/interface";
-import {
-  CreateScreenDto,
-  UpdateScreenDto,
-  ScreenFilters,
-  AdvancedScreenFilters,
+import { 
+  CreateScreenDto, 
+  UpdateScreenDto, 
+  ScreenFilterDto, 
+  AdvancedScreenFilterDto,
+  ScreenStatsDto,
+  ScreenExistsDto,
+  ScreenCountDto,
+  PaginatedScreenResultDto
 } from "../dtos/dtos";
+import { ServiceResponse } from "../../../interfaces/interface";
+import { IScreen } from "./screens.model.interface";
 
 export interface IScreenService {
-  createScreen(
-    screenData: CreateScreenDto
-  ): Promise<ServiceResponse>;
-
-  deleteScreen(screenId: string): Promise<ServiceResponse>;
-
-  deleteScreensByTheater(theaterId: string): Promise<ServiceResponse>;
-
-  getScreensTheaterData(screenId: string): Promise<ServiceResponse>;
-
-  getScreenById(screenId: string): Promise<ServiceResponse>;
-
-  getScreensByTheaterId(theaterId: string): Promise<ServiceResponse>;
-
-  getScreenStats(theaterId: string): Promise<ServiceResponse>;
-
-  getScreensByTheaterIdWithFilters(
-    theaterId: string,
-    filters?: AdvancedScreenFilters
-  ): Promise<ServiceResponse>;
-
-  getAllScreens(
-    page: number,
-    limit: number,
-    filters?: ScreenFilters
-  ): Promise<ServiceResponse>;
-
-  updateScreen(
-    screenId: string,
-    updateData: UpdateScreenDto
-  ): Promise<ServiceResponse>;
-
-  toggleScreenStatus(screenId: string): Promise<ServiceResponse>;
-
-  checkScreenExists(
-    name: string,
-    theaterId: string,
-    excludedId?: string
-  ): Promise<ServiceResponse>;
-
-  getScreenByTheaterAndName(
-    theaterId: string,
-    name: string
-  ): Promise<ServiceResponse>;
-
-  getActiveScreensByTheaterId(theaterId: string): Promise<ServiceResponse>;
-
-  getScreenCountByTheaterId(theaterId: string): Promise<ServiceResponse>;
+  createScreen(screenData: CreateScreenDto): Promise<ServiceResponse<IScreen>>;
+  getScreenById(screenId: string): Promise<ServiceResponse<IScreen>>;
+  getScreensByTheaterId(theaterId: string): Promise<ServiceResponse<IScreen[]>>;
+  getActiveScreensByTheaterId(theaterId: string): Promise<ServiceResponse<IScreen[]>>;
+  getScreenWithTheaterData(screenId: string): Promise<ServiceResponse<IScreen>>;
+  getAllScreensPaginated(page: number, limit: number, filters?: ScreenFilterDto): Promise<ServiceResponse<PaginatedScreenResultDto>>;
+  getScreensByTheaterIdWithAdvancedFilters(theaterId: string, filters: AdvancedScreenFilterDto): Promise<ServiceResponse<any>>;
+  getScreenStatisticsByTheaterId(theaterId: string): Promise<ServiceResponse<ScreenStatsDto>>;
+  updateScreen(screenId: string, updateData: UpdateScreenDto): Promise<ServiceResponse<IScreen>>;
+  toggleScreenStatus(screenId: string): Promise<ServiceResponse<IScreen>>;
+  deleteScreen(screenId: string): Promise<ServiceResponse<void>>;
+  deleteScreensByTheaterId(theaterId: string): Promise<ServiceResponse<{ deletedCount: number }>>;
+  checkScreenExists(name: string, theaterId: string, excludedId?: string): Promise<ServiceResponse<ScreenExistsDto>>;
+  getScreenByTheaterAndName(theaterId: string, name: string): Promise<ServiceResponse<IScreen>>;
+  getScreenCountByTheaterId(theaterId: string): Promise<ServiceResponse<ScreenCountDto>>;
 }

@@ -1,375 +1,197 @@
-import mongoose, { Types } from "mongoose";
-import { ObjectId } from "mongoose";
-
+import { Types } from "mongoose";
 import { ITheaterRepository } from "../../theaters/interfaces/theater.repository.interface";
-import { IScreenService } from "../interfaces/screens.services.interface";
-import { IScreenRepository } from "../interfaces/screens.repository.interface";
-import { IScreen } from "../interfaces/screens.model.interface";
+
 import {
-  AdvancedScreenFilters,
   CreateScreenDto,
-  PaginatedScreenResult,
-  ScreenCountResponseDto,
-  ScreenExistsResponseDto,
-  ScreenFilters,
-  ScreenResponseDto,
-  ScreenStatsResponseDto,
-  ScreenWithStatisticsResult,
   UpdateScreenDto,
+  ScreenFilterDto,
+  AdvancedScreenFilterDto,
+  ScreenStatsDto,
+  ScreenExistsDto,
+  ScreenCountDto,
+  PaginatedScreenResultDto
 } from "../dtos/dtos";
 import { ServiceResponse } from "../../../interfaces/interface";
+import { IScreenRepository } from "../interfaces/screens.repository.interface";
+import { IScreenService } from "../interfaces/screens.services.interface";
+import { IScreen } from "../interfaces/screens.model.interface";
 
 export class ScreenService implements IScreenService {
   constructor(
-    private readonly screenRepo: IScreenRepository,
-    private readonly theaterRepo: ITheaterRepository
+    private readonly screenRepository: IScreenRepository,
+    private readonly theaterRepository: ITheaterRepository
   ) {}
 
-  async createScreen(
-    screenData: CreateScreenDto
-  ): Promise<ServiceResponse> {
+  async createScreen(screenData: CreateScreenDto): Promise<ServiceResponse<IScreen>> {
     try {
-      if (!screenData.theater._id) {
+      this._validateCreateScreenData(screenData);
+
+      const theaterIdString = screenData.theater!._id.toString();
+      
+      // Check if theater exists and is verified
+      const theater = await this.theaterRepository.getTheaterById(theaterIdString);
+      if (!theater?.isVerified) {
         return {
           success: false,
-          message: "Theater ID is required",
-        };
-      }
-      if (screenData.totalSeats <= 0) {
-        return {
-          success: false,
-          message: "Total seats must be greater than 0",
+          message: "Theater needs to be verified first"
         };
       }
 
-      const theaterIdString = screenData.theater._id.toString();
-      const exists = await this.screenRepo.existsByNameAndTheater(
+      // Check if screen with same name exists in theater
+      const screenExists = await this.screenRepository.checkScreenExistsByNameAndTheater(
         screenData.name,
         theaterIdString
       );
 
-      const existtheater = await this.theaterRepo.findById(theaterIdString);
-      if (!existtheater.isVerified) {
+      if (screenExists) {
         return {
           success: false,
-          message: "Theater needs to be verified first",
+          message: "Screen with this name already exists in this theater"
         };
       }
 
-      if (exists) {
-        return {
-          success: false,
-          message: "Screen with this name already exists in this theater",
-        };
-      }
-
-      let data = {
-        theaterId: new Types.ObjectId(screenData.theater._id),
+      // Create screen data
+      const createData: CreateScreenDto = {
+        theaterId: new Types.ObjectId(screenData.theater!._id),
         name: screenData.name,
         totalSeats: screenData.totalSeats,
         layout: screenData.layout,
-        isActive: true,
+        screenType: screenData.screenType,
+        features: screenData.features,
+        isActive: true
       };
-      const screen = await this.screenRepo.create(data);
-      if (!screen) {
-        return {
-          success: false,
-          message: "Failed to create screen",
-        };
-      }
 
-      const theater = await this.theaterRepo.incrementScreenCount(
-        screenData.theater._id
-      );
+      const screen = await this.screenRepository.createScreen(createData);
+      
+      // Update theater screen count
+      await this.theaterRepository.incrementTheaterScreenCount(theaterIdString);
 
       return {
         success: true,
         message: "Screen created successfully",
-        data: screen,
+        data: screen
       };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Something went wrong",
-      };
-    }
-  }
-  async deleteScreen(screenId: string): Promise<ServiceResponse> {
-    try {
-      if (!screenId) {
-        return {
-          success: false,
-          message: "Screen ID is required",
-        };
-      }
-
-      const deleted = await this.screenRepo.delete(screenId);
-
-      if (!deleted) {
-        return {
-          success: false,
-          message: "Screen not found or deletion failed",
-        };
-      }
-      await this.theaterRepo.decrementScreenCount(deleted.theaterId);
-      return {
-        success: true,
-        message: "Screen deleted successfully",
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Something went wrong",
-      };
-    }
-  }
-  async deleteScreensByTheater(theaterId: string): Promise<ServiceResponse> {
-    try {
-      if (!theaterId) {
-        return {
-          success: false,
-          message: "Theater ID is required",
-        };
-      }
-
-      const deletedCount = await this.screenRepo.deleteMany(theaterId);
-
-      if (deletedCount === 0) {
-        return {
-          success: false,
-          message: "No screens found for this theater",
-        };
-      }
-
-      return {
-        success: true,
-        message: `${deletedCount} screens deleted successfully`,
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Something went wrong",
-      };
+    } catch (error) {
+      return this._handleServiceError(error, "Failed to create screen");
     }
   }
 
-  async getScreensTheaterData(
-    screenId: string
-  ): Promise<ServiceResponse> {
+  async getScreenById(screenId: string): Promise<ServiceResponse<IScreen>> {
     try {
-      if (!screenId) {
-        return {
-          success: false,
-          message: "Screen ID is required",
-        };
-      }
-      const screen = await this.screenRepo.findByIdGetTheaterDetails(screenId);
-      if (!screen) {
-        return {
-          success: false,
-          message: "Screen not found",
-        };
-      }
-      if (
-        typeof screen.theaterId === "object" &&
-        "isActive" in screen.theaterId
-      ) {
-        if (!screen.theaterId.isActive) {
-          return {
-            success: false,
-            message: "Please enable the theater first",
-          };
-        }
-      }
+      this._validateScreenId(screenId);
 
-      return {
-        success: true,
-        message: "Screen retrieved successfully",
-        data: screen,
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Something went wrong",
-      };
-    }
-  }
-
-  async getScreenById(
-    screenId: string
-  ): Promise<ServiceResponse> {
-    try {
-      if (!screenId) {
-        return {
-          success: false,
-          message: "Screen ID is required",
-        };
-      }
-
-      const screen = await this.screenRepo.findById(screenId);
+      const screen = await this.screenRepository.getScreenById(screenId);
 
       if (!screen) {
         return {
           success: false,
-          message: "Screen not found",
+          message: "Screen not found"
         };
       }
 
       return {
         success: true,
         message: "Screen retrieved successfully",
-        data: screen,
+        data: screen
       };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Something went wrong",
-      };
+    } catch (error) {
+      return this._handleServiceError(error, "Failed to get screen");
     }
   }
 
-  async getScreensByTheaterId(
-    theaterId: string
-  ): Promise<ServiceResponse> {
+  async getScreensByTheaterId(theaterId: string): Promise<ServiceResponse<IScreen[]>> {
     try {
-      if (!theaterId) {
-        return {
-          success: false,
-          message: "Theater ID is required",
-        };
-      }
+      this._validateTheaterId(theaterId);
 
-      const screens = await this.screenRepo.findByTheaterId(theaterId);
+      const screens = await this.screenRepository.getScreensByTheaterId(theaterId);
 
       return {
         success: true,
         message: "Screens retrieved successfully",
-        data: screens,
+        data: screens
       };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Something went wrong",
-      };
+    } catch (error) {
+      return this._handleServiceError(error, "Failed to get screens by theater ID");
     }
   }
-  async getScreenStats(
-    theaterId: string
-  ): Promise<ServiceResponse> {
+
+  async getActiveScreensByTheaterId(theaterId: string): Promise<ServiceResponse<IScreen[]>> {
     try {
-      if (!theaterId) {
-        return {
-          success: false,
-          message: "Theater ID is required",
-        };
-      }
+      this._validateTheaterId(theaterId);
 
-      const screens = await this.screenRepo.findByTheaterId(theaterId);
-
-      const totalScreens = screens.length;
-      const activeScreens = screens.filter((screen) => screen.isActive).length;
-      const inactiveScreens = totalScreens - activeScreens;
-
-      const totalSeats = screens.reduce(
-        (sum, screen) => sum + screen.totalSeats,
-        0
-      );
-
-      const seatTypeDistribution = {
-        Normal: 0,
-        Premium: 0,
-        VIP: 0,
-      };
-
-      let totalRevenuePotential = 0;
-
-      screens.forEach((screen) => {
-        if (screen.layout?.advancedLayout?.rows) {
-          screen.layout.advancedLayout.rows.forEach((row) => {
-            row.seats.forEach((seat) => {
-              if (
-                seatTypeDistribution[
-                  seat.type as keyof typeof seatTypeDistribution
-                ] !== undefined
-              ) {
-                seatTypeDistribution[
-                  seat.type as keyof typeof seatTypeDistribution
-                ]++;
-              }
-              totalRevenuePotential += seat.price;
-            });
-          });
-        }
-      });
-
-      const avgSeatsPerScreen =
-        totalScreens > 0 ? Math.round(totalSeats / totalScreens) : 0;
-
-      const screenTypeDistribution: Record<string, number> = {};
-      screens.forEach((screen) => {
-        const type = screen.screenType || "Standard";
-        screenTypeDistribution[type] = (screenTypeDistribution[type] || 0) + 1;
-      });
-
-      const featuresDistribution: Record<string, number> = {};
-      screens.forEach((screen) => {
-        if (screen.features && screen.features.length > 0) {
-          screen.features.forEach((feature) => {
-            featuresDistribution[feature] =
-              (featuresDistribution[feature] || 0) + 1;
-          });
-        }
-      });
-
-      const stats = {
-        overview: {
-          totalScreens,
-          activeScreens,
-          inactiveScreens,
-          totalSeats,
-          avgSeatsPerScreen,
-        },
-        seatDistribution: {
-          byType: seatTypeDistribution,
-          totalRevenuePotential: Math.round(totalRevenuePotential),
-        },
-        screenTypes: screenTypeDistribution,
-        popularFeatures: Object.entries(featuresDistribution)
-          .sort(([, a], [, b]) => b - a)
-          .slice(0, 5)
-          .reduce((obj, [key, val]) => ({ ...obj, [key]: val }), {}),
-        utilizationRate:
-          totalScreens > 0
-            ? Math.round((activeScreens / totalScreens) * 100)
-            : 0,
-      };
+      const screens = await this.screenRepository.getActiveScreensByTheaterId(theaterId);
 
       return {
         success: true,
-        message: "Screen statistics retrieved successfully",
-        data: stats,
+        message: "Active screens retrieved successfully",
+        data: screens
       };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Something went wrong",
-      };
+    } catch (error) {
+      return this._handleServiceError(error, "Failed to get active screens");
     }
   }
 
-  async getScreensByTheaterIdWithFilters(
-    theaterId: string,
-    filters?: AdvancedScreenFilters
-  ): Promise<ServiceResponse> {
+  async getScreenWithTheaterData(screenId: string): Promise<ServiceResponse<IScreen>> {
     try {
-      if (!theaterId) {
+      this._validateScreenId(screenId);
+
+      const screen = await this.screenRepository.getScreenByIdWithTheaterDetails(screenId);
+
+      if (!screen) {
         return {
           success: false,
-          message: "Theater ID is required",
+          message: "Screen not found"
         };
       }
 
-      const result = await this.screenRepo.findByTheaterIdWithFilters(
+      // Check if theater is active
+      if (this._isTheaterInactive(screen)) {
+        return {
+          success: false,
+          message: "Please enable the theater first"
+        };
+      }
+
+      return {
+        success: true,
+        message: "Screen retrieved successfully",
+        data: screen
+      };
+    } catch (error) {
+      return this._handleServiceError(error, "Failed to get screen with theater data");
+    }
+  }
+
+  async getAllScreensPaginated(
+    page: number,
+    limit: number,
+    filters?: ScreenFilterDto
+  ): Promise<ServiceResponse<PaginatedScreenResultDto>> {
+    try {
+      // Validate pagination parameters
+      if (page < 1) page = 1;
+      if (limit < 1 || limit > 100) limit = 10;
+
+      const result = await this.screenRepository.getAllScreensPaginated(page, limit, filters);
+
+      return {
+        success: true,
+        message: "Screens retrieved successfully",
+        data: result
+      };
+    } catch (error) {
+      return this._handleServiceError(error, "Failed to get paginated screens");
+    }
+  }
+
+  async getScreensByTheaterIdWithAdvancedFilters(
+    theaterId: string,
+    filters: AdvancedScreenFilterDto
+  ): Promise<ServiceResponse<any>> {
+    try {
+      this._validateTheaterId(theaterId);
+
+      const result = await this.screenRepository.getScreensByTheaterIdWithAdvancedFilters(
         theaterId,
         filters
       );
@@ -377,150 +199,131 @@ export class ScreenService implements IScreenService {
       return {
         success: true,
         message: "Screens retrieved successfully",
-        data: result,
+        data: result
       };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Something went wrong",
-      };
+    } catch (error) {
+      return this._handleServiceError(error, "Failed to get screens with advanced filters");
     }
   }
 
-  async getAllScreens(
-    page: number,
-    limit: number,
-    filters?: ScreenFilters
-  ): Promise<ServiceResponse> {
+  async getScreenStatisticsByTheaterId(theaterId: string): Promise<ServiceResponse<ScreenStatsDto>> {
     try {
-      if (page < 1) page = 1;
-      if (limit < 1 || limit > 100) limit = 10;
+      this._validateTheaterId(theaterId);
 
-      const result = await this.screenRepo.findAll(page, limit, filters);
+      const screens = await this.screenRepository.getScreensByTheaterId(theaterId);
+      const stats = this._calculateScreenStatistics(screens);
 
       return {
         success: true,
-        message: "Screens retrieved successfully",
-        data: result,
+        message: "Screen statistics retrieved successfully",
+        data: stats
       };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Something went wrong",
-      };
+    } catch (error) {
+      return this._handleServiceError(error, "Failed to get screen statistics");
     }
   }
 
   async updateScreen(
     screenId: string,
     updateData: UpdateScreenDto
-  ): Promise<ServiceResponse> {
+  ): Promise<ServiceResponse<IScreen>> {
     try {
-      if (!screenId) {
+      this._validateScreenId(screenId);
+      this._validateUpdateScreenData(updateData);
+
+      // Check if screen exists
+      const currentScreen = await this.screenRepository.getScreenById(screenId);
+      if (!currentScreen) {
         return {
           success: false,
-          message: "Screen ID is required",
+          message: "Screen not found"
         };
       }
 
-      if (updateData.totalSeats && updateData.totalSeats <= 0) {
-        return {
-          success: false,
-          message: "Total seats must be greater than 0",
-        };
-      }
-
-      if (updateData.layout) {
-        if (
-          !updateData.layout.advancedLayout ||
-          !updateData.layout.advancedLayout.rows
-        ) {
-          return {
-            success: false,
-            message: "Advanced layout with rows is required",
-          };
-        }
-      }
-
+      // Check name uniqueness if name is being updated
       if (updateData.name) {
-        const currentScreen = await this.screenRepo.findById(screenId);
-        if (!currentScreen) {
-          return {
-            success: false,
-            message: "Screen not found",
-          };
-        }
-
-        const theaterIdString = currentScreen.theaterId._id.toString();
-
-        const exists = await this.screenRepo.existsByNameAndTheater(
+        const theaterIdString = this._extractTheaterIdString(currentScreen.theaterId);
+        const nameExists = await this.screenRepository.checkScreenExistsByNameAndTheater(
           updateData.name,
           theaterIdString,
           screenId
         );
 
-        if (exists) {
+        if (nameExists) {
           return {
             success: false,
-            message: "Screen with this name already exists in this theater",
+            message: "Screen with this name already exists in this theater"
           };
         }
       }
 
-      const screen = await this.screenRepo.update(screenId, updateData);
-
-      if (!screen) {
-        return {
-          success: false,
-          message: "Screen not found or update failed",
-        };
-      }
+      const updatedScreen = await this.screenRepository.updateScreen(screenId, updateData);
 
       return {
         success: true,
         message: "Screen updated successfully",
-        data: screen,
+        data: updatedScreen
       };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Something went wrong",
-      };
+    } catch (error) {
+      return this._handleServiceError(error, "Failed to update screen");
     }
   }
 
-  async toggleScreenStatus(
-    screenId: string
-  ): Promise<ServiceResponse> {
+  async toggleScreenStatus(screenId: string): Promise<ServiceResponse<IScreen>> {
     try {
-      if (!screenId) {
+      this._validateScreenId(screenId);
+
+      const screen = await this.screenRepository.toggleScreenStatus(screenId);
+
+      return {
+        success: true,
+        message: `Screen ${screen.isActive ? "activated" : "deactivated"} successfully`,
+        data: screen
+      };
+    } catch (error) {
+      return this._handleServiceError(error, "Failed to toggle screen status");
+    }
+  }
+
+  async deleteScreen(screenId: string): Promise<ServiceResponse<void>> {
+    try {
+      this._validateScreenId(screenId);
+
+      const deletedScreen = await this.screenRepository.deleteScreen(screenId);
+      
+      // Update theater screen count
+      const theaterIdString = this._extractTheaterIdString(deletedScreen.theaterId);
+      await this.theaterRepository.decrementTheaterScreenCount(theaterIdString);
+
+      return {
+        success: true,
+        message: "Screen deleted successfully"
+      };
+    } catch (error) {
+      return this._handleServiceError(error, "Failed to delete screen");
+    }
+  }
+
+  async deleteScreensByTheaterId(theaterId: string): Promise<ServiceResponse<{ deletedCount: number }>> {
+    try {
+      this._validateTheaterId(theaterId);
+
+      const deletedCount = await this.screenRepository.deleteScreensByTheaterId(theaterId);
+
+      if (deletedCount === 0) {
         return {
           success: false,
-          message: "Screen ID is required",
-        };
-      }
-
-      const screen = await this.screenRepo.toggleStatus(screenId);
-
-      if (!screen) {
-        return {
-          success: false,
-          message: "Screen not found",
+          message: "No screens found for this theater"
         };
       }
 
       return {
         success: true,
-        message: `Screen ${
-          screen.isActive ? "activated" : "deactivated"
-        } successfully`,
-        data: screen,
+        message: `${deletedCount} screens deleted successfully`,
+        data: { deletedCount }
       };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Something went wrong",
-      };
+    } catch (error) {
+      return this._handleServiceError(error, "Failed to delete screens by theater ID");
     }
   }
 
@@ -528,16 +331,16 @@ export class ScreenService implements IScreenService {
     name: string,
     theaterId: string,
     excludedId?: string
-  ): Promise<ServiceResponse> {
+  ): Promise<ServiceResponse<ScreenExistsDto>> {
     try {
       if (!name || !theaterId) {
         return {
           success: false,
-          message: "Name and theater ID are required",
+          message: "Name and theater ID are required"
         };
       }
 
-      const exists = await this.screenRepo.existsByNameAndTheater(
+      const exists = await this.screenRepository.checkScreenExistsByNameAndTheater(
         name,
         theaterId,
         excludedId
@@ -546,102 +349,170 @@ export class ScreenService implements IScreenService {
       return {
         success: true,
         message: "Check completed successfully",
-        data: { exists },
+        data: { exists }
       };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Something went wrong",
-      };
+    } catch (error) {
+      return this._handleServiceError(error, "Failed to check screen existence");
     }
   }
 
   async getScreenByTheaterAndName(
     theaterId: string,
     name: string
-  ): Promise<ServiceResponse> {
+  ): Promise<ServiceResponse<IScreen>> {
     try {
       if (!theaterId || !name) {
         return {
           success: false,
-          message: "Theater ID and name are required",
+          message: "Theater ID and name are required"
         };
       }
 
-      const screen = await this.screenRepo.findByTheaterIdAndName(
-        theaterId,
-        name
-      );
+      const screen = await this.screenRepository.getScreenByTheaterIdAndName(theaterId, name);
 
       if (!screen) {
         return {
           success: false,
-          message: "Screen not found",
+          message: "Screen not found"
         };
       }
 
       return {
         success: true,
         message: "Screen retrieved successfully",
-        data: screen,
+        data: screen
       };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Something went wrong",
-      };
+    } catch (error) {
+      return this._handleServiceError(error, "Failed to get screen by theater and name");
     }
   }
 
-  async getActiveScreensByTheaterId(
-    theaterId: string
-  ): Promise<ServiceResponse> {
+  async getScreenCountByTheaterId(theaterId: string): Promise<ServiceResponse<ScreenCountDto>> {
     try {
-      if (!theaterId) {
-        return {
-          success: false,
-          message: "Theater ID is required",
-        };
-      }
+      this._validateTheaterId(theaterId);
 
-      const screens = await this.screenRepo.findActiveByTheaterId(theaterId);
-
-      return {
-        success: true,
-        message: "Active screens retrieved successfully",
-        data: screens,
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Something went wrong",
-      };
-    }
-  }
-
-  async getScreenCountByTheaterId(
-    theaterId: string
-  ): Promise<ServiceResponse> {
-    try {
-      if (!theaterId) {
-        return {
-          success: false,
-          message: "Theater ID is required",
-        };
-      }
-
-      const count = await this.screenRepo.countByTheaterId(theaterId);
+      const count = await this.screenRepository.countScreensByTheaterId(theaterId);
 
       return {
         success: true,
         message: "Screen count retrieved successfully",
-        data: { count },
+        data: { count }
       };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message || "Something went wrong",
-      };
+    } catch (error) {
+      return this._handleServiceError(error, "Failed to get screen count");
     }
+  }
+
+  // Private validation methods
+  private _validateScreenId(screenId: string): void {
+    if (!screenId) {
+      throw new Error("Screen ID is required");
+    }
+  }
+
+  private _validateTheaterId(theaterId: string): void {
+    if (!theaterId) {
+      throw new Error("Theater ID is required");
+    }
+  }
+
+  private _validateCreateScreenData(screenData: CreateScreenDto): void {
+    if (!screenData.theater?._id) {
+      throw new Error("Theater ID is required");
+    }
+    if (screenData.totalSeats <= 0) {
+      throw new Error("Total seats must be greater than 0");
+    }
+  }
+
+  private _validateUpdateScreenData(updateData: UpdateScreenDto): void {
+    if (updateData.totalSeats && updateData.totalSeats <= 0) {
+      throw new Error("Total seats must be greater than 0");
+    }
+    if (updateData.layout && !updateData.layout.advancedLayout?.rows) {
+      throw new Error("Advanced layout with rows is required");
+    }
+  }
+
+  private _isTheaterInactive(screen: IScreen): boolean {
+    return typeof screen.theaterId === "object" && 
+           "isActive" in screen.theaterId && 
+           !screen.theaterId.isActive;
+  }
+
+  private _extractTheaterIdString(theaterId: any): string {
+    if (typeof theaterId === 'string') return theaterId;
+    if (typeof theaterId === 'object' && theaterId._id) return theaterId._id.toString();
+    return theaterId.toString();
+  }
+
+  private _calculateScreenStatistics(screens: IScreen[]): ScreenStatsDto {
+    const totalScreens = screens.length;
+    const activeScreens = screens.filter(screen => screen.isActive).length;
+    const inactiveScreens = totalScreens - activeScreens;
+    const totalSeats = screens.reduce((sum, screen) => sum + screen.totalSeats, 0);
+
+    const seatTypeDistribution = { Normal: 0, Premium: 0, VIP: 0 };
+    let totalRevenuePotential = 0;
+
+    screens.forEach(screen => {
+      if (screen.layout?.advancedLayout?.rows) {
+        screen.layout.advancedLayout.rows.forEach((row: any) => {
+          row.seats.forEach((seat: any) => {
+            if (seatTypeDistribution[seat.type as keyof typeof seatTypeDistribution] !== undefined) {
+              seatTypeDistribution[seat.type as keyof typeof seatTypeDistribution]++;
+            }
+            totalRevenuePotential += seat.price || 0;
+          });
+        });
+      }
+    });
+
+    const avgSeatsPerScreen = totalScreens > 0 ? Math.round(totalSeats / totalScreens) : 0;
+
+    const screenTypeDistribution: Record<string, number> = {};
+    screens.forEach(screen => {
+      const type = screen.screenType || "Standard";
+      screenTypeDistribution[type] = (screenTypeDistribution[type] || 0) + 1;
+    });
+
+    const featuresDistribution: Record<string, number> = {};
+    screens.forEach(screen => {
+      if (screen.features?.length) {
+        screen.features.forEach(feature => {
+          featuresDistribution[feature] = (featuresDistribution[feature] || 0) + 1;
+        });
+      }
+    });
+
+    const popularFeatures = Object.entries(featuresDistribution)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 5)
+      .reduce((obj, [key, val]) => ({ ...obj, [key]: val }), {});
+
+    return {
+      overview: {
+        totalScreens,
+        activeScreens,
+        inactiveScreens,
+        totalSeats,
+        avgSeatsPerScreen
+      },
+      seatDistribution: {
+        byType: seatTypeDistribution,
+        totalRevenuePotential: Math.round(totalRevenuePotential)
+      },
+      screenTypes: screenTypeDistribution,
+      popularFeatures,
+      utilizationRate: totalScreens > 0 ? Math.round((activeScreens / totalScreens) * 100) : 0
+    };
+  }
+
+  private _handleServiceError(error: unknown, defaultMessage: string): ServiceResponse<never> {
+    const message = error instanceof Error ? error.message : defaultMessage;
+    return {
+      success: false,
+      message
+    };
   }
 }

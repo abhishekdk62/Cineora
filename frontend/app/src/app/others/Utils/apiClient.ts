@@ -1,7 +1,8 @@
 import axios from "axios";
+import AUTH_ROUTES from "../constants/authConstants/authConstants";
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -33,7 +34,7 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (originalRequest.url?.includes('/auth/refresh')) {
+    if (originalRequest.url?.includes(AUTH_ROUTES.REFRESH)) {
       return Promise.reject(error);
     }
 
@@ -53,7 +54,7 @@ apiClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshResponse = await apiClient.post('/auth/refresh');
+        const refreshResponse = await apiClient.post(AUTH_ROUTES.REFRESH);
         
         processQueue(null);
         

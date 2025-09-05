@@ -1,4 +1,4 @@
-export interface CreateTheaterDto {
+export interface CreateTheaterDTO {
   name: string;
   address: string;
   city: string;
@@ -10,9 +10,13 @@ export interface CreateTheaterDto {
   };
   phone: string;
   facilities?: string[];
+  screens?: number;
+  isActive?: boolean;
+  isRejected?: boolean;
+  isVerified?: boolean;
 }
 
-export interface UpdateTheaterDto {
+export interface UpdateTheaterDTO {
   name?: string;
   address?: string;
   city?: string;
@@ -24,64 +28,43 @@ export interface UpdateTheaterDto {
   };
   phone?: string;
   facilities?: string[];
-}
-
-
-
-export interface TheaterResponseDto {
-  _id?: unknown;  
-  id?: string;
-  name: string;
-  address: string;
-  city: string;
-  state: string;
-  pincode: string;
-  location: {
-    type: "Point";
-    coordinates: [number, number];
-  };
-  phone: string;
-  facilities?: string[];
+  screens?: number;
   isActive?: boolean;
+  isRejected?: boolean;
   isVerified?: boolean;
-  ownerId?: string | object;
-  createdAt?: Date;
-  updatedAt?: Date;
 }
-
-
-export interface PaginatedTheatersDto {
-  theaters: TheaterResponseDto[];
-  total: number;
-  totalPages: number;
-  currentPage: number;
-  hasNextPage: boolean;
-  hasPrevPage: boolean;
-}
-
-
-
-export interface TheatersByOwnerDto {
-  theaters: TheaterResponseDto[];
-  totalFiltered: number;
-  activeAll: number;
-  inactiveAll: number;
-}
-
 
 export interface TheaterFilters {
-  status?: string;
-  isActive?: boolean | string;
-  isVerified?: boolean | string;
+  page?: string | number;
+  limit?: string | number;
+  status?: "active" | "inactive";
+  isActive?: string | boolean;
+  isVerified?: string | boolean;
   city?: string;
   state?: string;
   search?: string;
-  page?: number | string;
-  limit?: number | string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
-  latitude?: number | string;
-  longitude?: number | string;
-  facilities?:string[];
-  maxDistance?: number | string;
+  latitude?: string | number;
+  longitude?: string | number;
+  facilities?: string[];
+}
+
+export interface TheaterPaginationDTO {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface TheaterListResponseDTO {
+  theaters: any[];
+  pagination: TheaterPaginationDTO;
+}
+
+export interface TheaterStatsDTO {
+  totalFiltered: number;
+  inactiveAll: number;
+  activeAll: number;
+  totalAll: number;
 }

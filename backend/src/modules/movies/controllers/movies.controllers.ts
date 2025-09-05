@@ -1,242 +1,254 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { createResponse } from "../../../utils/createResponse";
 import { IMovieService } from "../interfaces/movies.service.interface";
 import {
   CreateMovieDto,
+  UpdateMovieDto,
   MovieFiltersDto,
   PaginationQueryDto,
-  UpdateMovieDto,
-  UpdateMovieParamsDto,
+  MovieParamsDto,
 } from "../dtos/dtos";
+import { StatusCodes } from "../../../utils/statuscodes";
+import { MOVIE_MESSAGES } from "../../../utils/messages.constants";
 
 export class MoviesController {
   constructor(private readonly movieService: IMovieService) {}
 
-  async getMoviesWithFilters(req: Request, res: Response): Promise<any> {
+  async getMoviesWithFilters(req: Request, res: Response): Promise<Response> {
     try {
-      const filters: MovieFiltersDto = req.query as unknown as MovieFiltersDto;
+      const filters: MovieFiltersDto = this.mapQueryToMovieFilters(req.query);
 
       const result = await this.movieService.getMoviesWithFilters(filters);
 
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          data: result.movies,
-          meta: {
-            pagination: {
-              currentPage: result.currentPage,
-              totalPages: result.totalPages,
-              total: result.total,
-              limit: filters.limit,
-              hasNextPage: result.hasNextPage,
-              hasPrevPage: result.hasPrevPage,
-            },
-            filters: {
-              applied: Object.keys(filters).filter(
-                (key) =>
-                  filters[key as keyof typeof filters] !== undefined &&
-                  filters[key as keyof typeof filters] !== null &&
-                  filters[key as keyof typeof filters] !== ""
-              ).length,
-            },
-          },
-        })
-      );
-    } catch (err) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: err.message,
-        })
-      );
+      return this._sendSuccessResponse(res, StatusCodes.OK, {
+        data: result.movies,
+        meta: this._buildPaginationMeta(result, filters),
+      });
+    } catch (error) {
+      return this._sendErrorResponse(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);
     }
   }
 
-  async addMovie(req: Request, res: Response): Promise<any> {
+  async addMovie(req: Request, res: Response): Promise<Response> {
     try {
-      const movieData: CreateMovieDto = req.body;
-
-      if (!movieData.title || !movieData.tmdbId) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "Title and TMDB ID are required",
-          })
-        );
-      }
+      const movieData: CreateMovieDto = this._mapBodyToCreateMovieDto(req.body);
 
       const result = await this.movieService.addMovie(movieData);
 
-      return res.status(201).json(
-        createResponse({
-          success: true,
-          data: result,
-          message: "Movie added successfully",
-        })
-      );
-    } catch (err: any) {
-      if (err.message.includes("already exists")) {
-        return res
-          .status(409)
-          .json(createResponse({ success: false, message: err.message }));
+      if (!result) {
+        return this._sendErrorResponse(
+          res, 
+          StatusCodes.BAD_REQUEST, 
+          MOVIE_MESSAGES.TITLE_TMDB_REQUIRED
+        );
       }
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: err.message,
-        })
-      );
+
+      return this._sendSuccessResponse(res, StatusCodes.CREATED, {
+        data: result,
+        message: MOVIE_MESSAGES.MOVIE_ADDED_SUCCESS,
+      });
+    } catch (error) {
+      return this._sendErrorResponse(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);
     }
   }
 
-  async getMovies(req: Request, res: Response): Promise<any> {
+  async getMovies(req: Request, res: Response): Promise<Response> {
     try {
-      const paginationQuery: PaginationQueryDto =
-        req.query as unknown as PaginationQueryDto;
+      const paginationQuery: PaginationQueryDto = this._mapQueryToPaginationDto(req.query);
 
       const result = await this.movieService.getMoviesPaginated(
         paginationQuery.page,
         paginationQuery.limit
       );
 
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          data: result.movies,
-          meta: {
-            pagination: {
-              currentPage: result.currentPage,
-              totalPages: result.totalPages,
-              total: result.total,
-              limit: paginationQuery.limit,
-              hasNextPage: result.hasNextPage,
-              hasPrevPage: result.hasPrevPage,
-            },
-          },
-        })
-      );
-    } catch (err) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: err.message,
-        })
-      );
+      return this._sendSuccessResponse(res, StatusCodes.OK, {
+        data: result.movies,
+        meta: this._buildSimplePaginationMeta(result, paginationQuery),
+      });
+    } catch (error) {
+      return this._sendErrorResponse(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);
     }
   }
 
-  async toggleMovieStatus(req: Request, res: Response): Promise<any> {
+  async toggleMovieStatus(req: Request, res: Response): Promise<Response> {
     try {
-      const { movieId } = req.params;
+      const { movieId } = this._mapParamsToMovieParams(req.params);
 
       const movie = await this.movieService.toggleMovieStatus(movieId);
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          data: movie,
-          message: "Movie status updated successfully",
-        })
-      );
-    } catch (err) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: err.message,
-        })
-      );
+
+      if (!movie) {
+        return this._sendErrorResponse(
+          res, 
+          StatusCodes.NOT_FOUND, 
+          MOVIE_MESSAGES.MOVIE_NOT_FOUND
+        );
+      }
+
+      return this._sendSuccessResponse(res, StatusCodes.OK, {
+        data: movie,
+        message: MOVIE_MESSAGES.MOVIE_STATUS_UPDATED,
+      });
+    } catch (error) {
+      return this._sendErrorResponse(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);
     }
   }
 
- async updateMovie(req: Request, res: Response) { 
-  try {
-    const { movieId } = req.params;
-    if (!movieId) {
-      return res.status(400).json({ error: "Movie ID is required" });
-    }
-
-    const movieData: UpdateMovieDto = req.body;
-
-    const updated = await this.movieService.updateMovie(
-      movieId, 
-      movieData
-    );
-
-    if (!updated) {
-      return res
-        .status(404)
-        .json(createResponse({ success: false, message: "Movie not found" }));
-    }
-
-    return res.status(200).json(
-      createResponse({
-        success: true,
-        data: updated,
-        message: "Movie updated successfully",
-      })
-    );
-  } catch (err) {
-    return res.status(500).json(
-      createResponse({
-        success: false,
-        message: err.message,
-      })
-    );
-  }
-}
-
-
-  async getMovieById(req: Request, res: Response): Promise<any> {
+  async updateMovie(req: Request, res: Response): Promise<Response> {
     try {
-      const { movieId } = req.params;
+      const { movieId } = this._mapParamsToMovieParams(req.params);
+      
+      if (!movieId) {
+        return this._sendErrorResponse(
+          res, 
+          StatusCodes.BAD_REQUEST, 
+          "Movie ID is required"
+        );
+      }
+
+      const movieData: UpdateMovieDto = this._mapBodyToUpdateMovieDto(req.body);
+
+      const updated = await this.movieService.updateMovie(movieId, movieData);
+
+      if (!updated) {
+        return this._sendErrorResponse(
+          res, 
+          StatusCodes.NOT_FOUND, 
+          MOVIE_MESSAGES.MOVIE_NOT_FOUND
+        );
+      }
+
+      return this._sendSuccessResponse(res, StatusCodes.OK, {
+        data: updated,
+        message: MOVIE_MESSAGES.MOVIE_UPDATED_SUCCESS,
+      });
+    } catch (error) {
+      return this._sendErrorResponse(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+    }
+  }
+
+  async getMovieById(req: Request, res: Response): Promise<Response> {
+    try {
+      const { movieId } = this._mapParamsToMovieParams(req.params);
 
       const movie = await this.movieService.getMovieById(movieId);
 
       if (!movie) {
-        return res
-          .status(404)
-          .json(createResponse({ success: false, message: "Movie not found" }));
+        return this._sendErrorResponse(
+          res, 
+          StatusCodes.NOT_FOUND, 
+          MOVIE_MESSAGES.MOVIE_NOT_FOUND
+        );
       }
 
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          data: movie,
-          message: "Movie found",
-        })
-      );
-    } catch (err) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: err.message,
-        })
-      );
+      return this._sendSuccessResponse(res, StatusCodes.OK, {
+        data: movie,
+        message: MOVIE_MESSAGES.MOVIE_FOUND,
+      });
+    } catch (error) {
+      return this._sendErrorResponse(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);
     }
   }
 
-  async deleteMovie(req: Request, res: Response): Promise<any> {
+  async deleteMovie(req: Request, res: Response): Promise<Response> {
     try {
-      const { movieId } = req.params;
+      const { movieId } = this._mapParamsToMovieParams(req.params);
 
       const success = await this.movieService.deleteMovie(movieId);
+
       if (!success) {
-        return res
-          .status(404)
-          .json(createResponse({ success: false, message: "Movie not found" }));
+        return this._sendErrorResponse(
+          res, 
+          StatusCodes.NOT_FOUND, 
+          MOVIE_MESSAGES.MOVIE_NOT_FOUND
+        );
       }
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          message: "Movie deleted successfully",
-        })
-      );
-    } catch (err) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: err.message,
-        })
-      );
+
+      return this._sendSuccessResponse(res, StatusCodes.OK, {
+        message: MOVIE_MESSAGES.MOVIE_DELETED_SUCCESS,
+      });
+    } catch (error) {
+      return this._sendErrorResponse(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);
     }
+  }
+
+  // Private helper methods for request/response mapping
+  private mapQueryToMovieFilters(query: any): MovieFiltersDto {
+    return query as MovieFiltersDto;
+  }
+
+  private _mapQueryToPaginationDto(query: any): PaginationQueryDto {
+    return query as PaginationQueryDto;
+  }
+
+  private _mapBodyToCreateMovieDto(body: any): CreateMovieDto {
+    return body as CreateMovieDto;
+  }
+
+  private _mapBodyToUpdateMovieDto(body: any): UpdateMovieDto {
+    return body as UpdateMovieDto;
+  }
+
+  private _mapParamsToMovieParams(params: any): MovieParamsDto {
+    return params as MovieParamsDto;
+  }
+
+  private _buildPaginationMeta(result: any, filters: MovieFiltersDto) {
+    return {
+      pagination: {
+        currentPage: result.currentPage,
+        totalPages: result.totalPages,
+        total: result.total,
+        limit: filters.limit,
+        hasNextPage: result.hasNextPage,
+        hasPrevPage: result.hasPrevPage,
+      },
+      filters: {
+        applied: Object.keys(filters).filter(
+          (key) =>
+            filters[key as keyof MovieFiltersDto] !== undefined &&
+            filters[key as keyof MovieFiltersDto] !== null &&
+            filters[key as keyof MovieFiltersDto] !== ""
+        ).length,
+      },
+    };
+  }
+
+  private _buildSimplePaginationMeta(result: any, paginationQuery: PaginationQueryDto) {
+    return {
+      pagination: {
+        currentPage: result.currentPage,
+        totalPages: result.totalPages,
+        total: result.total,
+        limit: paginationQuery.limit,
+        hasNextPage: result.hasNextPage,
+        hasPrevPage: result.hasPrevPage,
+      },
+    };
+  }
+
+  private _sendSuccessResponse(
+    res: Response, 
+    statusCode: number, 
+    payload: { data?: any; message?: string; meta?: any }
+  ): Response {
+    return res.status(statusCode).json(
+      createResponse({
+        success: true,
+        ...payload,
+      })
+    );
+  }
+
+  private _sendErrorResponse(
+    res: Response, 
+    statusCode: number, 
+    message: string
+  ): Response {
+    return res.status(statusCode).json(
+      createResponse({
+        success: false,
+        message,
+      })
+    );
   }
 }

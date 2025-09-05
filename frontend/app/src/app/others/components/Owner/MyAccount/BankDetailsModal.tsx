@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Lexend } from "next/font/google";
 import { X, Save } from "lucide-react";
 import { updateOwnerProfile } from "@/app/others/services/ownerServices/ownerServices";
@@ -29,6 +29,7 @@ interface BankDetailsModalProps {
   setProfile: React.Dispatch<React.SetStateAction<UserProfile | null>>;
   saving: boolean;
   setSaving: React.Dispatch<React.SetStateAction<boolean>>;
+  
 }
 
 const BankDetailsModal: React.FC<BankDetailsModalProps> = ({
@@ -41,13 +42,26 @@ const BankDetailsModal: React.FC<BankDetailsModalProps> = ({
   saving,
   setSaving,
 }) => {
+  // Prefill bank details when modal opens and profile data is available
+  useEffect(() => {
+    if (show && profile) {
+      setBankDetails({
+        bankName: profile.bankName || "",
+        accountNumber: profile.accountNumber || "",
+        ifsc: profile.ifsc || "",
+        accountHolder: profile.accountHolder || profile.ownerName || "",
+      });
+    }
+  }, [show, profile, setBankDetails]);
+
   const handleBankSave = async () => {
     if (!profile) return;
-
+    
     if (
       !bankDetails.bankName.trim() ||
       !bankDetails.accountNumber.trim() ||
-      !bankDetails.ifsc.trim()
+      !bankDetails.ifsc.trim() ||
+      !bankDetails.accountHolder.trim()
     ) {
       toast.error("Please fill all bank details fields");
       return;
@@ -75,7 +89,10 @@ const BankDetailsModal: React.FC<BankDetailsModalProps> = ({
           if (!prev) return prev;
           return {
             ...prev,
-            ...bankDetails,
+            bankName: bankDetails.bankName,
+            accountNumber: bankDetails.accountNumber,
+            ifsc: bankDetails.ifsc,
+            accountHolder: bankDetails.accountHolder,
           };
         });
 
@@ -92,6 +109,22 @@ const BankDetailsModal: React.FC<BankDetailsModalProps> = ({
     }
   };
 
+  // Reset form when modal closes
+  const handleClose = () => {
+    if (!saving) {
+      // Reset to original values when closing without saving
+      if (profile) {
+        setBankDetails({
+          bankName: profile.bankName || "",
+          accountNumber: profile.accountNumber || "",
+          ifsc: profile.ifsc || "",
+          accountHolder: profile.accountHolder || profile.ownerName || "",
+        });
+      }
+      onClose();
+    }
+  };
+
   if (!show) return null;
 
   return (
@@ -102,7 +135,7 @@ const BankDetailsModal: React.FC<BankDetailsModalProps> = ({
             {profile?.bankName ? "Edit" : "Add"} Bank Details
           </h2>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             disabled={saving}
             className="text-gray-400 hover:text-white transition-colors disabled:opacity-50"
           >
@@ -111,6 +144,27 @@ const BankDetailsModal: React.FC<BankDetailsModalProps> = ({
         </div>
 
         <div className="space-y-4">
+          <div>
+            <label
+              className={`${lexendSmall.className} text-gray-400 text-sm block mb-2`}
+            >
+              Account Holder Name *
+            </label>
+            <input
+              type="text"
+              value={bankDetails.accountHolder}
+              onChange={(e) =>
+                setBankDetails((prev) => ({
+                  ...prev,
+                  accountHolder: e.target.value,
+                }))
+              }
+              disabled={saving}
+              placeholder="Enter account holder name"
+              className={`${lexendMedium.className} w-full px-4 py-3 bg-white/10 border border-gray-500/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-white/50 focus:bg-white/15 transition-all duration-300 disabled:opacity-50`}
+            />
+          </div>
+
           <div>
             <label
               className={`${lexendSmall.className} text-gray-400 text-sm block mb-2`}
@@ -173,12 +227,15 @@ const BankDetailsModal: React.FC<BankDetailsModalProps> = ({
               maxLength={11}
               className={`${lexendMedium.className} w-full px-4 py-3 bg-white/10 border border-gray-500/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-white/50 focus:bg-white/15 transition-all duration-300 disabled:opacity-50`}
             />
+            <p className={`${lexendSmall.className} text-gray-500 text-xs mt-1`}>
+              Current: {bankDetails.ifsc.length}/11 characters
+            </p>
           </div>
         </div>
 
         <div className="flex gap-3 mt-6 justify-end">
           <button
-            onClick={onClose}
+            onClick={handleClose}
             disabled={saving}
             className={`${lexendMedium.className} bg-gray-600 text-white px-6 py-3 rounded-xl hover:bg-gray-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed`}
           >

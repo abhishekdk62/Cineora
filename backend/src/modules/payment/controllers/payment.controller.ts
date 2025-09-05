@@ -1,222 +1,392 @@
 import { Request, Response } from "express";
-import { PaymentService } from "../services/payment.service";
 import { IPaymentService } from "../interfaces/payment.service.interface";
 import {
-  InitiatePaymentDto,
-  PaymentCallbackDto,
-  RefundPaymentDto,
+  InitiatePaymentDTO,
+  PaymentCallbackDTO,
+  RefundPaymentDTO,
+  CreateRazorpayOrderDTO,
+  VerifyRazorpayPaymentDTO
 } from "../dtos/dto";
+import { INotificationService } from "../../notification/interfaces/notification.service.interface";
+import { StatusCodes } from "../../../utils/statuscodes";
+import { PAYMENT_MESSAGES } from "../../../utils/messages.constants";
+import { createResponse } from "../../../utils/createResponse";
 
 export class PaymentController {
-  constructor(private readonly paymentService: IPaymentService) {}
+  constructor(
+    private readonly _paymentService: IPaymentService,
+    private readonly _notificationService: INotificationService
+  ) {}
 
-  async initiatePayment(req: Request, res: Response): Promise<any> {
+  async initiatePayment(req: Request, res: Response): Promise<void> {
     try {
-      const paymentDto: InitiatePaymentDto = req.body;
-
-      const result = await this.paymentService.initiatePayment(paymentDto);
+      const paymentData: InitiatePaymentDTO = req.body;
+      
+      const result = await this._paymentService.initiatePayment(paymentData);
 
       if (result.success) {
-        res.status(201).json(result);
+        res.status(StatusCodes.CREATED).json(
+          createResponse({
+            success: true,
+            message: result.message,
+            data: result.data,
+          })
+        );
       } else {
-        res.status(400).json(result);
+        res.status(StatusCodes.BAD_REQUEST).json(
+          createResponse({
+            success: false,
+            message: result.message,
+          })
+        );
       }
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
-    }
-  }
-
-  async paymentCallback(req: Request, res: Response): Promise<any> {
-    try {
-      const { paymentId } = req.params;
-      const gatewayResponse = req.body;
-
-      const result = await this.paymentService.processPaymentCallback(
-        paymentId,
-        gatewayResponse
+    } catch (error: unknown) {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
+        createResponse({
+          success: false,
+          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+        })
       );
-
-      if (result.success) {
-        res.status(200).json(result);
-      } else {
-        res.status(400).json(result);
-      }
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
     }
   }
 
-  async getPaymentById(req: Request, res: Response): Promise<any> {
+  async createRazorpayOrder(req: Request, res: Response): Promise<void> {
+    try {
+      const orderData: CreateRazorpayOrderDTO = {
+        amount: req.body.amount,
+        currency: req.body.currency || "INR",
+      };
+
+      const result = await this._paymentService.createRazorpayOrder(orderData);
+
+      if (result.success) {
+        res.status(StatusCodes.CREATED).json(
+          createResponse({
+            success: true,
+            message: result.message,
+            data: result.data,
+          })
+        );
+      } else {
+        res.status(StatusCodes.BAD_REQUEST).json(
+          createResponse({
+            success: false,
+            message: result.message,
+          })
+        );
+      }
+    } catch (error: unknown) {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
+        createResponse({
+          success: false,
+          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+        })
+      );
+    }
+  }
+
+  async verifyRazorpayPayment(req: Request, res: Response): Promise<void> {
+    try {
+      const verificationData: VerifyRazorpayPaymentDTO = {
+        razorpay_payment_id: req.body.razorpay_payment_id,
+        razorpay_order_id: req.body.razorpay_order_id,
+        razorpay_signature: req.body.razorpay_signature,
+        bookingData: req.body.bookingData,
+      };
+
+      const result = await this._paymentService.verifyRazorpayPayment(verificationData);
+
+      if (result.data && result.data.userId) {
+        const notificationData = {
+          amount: result.data.amount,
+          status: result.success ? "completed" : "failed",
+          paymentMethod: "razorpay",
+        };
+
+     
+      }
+
+      if (result.success) {
+        res.status(StatusCodes.OK).json(
+          createResponse({
+            success: true,
+            message: result.message,
+            data: result.data,
+          })
+        );
+      } else {
+        res.status(StatusCodes.BAD_REQUEST).json(
+          createResponse({
+            success: false,
+            message: result.message,
+          })
+        );
+      }
+    } catch (error: unknown) {
+      console.log(error);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
+        createResponse({
+          success: false,
+          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+        })
+      );
+    }
+  }
+
+  async processPaymentCallback(req: Request, res: Response): Promise<void> {
     try {
       const { paymentId } = req.params;
-      const result = await this.paymentService.getPaymentById(paymentId);
+      const gatewayResponse: PaymentCallbackDTO = req.body;
 
-      if (result.success) {
-        res.status(200).json(result);
-      } else {
-        res.status(404).json(result);
-      }
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
+      const result = await this._paymentService.processPaymentCallback(paymentId, gatewayResponse);
+
+      const statusCode = result.success ? StatusCodes.OK : StatusCodes.BAD_REQUEST;
+      res.status(statusCode).json(
+        createResponse({
+          success: result.success,
+          message: result.message,
+          data: result.data,
+        })
+      );
+    } catch (error: unknown) {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
+        createResponse({
+          success: false,
+          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+        })
+      );
     }
   }
 
-  async getUserPayments(req: Request, res: Response): Promise<any> {
+  async getPaymentById(req: Request, res: Response): Promise<void> {
+    try {
+      const { paymentId } = req.params;
+      const result = await this._paymentService.getPaymentById(paymentId);
+
+      const statusCode = result.success ? StatusCodes.OK : StatusCodes.NOT_FOUND;
+      res.status(statusCode).json(
+        createResponse({
+          success: result.success,
+          message: result.message,
+          data: result.data,
+        })
+      );
+    } catch (error: unknown) {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
+        createResponse({
+          success: false,
+          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+        })
+      );
+    }
+  }
+
+  async getUserPayments(req: Request, res: Response): Promise<void> {
     try {
       const { userId } = req.params;
-      const result = await this.paymentService.getUserPayments(userId);
+      const result = await this._paymentService.getUserPayments(userId);
 
-      res.status(200).json(result);
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
-    }
-  }
-
-  async refundPayment(req: Request, res: Response): Promise<any> {
-    try {
-      const { paymentId } = req.params;
-      const { refundAmount, refundReason }: RefundPaymentDto = req.body;
-
-      const result = await this.paymentService.refundPayment(
-        paymentId,
-        refundAmount,
-        refundReason
+      const statusCode = result.success ? StatusCodes.OK : StatusCodes.BAD_REQUEST;
+      res.status(statusCode).json(
+        createResponse({
+          success: result.success,
+          message: result.message,
+          data: result.data,
+        })
       );
-
-      if (result.success) {
-        res.status(200).json(result);
-      } else {
-        res.status(400).json(result);
-      }
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
+    } catch (error: unknown) {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
+        createResponse({
+          success: false,
+          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+        })
+      );
     }
   }
 
-  async createRazorpayOrder(req: Request, res: Response): Promise<any> {
-    try {
-      const { amount, currency } = req.body;
-
-      const result = await this.paymentService.createRazorpayOrder({
-        amount,
-        currency: currency || "INR",
-      });
-
-      if (result.success) {
-        res.status(201).json(result);
-      } else {
-        res.status(400).json(result);
-      }
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
-    }
-  }
-
-  async verifyRazorpayPayment(req: Request, res: Response): Promise<any> {
-    try {
-      const {
-        razorpay_payment_id,
-        razorpay_order_id,
-        razorpay_signature,
-        bookingData,
-      } = req.body;
-      const result = await this.paymentService.verifyRazorpayPayment({
-        razorpay_payment_id,
-        razorpay_order_id,
-        razorpay_signature,
-        bookingData,
-      });
-      if (result.success) {
-        res.status(200).json(result);
-      } else {
-        console.log(result);
-
-        res.status(400).json(result);
-      }
-    } catch (error: any) {
-      console.log(error);
-
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
-    }
-  }
-
-  async cancelPayment(req: Request, res: Response): Promise<any> {
+  async refundPayment(req: Request, res: Response): Promise<void> {
     try {
       const { paymentId } = req.params;
-      const result = await this.paymentService.cancelPayment(paymentId);
+      const { refundAmount, refundReason } = req.body;
 
-      if (result.success) {
-        res.status(200).json(result);
-      } else {
-        res.status(400).json(result);
-      }
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
+      const result = await this._paymentService.refundPayment(paymentId, refundAmount, refundReason);
+
+      const statusCode = result.success ? StatusCodes.OK : StatusCodes.BAD_REQUEST;
+      res.status(statusCode).json(
+        createResponse({
+          success: result.success,
+          message: result.message,
+          data: result.data,
+        })
+      );
+    } catch (error: unknown) {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
+        createResponse({
+          success: false,
+          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+        })
+      );
     }
   }
 
-  async verifyPayment(req: Request, res: Response): Promise<any> {
+  async getPaymentsByBooking(req: Request, res: Response): Promise<void> {
+    try {
+      const { bookingId } = req.params;
+      const result = await this._paymentService.getPaymentsByBooking(bookingId);
+
+      const statusCode = result.success ? StatusCodes.OK : StatusCodes.BAD_REQUEST;
+      res.status(statusCode).json(
+        createResponse({
+          success: result.success,
+          message: result.message,
+          data: result.data,
+        })
+      );
+    } catch (error: unknown) {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
+        createResponse({
+          success: false,
+          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+        })
+      );
+    }
+  }
+
+  async cancelPayment(req: Request, res: Response): Promise<void> {
+    try {
+      const { paymentId } = req.params;
+      const result = await this._paymentService.cancelPayment(paymentId);
+
+      const statusCode = result.success ? StatusCodes.OK : StatusCodes.BAD_REQUEST;
+      res.status(statusCode).json(
+        createResponse({
+          success: result.success,
+          message: result.message,
+          data: result.data,
+        })
+      );
+    } catch (error: unknown) {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
+        createResponse({
+          success: false,
+          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+        })
+      );
+    }
+  }
+
+  async verifyPayment(req: Request, res: Response): Promise<void> {
     try {
       const { paymentId } = req.params;
       const { gatewayTransactionId } = req.body;
 
-      const result = await this.paymentService.verifyPayment(
-        paymentId,
-        gatewayTransactionId
-      );
+      const result = await this._paymentService.verifyPayment(paymentId, gatewayTransactionId);
 
-      if (result.success) {
-        res.status(200).json(result);
-      } else {
-        res.status(400).json(result);
-      }
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
+      const statusCode = result.success ? StatusCodes.OK : StatusCodes.BAD_REQUEST;
+      res.status(statusCode).json(
+        createResponse({
+          success: result.success,
+          message: result.message,
+          data: result.data,
+        })
+      );
+    } catch (error: unknown) {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
+        createResponse({
+          success: false,
+          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+        })
+      );
     }
   }
 
-  async getPaymentStatus(req: Request, res: Response): Promise<any> {
+  async getPaymentStatus(req: Request, res: Response): Promise<void> {
     try {
       const { paymentId } = req.params;
-      const result = await this.paymentService.getPaymentStatus(paymentId);
+      const result = await this._paymentService.getPaymentStatus(paymentId);
 
-      if (result.success) {
-        res.status(200).json(result);
-      } else {
-        res.status(404).json(result);
-      }
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal server error",
-      });
+      const statusCode = result.success ? StatusCodes.OK : StatusCodes.NOT_FOUND;
+      res.status(statusCode).json(
+        createResponse({
+          success: result.success,
+          message: result.message,
+          data: result.data,
+        })
+      );
+    } catch (error: unknown) {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
+        createResponse({
+          success: false,
+          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+        })
+      );
+    }
+  }
+
+  async retryPayment(req: Request, res: Response): Promise<void> {
+    try {
+      const { paymentId } = req.params;
+      const result = await this._paymentService.retryPayment(paymentId);
+
+      const statusCode = result.success ? StatusCodes.OK : StatusCodes.BAD_REQUEST;
+      res.status(statusCode).json(
+        createResponse({
+          success: result.success,
+          message: result.message,
+          data: result.data,
+        })
+      );
+    } catch (error: unknown) {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
+        createResponse({
+          success: false,
+          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+        })
+      );
+    }
+  }
+
+  async getFailedPayments(req: Request, res: Response): Promise<void> {
+    try {
+      const result = await this._paymentService.getFailedPayments();
+
+      const statusCode = result.success ? StatusCodes.OK : StatusCodes.BAD_REQUEST;
+      res.status(statusCode).json(
+        createResponse({
+          success: result.success,
+          message: result.message,
+          data: result.data,
+        })
+      );
+    } catch (error: unknown) {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
+        createResponse({
+          success: false,
+          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+        })
+      );
+    }
+  }
+
+  async getPendingPayments(req: Request, res: Response): Promise<void> {
+    try {
+      const result = await this._paymentService.getPendingPayments();
+
+      const statusCode = result.success ? StatusCodes.OK : StatusCodes.BAD_REQUEST;
+      res.status(statusCode).json(
+        createResponse({
+          success: result.success,
+          message: result.message,
+          data: result.data,
+        })
+      );
+    } catch (error: unknown) {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
+        createResponse({
+          success: false,
+          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+        })
+      );
     }
   }
 }

@@ -1,45 +1,25 @@
-import { IPayment } from "./payment.model.interface";
+import { IPayment, ITransactionDetails } from "./payment.model.interface";
+import { 
+  CreatePaymentDTO, 
+  UpdatePaymentDTO, 
+  PaymentStatusUpdateDTO, 
+  RefundPaymentDTO 
+} from "../dtos/dto";
 
 export interface IPaymentRepository {
-  create(paymentData: Partial<IPayment>): Promise<IPayment | null>;
-  
-  findById(id: string): Promise<IPayment | null>;
-  
-  findByPaymentId(paymentId: string): Promise<IPayment | null>;
-  
-  findByBookingId(bookingId: string): Promise<IPayment[]>;
-  
-  findByUserId(userId: string): Promise<IPayment[]>;
-  
-  updateById(
-    id: string,
-    updateData: Partial<IPayment>
-  ): Promise<IPayment | null>;
-  
-  updateByPaymentId(
-    paymentId: string,
-    updateData: Partial<IPayment>
-  ): Promise<IPayment | null>;
-  
-  updateStatus(
-    paymentId: string,
-    status: string,
-    transactionDetails?: any
-  ): Promise<IPayment | null>;
-  
-  findByStatus(status: string): Promise<IPayment[]>;
-  
-  findPendingPayments(): Promise<IPayment[]>;
-  
-  findFailedPayments(): Promise<IPayment[]>;
-  
-  createRefund(
-    paymentId: string,
-    refundAmount: number,
-    refundReason: string
-  ): Promise<IPayment | null>;
-  
-  findRefundablePayments(): Promise<IPayment[]>;
-  
-  deleteById(id: string): Promise<boolean>;
+  createPayment(paymentData: CreatePaymentDTO): Promise<IPayment>;
+  updatePaymentById(paymentId: string, updateData: UpdatePaymentDTO): Promise<IPayment>;
+  updatePaymentByPaymentId(paymentId: string, updateData: UpdatePaymentDTO): Promise<IPayment>;
+  updatePaymentStatus(paymentId: string, statusUpdate: PaymentStatusUpdateDTO): Promise<IPayment>;
+  createPaymentRefund(paymentId: string, refundData: RefundPaymentDTO): Promise<IPayment>;
+  deletePaymentById(paymentId: string): Promise<boolean>;
+
+  getPaymentById(paymentId: string): Promise<IPayment | null>;
+  getPaymentByPaymentId(paymentId: string): Promise<IPayment | null>;
+  getPaymentsByBookingId(bookingId: string): Promise<IPayment[]>;
+  getPaymentsByUserId(userId: string): Promise<IPayment[]>;
+  getPaymentsByStatus(status: string): Promise<IPayment[]>;
+  getPendingPayments(): Promise<IPayment[]>;
+  getFailedPayments(): Promise<IPayment[]>;
+  getRefundablePayments(): Promise<IPayment[]>;
 }

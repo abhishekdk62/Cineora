@@ -1,56 +1,62 @@
-export interface InitiatePaymentDto {
+import { ITransactionDetails } from "../interfaces/payment.model.interface";
+
+export interface CreatePaymentDTO {
+  paymentId: string;
+  bookingId: string;
+  userId: string;
+  amount: number;
+  currency: string;
+  paymentMethod: "upi" | "card" | "netbanking" | "wallet";
+  paymentGateway: "razorpay" | "stripe" | "paytm" | "phonepe";
+  status?: "pending" | "processing" | "completed" | "failed" | "cancelled" | "refunded";
+  transactionDetails?: ITransactionDetails;
+  initiatedAt?: Date;
+}
+
+export interface UpdatePaymentDTO {
+  amount?: number;
+  currency?: string;
+  paymentMethod?: "upi" | "card" | "netbanking" | "wallet";
+  paymentGateway?: "razorpay" | "stripe" | "paytm" | "phonepe";
+  status?: "pending" | "processing" | "completed" | "failed" | "cancelled" | "refunded";
+  transactionDetails?: ITransactionDetails;
+  completedAt?: Date;
+}
+
+export interface PaymentStatusUpdateDTO {
+  status: "pending" | "processing" | "completed" | "failed" | "cancelled" | "refunded";
+  transactionDetails?: ITransactionDetails;
+}
+
+export interface RefundPaymentDTO {
+  refundAmount: number;
+  refundReason: string;
+  refundTransactionId?: string;
+}
+
+export interface InitiatePaymentDTO {
   bookingId: string;
   userId: string;
   amount: number;
   currency?: string;
   paymentMethod: "upi" | "card" | "netbanking" | "wallet";
   paymentGateway: "razorpay" | "stripe" | "paytm" | "phonepe";
-  successUrl?: string;
-  failureUrl?: string;
 }
 
-export interface PaymentCallbackDto {
-  paymentId: string;
-  gatewayTransactionId: string;
-  status: "success" | "failure";
-  amount: number;
-  gatewayResponse: any;
+export interface PaymentCallbackDTO {
+  status: "success" | "failed";
+  transactionId: string;
+  [key: string]: unknown;
 }
 
-export interface RefundPaymentDto {
-  paymentId: string;
-  refundAmount: number;
-  refundReason: string;
-}
-
-export interface PaymentResponseDto {
-  paymentId: string;
-  bookingId: string;
-  amount: number;
-  currency: string;
-  paymentMethod: string;
-  paymentGateway: string;
-  status: string;
-  initiatedAt: string;
-  completedAt?: string;
-  gatewayUrl?: string;
-}
-
-export interface VerifyPaymentDto {
-  paymentId: string;
-  gatewayTransactionId: string;
-  signature?: string;
-}
-
-
-export interface CreateRazorpayOrderDto {
+export interface CreateRazorpayOrderDTO {
   amount: number;
   currency?: string;
 }
 
-export interface VerifyRazorpayPaymentDto {
+export interface VerifyRazorpayPaymentDTO {
   razorpay_payment_id: string;
   razorpay_order_id: string;
   razorpay_signature: string;
-  bookingData: any;
+  bookingData?: unknown;
 }

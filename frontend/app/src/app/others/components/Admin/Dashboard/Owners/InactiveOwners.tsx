@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Owner, OwnerFilters } from "./OwnerManager";
 import OwnerCard from "./OwnerCard";
+import { useDebounce } from "@/app/others/Utils/debounce";
 
 const lexend = Lexend({
   weight: "500",
@@ -46,12 +47,17 @@ const InactiveOwners: React.FC<InactiveOwnersProps> = ({
   onToggleStatus,
   setViewThaeter
 }) => {
-  const handleSearch = (searchTerm: string) => {
-    onFiltersChange({
-      ...currentFilters,
-      search: searchTerm,
-    });
-  };
+const debouncedSearch = useDebounce((searchTerm: string) => {
+  onFiltersChange({
+    ...currentFilters,
+    search: searchTerm,
+  });
+}, 500);
+
+const handleSearch = (searchTerm: string) => {
+  debouncedSearch(searchTerm);
+};
+
 
   const handleSortChange = (sortBy: string, sortOrder: "asc" | "desc") => {
     onFiltersChange({

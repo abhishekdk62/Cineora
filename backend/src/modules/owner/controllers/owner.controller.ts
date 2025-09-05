@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { createResponse } from "../../../utils/createResponse";
 import { IOwnerService } from "../interfaces/owner.services.interfaces";
 import {
@@ -8,400 +8,427 @@ import {
   UpdateOwnerProfileDto,
   UpdateToNewPasswordDto,
 } from "../dtos/owner.dtos";
-import { ServiceResponse } from "../../../interfaces/interface";
+import { StatusCodes } from "../../../utils/statuscodes";
+import { OWNER_MESSAGES } from "../../../utils/messages.constants";
 
 export class OwnerController {
-  constructor(private readonly ownerService: IOwnerService) {}
+  constructor(private readonly _ownerService: IOwnerService) {}
 
-  async getOwnerProfile(req: Request, res: Response): Promise<any> {
+  async getOwnerProfile(req: Request, res: Response): Promise<void> {
     try {
       const owner = req.owner;
-      const requestId = owner.ownerId;
+      const requestId = owner?.ownerId;
+      
       if (!requestId) {
-        return res.status(400).json(
+        res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Request ID is required",
+            message: OWNER_MESSAGES.REQUEST_ID_REQUIRED,
           })
         );
+        return;
       }
 
-      const result = await this.ownerService.getOwnerProfile(requestId);
+      const result = await this._ownerService.getOwnerProfile(requestId);
 
       if (!result.success) {
-        return res.status(404).json(
+        res.status(StatusCodes.NOT_FOUND).json(
           createResponse({
             success: false,
             message: result.message,
           })
         );
+        return;
       }
 
-      return res.status(200).json(
+      res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
           message: result.message,
           data: result.data,
         })
       );
-    } catch (err) {
-      res.status(500).json(
+    } catch (error: unknown) {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: err.message,
+          message: error instanceof Error ? error.message : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async getOwnerById(req: Request, res: Response): Promise<any> {
+  async getOwnerById(req: Request, res: Response): Promise<void> {
     try {
       const { ownerId } = req.params;
 
       if (!ownerId) {
-        return res.status(400).json(
+        res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Owner ID is required",
+            message: OWNER_MESSAGES.OWNER_ID_REQUIRED,
           })
         );
+        return;
       }
 
-      const result = await this.ownerService.getOwnerById(ownerId);
+      const result = await this._ownerService.getOwnerById(ownerId);
 
       if (!result.success) {
-        return res.status(404).json(
+        res.status(StatusCodes.NOT_FOUND).json(
           createResponse({
             success: false,
             message: result.message,
           })
         );
+        return;
       }
 
-      return res.status(200).json(
+      res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
           message: result.message,
           data: result.data,
         })
       );
-    } catch (err) {
-      res.status(500).json(
+    } catch (error: unknown) {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: err.message,
+          message: error instanceof Error ? error.message : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async updateOwner(req: Request, res: Response): Promise<any> {
+  async updateOwner(req: Request, res: Response): Promise<void> {
     try {
       const { ownerId } = req.owner;
       const updateOwnerProfileDto: UpdateOwnerProfileDto = req.body;
 
       if (!ownerId) {
-        return res.status(400).json(
+        res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Owner ID is required",
+            message: OWNER_MESSAGES.OWNER_ID_REQUIRED,
           })
         );
+        return;
       }
-      const result = await this.ownerService.updateOwner(
-        ownerId,
-        updateOwnerProfileDto
-      );
+
+      const result = await this._ownerService.updateOwner(ownerId, updateOwnerProfileDto);
 
       if (!result.success) {
-        return res.status(400).json(
+        res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
             message: result.message,
           })
         );
+        return;
       }
 
-      return res.status(200).json(
+      res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
           message: result.message,
           data: result.data,
         })
       );
-    } catch (err) {
-      res.status(500).json(
+    } catch (error: unknown) {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: err.message,
+          message: error instanceof Error ? error.message : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async deleteOwner(req: Request, res: Response): Promise<any> {
+  async deleteOwner(req: Request, res: Response): Promise<void> {
     try {
       const { ownerId } = req.params;
 
       if (!ownerId) {
-        return res.status(400).json(
+        res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Owner ID is required",
+            message: OWNER_MESSAGES.OWNER_ID_REQUIRED,
           })
         );
+        return;
       }
 
-      const result = await this.ownerService.deleteOwner(ownerId);
+      const result = await this._ownerService.deleteOwner(ownerId);
 
       if (!result.success) {
-        return res.status(400).json(
+        res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
             message: result.message,
           })
         );
+        return;
       }
 
-      return res.status(200).json(
+      res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
           message: result.message,
         })
       );
-    } catch (err) {
-      res.status(500).json(
+    } catch (error: unknown) {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: err.message,
+          message: error instanceof Error ? error.message : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async sendEmailChangeOtp(req: Request, res: Response): Promise<any> {
+  async sendEmailChangeOtp(req: Request, res: Response): Promise<void> {
     try {
       const { ownerId } = req.owner;
-      const emailChangeRequestDto: EmailChangeRequestDto = req.body; 
+      const emailChangeRequestDto: EmailChangeRequestDto = req.body;
 
       if (!emailChangeRequestDto.newEmail || !emailChangeRequestDto.password) {
-        return res.status(400).json(
+        res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "New email and password required",
+            message: OWNER_MESSAGES.NEW_EMAIL_PASSWORD_REQUIRED,
           })
         );
+        return;
       }
-      const result = await this.ownerService.sendEmailChangeOtp(
+
+      const result = await this._ownerService.sendEmailChangeOtp(
         ownerId,
         emailChangeRequestDto.newEmail,
         emailChangeRequestDto.password
       );
 
       if (!result.success) {
-        return res.status(400).json(
+        res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
             message: result.message,
           })
         );
+        return;
       }
 
-      return res.status(200).json(
+      res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
           message: result.message,
           data: result.data,
         })
       );
-    } catch (error) {
-      res.status(500).json(
+    } catch (error: unknown) {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error.message,
+          message: error instanceof Error ? error.message : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async verifyEmailChangeOtp(req: Request, res: Response): Promise<any> {
+  async verifyEmailChangeOtp(req: Request, res: Response): Promise<void> {
     try {
       const { ownerId } = req.owner;
-      const emailChangeVerificationDto: EmailChangeVerificationDto = req.body; 
+      const emailChangeVerificationDto: EmailChangeVerificationDto = req.body;
 
-      if (
-        !emailChangeVerificationDto.email ||
-        !emailChangeVerificationDto.otp
-      ) {
-        return res.status(400).json(
+      if (!emailChangeVerificationDto.email || !emailChangeVerificationDto.otp) {
+        res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Email and OTP are required",
+            message: OWNER_MESSAGES.EMAIL_OTP_REQUIRED,
           })
         );
+        return;
       }
-      const result = await this.ownerService.verifyEmailChangeOtp(
+
+      const result = await this._ownerService.verifyEmailChangeOtp(
         ownerId,
         emailChangeVerificationDto.email,
         emailChangeVerificationDto.otp
       );
 
       if (!result.success) {
-        return res.status(400).json(
+        res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
             message: result.message,
           })
         );
+        return;
       }
 
-      return res.status(200).json(
+      res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
           message: result.message,
           data: result.data,
         })
       );
-    } catch (error) {
-      res.status(500).json(
+    } catch (error: unknown) {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error.message,
+          message: error instanceof Error ? error.message : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async resetOwnerPassword(req: Request, res: Response): Promise<any> {
+  async resetOwnerPassword(req: Request, res: Response): Promise<void> {
     try {
       const { ownerId } = req.owner;
       const updatePasswordDto: UpdateToNewPasswordDto = req.body;
 
       if (!ownerId) {
-        return res.status(400).json(
+        res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Owner Id is not provided",
+            message: OWNER_MESSAGES.OWNER_ID_REQUIRED,
           })
         );
+        return;
       }
+
       if (!updatePasswordDto.newPassword || !updatePasswordDto.oldPassword) {
-        return res.status(400).json(
+        res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "New password and old password are required",
+            message: OWNER_MESSAGES.PASSWORDS_REQUIRED,
           })
         );
+        return;
       }
-      const result = await this.ownerService.changeOwnerPassword(
+
+      const result = await this._ownerService.changeOwnerPassword(
         ownerId,
         updatePasswordDto.oldPassword,
         updatePasswordDto.newPassword
       );
 
       if (!result.success) {
-        return res.status(400).json(
+        res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
             message: result.message,
           })
         );
+        return;
       }
 
-      return res.status(200).json(
+      res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
-          message: "Password updated succusfully",
+          message: OWNER_MESSAGES.PASSWORD_UPDATED_SUCCESS,
         })
       );
-    } catch (error) {
-      res.status(500).json(
+    } catch (error: unknown) {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error.message,
+          message: error instanceof Error ? error.message : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async getOwnerCounts(req: Request, res: Response): Promise<any> {
+  async getOwnerCounts(req: Request, res: Response): Promise<void> {
     try {
-      const result = await this.ownerService.getOwnerCounts();
+      const result = await this._ownerService.getOwnerCounts();
 
-      return res.status(200).json(
+      res.status(StatusCodes.OK).json(
         createResponse({
           success: result.success,
           message: result.message,
           data: result.data,
         })
       );
-    } catch (err) {
-      res.status(500).json(
+    } catch (error: unknown) {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: err.message,
+          message: error instanceof Error ? error.message : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async getOwners(req: Request, res: Response): Promise<any> {
+  async getOwners(req: Request, res: Response): Promise<void> {
     try {
-      const filters = req.query as unknown as OwnerFilterDto
-      const result = await this.ownerService.getOwners(filters);
-      return res.status(200).json(
+      const filters: OwnerFilterDto = {
+        search: req.query.search as string,
+        status: req.query.status as string,
+        sortBy: req.query.sortBy as string,
+        sortOrder: req.query.sortOrder as "asc" | "desc",
+        page: req.query.page ? Number(req.query.page) : 1,
+        limit: req.query.limit ? Number(req.query.limit) : 10,
+      };
+
+      const result = await this._ownerService.getOwners(filters);
+
+      res.status(StatusCodes.OK).json(
         createResponse({
           success: result.success,
           message: result.message,
           data: result.data,
         })
       );
-    } catch (err) {
-      res.status(500).json(
+    } catch (error: unknown) {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: err.message,
+          message: error instanceof Error ? error.message : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async toggleOwnerStatus(req: Request, res: Response): Promise<any> {
+  async toggleOwnerStatus(req: Request, res: Response): Promise<void> {
     try {
       const { ownerId } = req.params;
 
       if (!ownerId) {
-        return res.status(400).json(
+        res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
-            message: "Owner ID is required",
+            message: OWNER_MESSAGES.OWNER_ID_REQUIRED,
           })
         );
+        return;
       }
 
-      const result = await this.ownerService.toggleOwnerStatus(ownerId);
+      const result = await this._ownerService.toggleOwnerStatus(ownerId);
 
       if (!result.success) {
-        return res.status(400).json(
+        res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
             success: false,
             message: result.message,
           })
         );
+        return;
       }
 
-      return res.status(200).json(
+      res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
           message: result.message,
           data: result.data,
         })
       );
-    } catch (err) {
-      res.status(500).json(
+    } catch (error: unknown) {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: err.message,
+          message: error instanceof Error ? error.message : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }

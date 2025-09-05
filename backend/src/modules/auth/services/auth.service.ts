@@ -25,26 +25,27 @@ interface LoginResponse {
 }
 
 export class AuthService implements IAuthService {
-  private googleClient: OAuth2Client;
+  private _googleClient: OAuth2Client;
 
   constructor(
-    private readonly userRepo: UserRepository,
-    private readonly adminRepo: AdminRepository,
-    private readonly ownerRepo: OwnerRepository,
-    private readonly otpRepo: OTPRepository,
-    private readonly emailService: EmailService,
-    private readonly ownerRequestRepo: OwnerRequestRepository
+    private readonly _userRepo: UserRepository,
+    private readonly _adminRepo: AdminRepository,
+    private readonly _ownerRepo: OwnerRepository,
+    private readonly _otpRepo: OTPRepository,
+    private readonly _emailService: EmailService,
+    private readonly _ownerRequestRepo: OwnerRequestRepository
   ) {
-    this.googleClient = new OAuth2Client(config.googleClientId);
+    this._googleClient = new OAuth2Client(config.googleClientId);
   }
 
-  private generateOTP(): string {
+  private _generateOTP(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
   async login(email: string, password: string): Promise<LoginResponseDto> {
     try {
-      const admin = await this.adminRepo.findByEmail(email);
+      
+      const admin = await this._adminRepo.findByEmail(email);
       if (admin) {
         const isValidPassword = await bcrypt.compare(password, admin.password);
         if (!isValidPassword) {
@@ -79,7 +80,7 @@ export class AuthService implements IAuthService {
         };
       }
 
-      const owner = await this.ownerRepo.findByEmail(email);
+      const owner = await this._ownerRepo.findByEmail(email);
       if (owner) {
         const isValidPassword = await bcrypt.compare(password, owner.password);
 
@@ -108,7 +109,7 @@ export class AuthService implements IAuthService {
 
         await this.storeRefreshToken(owner._id, refreshToken, "owner");
 
-        await this.ownerRepo.updateLastLogin(owner._id);
+        await this._ownerRepo.updateLastLogin(owner._id);
 
         return {
           success: true,
@@ -131,7 +132,7 @@ export class AuthService implements IAuthService {
         };
       }
 
-      const user = await this.userRepo.findByEmail(email);
+      const user = await this._userRepo.findUserByEmail(email);
       if (user) {
         const isValidPassword = await bcrypt.compare(password, user.password);
 
@@ -160,7 +161,7 @@ export class AuthService implements IAuthService {
 
         await this.storeRefreshToken(user._id, refreshToken, "user");
 
-        await this.userRepo.updateLastActive(user._id);
+        await this._userRepo.updateUserLastActive(user._id);
 
         return {
           success: true,
@@ -226,7 +227,7 @@ export class AuthService implements IAuthService {
 
       switch (role) {
         case "user":
-          user = await this.userRepo.findById(userId);
+          user = await this._userRepo.findUserById(userId);
           if (user) {
             return {
               _id: user._id,
@@ -239,7 +240,7 @@ export class AuthService implements IAuthService {
           break;
 
         case "owner":
-          user = await this.ownerRepo.findById(userId);
+          user = await this._ownerRepo.findById(userId);
           if (user) {
             return {
               _id: user._id,
@@ -252,7 +253,7 @@ export class AuthService implements IAuthService {
           break;
 
         case "admin":
-          user = await this.adminRepo.findById(userId);
+          user = await this._adminRepo.findById(userId);
           if (user) {
             return {
               _id: user._id,
@@ -284,11 +285,11 @@ export class AuthService implements IAuthService {
     const hashedToken = await bcrypt.hash(refreshToken, 10);
 
     if (userType === "user") {
-      await this.userRepo.updateRefreshToken(userId, hashedToken);
+      await this._userRepo.updateUserRefreshToken(userId, hashedToken);
     } else if (userType === "owner") {
-      await this.ownerRepo.updateRefreshToken(userId, hashedToken);
+      await this._ownerRepo.updateRefreshToken(userId, hashedToken);
     } else if (userType === "admin") {
-      await this.adminRepo.updateRefreshToken(userId, hashedToken);
+      await this._adminRepo.updateRefreshToken(userId, hashedToken);
     }
   }
 
@@ -299,7 +300,7 @@ export class AuthService implements IAuthService {
       let userType = "user";
       let otpType = "password_reset";
 
-      user = await this.userRepo.findByEmail(email);
+      user = await this._userRepo.findUserByEmail(email);
       if (user) {
         userName = user.username || "User";
         userType = "user";
@@ -318,7 +319,7 @@ export class AuthService implements IAuthService {
           };
         }
       } else {
-        const owner = await this.ownerRepo.findByEmail(email);
+        const owner = await this._ownerRepo.findByEmail(email);
         if (owner) {
           user = owner;
           userName = owner.ownerName || "Owner";
@@ -348,12 +349,12 @@ export class AuthService implements IAuthService {
         };
       }
 
-      await this.otpRepo.deleteByEmail(email, otpType);
+      await this._otpRepo.deleteByEmail(email, otpType);
 
-      const otp = this.generateOTP();
+      const otp = this._generateOTP();
       const expiresAt = new Date(Date.now() + config.otpExpiry);
 
-      await this.otpRepo.create({
+      await this._otpRepo.create({
         email,
         otp,
         type: otpType,
@@ -366,7 +367,7 @@ export class AuthService implements IAuthService {
         },
       });
 
-      const emailSent = await this.emailService.sendPasswordResetOTP(
+      const emailSent = await this._emailService.sendPasswordResetOTP(
         email,
         otp,
         userName
@@ -394,14 +395,14 @@ export class AuthService implements IAuthService {
 
   async verifyPasswordResetOtp(email: string, otp: string):Promise<VerifyPasswordResetOtpResponseDto> {
     try {
-      let otpRecord = await this.otpRepo.findValidOTP(
+      let otpRecord = await this._otpRepo.findValidOTP(
         email,
         otp,
         "password_reset"
       );
 
       if (!otpRecord) {
-        otpRecord = await this.otpRepo.findValidOTP(
+        otpRecord = await this._otpRepo.findValidOTP(
           email,
           otp,
           "owner_password_reset"
@@ -432,7 +433,7 @@ export class AuthService implements IAuthService {
 
   async resetPasswordWithOTP(email: string, otp: string, newPassword: string):Promise<ResetPasswordWithOtpResponseDto> {
     try {
-      let otpRecord = await this.otpRepo.findValidOTP(
+      let otpRecord = await this._otpRepo.findValidOTP(
         email,
         otp,
         "password_reset"
@@ -440,7 +441,7 @@ export class AuthService implements IAuthService {
       let isOwner = false;
 
       if (!otpRecord) {
-        otpRecord = await this.otpRepo.findValidOTP(
+        otpRecord = await this._otpRepo.findValidOTP(
           email,
           otp,
           "owner_password_reset"
@@ -459,7 +460,7 @@ export class AuthService implements IAuthService {
       let updateResult = false;
 
       if (isOwner) {
-        const owner = await this.ownerRepo.findByEmail(email);
+        const owner = await this._ownerRepo.findByEmail(email);
         if (!owner) {
           return {
             success: false,
@@ -470,13 +471,13 @@ export class AuthService implements IAuthService {
         const saltRounds = config.bcryptRounds;
         const hashed = await bcrypt.hash(newPassword, saltRounds);
 
-        updateResult = await this.ownerRepo.updatePassword(
+        updateResult = await this._ownerRepo.updatePassword(
           owner._id.toString(),
           hashed
         );
         user = owner;
       } else {
-        const userRecord = await this.userRepo.findByEmail(email);
+        const userRecord = await this._userRepo.findUserByEmail(email);
         if (!userRecord) {
           return {
             success: false,
@@ -487,7 +488,7 @@ export class AuthService implements IAuthService {
         const saltRounds = config.bcryptRounds;
         const hashed = await bcrypt.hash(newPassword, saltRounds);
 
-        updateResult = await this.userRepo.updatePassword(
+        updateResult = await this._userRepo.updateUserPassword(
           userRecord._id.toString(),
           hashed
         );
@@ -501,11 +502,11 @@ export class AuthService implements IAuthService {
         };
       }
 
-      await this.otpRepo.markAsUsed(otpRecord._id as string);
-      await this.otpRepo.deleteByEmail(email, otpRecord.type);
+      await this._otpRepo.markAsUsed(otpRecord._id as string);
+      await this._otpRepo.deleteByEmail(email, otpRecord.type);
 
       try {
-        await this.emailService.sendPasswordChangeConfirmation(
+        await this._emailService.sendPasswordChangeConfirmation(
           email,
           otpRecord.userData?.userName || (isOwner ? "Owner" : "User")
         );
@@ -529,14 +530,14 @@ export class AuthService implements IAuthService {
     }
   }
 
-  private async verifyGoogleToken(credential: string): Promise<GoogleUserDataDto>
+  private async _verifyGoogleToken(credential: string): Promise<GoogleUserDataDto>
  {
     try {
       if (!config.googleClientId) {
         throw new Error("Google Client ID not configured");
       }
 
-      const ticket = await this.googleClient.verifyIdToken({
+      const ticket = await this._googleClient.verifyIdToken({
         idToken: credential,
         audience: config.googleClientId,
       });
@@ -567,9 +568,9 @@ export class AuthService implements IAuthService {
         };
       }
 
-      const googleUserData = await this.verifyGoogleToken(credential);
+      const googleUserData = await this._verifyGoogleToken(credential);
 
-      let user = await this.userRepo.findByGoogleIdOrEmail(
+      let user = await this._userRepo.findUserByGoogleIdOrEmail(
         googleUserData.googleId,
         googleUserData.email
       );
@@ -577,10 +578,10 @@ export class AuthService implements IAuthService {
       let isNewUser = false;
 
       if (!user) {
-        user = await this.createGoogleUser(googleUserData);
+        user = await this._createGoogleUser(googleUserData);
         isNewUser = true;
       } else {
-        user = await this.updateExistingGoogleUser(user, googleUserData);
+        user = await this._updateExistingGoogleUser(user, googleUserData);
       }
 
       const { accessToken, refreshToken } = this.generateTokenPair(
@@ -598,7 +599,7 @@ export class AuthService implements IAuthService {
         data: {
           accessToken,
           refreshToken,
-          user: this.sanitizeUserData(user),
+          user: this._sanitizeUserData(user),
           isNewUser,
         },
       };
@@ -625,11 +626,11 @@ export class AuthService implements IAuthService {
       let userType = decoded.role;
 
       if (userType === "user") {
-        user = await this.userRepo.findById(decoded.userId);
+        user = await this._userRepo.findUserById(decoded.userId);
       } else if (userType === "owner") {
-        user = await this.ownerRepo.findById(decoded.ownerId);
+        user = await this._ownerRepo.findById(decoded.ownerId);
       } else if (userType === "admin") {
-        user = await this.adminRepo.findById(decoded.adminId);
+        user = await this._adminRepo.findById(decoded.adminId);
       }
 
       if (!user || !user.refreshToken) {
@@ -669,9 +670,9 @@ export class AuthService implements IAuthService {
     }
   }
 
-  private async createGoogleUser(googleUserData: GoogleUserDataDto): Promise<any> {
+  private async _createGoogleUser(googleUserData: GoogleUserDataDto): Promise<any> {
     try {
-      const existingUser = await this.userRepo.findByEmail(
+      const existingUser = await this._userRepo.findUserByEmail(
         googleUserData.email
       );
 
@@ -679,14 +680,14 @@ export class AuthService implements IAuthService {
         throw new Error("User with this email already exists");
       }
 
-      const isOwner = await this.ownerRequestRepo.findByEmail(
+      const isOwner = await this._ownerRequestRepo.findByEmail(
         googleUserData.email
       );
       if (isOwner) {
         throw new Error("User with this email already exists");
       }
 
-      const isRequestedOwner = await this.ownerRepo.findByEmail(
+      const isRequestedOwner = await this._ownerRepo.findByEmail(
         googleUserData.email
       );
       if (isRequestedOwner) {
@@ -699,12 +700,12 @@ export class AuthService implements IAuthService {
       let username = baseUsername;
       let counter = 1;
 
-      while (await this.userRepo.findByUsername(username)) {
+      while (await this._userRepo.findUserByUsername(username)) {
         username = `${baseUsername}${counter}`;
         counter++;
       }
 
-      const newUser = await this.userRepo.createGoogleUser({
+      const newUser = await this._userRepo.createGoogleUser({
         username,
         email: googleUserData.email.toLowerCase(),
         googleId: googleUserData.googleId,
@@ -720,13 +721,13 @@ export class AuthService implements IAuthService {
     }
   }
 
-  private async updateExistingGoogleUser(
+  private async _updateExistingGoogleUser(
     user: any,
     googleUserData: GoogleUserDataDto
   ): Promise<any> {
     try {
       if (!user.googleId) {
-        const updatedUser = await this.userRepo.linkGoogleAccount(
+        const updatedUser = await this._userRepo.linkGoogleAccount(
           user._id,
           googleUserData.googleId,
           {
@@ -741,14 +742,14 @@ export class AuthService implements IAuthService {
         }
 
         try {
-          await this.sendAccountLinkNotification(user.email);
+          await this._sendAccountLinkNotification(user.email);
         } catch (notificationError) {
           console.log("Account link notification failed:", notificationError);
         }
 
         return updatedUser;
       } else {
-        const updatedUser = await this.userRepo.updateUserFromGoogle(user._id, {
+        const updatedUser = await this._userRepo.updateUserFromGoogle(user._id, {
           firstName: googleUserData.name,
           avatar: googleUserData.avatar,
           isVerified: googleUserData.emailVerified,
@@ -765,7 +766,7 @@ export class AuthService implements IAuthService {
     }
   }
 
-  private sanitizeUserData(user: any): UserDataDto {
+  private _sanitizeUserData(user: any): UserDataDto {
     const { password, __v, ...sanitizedUser } = user.toObject
       ? user.toObject()
       : user;
@@ -787,11 +788,11 @@ export class AuthService implements IAuthService {
   async logout(userId: string, userType: "user" | "admin" | "owner"):Promise<AuthSuccessResponseDto | AuthErrorResponseDto> {
     try {
       if (userType === "user") {
-        await this.userRepo.clearRefreshToken(userId);
+        await this._userRepo.clearUserRefreshToken(userId);
       } else if (userType === "owner") {
-        await this.ownerRepo.clearRefreshToken(userId);
+        await this._ownerRepo.clearRefreshToken(userId);
       } else if (userType === "admin") {
-        await this.adminRepo.clearRefreshToken(userId);
+        await this._adminRepo.clearRefreshToken(userId);
       }
 
       return { success: true, message: "Logged out successfully" };
@@ -802,7 +803,7 @@ export class AuthService implements IAuthService {
 
   async checkAuthProvider(email: string): Promise<CheckAuthProviderResponseDto> {
     try {
-      const user = await this.userRepo.findByEmail(email);
+      const user = await this._userRepo.findUserByEmail(email);
 
       if (!user) {
         return {
@@ -831,7 +832,7 @@ export class AuthService implements IAuthService {
     }
   }
 
-  private async sendAccountLinkNotification(email: string): Promise<void> {
+  private async _sendAccountLinkNotification(email: string): Promise<void> {
     try {
       const emailContent = {
         to: email,
@@ -851,7 +852,7 @@ export class AuthService implements IAuthService {
         `,
       };
 
-      await this.emailService.sendOTPEmail(
+      await this._emailService.sendOTPEmail(
         email,
         "Google account linked successfully"
       );

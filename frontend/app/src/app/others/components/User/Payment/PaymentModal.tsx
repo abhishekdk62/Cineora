@@ -27,7 +27,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<paymentTypes>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRazorpayLoaded, setIsRazorpayLoaded] = useState(false);
-  const [walletBalance,setWalletBalance]=useState(null)
+  const [walletBalance, setWalletBalance] = useState(null)
   const bookingDatasRedux = useSelector((state: any) => state.booking.bookingData);
   const dispatch = useDispatch()
   useEffect(() => {
@@ -176,6 +176,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose
       console.log(res.data);
       router.push('/booking/success');
     } catch (error: any) {
+      console.log(error);
+      
 
       if (error.response.data.message == 'Insufficient balance') {
 
@@ -189,6 +191,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose
       setIsProcessing(false);
     }
   }
+  
   const handlePayment = async () => {
 
 
@@ -202,7 +205,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
       <PaymentForm
-      walletBalance={walletBalance}
+        walletBalance={walletBalance}
         selectedPaymentMethod={selectedPaymentMethod}
         onSelectPaymentMethod={onSelectPaymentMethod}
         isProcessing={isProcessing}

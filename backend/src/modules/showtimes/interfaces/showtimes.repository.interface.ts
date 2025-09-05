@@ -1,88 +1,63 @@
 import { IMovieShowtime } from "./showtimes.model.interfaces";
-import { PaginatedShowtimeResult, ShowtimeFilters } from "../dtos/dto";
+import { CreateShowtimeDTO, UpdateShowtimeDTO, ShowtimeFilters, PaginatedShowtimeResult, ShowtimeListResponseDTO } from "../dtos/dto";
 
-export interface IShowtimeRepository {
-  create(
-    ownerId: string,
-    showtimeData: Partial<IMovieShowtime>
-  ): Promise<IMovieShowtime | null>;
-  
-  findById(id: string): Promise<IMovieShowtime | null>;
-  
-  findByMovieAndDate(movieId: string, date: Date): Promise<IMovieShowtime[]>;
-  
-  findByTheaterAndDate(
-    theaterId: string,
-    date: Date
-  ): Promise<IMovieShowtime[]>;
-  
-  findByOwnerId(ownerId: string): Promise<IMovieShowtime[]>;
-  
-  findByScreenAndDate(screenId: string, date: Date): Promise<IMovieShowtime[]>;
-  
-  updateById(
-    id: string,
-    updateData: Partial<IMovieShowtime>
-  ): Promise<IMovieShowtime | null>;
-  
-  deleteById(id: string): Promise<boolean>;
-  
-  blockSeats(
-    showtimeId: string,
-    seatIds: string[],
-    userId: string,
-    sessionId: string
-  ): Promise<boolean>;
-  
-  releaseSeats(
-    showtimeId: string,
-    seatIds: string[],
-    userId: string,
-    sessionId: string
-  ): Promise<boolean>;
-  
-  findByScreenPaginated(
+export interface IShowtimeReadRepository {
+  getShowtimeById(showtimeId: string): Promise<IMovieShowtime | null>;
+  getShowtimesByMovieAndDate(movieId: string, date: Date): Promise<IMovieShowtime[]>;
+  getShowtimesByTheaterAndDate(theaterId: string, date: Date): Promise<IMovieShowtime[]>;
+  getShowtimesByOwnerIdPaginated(ownerId: string, skip: number, limit: number): Promise<IMovieShowtime[]>;
+  getShowtimesByFilters(filters: {
+    theaterId: string;
+    screenId: string;
+    startDate: Date;
+    endDate: Date;
+  }): Promise<IMovieShowtime[]>;
+  countShowtimesByOwnerId(ownerId: string): Promise<number>;
+  getShowtimesByOwnerId(ownerId: string): Promise<IMovieShowtime[]>;
+  getShowtimesByScreenPaginated(
     screenId: string,
     page: number,
     limit: number,
     filters?: ShowtimeFilters
   ): Promise<PaginatedShowtimeResult>;
-  
-  findAllPaginated(
+  getAllShowtimesPaginated(
     page: number,
     limit: number,
     filters?: ShowtimeFilters
   ): Promise<PaginatedShowtimeResult>;
-  
-  updateStatus(
-    showtimeId: string,
-    isActive: boolean
-  ): Promise<IMovieShowtime | null>;
-  
-  bookSeats(showtimeId: string, seatIds: string[]): Promise<boolean>;
-  
-  existsByScreenAndTime(
-    screenId: string,
-    showDate: Date,
-    showTime: string
-  ): Promise<boolean>;
-  
-  checkTimeSlotOverlap(
+  showtimeExistsByScreenAndTime(screenId: string, showDate: Date, showTime: string): Promise<boolean>;
+  checkShowtimeTimeSlotOverlap(
     screenId: string,
     showDate: Date,
     startTime: string,
     endTime: string,
     excludeId?: string
   ): Promise<boolean>;
-  
-  findAll(
-    page: number,
-    limit: number,
-    filters: ShowtimeFilters
-  ): Promise<any>;
-  
-  findTheatersByMovieWithShowtimes(
-    movieId: string, 
-    date: Date
-  ): Promise<any[]>;
+  getAllShowtimes(
+    page?: number,
+    limit?: number,
+    filters?: ShowtimeFilters
+  ): Promise<{
+    showtimes: IMovieShowtime[];
+    pagination: {
+      current: number;
+      pages: number;
+      total: number;
+      limit: number;
+    };
+  }>;
+  getShowtimesByScreenAndDate(screenId: string, date: Date): Promise<IMovieShowtime[]>;
+  getTheatersByMovieWithShowtimes(movieId: string, date: Date): Promise<any[]>;
 }
+
+export interface IShowtimeWriteRepository {
+  createShowtime(ownerId: string, showtimeData: CreateShowtimeDTO): Promise<IMovieShowtime>;
+  updateShowtimeById(showtimeId: string, updateData: UpdateShowtimeDTO): Promise<IMovieShowtime | null>;
+  deleteShowtimeById(showtimeId: string): Promise<boolean>;
+  blockShowtimeSeats(showtimeId: string, seatIds: string[], userId: string, sessionId: string): Promise<boolean>;
+  releaseShowtimeSeats(showtimeId: string, seatIds: string[], userId: string, reason: string): Promise<boolean>;
+  updateShowtimeStatus(showtimeId: string, isActive: boolean): Promise<IMovieShowtime | null>;
+  bookShowtimeSeats(showtimeId: string, seatIds: string[]): Promise<boolean>;
+}
+
+export interface IShowtimeRepository extends IShowtimeReadRepository, IShowtimeWriteRepository {}

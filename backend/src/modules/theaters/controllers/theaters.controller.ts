@@ -1,16 +1,10 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { createResponse } from "../../../utils/createResponse";
-import { ScreenService } from "../../screens/services/screens.service";
 import { ITheaterService } from "../interfaces/theater.service.interface";
-import {
-  CreateTheaterDto,
-  PaginatedTheatersDto,
-  TheaterFilters,
-  TheatersByOwnerDto,
-  UpdateTheaterDto,
-} from "../dtos/dto";
-import { ServiceResponse } from "../../../interfaces/interface";
 import { IScreenService } from "../../screens/interfaces/screens.services.interface";
+import { CreateTheaterDTO, UpdateTheaterDTO, TheaterFilters } from "../dtos/dto";
+import { StatusCodes } from "../../../utils/statuscodes";
+import { THEATER_MESSAGES } from "../../../utils/messages.constants";
 
 export class TheaterController {
   constructor(
@@ -18,446 +12,390 @@ export class TheaterController {
     private readonly screenService: IScreenService
   ) {}
 
-  async getTheatersWithFilters(req: Request, res: Response): Promise<any> {
+  async getTheatersWithFilters(req: Request, res: Response): Promise<void> {
     try {
-      let facilities: string[] | undefined;
+      const filters = this._extractTheaterFilters(req);
+      
+      const result = await this.theaterService.getTheatersWithFilters(filters);
 
-      if (req.query.facilities && typeof req.query.facilities === "string") {
-        facilities = req.query.facilities.split(",").map((f) => f.trim());
-      }
-      const filters: TheaterFilters = {
-        search: req.query.search as string,
-        sortBy: req.query.sortBy as string,
-        page: req.query.page ? parseInt(req.query.page as string) : 1,
-        limit: req.query.limit ? parseInt(req.query.limit as string) : 6,
-        latitude: req.query.latitude
-          ? parseFloat(req.query.latitude as string)
-          : undefined,
-        longitude: req.query.longitude
-          ? parseFloat(req.query.longitude as string)
-          : undefined,
-        facilities: facilities,
-      };
-
-      const result: PaginatedTheatersDto =
-        await this.theaterService.getTheatersWithFilters(filters);
-
-      return res.status(200).json({
-        theaters: result.theaters,
-        totalCount: result.total,
-        currentPage: result.currentPage,
-        totalPages: result.totalPages,
-        hasNextPage: result.hasNextPage,
-        hasPrevPage: result.hasPrevPage,
-      });
-    } catch (err) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: err.message,
-        })
-      );
+      res.status(StatusCodes.OK).json(createResponse({
+        success: true,
+        message: "Theaters retrieved successfully",
+        data: result.theaters,
+        meta: {
+          pagination: {
+            currentPage: result.currentPage,
+            totalPages: result.totalPages,
+            total: result.total,
+            limit: (filters.limit) as number,
+            hasNextPage: result.hasNextPage,
+            hasPrevPage: result.hasPrevPage,
+          },
+        },
+      }));
+    } catch (error: any) {
+      this._handleControllerError(res, error, "Failed to retrieve theaters with filters");
     }
   }
 
-  async createTheater(req: Request, res: Response): Promise<any> {
+  async createTheater(req: Request, res: Response): Promise<void> {
     try {
+      const validationResult = this._validateCreateTheaterRequest(req);
+      if (!validationResult.isValid) {
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: validationResult.message,
+        }));
+        return;
+      }
+
       const { ownerId } = req.owner;
-      const createTheaterDto: CreateTheaterDto = req.body;
+      const createTheaterDto: CreateTheaterDTO = req.body;
 
-      if (!ownerId) {
-        res.status(400).json(
-          createResponse({
-            success: false,
-            message: "Owner id is required",
-          })
-        );
-        return;
-      }
-      if (!createTheaterDto) {
-        res.status(400).json(
-          createResponse({
-            success: false,
-            message: "Theater data is required",
-          })
-        );
-        return;
-      }
-
-      const result = await this.theaterService.createTheater(
-        ownerId,
-        createTheaterDto
-      );
+      const result = await this.theaterService.createTheater(ownerId, createTheaterDto);
 
       if (!result.success) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: result.message,
-          })
-        );
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: result.message,
+        }));
+        return;
       }
 
-      return res.status(201).json(
-        createResponse({
-          success: true,
-          message: result.message,
-          data: result.data,
-        })
-      );
-    } catch (error) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: error.message,
-        })
-      );
+      res.status(StatusCodes.CREATED).json(createResponse({
+        success: true,
+        message: result.message,
+        data: result.data,
+      }));
+    } catch (error: any) {
+      this._handleControllerError(res, error, "Failed to create theater");
     }
   }
 
-  async getTheatersByOwnerId(req: Request, res: Response): Promise<any> {
+  async getTheatersByOwnerId(req: Request, res: Response): Promise<void> {
     try {
-      const ownerId = req.query.ownerId || req.owner.ownerId;
+      const ownerId = this._extractOwnerId(req);
+      if (!ownerId) {
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: THEATER_MESSAGES.OWNER_ID_REQUIRED,
+        }));
+        return;
+      }
+
       const filters: TheaterFilters = req.query;
-
-      if (!ownerId) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "Owner id required",
-          })
-        );
-      }
-      const result: ServiceResponse<TheatersByOwnerDto> =
-        await this.theaterService.getTheatersByOwnerId(ownerId, filters);
+      const result = await this.theaterService.getTheatersByOwnerId(ownerId, filters);
 
       if (!result.success) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: result.message,
-          })
-        );
+        res.status(StatusCodes.NOT_FOUND).json(createResponse({
+          success: false,
+          message: result.message,
+        }));
+        return;
       }
 
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          message: result.message,
-          data: result.data,
-        })
-      );
-    } catch (error) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: error.message,
-        })
-      );
+      res.status(StatusCodes.OK).json(createResponse({
+        success: true,
+        message: result.message,
+        data: result.data,
+      }));
+    } catch (error: any) {
+      this._handleControllerError(res, error, "Failed to retrieve theaters by owner");
     }
   }
 
-  async updateTheater(req: Request, res: Response): Promise<any> {
+  async updateTheater(req: Request, res: Response): Promise<void> {
     try {
+      const validationResult = this._validateUpdateTheaterRequest(req);
+      if (!validationResult.isValid) {
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: validationResult.message,
+        }));
+        return;
+      }
+
       const { theaterId } = req.params;
-      const updateData: UpdateTheaterDto = req.body;
+      const updateData: UpdateTheaterDTO = req.body;
 
-      if (!theaterId) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "Theater ID is required",
-          })
-        );
-      }
-
-      if (!updateData || Object.keys(updateData).length === 0) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "Update data is required",
-          })
-        );
-      }
-
-      const result = await this.theaterService.updateTheater(
-        theaterId,
-        updateData
-      );
+      const result = await this.theaterService.updateTheater(theaterId, updateData);
 
       if (!result.success) {
-        let statusCode = 400;
-
-        if (
-          result.message ===
-          "Theater with this name already exists in this city"
-        ) {
-          statusCode = 409;
-        } else if (result.message === "Theater not found or update failed") {
-          statusCode = 404;
-        } else if (result.message === "Something went wrong") {
-          statusCode = 500;
-        }
-
-        return res.status(statusCode).json(
-          createResponse({
-            success: false,
-            message: result.message,
-          })
-        );
+        const statusCode = this._getUpdateErrorStatusCode(result.message);
+        res.status(statusCode).json(createResponse({
+          success: false,
+          message: result.message,
+        }));
+        return;
       }
 
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          message: result.message,
-          data: result.data,
-        })
-      );
-    } catch (error) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: error.message,
-        })
-      );
+      res.status(StatusCodes.OK).json(createResponse({
+        success: true,
+        message: result.message,
+        data: result.data,
+      }));
+    } catch (error: any) {
+      this._handleControllerError(res, error, "Failed to update theater");
     }
   }
 
-  async deleteTheater(req: Request, res: Response): Promise<any> {
+  async deleteTheater(req: Request, res: Response): Promise<void> {
     try {
       const { theaterId } = req.params;
 
       if (!theaterId) {
-        return res.status(400).json(
-          createResponse({
-            success: false,
-            message: "Theater ID is required",
-          })
-        );
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: THEATER_MESSAGES.THEATER_ID_REQUIRED,
+        }));
+        return;
       }
 
       const result = await this.theaterService.deleteTheater(theaterId);
 
       if (!result.success) {
-        let statusCode = 400;
-        if (result.message === "Theater not found or deletion failed") {
-          statusCode = 404;
-        } else if (result.message === "Something went wrong") {
-          statusCode = 500;
-        }
-
-        return res.status(statusCode).json(
-          createResponse({
-            success: false,
-            message: result.message,
-          })
-        );
-      }
-      const resp = await this.screenService.deleteScreensByTheater(theaterId);
-
-      return res.status(200).json(
-        createResponse({
-          success: true,
+        const statusCode = this._getDeleteErrorStatusCode(result.message);
+        res.status(statusCode).json(createResponse({
+          success: false,
           message: result.message,
-        })
-      );
-    } catch (error) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: error.message,
-        })
-      );
-    }
-  }
-
-  // async toggleTheaterStatus(req: Request, res: Response, next: NextFunction) {
-  //   try {
-  //     const { theaterId } = req.params;
-  //     const { ownerId } = req.owner;
-
-  //     if (!theaterId) {
-  //       return res.status(400).json(
-  //         createResponse({
-  //           success: false,
-  //           message: "Theater ID is required",
-  //         })
-  //       );
-  //     }
-
-  //     const result = await this.theaterService.toggleTheaterStatus(theaterId);
-
-  //     if (!result.success) {
-  //       let statusCode = 400;
-
-  //       if (result.message === "Theater not found") {
-  //         statusCode = 404;
-  //       } else if (result.message === "Something went wrong") {
-  //         statusCode = 500;
-  //       }
-
-  //       return res.status(statusCode).json(
-  //         createResponse({
-  //           success: false,
-  //           message: result.message,
-  //         })
-  //       );
-  //     }
-
-  //     return res.status(200).json(
-  //       createResponse({
-  //         success: true,
-  //         message: result.message,
-  //         data: result.data,
-  //       })
-  //     );
-  //   } catch (error) {
-  //     next(error);
-  //   }
-  // }
-
-  async toggleTheaterStatus(req: Request, res: Response): Promise<any> {
-    try {
-      const id = req.params.id || req.params.theaterId;
-
-      if (!id) {
-        return res.status(400).json({
-          message: "Theater ID is required",
-          success: false,
-        });
+        }));
+        return;
       }
-      const result = await this.theaterService.toggleTheaterStatus(id);
-      if (!result) {
-        return res.status(404).json({
-          message: "Theater not found",
-          success: false,
-        });
-      }
-      res.status(200).json({
-        message: "Theater status toggled successfully",
+
+      await this.screenService.deleteScreensByTheaterId(theaterId);
+
+      res.status(StatusCodes.OK).json(createResponse({
         success: true,
-        data: result,
-      });
+        message: result.message,
+      }));
     } catch (error: any) {
-      res.status(400).json({
-        message: error.message || "Failed to toggle theater status",
-        success: false,
-      });
+      this._handleControllerError(res, error, "Failed to delete theater");
     }
   }
-  async verifyTheater(req: Request, res: Response): Promise<any> {
+
+  async toggleTheaterStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const theaterId = this._extractTheaterIdFromParams(req);
+
+      if (!theaterId) {
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: THEATER_MESSAGES.THEATER_ID_REQUIRED,
+        }));
+        return;
+      }
+
+      const result = await this.theaterService.toggleTheaterStatus(theaterId);
+
+      if (!result.success) {
+        res.status(StatusCodes.NOT_FOUND).json(createResponse({
+          success: false,
+          message: result.message,
+        }));
+        return;
+      }
+
+      res.status(StatusCodes.OK).json(createResponse({
+        success: true,
+        message: result.message,
+        data: result.data,
+      }));
+    } catch (error: any) {
+      this._handleControllerError(res, error, "Failed to toggle theater status");
+    }
+  }
+
+  async verifyTheater(req: Request, res: Response): Promise<void> {
     try {
       const { theatreId } = req.params;
 
-      let id = theatreId;
-      if (!id) {
-        return res.status(400).json({
-          message: "Theater ID is required",
-          success: false,
-        });
-      }
-
-      const result = await this.theaterService.verifyTheater(id);
-      if (!result) {
-        return res.status(404).json({
-          message: "Theater not found",
-          success: false,
-        });
-      }
-
-      res.status(200).json({
-        message: "Theater verified successfully",
-        success: true,
-        data: result,
-      });
-    } catch (error: any) {
-      res.status(400).json({
-        message: error.message || "Failed to verify theater",
-        success: false,
-      });
-    }
-  }
-  async rejectTheater(req: Request, res: Response): Promise<any> {
-    try {
-      const { theatreId } = req.params;
-
-      let id = theatreId;
-      if (!id) {
-        return res.status(400).json({
-          message: "Theater ID is required",
-          success: false,
-        });
-      }
-
-      const result = await this.theaterService.rejectTheater(id);
-      if (!result) {
-        return res.status(404).json({
-          message: "Theater not found",
-          success: false,
-        });
-      }
-
-      res.status(200).json({
-        message: "Theater rejected successfully",
-        success: true,
-        data: result,
-      });
-    } catch (error: any) {
-      res.status(400).json({
-        message: error.message || "Failed to reject theater",
-        success: false,
-      });
-    }
-  }
-  async getTheaterById(req: Request, res: Response): Promise<any> {
-    try {
-      const { theatreId } = req.params;
       if (!theatreId) {
-        return res.status(400).json({
-          message: "Theater ID is required",
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
           success: false,
-        });
+          message: THEATER_MESSAGES.THEATER_ID_REQUIRED,
+        }));
+        return;
+      }
+
+      const result = await this.theaterService.verifyTheater(theatreId);
+
+      if (!result.success) {
+        res.status(StatusCodes.NOT_FOUND).json(createResponse({
+          success: false,
+          message: result.message,
+        }));
+        return;
+      }
+
+      res.status(StatusCodes.OK).json(createResponse({
+        success: true,
+        message: result.message,
+        data: result.data,
+      }));
+    } catch (error: any) {
+      this._handleControllerError(res, error, "Failed to verify theater");
+    }
+  }
+
+  async rejectTheater(req: Request, res: Response): Promise<void> {
+    try {
+      const { theatreId } = req.params;
+      const { rejectionReason } = req.body;
+
+      if (!theatreId) {
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: THEATER_MESSAGES.THEATER_ID_REQUIRED,
+        }));
+        return;
+      }
+
+      const result = await this.theaterService.rejectTheater(theatreId, rejectionReason);
+
+      if (!result.success) {
+        res.status(StatusCodes.NOT_FOUND).json(createResponse({
+          success: false,
+          message: result.message,
+        }));
+        return;
+      }
+
+      res.status(StatusCodes.OK).json(createResponse({
+        success: true,
+        message: result.message,
+        data: result.data,
+      }));
+    } catch (error: any) {
+      this._handleControllerError(res, error, "Failed to reject theater");
+    }
+  }
+
+  async getTheaterById(req: Request, res: Response): Promise<void> {
+    try {
+      const { theatreId } = req.params;
+
+      if (!theatreId) {
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: THEATER_MESSAGES.THEATER_ID_REQUIRED,
+        }));
+        return;
       }
 
       const result = await this.theaterService.getTheaterById(theatreId);
 
       if (!result.success) {
-        let statusCode = 400;
-
-        if (
-          result.message ===
-          "Theater with this name already exists in this city"
-        ) {
-          statusCode = 409;
-        } else if (result.message === "Theater not found or update failed") {
-          statusCode = 404;
-        } else if (result.message === "Something went wrong") {
-          statusCode = 500;
-        }
-
-        return res.status(statusCode).json(
-          createResponse({
-            success: false,
-            message: result.message,
-          })
-        );
+        const statusCode = this._getTheaterByIdErrorStatusCode(result.message);
+        res.status(statusCode).json(createResponse({
+          success: false,
+          message: result.message,
+        }));
+        return;
       }
 
-      return res.status(200).json(
-        createResponse({
-          success: true,
-          message: result.message,
-          data: result.data,
-        })
-      );
-    } catch (error) {
-      res.status(500).json(
-        createResponse({
-          success: false,
-          message: error.message,
-        })
-      );
+      res.status(StatusCodes.OK).json(createResponse({
+        success: true,
+        message: result.message,
+        data: result.data,
+      }));
+    } catch (error: any) {
+      this._handleControllerError(res, error, "Failed to retrieve theater");
     }
+  }
+
+  // Private helper methods
+  private _extractTheaterFilters(req: Request): TheaterFilters {
+    let facilities: string[] | undefined;
+
+    if (req.query.facilities && typeof req.query.facilities === "string") {
+      facilities = req.query.facilities.split(",").map((f) => f.trim());
+    }
+
+    return {
+      search: req.query.search as string,
+      sortBy: req.query.sortBy as string,
+      page: req.query.page ? parseInt(req.query.page as string) : 1,
+      limit: req.query.limit ? parseInt(req.query.limit as string) : 6,
+      latitude: req.query.latitude ? parseFloat(req.query.latitude as string) : undefined,
+      longitude: req.query.longitude ? parseFloat(req.query.longitude as string) : undefined,
+      facilities: facilities,
+    };
+  }
+
+  private _extractOwnerId(req: Request): string | null {
+    return req.query.ownerId as string || req.owner?.ownerId || null;
+  }
+
+  private _extractTheaterIdFromParams(req: Request): string | null {
+    return req.params.id || req.params.theaterId || null;
+  }
+
+  private _validateCreateTheaterRequest(req: Request): { isValid: boolean; message: string } {
+    const { ownerId } = req.owner || {};
+    const createTheaterDto = req.body;
+
+    if (!ownerId) {
+      return { isValid: false, message: THEATER_MESSAGES.OWNER_ID_REQUIRED };
+    }
+
+    if (!createTheaterDto) {
+      return { isValid: false, message: THEATER_MESSAGES.THEATER_DATA_REQUIRED };
+    }
+
+    return { isValid: true, message: "" };
+  }
+
+  private _validateUpdateTheaterRequest(req: Request): { isValid: boolean; message: string } {
+    const { theaterId } = req.params;
+    const updateData = req.body;
+
+    if (!theaterId) {
+      return { isValid: false, message: THEATER_MESSAGES.THEATER_ID_REQUIRED };
+    }
+
+    if (!updateData || Object.keys(updateData).length === 0) {
+      return { isValid: false, message: THEATER_MESSAGES.UPDATE_DATA_REQUIRED };
+    }
+
+    return { isValid: true, message: "" };
+  }
+
+  private _getUpdateErrorStatusCode(message: string): number {
+    if (message === THEATER_MESSAGES.THEATER_NOT_FOUND) {
+      return StatusCodes.NOT_FOUND;
+    } else if (message === THEATER_MESSAGES.THEATER_EXIST_ERROR) {
+      return StatusCodes.CONFLICT;
+    } else if (message === THEATER_MESSAGES.SOMETHING_WENT_WRONG) {
+      return StatusCodes.INTERNAL_SERVER_ERROR;
+    }
+    return StatusCodes.BAD_REQUEST;
+  }
+
+  private _getDeleteErrorStatusCode(message: string): number {
+    if (message === THEATER_MESSAGES.THEATER_NOT_FOUND) {
+      return StatusCodes.NOT_FOUND;
+    } else if (message === THEATER_MESSAGES.SOMETHING_WENT_WRONG) {
+      return StatusCodes.INTERNAL_SERVER_ERROR;
+    }
+    return StatusCodes.BAD_REQUEST;
+  }
+
+  private _getTheaterByIdErrorStatusCode(message: string): number {
+    if (message === THEATER_MESSAGES.THEATER_EXIST_ERROR) {
+      return StatusCodes.CONFLICT;
+    } else if (message === THEATER_MESSAGES.THEATER_NOT_FOUND) {
+      return StatusCodes.NOT_FOUND;
+    } else if (message === THEATER_MESSAGES.SOMETHING_WENT_WRONG) {
+      return StatusCodes.INTERNAL_SERVER_ERROR;
+    }
+    return StatusCodes.NOT_FOUND;
+  }
+
+  private _handleControllerError(res: Response, error: any, defaultMessage: string): void {
+    console.error(`Controller error: ${defaultMessage}`, error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(createResponse({
+      success: false,
+      message: error.message || defaultMessage,
+    }));
   }
 }

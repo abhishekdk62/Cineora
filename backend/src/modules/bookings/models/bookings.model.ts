@@ -72,19 +72,16 @@ const BookingSchema = new Schema<IBooking>({
     type: Schema.Types.ObjectId,
     ref: "User",
     required: true,
-    index: true,
   },
   movieId: {
     type: Schema.Types.ObjectId,
     ref: "Movie",
     required: true,
-    index: true,
   },
   theaterId: {
     type: Schema.Types.ObjectId,
     ref: "Theater",
     required: true,
-    index: true,
   },
   screenId: {
     type: Schema.Types.ObjectId,
@@ -95,7 +92,6 @@ const BookingSchema = new Schema<IBooking>({
     type: Schema.Types.ObjectId,
     ref: "MovieShowtime",
     required: true,
-    index: true,
   },
   
   selectedSeats: {
@@ -137,7 +133,6 @@ const BookingSchema = new Schema<IBooking>({
   bookedAt: {
     type: Date,
     default: Date.now,
-    index: true,
   },
   cancelledAt: {
     type: Date,
@@ -145,7 +140,6 @@ const BookingSchema = new Schema<IBooking>({
   showDate: {
     type: Date,
     required: true,
-    index: true,
   },
   showTime: {
     type: String,

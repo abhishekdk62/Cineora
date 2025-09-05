@@ -20,9 +20,10 @@ const lexendSmall = Lexend({
 
 interface ProfileOverviewCardProps {
   profile: UserProfile;
+  docs:any
 }
 
-const ProfileOverviewCard: React.FC<ProfileOverviewCardProps> = ({ profile }) => {
+const ProfileOverviewCard: React.FC<ProfileOverviewCardProps> = ({ profile,docs }) => {
   return (
     <div className="lg:col-span-1">
       <div className="bg-black/90 backdrop-blur-sm border border-gray-500/30 rounded-2xl p-6">
@@ -32,7 +33,7 @@ const ProfileOverviewCard: React.FC<ProfileOverviewCardProps> = ({ profile }) =>
             <div className="w-24 h-24 bg-gray-600 rounded-full mx-auto flex items-center justify-center overflow-hidden">
               {profile.ownerPhotoUrl ? (
                 <img
-                  src={profile.ownerPhotoUrl}
+                  src={docs.ownerPhotoUrl}
                   alt="Profile"
                   className="w-24 h-24 rounded-full object-cover"
                 />

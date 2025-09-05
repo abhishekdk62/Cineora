@@ -15,32 +15,32 @@ export class OTPRepository implements IOTPRepository {
 
   async findValidOTP(
     email: string,
-    otp: string,
-    type: string
+    otpCode: string,
+    otpType: string
   ): Promise<IOTP | null> {
     return OTP.findOne({
       email,
-      otp,
-      type,
+      otp: otpCode,
+      type: otpType,
       isUsed: false,
       expiresAt: { $gt: new Date() },
     }).exec();
   }
 
-  async markAsUsed(id: string): Promise<boolean> {
-    const result = await OTP.updateOne({ _id: id }, { isUsed: true });
+  async markAsUsed(otpId: string): Promise<boolean> {
+    const result = await OTP.updateOne({ _id: otpId }, { isUsed: true });
     return result.modifiedCount > 0;
   }
 
-  async deleteByEmail(email: string, type: string): Promise<boolean> {
-    const result = await OTP.deleteMany({ email, type });
+  async deleteByEmail(email: string, otpType: string): Promise<boolean> {
+    const result = await OTP.deleteMany({ email, type: otpType });
     return result.deletedCount > 0;
   }
 
-  async findByEmail(email: string, type: string): Promise<IOTP | null> {
+  async findByEmail(email: string, otpType: string): Promise<IOTP | null> {
     return OTP.findOne({
       email,
-      type,
+      type: otpType,
       isUsed: false,
       expiresAt: { $gt: new Date() },
     }).exec();

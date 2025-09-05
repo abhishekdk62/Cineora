@@ -13,8 +13,8 @@ import ProfileOverviewCard from "./ProfileOverviewCard";
 import BankDetailsSection from "./BankDetailsSection";
 import KYCDocumentsSection from "./KYCDocumentsSection";
 import PersonalDetailsModal from "./PersonalDetailsModal";
-import BankDetailsModal from "./BankDetailsModal";
 import KYCModal from "./KYCModal";
+import BankDetailsModal from "./BankDetailsModal";
 
 const lexendBold = Lexend({
   weight: "700",
@@ -58,7 +58,9 @@ export interface BankDetails {
   bankName: string;
   accountNumber: string;
   ifsc: string;
+  accountHolder: string; // Make sure this is included
 }
+
 
 export const formatDate = (dateString: string | undefined) => {
   if (!dateString) return "N/A";
@@ -95,38 +97,45 @@ const MyAccount: React.FC = () => {
     bankName: "",
     accountNumber: "",
     ifsc: "",
+    accountHolder:''
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [docs,setDocs]=useState([])
 
-  async function getOwnerDetails() {
-    try {
-      setLoading(true);
-      const data = await getOwnerProfile();
-      let result = data.data;
-      setProfile(result);
-      console.log(data);
-      
+ async function getOwnerDetails() {
+  try {
+    setLoading(true);
+    const data = await getOwnerProfile();
+    let result = data.data;
+    setProfile(result._doc);
+    setDocs(result);
+    console.log(data);
+    
+    // Fix: Access profile data correctly
+    const profileData = result._doc || result; // Use _doc if available, otherwise use result directly
+    
+    setBankDetails({
+      bankName: profileData.bankName || "",
+      accountNumber: profileData.accountNumber || "",
+      ifsc: profileData.ifsc || "",
+      accountHolder: profileData.accountHolder || profileData.ownerName || "" // Fix this line
+    });
 
-      setBankDetails({
-        bankName: result.bankName || "",
-        accountNumber: result.accountNumber || "",
-        ifsc: result.ifsc || "",
-      });
-
-      setPersonalDetails({
-        ownerName: result.ownerName || "",
-        phone: result.phone || "",
-        email: result.email || "",
-        accountHolder: result.accountHolder || "",
-      });
-    } catch (error) {
-      console.error("Error fetching owner profile:", error);
-      toast.error("Failed to load profile data");
-    } finally {
-      setLoading(false);
-    }
+    setPersonalDetails({
+      ownerName: profileData.ownerName || "",
+      phone: profileData.phone || "",
+      email: profileData.email || "",
+      accountHolder: profileData.accountHolder || profileData.ownerName || "",
+    });
+  } catch (error) {
+    console.error("Error fetching owner profile:", error);
+    toast.error("Failed to load profile data");
+  } finally {
+    setLoading(false);
   }
+}
+
 
   useEffect(() => {
     getOwnerDetails();
@@ -155,7 +164,9 @@ const MyAccount: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <ProfileOverviewCard profile={profile} />
+        <ProfileOverviewCard profile={profile}
+        docs={docs}
+        />
 
         <div className="lg:col-span-2 space-y-6">
           <PersonalDetailsSection
@@ -203,6 +214,7 @@ const MyAccount: React.FC = () => {
       <KYCModal
         show={showKYCModal}
         onClose={() => setShowKYCModal(false)}
+        docs={docs}
         profile={profile}
       />
     </div>

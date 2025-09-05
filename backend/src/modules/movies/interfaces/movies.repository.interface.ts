@@ -1,22 +1,30 @@
-
-
+import { 
+  CreateMovieDto, 
+  UpdateMovieDto, 
+  MovieRepositoryFindResult 
+} from "../dtos/dtos";
 import { IMovie } from "./movies.model.interface";
 
-
-
-export interface IMovieRepository {
-  findById(id: string): Promise<IMovie | null>;
-  findByTmdbId(tmdbId: string): Promise<IMovie | null>;
-  findAll(): Promise<IMovie[]>;
-  findWithFilters(
-    filters: any
-  ): Promise<{ movies: IMovie[]; total: number; totalPages: number }>;
-  findPaginated(
-    page: number,
-    limit: number
-  ): Promise<{ movies: IMovie[]; total: number; totalPages: number }>;
-  create(movieData: Partial<IMovie>): Promise<IMovie>;
-  update(id: string, movieData: Partial<IMovie>): Promise<IMovie | null>;
-  delete(id: string): Promise<boolean>;
-  toggleStatus(id: string): Promise<IMovie | null>;
+// Interface Segregation Principle - Separate read and write operations
+export interface IMovieReadRepository {
+  findMovieById(movieId: string): Promise<IMovie | null>;
+  findMovieByTmdbId(tmdbId: string): Promise<IMovie | null>;
+  findAllMovies(): Promise<IMovie[]>;
+  findMoviesWithQuery(
+    query: Record<string, any>, 
+    sort: Record<string, any>, 
+    page?: number, 
+    limit?: number
+  ): Promise<MovieRepositoryFindResult>;
+  findMoviesPaginated(page?: number, limit?: number): Promise<MovieRepositoryFindResult>;
 }
+
+export interface IMovieWriteRepository {
+  createMovie(movieData: CreateMovieDto): Promise<IMovie>;
+  updateMovie(movieId: string, movieData: UpdateMovieDto): Promise<IMovie | null>;
+  deleteMovie(movieId: string): Promise<boolean>;
+  toggleMovieStatus(movieId: string): Promise<IMovie | null>;
+}
+
+// Combined interface following Interface Segregation Principle
+export interface IMovieRepository extends IMovieReadRepository, IMovieWriteRepository {}

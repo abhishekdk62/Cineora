@@ -1,34 +1,38 @@
+import USER_GENERAL from "../../constants/userConstants/userConstants";
 import apiClient from "../../Utils/apiClient";
+import {
+  GetUserProfileResponseDto,
+  UpdateUserRequestDto,
+  UpdateProfileResponseDto,
+  GetNearbyUsersResponseDto,
+  AddXpPointsRequestDto,
+  AddXpPointsResponseDto,
+  UpdateLocationRequestDto,
+  UpdateLocationResponseDto
+} from '../../dtos/user.dto';
 
-export const getUserProfile = async () => {
-  const response = await apiClient.get(`/users/profile`);
+export const getUserProfile = async (): Promise<GetUserProfileResponseDto> => {
+  const response = await apiClient.get(USER_GENERAL.PROFILE);
   return response.data;
 };
 
-export const updateProfile = async (updateData: any) => {
-  const response = await apiClient.put(`/users/profile`, updateData);
+export const updateProfile = async (updateData: UpdateUserRequestDto): Promise<UpdateProfileResponseDto> => {
+  const response = await apiClient.put(USER_GENERAL.PROFILE, updateData);
   return response.data;
 };
 
-export const getNearbyUsers = async (
-  userId: string,
-  maxDistance: number = 5000
-) => {
-  const response = await apiClient.get(
-    `/users/nearby/${userId}?maxDistance=${maxDistance}`
-  );
+export const getNearbyUsers = async (userId: string, maxDistance: number = 5000): Promise<GetNearbyUsersResponseDto> => {
+  const response = await apiClient.get(USER_GENERAL.NEARBY_USERS(userId, maxDistance));
   return response.data;
 };
 
-export const addXpPoints = async (userId: string, points: number) => {
-  const response = await apiClient.post(`/users/xp/${userId}`, { points });
+export const addXpPoints = async (userId: string, points: number): Promise<AddXpPointsResponseDto> => {
+  const requestData: AddXpPointsRequestDto = { points };
+  const response = await apiClient.post(USER_GENERAL.ADD_XP(userId), requestData);
   return response.data;
 };
 
-export const updateLocation = async (locationData: {
-  latitude: number;
-  longitude: number;
-}) => {
-  const result = await apiClient.patch("/users/location", locationData);
+export const updateLocation = async (locationData: UpdateLocationRequestDto): Promise<UpdateLocationResponseDto> => {
+  const result = await apiClient.patch(USER_GENERAL.UPDATE_LOCATION, locationData);
   return result.data;
 };

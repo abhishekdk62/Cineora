@@ -1,18 +1,23 @@
+import USER_TICKETS from "../../constants/userConstants/ticketConstants";
 import apiClient from "../../Utils/apiClient";
+import {
+  GetTicketsApiResponseDto,
+  CancelTicketResponseDto
+} from '../../dtos/ticket.dto';
 
-export const getTicketsApi = async (page?: number, limit?: number) => {
-  return (
-    await apiClient.get("/users/tickets", {
-      params: {
-        page: page,
-        limit: limit,
-      },
-    })
-  ).data;
+export const getTicketsApi = async (page?: number, limit?: number): Promise<GetTicketsApiResponseDto> => {
+  const response = await apiClient.get(USER_TICKETS.LIST, {
+    params: {
+      page,
+      limit,
+    },
+  });
+  return response.data;
 };
 
-
-export const cancelTicket=async(bookingId:string,amount:number)=>{
-  const result=await apiClient.delete('/users/cancel/ticket',{params:{bookingId,amount}})
-  return result.data
-}
+export const cancelTicket = async (bookingId: string, amount: number): Promise<CancelTicketResponseDto> => {
+  const result = await apiClient.delete(USER_TICKETS.CANCEL, {
+    params: { bookingId, amount },
+  });
+  return result.data;
+};

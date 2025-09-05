@@ -17,6 +17,7 @@ import toast from "react-hot-toast";
 import { ITheater, TheaterFilters } from "@/app/others/types";
 import { getTheatersByOwnerIdAdmin } from "@/app/others/services/adminServices/theaterServices";
 import TheaterDetailsModal from "./TheaterModal";
+import { useDebounce } from "@/app/others/Utils/debounce";
 
 const lexend = Lexend({
   weight: "400",
@@ -32,7 +33,7 @@ interface TheatersProps {
   setViewInactiveTheater: () => void;
   ownerId: string;
   onClose: () => void;
-  status: "active" | "inactive"; 
+  status: "active" | "inactive";
 }
 
 const Theaters: React.FC<TheatersProps> = ({
@@ -58,18 +59,18 @@ const Theaters: React.FC<TheatersProps> = ({
     setIsModalOpen(false);
   };
   const handleStatusToggle = async () => {
-  setIsModalOpen(false)
-  fetchTheaters();
-};
+    setIsModalOpen(false)
+    fetchTheaters();
+  };
 
-const handleVerifyTheater = async () => {
- setIsModalOpen(false)
-  fetchTheaters();
-};
-const handleRejectTheater = async () => {
- setIsModalOpen(false)
-  fetchTheaters();
-};
+  const handleVerifyTheater = async () => {
+    setIsModalOpen(false)
+    fetchTheaters();
+  };
+  const handleRejectTheater = async () => {
+    setIsModalOpen(false)
+    fetchTheaters();
+  };
 
   const getStatusConfig = () => {
     switch (status) {
@@ -108,6 +109,7 @@ const handleRejectTheater = async () => {
 
   const statusConfig = getStatusConfig();
   const StatusIcon = statusConfig.icon;
+  
 
   const fetchTheaters = async (filters: TheaterFilters = {}) => {
     try {
@@ -115,7 +117,7 @@ const handleRejectTheater = async () => {
 
       const theaterFilters: TheaterFilters = {
         ownerId,
-        status, 
+        status,
         page: currentPage,
         limit: itemsPerPage,
         ...filters,
@@ -148,12 +150,16 @@ const handleRejectTheater = async () => {
 
   useEffect(() => {
     fetchTheaters();
-  }, [ownerId, currentPage, status]); 
+  }, [ownerId, currentPage, status]);
+
+  const debouncedFetchTheaters = useDebounce((filters: TheaterFilters) => {
+    fetchTheaters(filters);
+  }, 700);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setCurrentPage(1);
-    fetchTheaters({
+    debouncedFetchTheaters({
       search: searchTerm,
       sortBy,
       sortOrder,
@@ -207,11 +213,10 @@ const handleRejectTheater = async () => {
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className={`px-3 py-1 rounded ${
-              currentPage === 1
-                ? "text-gray-500 cursor-not-allowed"
-                : "text-gray-300 hover:text-white hover:bg-[#2a2a2a]"
-            }`}
+            className={`px-3 py-1 rounded ${currentPage === 1
+              ? "text-gray-500 cursor-not-allowed"
+              : "text-gray-300 hover:text-white hover:bg-[#2a2a2a]"
+              }`}
           >
             Previous
           </button>
@@ -219,11 +224,10 @@ const handleRejectTheater = async () => {
             <button
               key={page}
               onClick={() => handlePageChange(page)}
-              className={`px-3 py-1 rounded ${
-                currentPage === page
-                  ? "bg-[#e78f03] text-black font-medium"
-                  : "text-gray-300 hover:text-white hover:bg-[#2a2a2a]"
-              }`}
+              className={`px-3 py-1 rounded ${currentPage === page
+                ? "bg-[#e78f03] text-black font-medium"
+                : "text-gray-300 hover:text-white hover:bg-[#2a2a2a]"
+                }`}
             >
               {page}
             </button>
@@ -231,11 +235,10 @@ const handleRejectTheater = async () => {
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className={`px-3 py-1 rounded ${
-              currentPage === totalPages
-                ? "text-gray-500 cursor-not-allowed"
-                : "text-gray-300 hover:text-white hover:bg-[#2a2a2a]"
-            }`}
+            className={`px-3 py-1 rounded ${currentPage === totalPages
+              ? "text-gray-500 cursor-not-allowed"
+              : "text-gray-300 hover:text-white hover:bg-[#2a2a2a]"
+              }`}
           >
             Next
           </button>
@@ -277,7 +280,16 @@ const handleRejectTheater = async () => {
                 type="text"
                 placeholder="Search theaters..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                  debouncedFetchTheaters({
+                    search: e.target.value,
+                    sortBy,
+                    sortOrder,
+                    page: 1,
+                  });
+                }}
                 className="w-full pl-10 pr-4 py-2 bg-[#2a2a2a] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#e78f03]"
               />
             </div>
@@ -415,9 +427,8 @@ const handleRejectTheater = async () => {
                     <div className="flex items-center gap-4 text-sm">
                       <div className="flex items-center gap-2">
                         <div
-                          className={`w-2 h-2 rounded-full ${
-                            theater.isActive ? "bg-green-400" : "bg-red-400"
-                          }`}
+                          className={`w-2 h-2 rounded-full ${theater.isActive ? "bg-green-400" : "bg-red-400"
+                            }`}
                         ></div>
                         <span
                           className={
@@ -429,9 +440,8 @@ const handleRejectTheater = async () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <div
-                          className={`w-2 h-2 rounded-full ${
-                            theater.isVerified ? "bg-blue-400" : "bg-yellow-400"
-                          }`}
+                          className={`w-2 h-2 rounded-full ${theater.isVerified ? "bg-blue-400" : "bg-yellow-400"
+                            }`}
                         ></div>
                         <span
                           className={
@@ -452,6 +462,8 @@ const handleRejectTheater = async () => {
                     <button
                       onClick={() => {
                         setSelectedTheater(theater);
+                        console.log('theater is ', theater);
+
                         setIsModalOpen(true);
                       }}
                       className="flex items-center gap-2 px-3 py-2 bg-[#e78f03] hover:bg-[#d67e02] text-black rounded-lg transition-colors"

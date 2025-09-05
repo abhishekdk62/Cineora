@@ -116,7 +116,6 @@ const TicketCard: React.FC<TicketCardProps> = ({ booking, onViewDetails, activeT
         return
       }
       const data = await cancelTicket(booking.bookingId, Math.round(calculateTotalPrice(booking)))
-      console.log(data.data);
       toast.success('Ticket cancelled ')
       getTickets(1)
 

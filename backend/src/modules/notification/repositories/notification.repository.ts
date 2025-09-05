@@ -1,150 +1,102 @@
 import { INotification } from "../interfaces/notification.model.interface";
+import { 
+
+  INotificationRepository 
+} from "../interfaces/notification.repository.interface";
 import Notification from "../models/notification.model";
-import { INotificationRepository } from "../interfaces/notification.repository.interface";
+import { CreateNotificationDTO, NotificationFilterDTO } from "../dtos/dto";
 
 export class NotificationRepository implements INotificationRepository {
-  async create(notificationData: Partial<INotification>): Promise<INotification | null> {
-    const notification = new Notification(notificationData);
-    return notification.save();
-  }
-  
-  async findById(id: string): Promise<INotification | null> {
-    return Notification.findById(id).populate("userId", "firstName lastName email");
-  }
-  
-  async findByNotificationId(notificationId: string): Promise<INotification | null> {
-    return Notification.findOne({ notificationId })
-      .populate("userId", "firstName lastName email");
-  }
-  
-  async findByUserId(
-    userId: string,
-    page: number = 1,
-    limit: number = 20,
-    filters?: { type?: string; isRead?: boolean }
-  ): Promise<{
-    notifications: INotification[];
-    total: number;
-    unreadCount: number;
-  }> {
-    const skip = (page - 1) * limit;
-    const query: any = { userId };
-    
-    if (filters?.type) {
-      query.type = filters.type;
-    }
-    
-    if (filters?.isRead !== undefined) {
-      query.isRead = filters.isRead;
-    }
-    
-    const notifications = await Notification.find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-      
-    const total = await Notification.countDocuments(query);
-    const unreadCount = await Notification.countDocuments({ 
-      userId, 
-      isRead: false 
-    });
-    
-    return { notifications, total, unreadCount };
-  }
-  
-  async markAsRead(notificationId: string): Promise<INotification | null> {
-    return Notification.findOneAndUpdate(
-      { notificationId },
-      { 
-        isRead: true, 
-        readAt: new Date(),
-        status: "read"
-      },
-      { new: true }
-    );
-  }
-  
-  async markAllAsRead(userId: string): Promise<number> {
-    const result = await Notification.updateMany(
-      { userId, isRead: false },
-      { 
-        isRead: true, 
-        readAt: new Date(),
-        status: "read"
+  async createNotification(notificationData: CreateNotificationDTO): Promise<INotification> {
+    try {
+      const notification = new Notification(notificationData);
+      const savedNotification = await notification.save();
+      if (!savedNotification) {
+        throw new Error("Failed to create notification");
       }
-    );
-    
-    return result.modifiedCount;
-  }
-  
-  async updateStatus(
-    notificationId: string,
-    status: string,
-    sentVia?: string[]
-  ): Promise<INotification | null> {
-    const updateData: any = { status };
-    
-    if (status === "sent" || status === "delivered") {
-      updateData.sentAt = new Date();
+      return savedNotification;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred while creating notification";
+      throw new Error(`Create notification failed: ${errorMessage}`);
     }
-    
-    if (sentVia) {
-      updateData.sentVia = sentVia;
+  }
+
+  async findNotificationsByUserId(userId: string): Promise<INotification[]> {
+    try {
+      const notifications = await Notification.find({ userId })
+        .sort({ createdAt: -1 })
+        .lean();
+      return notifications;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred while finding notifications";
+      throw new Error(`Find notifications by userId failed: ${errorMessage}`);
     }
-    
-    return Notification.findOneAndUpdate(
-      { notificationId },
-      updateData,
-      { new: true }
-    );
   }
-  
-  async deleteById(id: string): Promise<boolean> {
-    const result = await Notification.findByIdAndDelete(id);
-    return !!result;
+
+  async findUnreadNotificationsByUserId(userId: string): Promise<INotification[]> {
+    try {
+      const notifications = await Notification.find({ userId, isRead: false })
+        .sort({ createdAt: -1 })
+        .lean();
+      return notifications;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred while finding unread notifications";
+      throw new Error(`Find unread notifications failed: ${errorMessage}`);
+    }
   }
-  
-  async deleteByUserId(userId: string): Promise<number> {
-    const result = await Notification.deleteMany({ userId });
-    return result.deletedCount;
-  }
-  
-  async findScheduledNotifications(): Promise<INotification[]> {
-    const now = new Date();
-    return Notification.find({
-      status: "pending",
-      scheduledFor: { $lte: now }
-    }).populate("userId", "firstName lastName email phone");
-  }
-  
-  async findUnreadCount(userId: string): Promise<number> {
-    return Notification.countDocuments({ userId, isRead: false });
-  }
-  
-  async findByType(
-    type: string,
-    page: number = 1,
-    limit: number = 20
-  ): Promise<{
-    notifications: INotification[];
-    total: number;
-  }> {
-    const skip = (page - 1) * limit;
-    
-    const notifications = await Notification.find({ type })
-      .populate("userId", "firstName lastName email")
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
+
+  async markNotificationAsRead(notificationId: string): Promise<INotification> {
+    try {
+      const updatedNotification = await Notification.findOneAndUpdate(
+        { notificationId },
+        {
+          isRead: true,
+          readAt: new Date()
+        },
+        { new: true }
+      );
       
-    const total = await Notification.countDocuments({ type });
-    
-    return { notifications, total };
+      if (!updatedNotification) {
+        throw new Error("Notification not found");
+      }
+      
+      return updatedNotification;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred while marking notification as read";
+      throw new Error(`Mark notification as read failed: ${errorMessage}`);
+    }
   }
-  
-  async findFailedNotifications(): Promise<INotification[]> {
-    return Notification.find({ status: "failed" })
-      .populate("userId", "firstName lastName email phone")
-      .sort({ createdAt: -1 });
+
+  async deleteNotificationById(notificationId: string): Promise<boolean> {
+    try {
+      const result = await Notification.findOneAndDelete({ notificationId });
+      return !!result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred while deleting notification";
+      throw new Error(`Delete notification failed: ${errorMessage}`);
+    }
+  }
+
+  async countUnreadNotificationsByUserId(userId: string): Promise<number> {
+    try {
+      const count = await Notification.countDocuments({
+        userId,
+        isRead: false
+      });
+      return count;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred while counting unread notifications";
+      throw new Error(`Count unread notifications failed: ${errorMessage}`);
+    }
+  }
+
+  async findNotificationByNotificationId(notificationId: string): Promise<INotification | null> {
+    try {
+      const notification = await Notification.findOne({ notificationId }).lean();
+      return notification;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred while finding notification";
+      throw new Error(`Find notification by ID failed: ${errorMessage}`);
+    }
   }
 }

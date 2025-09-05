@@ -1,22 +1,24 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Lexend } from "next/font/google"
-import { 
-  User, 
-  CheckCircle, 
+import {
+  User,
+  CheckCircle,
   XCircle,
-  Calendar, 
-  Phone, 
-  Mail, 
-  Building, 
-  CreditCard, 
+  Calendar,
+  Phone,
+  Mail,
+  Building,
+  CreditCard,
   FileText,
   Clock,
   Shield,
-  X
+  X,
+  MapPin
 } from "lucide-react"
 import { Owner } from "./OwnerManager"
+import { getTheatersByOwnerIdAdmin } from "@/app/others/services/adminServices/theaterServices"
 
 const lexend = Lexend({
   weight: "500",
@@ -38,10 +40,10 @@ interface ActionButton {
 interface OwnerCardProps {
   owner: Owner
   actions: ActionButton[]
-  setViewThaeter:(id:string)=>void
+  setViewThaeter: (id: string) => void
 }
 
-const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions,setViewThaeter }) => {
+const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions, setViewThaeter }) => {
   const [showModal, setShowModal] = useState(false)
 
   const formatDate = (dateString: string) => {
@@ -61,10 +63,26 @@ const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions,setViewThaeter }) 
       minute: '2-digit'
     })
   }
-
+  interface Theatre {
+  _id: string;
+  name: string;
+  address: string;
+  location: {
+    coordinates: [number, number];
+    type: string;
+  };
+}
+const [theatres, setTheaters] = useState<Theatre[]>([]);
+  async function getTheatersByOwnerId() {
+    const data = await getTheatersByOwnerIdAdmin(owner._id)
+    setTheaters(data.data.theaters)
+    console.log(data.data);
+  }
+  useEffect(() => {
+    getTheatersByOwnerId()
+  }, [])
   return (
     <>
-      
       <div className="bg-[#1a1a1a] border border-gray-600 rounded-lg p-6 hover:border-gray-500 transition-colors">
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -96,11 +114,10 @@ const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions,setViewThaeter }) 
                   </div>
                 </div>
                 <div className="flex items-center gap-2 mt-2">
-                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                    owner.isActive 
-                      ? 'bg-green-500/20 text-green-400 border border-green-500/50' 
-                      : 'bg-red-500/20 text-red-400 border border-red-500/50'
-                  }`}>
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${owner.isActive
+                    ? 'bg-green-500/20 text-green-400 border border-green-500/50'
+                    : 'bg-red-500/20 text-red-400 border border-red-500/50'
+                    }`}>
                     {owner.isActive ? 'Active' : 'Blocked'}
                   </span>
                   {owner.isVerified && (
@@ -113,7 +130,7 @@ const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions,setViewThaeter }) 
               </div>
             </div>
 
-            
+
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
               <div className="bg-[#2a2a2a] p-3 rounded-lg">
                 <div className="flex items-center gap-2 mb-1">
@@ -124,7 +141,7 @@ const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions,setViewThaeter }) 
                   {formatDate(owner.createdAt)}
                 </p>
               </div>
-              
+
               <div className="bg-[#2a2a2a] p-3 rounded-lg">
                 <div className="flex items-center gap-2 mb-1">
                   <CheckCircle size={14} className="text-gray-400" />
@@ -134,7 +151,7 @@ const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions,setViewThaeter }) 
                   {formatDate(owner.approvedAt)}
                 </p>
               </div>
-              
+
               <div className="bg-[#2a2a2a] p-3 rounded-lg">
                 <div className="flex items-center gap-2 mb-1">
                   <Building size={14} className="text-gray-400" />
@@ -144,7 +161,7 @@ const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions,setViewThaeter }) 
                   {owner.theatres.length}
                 </p>
               </div>
-              
+
               <div className="bg-[#2a2a2a] p-3 rounded-lg">
                 <div className="flex items-center gap-2 mb-1">
                   <Clock size={14} className="text-gray-400" />
@@ -225,7 +242,7 @@ const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions,setViewThaeter }) 
             {/* Modal Content */}
             <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
               <div className="space-y-6">
-                
+
                 {/* Status Information */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-[#2a2a2a] p-4 rounded-lg">
@@ -237,7 +254,7 @@ const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions,setViewThaeter }) 
                       {owner.isActive ? 'Active' : 'Blocked'}
                     </p>
                   </div>
-                  
+
                   <div className="bg-[#2a2a2a] p-4 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
                       <Shield className={owner.isVerified ? "text-green-400" : "text-red-400"} size={16} />
@@ -247,7 +264,7 @@ const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions,setViewThaeter }) 
                       {owner.isVerified ? 'Verified' : 'Not Verified'}
                     </p>
                   </div>
-                  
+
                   <div className="bg-[#2a2a2a] p-4 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
                       <Building className="text-blue-400" size={16} />
@@ -272,14 +289,8 @@ const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions,setViewThaeter }) 
                       <span className="text-gray-400">PAN Number:</span>
                       <p className="text-white font-medium">{owner.pan}</p>
                     </div>
-                    <div>
-                      <span className="text-gray-400">KYC Request ID:</span>
-                      <p className="text-white font-medium text-sm font-mono">{owner.kycRequestId}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Approved By:</span>
-                      <p className="text-white font-medium text-sm font-mono">{owner.approvedBy}</p>
-                    </div>
+
+
                   </div>
                 </div>
 
@@ -338,7 +349,7 @@ const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions,setViewThaeter }) 
                         </div>
                       </div>
                     </a>
-                    
+
                     <a
                       href={owner.panUrl}
                       target="_blank"
@@ -353,7 +364,7 @@ const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions,setViewThaeter }) 
                         </div>
                       </div>
                     </a>
-                    
+
                     <a
                       href={owner.ownerPhotoUrl}
                       target="_blank"
@@ -371,7 +382,6 @@ const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions,setViewThaeter }) 
                   </div>
                 </div>
 
-                {/* Theatre Information */}
                 <div className="bg-[#2a2a2a] p-4 rounded-lg">
                   <h4 className={`${lexend.className} text-white text-lg font-medium mb-4 flex items-center gap-2`}>
                     <Building size={20} />
@@ -379,19 +389,33 @@ const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions,setViewThaeter }) 
                   </h4>
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-gray-400">Total Theatres:</span>
-                    <span className="text-white font-medium text-2xl">{owner.theatres.length}</span>
+                    <span className="text-white font-medium text-2xl">{theatres.length}</span>
                   </div>
-                  {owner.theatres.length === 0 ? (
+                  {theatres.length === 0 ? (
                     <div className="bg-[#1a1a1a] p-6 rounded-lg border border-gray-600 text-center">
                       <Building size={32} className="mx-auto text-gray-400 mb-3" />
                       <p className="text-gray-400">No theatres registered yet</p>
                       <p className="text-gray-500 text-sm mt-1">Owner can add theatres from their dashboard</p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 gap-2">
-                      {owner.theatres.map((theatreId, index) => (
-                        <div key={theatreId} className="bg-[#1a1a1a] p-3 rounded border border-gray-600">
-                          <span className="text-white">Theatre #{index + 1}: {theatreId}</span>
+                    <div className="grid grid-cols-1 gap-3">
+                      {theatres.map((theatre) => (
+                        <div key={theatre._id} className="bg-[#1a1a1a] p-4 rounded border border-gray-600">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h5 className="text-white font-medium text-lg mb-2">{theatre.name}</h5>
+                              <p className="text-gray-400 text-sm mb-3">{theatre.address}</p>
+                            </div>
+                            <a
+                              href={`https://www.google.com/maps?q=${theatre.location.coordinates[1]},${theatre.location.coordinates[0]}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="ml-3 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors flex items-center gap-2"
+                            >
+                              <MapPin size={14} />
+                              View on Maps
+                            </a>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -428,27 +452,7 @@ const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions,setViewThaeter }) 
                   </div>
                 </div>
 
-                {/* System Information */}
-                <div className="bg-[#2a2a2a] p-4 rounded-lg">
-                  <h4 className={`${lexend.className} text-white text-lg font-medium mb-4 flex items-center gap-2`}>
-                    <Shield size={20} />
-                    System Information
-                  </h4>
-                  <div className="grid grid-cols-1 gap-3">
-                    <div className="flex justify-between items-center py-2 border-b border-gray-600">
-                      <span className="text-gray-400">Owner ID:</span>
-                      <span className="text-white font-mono text-sm">{owner._id}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-gray-600">
-                      <span className="text-gray-400">KYC Request ID:</span>
-                      <span className="text-white font-mono text-sm">{owner.kycRequestId}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-gray-400">Approved By (Admin ID):</span>
-                      <span className="text-white font-mono text-sm">{owner.approvedBy}</span>
-                    </div>
-                  </div>
-                </div>
+
               </div>
             </div>
 
