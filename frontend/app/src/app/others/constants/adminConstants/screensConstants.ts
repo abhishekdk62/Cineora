@@ -1,4 +1,3 @@
-// constants/adminRoutes/screens.ts
 
 const ADMIN_SCREENS = {
   BASE: '/admin/screens' as const,

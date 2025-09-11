@@ -7,6 +7,9 @@ const lexendSmall = Lexend({
   subsets: ["latin"],
 })
 
+// Font variables for styling
+const lexendSmallStyle = { fontFamily: 'Lexend', fontWeight: '400' };
+
 interface MoviesTopBarProps {
   activeView: "current" | "expired" | "tmdb"
   setActiveView: (view: "current" | "expired" | "tmdb") => void
@@ -44,8 +47,8 @@ const MoviesTopBar: React.FC<MoviesTopBarProps> = ({
   ]
 
   return (
-    <div className="bg-[#1a1a1a] border border-gray-600 rounded-lg p-4 shadow-lg">
-      <div className="flex flex-wrap gap-2">
+    <div className="bg-gray-900/90 backdrop-blur-sm border border-yellow-500/20 rounded-lg p-6">
+      <div className="flex flex-wrap gap-3">
         {tabs.map((tab) => {
           const Icon = tab.icon
           const isActive = activeView === tab.id
@@ -53,21 +56,25 @@ const MoviesTopBar: React.FC<MoviesTopBarProps> = ({
             <button
               key={tab.id}
               onClick={() => setActiveView(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                 isActive
-                  ? "bg-[#e78f03] text-black font-medium shadow-lg"
-                  : "text-gray-300 hover:text-white hover:bg-[#2a2a2a] border border-gray-500"
+                  ? "bg-yellow-500 text-black font-medium"
+                  : "text-gray-300 hover:text-yellow-400 hover:bg-yellow-500/10 border border-yellow-500/30"
               }`}
             >
-              <Icon size={16} className={isActive ? "text-black" : tab.color} />
-              <span className={`${lexendSmall.className}`}>{tab.label}</span>
+              <Icon 
+                size={18} 
+                className={isActive ? "text-black" : "text-yellow-400"}
+              />
+              <span style={lexendSmallStyle}>{tab.label}</span>
               {tab.count !== undefined && (
                 <span
-                  className={`${
+                  className={`text-xs px-2 py-1 rounded-full ${
                     isActive 
                       ? "bg-black/20 text-black" 
-                      : "bg-[#2a2a2a] text-gray-300"
-                  } text-xs px-2 py-1 rounded-full ml-1`}
+                      : "bg-yellow-500/20 text-yellow-400"
+                  }`}
+                  style={lexendSmallStyle}
                 >
                   {tab.count}
                 </span>

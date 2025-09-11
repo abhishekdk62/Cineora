@@ -1,4 +1,3 @@
-// models/walletTransaction.model.ts
 import { Schema, model } from "mongoose";
 import { IWalletTransaction } from "../interfaces/walletTransaction.model.interface";
 
@@ -69,7 +68,6 @@ const walletTransactionSchema = new Schema<IWalletTransaction>(
   }
 );
 
-// Indexes for better query performance
 walletTransactionSchema.index({ userId: 1, createdAt: -1 });
 walletTransactionSchema.index({ walletId: 1, createdAt: -1 });
 walletTransactionSchema.index({ transactionId: 1 });

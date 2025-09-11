@@ -655,7 +655,6 @@ export class ShowtimeService implements IShowtimeService {
     }
   }
 
-  // Private helper methods
   private _validateObjectId(id: string): boolean {
     return mongoose.isValidObjectId(id);
   }

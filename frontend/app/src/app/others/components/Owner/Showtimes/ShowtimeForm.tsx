@@ -7,6 +7,7 @@ import TheaterSelectionModal from "./TheaterSelectionModal";
 import MovieSelectionModal from "./MovieSelectionModal";
 import ScreenSelectionModal from "./ScreenSelectionModal";
 import toast from "react-hot-toast";
+import { RowPricingDto, ShowtimeResponseDto } from "@/app/others/dtos";
 
 function getDatesInRange(startStr: string, endStr: string): string[] {
   const result: string[] = [];
@@ -24,7 +25,7 @@ function toMinutes(t: string) {
 }
 
 interface ShowtimeFormProps {
-  showtime?: IShowtime | null;
+  showtime?: ShowtimeResponseDto | null;
   onClose: () => void;
   onSubmit: (data: any) => void;
   lexendMedium: any;
@@ -49,7 +50,7 @@ const ShowtimeForm: React.FC<ShowtimeFormProps> = ({
     format: "2D",
     language: "",
     ageRestriction: null as number | null,
-    rowPricing: [] as IRowPricing[],
+    rowPricing: [] as RowPricingDto[],
   });
 
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({

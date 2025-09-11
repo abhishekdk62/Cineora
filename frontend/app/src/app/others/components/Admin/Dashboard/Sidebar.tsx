@@ -26,6 +26,10 @@ const lexendSmall = Lexend({
   subsets: ["latin"],
 });
 
+// Font variables for styling
+const lexendMedium = { fontFamily: 'Lexend', fontWeight: '500' };
+const lexendSmallStyle = { fontFamily: 'Lexend', fontWeight: '400' };
+
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
@@ -64,26 +68,30 @@ const Sidebar: React.FC<SidebarProps> = ({
   return (
     <div
       className={`${sidebarOpen ? "w-72" : "w-20"
-        } bg-[#0a0a0a] border-r border-gray-700 transition-all duration-300 flex flex-col shadow-lg`}
+        } bg-black/95 backdrop-blur-sm border-r border-yellow-500/20 transition-all duration-300 flex flex-col`}
     >
       {/* Sidebar Header */}
-      <div className="p-6 border-b border-gray-700">
+      <div className="p-6 border-b border-yellow-500/20">
         <div className="flex items-center justify-between">
           {sidebarOpen && (
             <div>
-              <h2
-                className={`${lexend.className} text-xl font-bold text-white`}
+              <h2 
+                className="text-xl text-yellow-400 mb-1" 
+                style={lexendMedium}
               >
                 Showteria
               </h2>
-              <p className={`${lexendSmall.className} text-gray-300 text-sm`}>
+              <p 
+                className="text-gray-400 text-sm" 
+                style={lexendSmallStyle}
+              >
                 Movie Management
               </p>
             </div>
           )}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="text-gray-400 hover:text-white hover:bg-[#1a1a1a] p-2 rounded-md transition-colors"
+            className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10 p-2 rounded-lg transition-all duration-200"
           >
             <Menu size={20} />
           </button>
@@ -100,20 +108,26 @@ const Sidebar: React.FC<SidebarProps> = ({
               <li key={item.id}>
                 <button
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 ${isActive
-                      ? "bg-[#e78f03] text-black border-l-4 border-[#d17a02] shadow-lg font-medium"
-                      : "text-gray-300 hover:text-white hover:bg-[#1a1a1a]"
-                    }`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                    isActive
+                      ? "bg-yellow-500 text-black"
+                      : "text-gray-300 hover:text-yellow-400 hover:bg-yellow-500/10"
+                  }`}
                 >
-                  <Icon size={20} />
+                  <Icon 
+                    size={20} 
+                    className={isActive ? "text-black" : "text-yellow-400"}
+                  />
                   {sidebarOpen && (
-                    <>
-                      <span
-                        className={`${lexendSmall.className} flex-1 text-left`}
+                    <div className="flex-1 flex items-center justify-between">
+                      <span 
+                        className="text-left" 
+                        style={lexendSmallStyle}
                       >
                         {item.label}
                       </span>
-                    </>
+                  
+                    </div>
                   )}
                 </button>
               </li>
@@ -123,14 +137,14 @@ const Sidebar: React.FC<SidebarProps> = ({
       </nav>
 
       {/* Sidebar Footer */}
-      <div className="p-4 border-t border-gray-700">
+      <div className="p-4 border-t border-yellow-500/20">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-gray-300 hover:text-white hover:bg-red-500/20 hover:border-red-500/30 transition-colors"
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
         >
-          <LogOut size={20} />
+          <LogOut size={20} className="text-red-400" />
           {sidebarOpen && (
-            <span className={`${lexendSmall.className}`}>Logout</span>
+            <span style={lexendSmallStyle}>Logout</span>
           )}
         </button>
       </div>

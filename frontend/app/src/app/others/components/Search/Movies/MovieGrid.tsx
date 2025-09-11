@@ -3,6 +3,7 @@
 import React from "react";
 import { Lexend } from "next/font/google";
 import MovieCard from "./MovieCard";
+import { MovieResponseDto } from "@/app/others/dtos";
 
 const lexendSmall = Lexend({
   weight: "200",
@@ -27,7 +28,7 @@ interface Movie {
 }
 
 interface MovieGridProps {
-  movies: Movie[];
+  movies: MovieResponseDto[];
   loading: boolean;
   sortOrder: 'asc' | 'desc';
   setSortOrder: (order: 'asc' | 'desc') => void;

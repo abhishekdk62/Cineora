@@ -1,4 +1,4 @@
-import { ApiResponse, PaginationQuery } from './common.dto';
+import { ApiResponse, PaginationQuery } from "./common.dto";
 
 export interface CreateTheaterRequestDto {
   ownerId: string;
@@ -68,16 +68,35 @@ export interface TheaterResponseDto {
   createdAt: Date;
   updatedAt: Date;
 }
+interface getTheatersByOwnerId {
+  activeAll: TheaterResponseDto;
+
+  inactiveAll: TheaterResponseDto;
+  theaters: TheaterResponseDto;
+  totalAll: TheaterResponseDto;
+  totalFiltered: TheaterResponseDto;
+}
 
 export interface TheaterResponse extends ApiResponse<TheaterResponseDto[]> {}
 
-export interface CreateTheaterResponseDto extends ApiResponse<TheaterResponseDto> {}
-export interface GetTheaterResponseDto extends ApiResponse<TheaterResponseDto> {}
-export interface GetTheatersResponseDto extends ApiResponse<TheaterResponseDto[]> {}
-export interface UpdateTheaterResponseDto extends ApiResponse<TheaterResponseDto> {}
+export interface CreateTheaterResponseDto
+  extends ApiResponse<TheaterResponseDto> {}
+export interface GetTheaterResponseDto
+  extends ApiResponse<TheaterResponseDto> {}
+export interface GetTheatersResponseDto
+  extends ApiResponse<TheaterResponseDto[]> {}
+export interface UpdateTheaterResponseDto
+  extends ApiResponse<TheaterResponseDto> {}
 export interface DeleteTheaterResponseDto extends ApiResponse<null> {}
-export interface VerifyTheaterResponseDto extends ApiResponse<TheaterResponseDto> {}
-export interface RejectTheaterResponseDto extends ApiResponse<TheaterResponseDto> {}
-export interface ToggleTheaterStatusResponseDto extends ApiResponse<TheaterResponseDto> {}
-export interface GetTheatersByOwnerIdResponseDto extends ApiResponse<TheaterResponseDto[]> {}
-export interface GetTheatersByMovieResponseDto extends ApiResponse<TheaterResponseDto[]> {}
+export interface VerifyTheaterResponseDto
+  extends ApiResponse<TheaterResponseDto> {}
+export interface RejectTheaterResponseDto
+  extends ApiResponse<TheaterResponseDto> {}
+export interface ToggleTheaterStatusResponseDto
+  extends ApiResponse<TheaterResponseDto> {}
+export interface GetTheatersByOwnerIdResponseDto
+  extends ApiResponse<TheaterResponseDto[]> {}
+export interface GetTheatersByMovieResponseDto
+  extends ApiResponse<TheaterResponseDto[]> {}
+export interface GetTheatersByOwnerIdResponseDto2
+  extends ApiResponse<getTheatersByOwnerId[]> {}

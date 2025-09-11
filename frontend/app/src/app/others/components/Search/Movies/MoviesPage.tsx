@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import SearchHeader from "./SearchHeader";
 import FilterSidebar from "./FilterSidebar";
 import MoviesGrid from "./MovieGrid";
+import { MovieResponseDto } from "@/app/others/dtos";
 
 interface Movie {
   _id: string;
@@ -23,7 +24,7 @@ interface Movie {
 }
 
 interface MoviesPageProps {
-  movies: Movie[];
+  movies: MovieResponseDto[];
   loading: boolean;
   searchLoading?: boolean; 
   totalPages: number;

@@ -20,7 +20,11 @@ import {
   IOwnerRepository,
   IOwnerRequestRepository,
 } from "../../owner/interfaces/owner.repository.interface";
-import { generateSignedUrl, uploadToCloudinary } from "../../../utils/cloudinaryUtil";
+import {
+  generateSignedUrl,
+  uploadToCloudinary,
+} from "../../../utils/cloudinaryUtil";
+import { UserDto, UserMapper } from "../../../mappers/user.mapper";
 
 export class UserService implements IUserService {
   constructor(
@@ -35,12 +39,11 @@ export class UserService implements IUserService {
     try {
       const { username, email, password, ...otherData } = userData;
 
-      // Business logic validation
       const validationError = await this._validateSignupData(email, username);
       if (validationError) {
         return createResponse({
           success: false,
-          message: validationError
+          message: validationError,
         });
       }
 
@@ -66,29 +69,42 @@ export class UserService implements IUserService {
       if (!emailSent) {
         return createResponse({
           success: false,
-          message: "Failed to send verification email"
+          message: "Failed to send verification email",
         });
       }
 
       return createResponse({
         success: true,
-        message: "Verification code sent to your email. Please verify to complete registration.",
-        data: { email, username }
+        message:
+          "Verification code sent to your email. Please verify to complete registration.",
+        data: { email, username },
       });
     } catch (error: unknown) {
-      return this._handleServiceError(error, "Something went wrong during signup");
+      return this._handleServiceError(
+        error,
+        "Something went wrong during signup"
+      );
     }
   }
 
-  async verifyOTP(email: string, otp: string): Promise<ApiResponse<VerifyOTPResponseDto>> {
+  async verifyOTP(
+    email: string,
+    otp: string
+  ): Promise<ApiResponse<VerifyOTPResponseDto>> {
     try {
-      email = String(email || "").trim().toLowerCase();
+      email = String(email || "")
+        .trim()
+        .toLowerCase();
 
-      const validOTP = await this.otpRepository.findValidOTP(email, otp, "signup");
+      const validOTP = await this.otpRepository.findValidOTP(
+        email,
+        otp,
+        "signup"
+      );
       if (!validOTP || !validOTP.userData) {
         return createResponse({
           success: false,
-          message: "Invalid or expired OTP"
+          message: "Invalid or expired OTP",
         });
       }
 
@@ -96,7 +112,7 @@ export class UserService implements IUserService {
       if (existingUser && existingUser.isVerified) {
         return createResponse({
           success: false,
-          message: "User already exists and verified"
+          message: "User already exists and verified",
         });
       }
 
@@ -113,14 +129,18 @@ export class UserService implements IUserService {
 
       return createResponse({
         success: true,
-        message: "Account created and verified successfully! Welcome bonus: 100 XP added.",
+        message:
+          "Account created and verified successfully! Welcome bonus: 100 XP added.",
         data: {
           user: newUser,
           xpBonus: 100,
-        }
+        },
       });
     } catch (error: unknown) {
-      return this._handleServiceError(error, "Something went wrong during verification");
+      return this._handleServiceError(
+        error,
+        "Something went wrong during verification"
+      );
     }
   }
 
@@ -130,7 +150,7 @@ export class UserService implements IUserService {
       if (existingUser && existingUser.isVerified) {
         return createResponse({
           success: false,
-          message: "User already verified. Please login instead."
+          message: "User already verified. Please login instead.",
         });
       }
 
@@ -138,7 +158,7 @@ export class UserService implements IUserService {
       if (!existingOTP || !existingOTP.userData) {
         return createResponse({
           success: false,
-          message: "No pending signup found. Please signup again."
+          message: "No pending signup found. Please signup again.",
         });
       }
 
@@ -158,13 +178,13 @@ export class UserService implements IUserService {
       if (!emailSent) {
         return createResponse({
           success: false,
-          message: "Failed to send verification email"
+          message: "Failed to send verification email",
         });
       }
 
       return createResponse({
         success: true,
-        message: "Verification code sent to your email!"
+        message: "Verification code sent to your email!",
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Something went wrong");
@@ -178,46 +198,28 @@ export class UserService implements IUserService {
       if (!user) {
         return createResponse({
           success: false,
-          message: "User not found"
+          message: "User not found",
         });
       }
 
       await this.userRepository.updateUserLastActive(id);
-      
+
       let profilePicUrl = null;
-      if (user.profilePicture && !user.profilePicture.startsWith('http')) {
+      if (user.profilePicture && !user.profilePicture.startsWith("http")) {
         profilePicUrl = generateSignedUrl(user.profilePicture, {
           width: 200,
           height: 200,
-          crop: 'fill'
+          crop: "fill",
         });
       }
 
-      const userResponse = {
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        dateOfBirth: user.dateOfBirth,
-        language: user.language,
-        gender: user.gender,
-        phone: user.phone,
-        locationCity: user.locationCity,
-        locationState: user.locationState,
-        location: user.location,
-        isVerified: user.isVerified,
-        xpPoints: user.xpPoints,
-        joinedAt: user.joinedAt,
-        lastActive: user.lastActive,
-        isActive: user.isActive,
-        profilePicture: profilePicUrl 
-      };
+    
+      let userDto=UserMapper.toDto(user)
 
       return createResponse({
         success: true,
         message: "Profile fetched successfully",
-        data: userResponse
+        data: userDto,
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Something went wrong");
@@ -256,24 +258,27 @@ export class UserService implements IUserService {
         } catch (uploadError) {
           return createResponse({
             success: false,
-            message: "Failed to upload profile picture. Please try again."
+            message: "Failed to upload profile picture. Please try again.",
           });
         }
       }
 
-      const updatedUser = await this.userRepository.updateUserProfile(id, updateData);
+      const updatedUser = await this.userRepository.updateUserProfile(
+        id,
+        updateData
+      );
 
       if (!updatedUser) {
         return createResponse({
           success: false,
-          message: "User not found"
+          message: "User not found",
         });
       }
-
+let user=UserMapper.toDto(updatedUser)
       return createResponse({
         success: true,
         message: "Profile updated successfully",
-        data: updatedUser
+        data: user,
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Something went wrong");
@@ -290,7 +295,7 @@ export class UserService implements IUserService {
       if (!user || !user.location.coordinates) {
         return createResponse({
           success: false,
-          message: "User not found or location not set"
+          message: "User not found or location not set",
         });
       }
 
@@ -298,31 +303,34 @@ export class UserService implements IUserService {
         user.location.coordinates,
         maxDistance
       );
-
+let users=nearbyUsers.map((user)=>UserMapper.toDto(user))
       return createResponse({
         success: true,
         message: "Nearby users fetched successfully",
-        data: nearbyUsers
+        data: users,
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Something went wrong");
     }
   }
 
-  async addUserXpPoints(userId: string, points: number): Promise<ApiResponse<void>> {
+  async addUserXpPoints(
+    userId: string,
+    points: number
+  ): Promise<ApiResponse<void>> {
     try {
       const success = await this.userRepository.addUserXpPoints(userId, points);
 
       if (!success) {
         return createResponse({
           success: false,
-          message: "User not found"
+          message: "User not found",
         });
       }
 
       return createResponse({
         success: true,
-        message: `${points} XP points added successfully`
+        message: `${points} XP points added successfully`,
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Something went wrong");
@@ -339,7 +347,7 @@ export class UserService implements IUserService {
       if (!user) {
         return createResponse({
           success: false,
-          message: "User not found"
+          message: "User not found",
         });
       }
 
@@ -347,23 +355,26 @@ export class UserService implements IUserService {
       if (!isMatch) {
         return createResponse({
           success: false,
-          message: "Old password is incorrect"
+          message: "Old password is incorrect",
         });
       }
 
       const hash = await bcrypt.hash(newPassword, config.bcryptRounds);
-      const updated = await this.userRepository.updateUserPassword(userId, hash);
+      const updated = await this.userRepository.updateUserPassword(
+        userId,
+        hash
+      );
 
       if (!updated) {
         return createResponse({
           success: false,
-          message: "Failed to update password"
+          message: "Failed to update password",
         });
       }
 
       return createResponse({
         success: true,
-        message: "Password changed successfully"
+        message: "Password changed successfully",
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Something went wrong");
@@ -380,7 +391,7 @@ export class UserService implements IUserService {
       if (!user) {
         return createResponse({
           success: false,
-          message: "User not found"
+          message: "User not found",
         });
       }
 
@@ -388,14 +399,14 @@ export class UserService implements IUserService {
       if (!isMatch) {
         return createResponse({
           success: false,
-          message: "Invalid password"
+          message: "Invalid password",
         });
       }
 
       if (user.email.toLowerCase() === email.toLowerCase()) {
         return createResponse({
           success: false,
-          message: "New email must be different from current email"
+          message: "New email must be different from current email",
         });
       }
 
@@ -403,7 +414,7 @@ export class UserService implements IUserService {
       if (emailValidation) {
         return createResponse({
           success: false,
-          message: emailValidation
+          message: emailValidation,
         });
       }
 
@@ -433,7 +444,7 @@ export class UserService implements IUserService {
       if (!emailSent) {
         return createResponse({
           success: false,
-          message: "Failed to send verification email"
+          message: "Failed to send verification email",
         });
       }
 
@@ -443,7 +454,7 @@ export class UserService implements IUserService {
         data: {
           email,
           expiresIn: Math.floor(config.otpExpiry / 1000 / 60),
-        }
+        },
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Something went wrong");
@@ -465,14 +476,14 @@ export class UserService implements IUserService {
       if (!otpRecord) {
         return createResponse({
           success: false,
-          message: "Invalid or expired verification code"
+          message: "Invalid or expired verification code",
         });
       }
 
       if (otpRecord.userData?.id !== id) {
         return createResponse({
           success: false,
-          message: "Invalid verification code"
+          message: "Invalid verification code",
         });
       }
 
@@ -480,15 +491,18 @@ export class UserService implements IUserService {
       if (!isValidOTP) {
         return createResponse({
           success: false,
-          message: "Invalid verification code"
+          message: "Invalid verification code",
         });
       }
 
-      const emailValidation = await this._validateEmailAvailabilityForUser(email, id);
+      const emailValidation = await this._validateEmailAvailabilityForUser(
+        email,
+        id
+      );
       if (emailValidation) {
         return createResponse({
           success: false,
-          message: emailValidation
+          message: emailValidation,
         });
       }
 
@@ -500,19 +514,20 @@ export class UserService implements IUserService {
       if (!updatedUser) {
         return createResponse({
           success: false,
-          message: "Failed to update email"
+          message: "Failed to update email",
         });
       }
 
-      const emailSent = await this.emailService.sendEmailChangeSuccessNotification(
-        updatedUser.email,
-        otpRecord.userData?.oldEmail || "Unknown"
-      );
+      const emailSent =
+        await this.emailService.sendEmailChangeSuccessNotification(
+          updatedUser.email,
+          otpRecord.userData?.oldEmail || "Unknown"
+        );
 
       if (!emailSent) {
         return createResponse({
           success: false,
-          message: "Failed to send Success email"
+          message: "Failed to send Success email",
         });
       }
 
@@ -525,7 +540,7 @@ export class UserService implements IUserService {
         data: {
           email: updatedUser.email,
           oldEmail: otpRecord.userData?.oldEmail,
-        }
+        },
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Something went wrong");
@@ -560,7 +575,7 @@ export class UserService implements IUserService {
             verifiedUsers,
             unverifiedUsers,
           },
-        }
+        },
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Something went wrong");
@@ -587,7 +602,10 @@ export class UserService implements IUserService {
           Number(limit)
         );
       } else {
-        result = await this.userRepository.findAllUsers(Number(page), Number(limit));
+        result = await this.userRepository.findAllUsers(
+          Number(page),
+          Number(limit)
+        );
       }
 
       if (search) {
@@ -605,12 +623,13 @@ export class UserService implements IUserService {
       }
 
       result.users = this._processUserProfilePictures(result.users);
+const userDtos = result.users.map((user: any) => UserMapper.toDto(user));
 
       return createResponse({
         success: true,
         message: "Users fetched successfully",
         data: {
-          users: result.users,
+          users: userDtos,
           meta: {
             pagination: {
               currentPage: Number(page),
@@ -619,19 +638,21 @@ export class UserService implements IUserService {
               limit: Number(limit),
             },
           },
-        }
+        },
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Something went wrong");
     }
   }
 
-  async toggleUserStatus(userId: string): Promise<ApiResponse<UserResponseDto>> {
+  async toggleUserStatus(
+    userId: string
+  ): Promise<ApiResponse<UserResponseDto>> {
     try {
       if (!userId) {
         return createResponse({
           success: false,
-          message: "User ID is required"
+          message: "User ID is required",
         });
       }
 
@@ -640,14 +661,16 @@ export class UserService implements IUserService {
       if (!updatedUser) {
         return createResponse({
           success: false,
-          message: "User not found"
+          message: "User not found",
         });
       }
 
       return createResponse({
         success: true,
-        message: `User ${updatedUser.isActive ? "activated" : "deactivated"} successfully`,
-        data: updatedUser
+        message: `User ${
+          updatedUser.isActive ? "activated" : "deactivated"
+        } successfully`,
+        data: updatedUser,
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Something went wrong");
@@ -659,7 +682,7 @@ export class UserService implements IUserService {
       if (!userId) {
         return createResponse({
           success: false,
-          message: "User ID is required"
+          message: "User ID is required",
         });
       }
 
@@ -668,26 +691,28 @@ export class UserService implements IUserService {
       if (!user) {
         return createResponse({
           success: false,
-          message: "User not found"
+          message: "User not found",
         });
       }
-
+      const userDto = UserMapper.toDto(user);
       return createResponse({
         success: true,
         message: "User details fetched successfully",
-        data: user
+        data: userDto,
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Something went wrong");
     }
   }
 
-  // Private helper methods for business logic (SRP - Single Responsibility)
   private _generateOTP(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
-  private async _validateSignupData(email: string, username: string): Promise<string | null> {
+  private async _validateSignupData(
+    email: string,
+    username: string
+  ): Promise<string | null> {
     const existingUser = await this.userRepository.findUserByEmail(email);
     if (existingUser && existingUser.isVerified) {
       return "User with this email already exists";
@@ -703,7 +728,9 @@ export class UserService implements IUserService {
       return "User with this email already exists";
     }
 
-    const existingUsername = await this.userRepository.findUserByUsername(username);
+    const existingUsername = await this.userRepository.findUserByUsername(
+      username
+    );
     if (existingUsername && existingUsername.isVerified) {
       return "Username already taken";
     }
@@ -711,13 +738,17 @@ export class UserService implements IUserService {
     return null;
   }
 
-  private async _validateEmailAvailability(email: string): Promise<string | null> {
+  private async _validateEmailAvailability(
+    email: string
+  ): Promise<string | null> {
     const existingUser = await this.userRepository.findUserByEmail(email);
     if (existingUser) {
       return "Email already in use";
     }
 
-    const isRequestedOwner = await this.ownerRequestRepository.findByEmail(email);
+    const isRequestedOwner = await this.ownerRequestRepository.findByEmail(
+      email
+    );
     if (
       isRequestedOwner &&
       isRequestedOwner.status !== "rejected" &&
@@ -734,13 +765,18 @@ export class UserService implements IUserService {
     return null;
   }
 
-  private async _validateEmailAvailabilityForUser(email: string, userId: string): Promise<string | null> {
+  private async _validateEmailAvailabilityForUser(
+    email: string,
+    userId: string
+  ): Promise<string | null> {
     const existingUser = await this.userRepository.findUserByEmail(email);
     if (existingUser && existingUser._id.toString() !== userId) {
       return "Email already in use";
     }
 
-    const isRequestedOwner = await this.ownerRequestRepository.findByEmail(email);
+    const isRequestedOwner = await this.ownerRequestRepository.findByEmail(
+      email
+    );
     if (
       isRequestedOwner &&
       isRequestedOwner.status !== "rejected" &&
@@ -805,13 +841,17 @@ export class UserService implements IUserService {
     });
   }
 
-  private _handleServiceError(error: unknown, defaultMessage: string): ApiResponse<any> {
+  private _handleServiceError(
+    error: unknown,
+    defaultMessage: string
+  ): ApiResponse<any> {
     console.error("Service error:", error);
-    const errorMessage = error instanceof Error ? error.message : defaultMessage;
-    
+    const errorMessage =
+      error instanceof Error ? error.message : defaultMessage;
+
     return createResponse({
       success: false,
-      message: errorMessage
+      message: errorMessage,
     });
   }
 }

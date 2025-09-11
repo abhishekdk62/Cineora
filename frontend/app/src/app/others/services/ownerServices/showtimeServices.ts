@@ -6,7 +6,8 @@ import {
   CreateShowtimeOwnerResponseDto,
   EditShowtimeOwnerResponseDto,
   ToggleShowtimeStatusOwnerResponseDto,
-  ToggleShowtimeRequestDto
+  ToggleShowtimeRequestDto,
+  BulkCreateShowtimeResponseDto
 } from '../../dtos/showtime.dto';
 
 export const getShowTimesOwner = async (params?: GetShowTimesOwnerParamsDto): Promise<GetShowTimesOwnerResponseDto> => {
@@ -22,7 +23,7 @@ export const getShowTimesOwner = async (params?: GetShowTimesOwnerParamsDto): Pr
   return result.data;
 };
 
-export const createShowtimeOwner = async (data: any): Promise<CreateShowtimeOwnerResponseDto> => {
+export const createShowtimeOwner = async (data: any): Promise<BulkCreateShowtimeResponseDto> => {
   const result = await apiClient.post(OWNER_SHOWTIME.BASE, data);
   return result.data;
 };

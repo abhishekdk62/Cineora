@@ -16,6 +16,7 @@ import {
 } from "@/app/others/services/adminServices/movieServices";
 import toast from "react-hot-toast";
 import { confirmAction } from "@/app/others/components/utils/ConfirmDialog";
+import { MovieResponseDto } from "@/app/others/dtos";
 
 const lexend = Lexend({
   weight: "500",
@@ -50,8 +51,8 @@ const MoviesManager: React.FC = () => {
   );
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedTmdbMovie, setSelectedTmdbMovie] = useState<any>(null);
-  const [editingMovie, setEditingMovie] = useState<Movie | null>(null);
-  const [filteredMovies, setFilteredMovies] = useState<Movie[]>([]);
+  const [editingMovie, setEditingMovie] = useState<MovieResponseDto | null>(null);
+  const [filteredMovies, setFilteredMovies] = useState<MovieResponseDto[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentFilters, setCurrentFilters] = useState<MovieFilters>({});
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
@@ -60,24 +61,25 @@ const MoviesManager: React.FC = () => {
   const [totalItems, setTotalItems] = useState(0);
   const [itemsPerPage] = useState(10);
 
-  const getMoviesList = async () => {
-
-    try {
-      setIsLoading(true);
-      const response = await getMovies();
-      setMovies(response.data);
-      if (!hasActiveFilters) {
-        setFilteredMovies(response.data);
-        setTotalItems(response.data.length);
-        setTotalPages(Math.ceil(response.data.length / itemsPerPage));
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error("Failed to load movies");
-    } finally {
-      setIsLoading(false);
+const getMoviesList = async () => {
+  try {
+    setIsLoading(true);
+    const response = await getMovies();
+    setMovies(response.data || []);
+    
+    if (!hasActiveFilters) {
+      setFilteredMovies(response.data || []);
+      setTotalItems((response.data || []).length);
+      setTotalPages(Math.ceil((response.data || []).length / itemsPerPage));
     }
-  };
+  } catch (error) {
+    console.log(error);
+    toast.error("Failed to load movies");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   useEffect(() => {
     getMoviesList();
@@ -152,39 +154,45 @@ const MoviesManager: React.FC = () => {
     },
     [currentFilters, movies, itemsPerPage, hasActiveFilters]
   );
-
-  const handleAddMovie = async (movieData: any) => {
-    try {
-      const response = await addMovie(movieData);
-      toast.success("Movie added successfully!");
-      setMovies((prev) => [...prev, response.data]);
-      setIsAddModalOpen(false);
-      setSelectedTmdbMovie(null);
-      if (hasActiveFilters) {
-        handleFiltersChange(currentFilters, false);
-      } else {
-        getMoviesList();
-      }
-    } catch (error: any) {
-      if (error) {
-        toast.error("Movie already exists!");
-      }
-      console.error(error);
+const handleAddMovie = async (movieData: any) => {
+  try {
+    const response = await addMovie(movieData);
+    toast.success("Movie added successfully!");
+    
+    if (response.data) {
+      setMovies((prev) => [...prev, response.data!]); 
     }
-  };
+    
+    setIsAddModalOpen(false);
+    setSelectedTmdbMovie(null);
+    
+    if (hasActiveFilters) {
+      handleFiltersChange(currentFilters, false);
+    } else {
+      getMoviesList();
+    }
+  } catch (error: any) {
+    if (error) {
+      toast.error("Movie already exists!");
+    }
+    console.error(error);
+  }
+};
+
 
   const handleEditMovie = async (movieData: any) => {
     if (!editingMovie) return;
     try {
       const response = await updateMovie(editingMovie._id, movieData);
       toast.success("Movie updated successfully!");
-      setMovies((prev) =>
-        prev.map((m) =>
-          m._id === editingMovie._id
-            ? { ...m, ...movieData, updatedAt: new Date() }
-            : m
-        )
-      );
+    setMovies((prev) =>
+  prev.map((m) => {
+    if (m._id === editingMovie._id) {
+      return { ...m, ...movieData, updatedAt: new Date() };
+    }
+  })
+);
+
       setIsAddModalOpen(false);
       setEditingMovie(null);
       if (hasActiveFilters) {
@@ -201,13 +209,13 @@ const MoviesManager: React.FC = () => {
     setIsAddModalOpen(true);
   };
 
-  const handleEditExisting = (movie: Movie) => {
+  const handleEditExisting = (movie: MovieResponseDto) => {
     setEditingMovie(movie);
     setIsAddModalOpen(true);
     setSelectedTmdbMovie(null);
   };
 
-  const handleDeleteMovie = async (movie: Movie) => {
+  const handleDeleteMovie = async (movie: MovieResponseDto) => {
     const confirmed = await confirmAction({
       title: "Delete Movie?",
       message: `Are you sure you want to delete "${movie.title}"?`,
@@ -231,7 +239,7 @@ const MoviesManager: React.FC = () => {
     }
   };
 
-  const handleToggleStatus = async (movie: Movie) => {
+  const handleToggleStatus = async (movie: MovieResponseDto) => {
     try {
       const willDisable = movie.isActive;
       const verb = willDisable ? "disable" : "activate";

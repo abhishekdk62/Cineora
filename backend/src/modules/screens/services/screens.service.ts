@@ -28,7 +28,6 @@ export class ScreenService implements IScreenService {
 
       const theaterIdString = screenData.theater!._id.toString();
       
-      // Check if theater exists and is verified
       const theater = await this.theaterRepository.getTheaterById(theaterIdString);
       if (!theater?.isVerified) {
         return {
@@ -37,7 +36,6 @@ export class ScreenService implements IScreenService {
         };
       }
 
-      // Check if screen with same name exists in theater
       const screenExists = await this.screenRepository.checkScreenExistsByNameAndTheater(
         screenData.name,
         theaterIdString
@@ -50,7 +48,6 @@ export class ScreenService implements IScreenService {
         };
       }
 
-      // Create screen data
       const createData: CreateScreenDto = {
         theaterId: new Types.ObjectId(screenData.theater!._id),
         name: screenData.name,
@@ -63,7 +60,6 @@ export class ScreenService implements IScreenService {
 
       const screen = await this.screenRepository.createScreen(createData);
       
-      // Update theater screen count
       await this.theaterRepository.incrementTheaterScreenCount(theaterIdString);
 
       return {
@@ -144,7 +140,6 @@ export class ScreenService implements IScreenService {
         };
       }
 
-      // Check if theater is active
       if (this._isTheaterInactive(screen)) {
         return {
           success: false,
@@ -168,7 +163,6 @@ export class ScreenService implements IScreenService {
     filters?: ScreenFilterDto
   ): Promise<ServiceResponse<PaginatedScreenResultDto>> {
     try {
-      // Validate pagination parameters
       if (page < 1) page = 1;
       if (limit < 1 || limit > 100) limit = 10;
 
@@ -231,7 +225,6 @@ export class ScreenService implements IScreenService {
       this._validateScreenId(screenId);
       this._validateUpdateScreenData(updateData);
 
-      // Check if screen exists
       const currentScreen = await this.screenRepository.getScreenById(screenId);
       if (!currentScreen) {
         return {
@@ -240,7 +233,6 @@ export class ScreenService implements IScreenService {
         };
       }
 
-      // Check name uniqueness if name is being updated
       if (updateData.name) {
         const theaterIdString = this._extractTheaterIdString(currentScreen.theaterId);
         const nameExists = await this.screenRepository.checkScreenExistsByNameAndTheater(
@@ -291,7 +283,6 @@ export class ScreenService implements IScreenService {
 
       const deletedScreen = await this.screenRepository.deleteScreen(screenId);
       
-      // Update theater screen count
       const theaterIdString = this._extractTheaterIdString(deletedScreen.theaterId);
       await this.theaterRepository.decrementTheaterScreenCount(theaterIdString);
 
@@ -403,7 +394,6 @@ export class ScreenService implements IScreenService {
     }
   }
 
-  // Private validation methods
   private _validateScreenId(screenId: string): void {
     if (!screenId) {
       throw new Error("Screen ID is required");

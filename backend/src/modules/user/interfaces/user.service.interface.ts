@@ -9,7 +9,7 @@ import {
   UserCountsResponseDto,
   GetUsersResponseDto,
   UserResponseDto
-} from '../dtos/dto';
+} from '../dtos/dto'; 
 import { ApiResponse } from '../../../utils/createResponse';
 
 export interface IUserService {

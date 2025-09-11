@@ -2,11 +2,12 @@
 import React from "react";
 import { Edit, Calendar, Clock, MapPin, Film, Monitor, Users, Eye, CircleX, CheckCircle } from "lucide-react";
 import { IShowtime } from "./showtime.interfaces";
+import { ShowtimeResponseDto } from "@/app/others/dtos";
 
 interface ShowtimeCardProps {
-  showtime: IShowtime;
-  onEdit: (showtime: IShowtime) => void;
-  onView: (showtime: IShowtime) => void;
+  showtime: ShowtimeResponseDto;
+  onEdit: (showtime: ShowtimeResponseDto) => void;
+  onView: (showtime: ShowtimeResponseDto) => void;
   onToggleStatus: (showtimeId: string, isActive: boolean) => void;
   lexendMedium: any;
   lexendSmall: any;

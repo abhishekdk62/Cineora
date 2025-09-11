@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import { NotificationType } from "../models/notification.model";
 
-// Create DTOs
 export interface CreateNotificationDTO {
   notificationId: string;
   userId: mongoose.Types.ObjectId;
@@ -14,7 +13,6 @@ export interface CreateNotificationDTO {
   sent?: boolean;
 }
 
-// Response DTOs
 export interface NotificationResponseDTO {
   notificationId: string;
   userId: string;
@@ -32,7 +30,6 @@ export interface UserNotificationsResponseDTO {
   unreadCount: number;
 }
 
-// Request DTOs
 export interface SendNotificationRequestDTO {
   userId: string;
   title: string;
@@ -49,7 +46,6 @@ export interface DeleteNotificationRequestDTO {
   notificationId: string;
 }
 
-// Specific notification data DTOs
 export interface BookingNotificationDataDTO {
   bookingId: string;
   movieTitle: string;
@@ -69,7 +65,6 @@ export interface CancellationNotificationDataDTO {
   refundAmount: number;
 }
 
-// Request DTOs for specific notification types
 export interface BookingNotificationRequestDTO {
   userId: string;
   bookingData: BookingNotificationDataDTO;
@@ -90,7 +85,6 @@ export interface CancellationNotificationRequestDTO {
   cancellationData: CancellationNotificationDataDTO;
 }
 
-// Filter DTOs
 export interface NotificationFilterDTO {
   userId?: string;
   type?: NotificationType;

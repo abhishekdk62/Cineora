@@ -5,7 +5,6 @@ import {
 } from "../dtos/dto";
 import { IBooking } from "./bookings.model.interface";
 
-// Interface Segregation Principle - Separate read and write operations
 export interface IBookingReadRepository {
   findBookingById(bookingId: string): Promise<IBooking | null>;
   findBookingByBookingId(bookingId: string): Promise<IBooking | null>;
@@ -35,5 +34,4 @@ export interface IBookingWriteRepository {
   deleteBookingById(bookingId: string): Promise<boolean>;
 }
 
-// Combined interface following Interface Segregation Principle
 export interface IBookingRepository extends IBookingReadRepository, IBookingWriteRepository {}

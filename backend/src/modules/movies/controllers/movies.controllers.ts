@@ -10,22 +10,42 @@ import {
 } from "../dtos/dtos";
 import { StatusCodes } from "../../../utils/statuscodes";
 import { MOVIE_MESSAGES } from "../../../utils/messages.constants";
+import { IReviewService } from "../../reviews/interfaces/review.service.interface";
 
 export class MoviesController {
-  constructor(private readonly movieService: IMovieService) {}
+  constructor(
+    private readonly movieService: IMovieService,
+    private readonly _reviewService: IReviewService
+  ) {}
 
   async getMoviesWithFilters(req: Request, res: Response): Promise<Response> {
     try {
       const filters: MovieFiltersDto = this.mapQueryToMovieFilters(req.query);
 
       const result = await this.movieService.getMoviesWithFilters(filters);
+      const movieIds = result.movies.map((movie) => movie._id.toString());
+
+      const ratingsResponse = await this._reviewService.getBulkMovieRatings(
+        movieIds
+      );
+      const ratingsMap = ratingsResponse.data || {};
+
+      const moviesWithRatings = result.movies.map((movie) => ({
+        ...movie,
+        averageRating: ratingsMap[movie._id.toString()]?.averageRating || 0,
+        totalReviews: ratingsMap[movie._id.toString()]?.totalReviews || 0,
+      }));
 
       return this._sendSuccessResponse(res, StatusCodes.OK, {
-        data: result.movies,
+        data: moviesWithRatings,
         meta: this._buildPaginationMeta(result, filters),
       });
     } catch (error) {
-      return this._sendErrorResponse(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+      return this._sendErrorResponse(
+        res,
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        error.message
+      );
     }
   }
 
@@ -37,8 +57,8 @@ export class MoviesController {
 
       if (!result) {
         return this._sendErrorResponse(
-          res, 
-          StatusCodes.BAD_REQUEST, 
+          res,
+          StatusCodes.BAD_REQUEST,
           MOVIE_MESSAGES.TITLE_TMDB_REQUIRED
         );
       }
@@ -48,13 +68,19 @@ export class MoviesController {
         message: MOVIE_MESSAGES.MOVIE_ADDED_SUCCESS,
       });
     } catch (error) {
-      return this._sendErrorResponse(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+      return this._sendErrorResponse(
+        res,
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        error.message
+      );
     }
   }
 
   async getMovies(req: Request, res: Response): Promise<Response> {
     try {
-      const paginationQuery: PaginationQueryDto = this._mapQueryToPaginationDto(req.query);
+      const paginationQuery: PaginationQueryDto = this._mapQueryToPaginationDto(
+        req.query
+      );
 
       const result = await this.movieService.getMoviesPaginated(
         paginationQuery.page,
@@ -66,7 +92,11 @@ export class MoviesController {
         meta: this._buildSimplePaginationMeta(result, paginationQuery),
       });
     } catch (error) {
-      return this._sendErrorResponse(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+      return this._sendErrorResponse(
+        res,
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        error.message
+      );
     }
   }
 
@@ -78,8 +108,8 @@ export class MoviesController {
 
       if (!movie) {
         return this._sendErrorResponse(
-          res, 
-          StatusCodes.NOT_FOUND, 
+          res,
+          StatusCodes.NOT_FOUND,
           MOVIE_MESSAGES.MOVIE_NOT_FOUND
         );
       }
@@ -89,18 +119,22 @@ export class MoviesController {
         message: MOVIE_MESSAGES.MOVIE_STATUS_UPDATED,
       });
     } catch (error) {
-      return this._sendErrorResponse(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+      return this._sendErrorResponse(
+        res,
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        error.message
+      );
     }
   }
 
   async updateMovie(req: Request, res: Response): Promise<Response> {
     try {
       const { movieId } = this._mapParamsToMovieParams(req.params);
-      
+
       if (!movieId) {
         return this._sendErrorResponse(
-          res, 
-          StatusCodes.BAD_REQUEST, 
+          res,
+          StatusCodes.BAD_REQUEST,
           "Movie ID is required"
         );
       }
@@ -111,8 +145,8 @@ export class MoviesController {
 
       if (!updated) {
         return this._sendErrorResponse(
-          res, 
-          StatusCodes.NOT_FOUND, 
+          res,
+          StatusCodes.NOT_FOUND,
           MOVIE_MESSAGES.MOVIE_NOT_FOUND
         );
       }
@@ -122,7 +156,11 @@ export class MoviesController {
         message: MOVIE_MESSAGES.MOVIE_UPDATED_SUCCESS,
       });
     } catch (error) {
-      return this._sendErrorResponse(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+      return this._sendErrorResponse(
+        res,
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        error.message
+      );
     }
   }
 
@@ -134,8 +172,8 @@ export class MoviesController {
 
       if (!movie) {
         return this._sendErrorResponse(
-          res, 
-          StatusCodes.NOT_FOUND, 
+          res,
+          StatusCodes.NOT_FOUND,
           MOVIE_MESSAGES.MOVIE_NOT_FOUND
         );
       }
@@ -145,7 +183,11 @@ export class MoviesController {
         message: MOVIE_MESSAGES.MOVIE_FOUND,
       });
     } catch (error) {
-      return this._sendErrorResponse(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+      return this._sendErrorResponse(
+        res,
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        error.message
+      );
     }
   }
 
@@ -157,8 +199,8 @@ export class MoviesController {
 
       if (!success) {
         return this._sendErrorResponse(
-          res, 
-          StatusCodes.NOT_FOUND, 
+          res,
+          StatusCodes.NOT_FOUND,
           MOVIE_MESSAGES.MOVIE_NOT_FOUND
         );
       }
@@ -167,11 +209,14 @@ export class MoviesController {
         message: MOVIE_MESSAGES.MOVIE_DELETED_SUCCESS,
       });
     } catch (error) {
-      return this._sendErrorResponse(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+      return this._sendErrorResponse(
+        res,
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        error.message
+      );
     }
   }
 
-  // Private helper methods for request/response mapping
   private mapQueryToMovieFilters(query: any): MovieFiltersDto {
     return query as MovieFiltersDto;
   }
@@ -213,7 +258,10 @@ export class MoviesController {
     };
   }
 
-  private _buildSimplePaginationMeta(result: any, paginationQuery: PaginationQueryDto) {
+  private _buildSimplePaginationMeta(
+    result: any,
+    paginationQuery: PaginationQueryDto
+  ) {
     return {
       pagination: {
         currentPage: result.currentPage,
@@ -227,8 +275,8 @@ export class MoviesController {
   }
 
   private _sendSuccessResponse(
-    res: Response, 
-    statusCode: number, 
+    res: Response,
+    statusCode: number,
     payload: { data?: any; message?: string; meta?: any }
   ): Response {
     return res.status(statusCode).json(
@@ -240,8 +288,8 @@ export class MoviesController {
   }
 
   private _sendErrorResponse(
-    res: Response, 
-    statusCode: number, 
+    res: Response,
+    statusCode: number,
     message: string
   ): Response {
     return res.status(statusCode).json(

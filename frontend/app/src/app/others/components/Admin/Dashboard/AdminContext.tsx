@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, Dispatch, SetStateAction } from "react";
 import { Movie } from "./Movies/MoviesList";
+import { MovieResponseDto } from "@/app/others/dtos";
 export interface TMDBMovie {
   id: number;
   title: string;
@@ -19,8 +20,8 @@ export interface TMDBGenre {
   name: string;
 }
 interface AdminContextType {
-  movies: Movie[];
-  setMovies: Dispatch<SetStateAction<Movie[]>>;
+  movies: MovieResponseDto[];
+  setMovies: Dispatch<SetStateAction<MovieResponseDto[]>>;
   tmdbMovies: TMDBMovie[];
   setTmdbMovies: Dispatch<SetStateAction<TMDBMovie[]>>;
   loading: boolean;
@@ -30,7 +31,7 @@ interface AdminContextType {
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
 export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [movies, setMovies] = useState<Movie[]>([]);
+  const [movies, setMovies] = useState<MovieResponseDto[]>([]);
   const [tmdbMovies, setTmdbMovies] = useState<TMDBMovie[]>([]);
   const [loading, setLoading] = useState(false);
 

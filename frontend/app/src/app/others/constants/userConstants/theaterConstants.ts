@@ -1,4 +1,3 @@
-// constants/commonRoutes/theaters.ts
 
 const COMMON_THEATERS = {
   FILTER: '/common/theaters/filter' as const,

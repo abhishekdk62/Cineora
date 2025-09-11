@@ -8,6 +8,7 @@ import ShowtimeList from "./ShowtimeList";
 import { createShowtimeOwner, editShowtimeOwner, getShowTimesOwner } from "@/app/others/services/ownerServices/showtimeServices";
 import toast from "react-hot-toast";
 import { log } from "node:console";
+import { ShowtimeResponseDto } from "@/app/others/dtos";
 
 interface ShowtimeManagerProps {
   lexendMedium: any;
@@ -18,9 +19,9 @@ const ShowtimeManager: React.FC<ShowtimeManagerProps> = ({
   lexendMedium,
   lexendSmall,
 }) => {
-  const [showtimes, setShowtimes] = useState<IShowtime[]>([]);
+  const [showtimes, setShowtimes] = useState<ShowtimeResponseDto[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingShowtime, setEditingShowtime] = useState<IShowtime | null>(null);
+  const [editingShowtime, setEditingShowtime] = useState<ShowtimeResponseDto | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [activeTodayCount, setActiveTodayCount] = useState(0);
@@ -36,7 +37,7 @@ const ShowtimeManager: React.FC<ShowtimeManagerProps> = ({
 
   useEffect(() => {
     setMounted(true);
-    fetchShowtimes(1, true); // Reset and fetch first page
+    fetchShowtimes(1, true);
   }, []);
 
 
@@ -69,7 +70,7 @@ useEffect(() => {
         setPage(nextPage);
         fetchShowtimes(nextPage, false);
       }
-    }, 100); // 100ms debounce
+    }, 100); 
   }
 
   window.addEventListener('scroll', handleScroll);
@@ -81,7 +82,6 @@ useEffect(() => {
 
 const fetchShowtimes = async (pageNumber = 1, reset = false) => {
   if (loading && !reset) {
-    console.log('⚠️ Already loading, skipping request');
     return;
   }
 
@@ -99,11 +99,10 @@ const fetchShowtimes = async (pageNumber = 1, reset = false) => {
     
     console.log('the showtime data:', data);
 
-    // ✅ CORRECTED: Use the actual response structure
     const newShowtimes = data.data || [];
-    const total = data.meta.pagination.total || 0; // ✅ Correct path
-    const currentPage = data.meta.pagination.currentPage || pageNumber; // ✅ Get current page
-    const hasNextPage = data.meta.pagination.hasNextPage || false; // ✅ Get hasNext from backend
+    const total = data?.meta?.pagination?.total 
+    const currentPage = data?.meta?.pagination?.currentPage || pageNumber; 
+    const hasNextPage = data?.meta?.pagination?.hasNextPage || false; 
 
     console.log(`📦 Received ${newShowtimes.length} items`);
 
@@ -118,10 +117,14 @@ const fetchShowtimes = async (pageNumber = 1, reset = false) => {
       });
     }
 
-    // ✅ CORRECTED: Use the correct pagination data
-    setTotalCount(total);
+
+if (total !== undefined) {
+  setTotalCount(total);
+} else {
+  setTotalCount(0); 
+}
+
     
-    // ✅ SIMPLIFIED: Just use the hasNextPage from backend
     setHasMore(hasNextPage);
     
     console.log(`📊 Current Page: ${currentPage}, Total Items: ${total}, HasNext: ${hasNextPage}`);
@@ -146,7 +149,7 @@ const fetchShowtimes = async (pageNumber = 1, reset = false) => {
     setFormMode("create");
     setIsFormOpen(true);
   };
-  const handleEditShowtime = (showtime: IShowtime) => {
+  const handleEditShowtime = (showtime: ShowtimeResponseDto) => {
     const now = new Date();
     const showDate = new Date(showtime.showDate).toISOString().split('T')[0];
     const showDateTime = new Date(`${showDate}T${showtime.showTime}:00`);
@@ -163,7 +166,7 @@ const fetchShowtimes = async (pageNumber = 1, reset = false) => {
     setFormMode("edit");
     setIsFormOpen(true);
   };
-  const handleViewShowtime = (showtime: IShowtime) => {
+  const handleViewShowtime = (showtime: ShowtimeResponseDto) => {
     setEditingShowtime(showtime);
     setFormMode("view");
     setIsFormOpen(true);
@@ -189,8 +192,8 @@ const fetchShowtimes = async (pageNumber = 1, reset = false) => {
         const result = await createShowtimeOwner(data);
         if (result.success) {
           if (data.showtimes && Array.isArray(data.showtimes)) {
-            const created = result.data?.created || 0;
-            const skipped = result.data?.skipped || 0;
+            const created = result?.data?.created || 0;
+            const skipped = result?.data?.skipped || 0;
             toast.success(`Successfully created ${created} showtimes`);
             if (skipped > 0) {
               toast.error(`${skipped} showtimes were skipped due to conflicts`);

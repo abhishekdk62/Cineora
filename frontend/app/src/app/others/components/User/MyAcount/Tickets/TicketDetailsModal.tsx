@@ -5,20 +5,31 @@ import { X, Download, Share2, Calendar, Clock, MapPin, Users, Eye, ChevronDown, 
 import QRCodeDisplay from './QRCodeDisplay';
 import { generateTicketPDF } from '@/app/others/Utils/pdfGenerator';
 
-
 const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
 const lexendSmall = { className: "font-normal text-sm" };
 
 interface TicketDetailsModalProps {
   ticket: any;
-  activeTab:string,
+  activeTab: string;
   onClose: () => void;
 }
 
-const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose,activeTab }) => {
+const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose, activeTab }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+
+  const getMovieData = (ticket: any) => {
+    return ticket.movie || ticket.movieId || {};
+  };
+
+  const getTheaterData = (ticket: any) => {
+    return ticket.theater || ticket.theaterId || {};
+  };
+
+  const getShowtimeData = (ticket: any) => {
+    return ticket.showtime || ticket.showtimeId || {};
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -54,30 +65,50 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
       seatType,
       seats: ticketGroup.map(t => `${t.seatRow}${t.seatNumber}`),
       count: ticketGroup.length,
-      price: ticketGroup[0].price, 
+      price: ticketGroup[0].price,
       totalPrice: ticketGroup.reduce((sum, t) => {
         const basePrice = t.price;
-        const taxAmount = basePrice * 0.18; 
-        const convenienceAmount = basePrice * 0.05; 
+        const taxAmount = basePrice * 0.18;
+        const convenienceAmount = basePrice * 0.05;
         return sum + basePrice + taxAmount + convenienceAmount;
       }, 0)
     }));
   };
 
-
-  const seatGroups = ticket.allTickets ? groupTicketsBySeatType(ticket.allTickets) : [
-    {
-      seatType: ticket.seatType,
-      seats: [`${ticket.seatRow}${ticket.seatNumber}`],
-      count: 1,
-      price: ticket.price,
-      totalPrice: ticket.price
+  const calculatePricing = () => {
+    if (ticket.allTickets) {
+      const groups = groupTicketsBySeatType(ticket.allTickets);
+      const totalAmount = groups.reduce((sum, group) => sum + group.totalPrice, 0);
+      const totalSeats = groups.reduce((sum, group) => sum + group.count, 0);
+      const allSeats = groups.flatMap(group => group.seats);
+      return { groups, totalAmount, totalSeats, allSeats };
+    } else {
+      const basePrice = ticket.price;
+      const taxAmount = basePrice * 0.18;
+      const convenienceAmount = basePrice * 0.05;
+      const totalPrice = basePrice + taxAmount + convenienceAmount;
+      
+      const groups = [{
+        seatType: ticket.seatType,
+        seats: [`${ticket.seatRow}${ticket.seatNumber}`],
+        count: 1,
+        price: basePrice,
+        totalPrice: totalPrice
+      }];
+      
+      return {
+        groups,
+        totalAmount: totalPrice,
+        totalSeats: 1,
+        allSeats: [`${ticket.seatRow}${ticket.seatNumber}`]
+      };
     }
-  ];
+  };
 
-  const totalAmount = seatGroups.reduce((sum, group) => sum + group.totalPrice, 0);
-  const totalSeats = seatGroups.reduce((sum, group) => sum + group.count, 0);
-  const allSeats = seatGroups.flatMap(group => group.seats);
+  const { groups: seatGroups, totalAmount, totalSeats, allSeats } = calculatePricing();
+  const movieData = getMovieData(ticket);
+  const theaterData = getTheaterData(ticket);
+  const showtimeData = getShowtimeData(ticket);
 
   const handleDownloadPdf = async () => {
     try {
@@ -116,19 +147,22 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
         <div className="p-6 space-y-6">
           <div className="flex gap-6">
             <img
-              src={ticket.movieId.poster}
-              alt={ticket.movieId.title}
+              src={movieData.poster || '/placeholder-movie.jpg'}
+              alt={movieData.title || 'Movie'}
               className="w-32 h-48 rounded-lg object-cover"
+              onError={(e) => {
+                e.currentTarget.src = '/placeholder-movie.jpg';
+              }}
             />
             <div className="flex-1">
               <h3 className={`${lexendBold.className} text-xl text-white mb-4`}>
-                {ticket.movieId.title}
+                {movieData.title || 'Unknown Movie'}
               </h3>
               <div className="space-y-3 text-gray-300">
                 <div className="flex items-center gap-3">
                   <MapPin className="w-4 h-4 text-gray-400" />
                   <span className={`${lexendMedium.className} text-white`}>
-                    {ticket.theaterId.name} - {ticket.screenId.name}
+                    {theaterData.name || 'Unknown Theater'} - Screen: {ticket.screen.name || 'N/A'}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -153,7 +187,6 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
             </div>
           </div>
 
-          {/* Summary Section */}
           <div className="backdrop-blur-sm bg-black/20 rounded-2xl p-6 border border-gray-500/30">
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -166,7 +199,7 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
               </div>
               <div className="text-right">
                 <p className={`${lexendBold.className} text-white text-xl`}>
-                  ₹{totalAmount}
+                  ₹{Math.round(totalAmount)}
                 </p>
                 <p className={`${lexendSmall.className} text-gray-300`}>
                   Total Amount
@@ -197,7 +230,7 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
                 </h4>
 
                 {seatGroups.map((group, index) => (
-                  <div key={index} className="mb-4 p-3   rounded-lg">
+                  <div key={index} className="mb-4 p-3 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-3">
                         <div
@@ -214,7 +247,7 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
                         </span>
                       </div>
                       <span className={`${lexendSmall.className} text-white text-sm font-medium`}>
-                        ₹{group.totalPrice}
+                        ₹{Math.round(group.totalPrice)}
                       </span>
                     </div>
 
@@ -242,22 +275,21 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
                     TOTAL
                   </span>
                   <span className={`${lexendBold.className} text-white text-lg`}>
-                    ₹{totalAmount}
+                    ₹{Math.round(totalAmount)}
                   </span>
                 </div>
               </div>
             )}
-
           </div>
 
           {/* Additional Info Grid */}
           <div className="grid grid-cols-2 gap-4">
             <div className="backdrop-blur-sm bg-black/20 border border-gray-500/30 rounded-lg p-4">
               <h4 className={`${lexendMedium.className} text-gray-300 text-sm mb-2`}>
-                Booking ID
+                Ticket ID
               </h4>
               <p className={`${lexendBold.className} text-white font-mono text-sm`}>
-                {ticket.ticketId}
+                {ticket.ticketId || 'N/A'}
               </p>
             </div>
 
@@ -265,11 +297,12 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
               <h4 className={`${lexendMedium.className} text-gray-300 text-sm mb-2`}>
                 Status
               </h4>
-              <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${ticket.status === 'confirmed' ? 'bg-green-900/30 text-green-400' :
+              <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                ticket.status === 'confirmed' ? 'bg-green-900/30 text-green-400' :
                 ticket.status === 'cancelled' ? 'bg-red-900/30 text-red-400' :
-                  'bg-gray-700/30 text-gray-400'
-                }`}>
-                {ticket.status.toUpperCase()}
+                'bg-gray-700/30 text-gray-400'
+              }`}>
+                {ticket.status?.toUpperCase() || 'UNKNOWN'}
               </span>
             </div>
 
@@ -278,14 +311,14 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
                 Booked On
               </h4>
               <p className={`${lexendBold.className} text-white text-sm`}>
-                {new Date(ticket.createdAt).toLocaleDateString('en-US', {
+                {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('en-US', {
                   weekday: 'long',
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
                   hour: '2-digit',
                   minute: '2-digit'
-                })}
+                }) : 'N/A'}
               </p>
             </div>
           </div>

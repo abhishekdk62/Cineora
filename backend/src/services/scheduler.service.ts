@@ -1,11 +1,9 @@
-// services/notification-scheduler.service.ts
 import * as cron from 'node-cron';
 import { NotificationService } from '../modules/notification/services/notification.service';
 import Notification from '../modules/notification/models/notification.model'
 
 export class NotificationScheduler {
   constructor(private readonly notificationService: NotificationService) {
-    // this.startScheduler();
   }
 
   private startScheduler() {
@@ -52,7 +50,7 @@ export class NotificationScheduler {
   }
 
   async scheduleReminder(userId: string, showDateTime: Date, movieData: any) {
-    const reminderTime = new Date(showDateTime.getTime() - 2 * 60 * 60 * 1000); // 2 hours before
+    const reminderTime = new Date(showDateTime.getTime() - 2 * 60 * 60 * 1000); 
     
     if (reminderTime > new Date()) {
       const notificationId = `REM${Date.now()}${Math.random().toString(36).substr(2, 4).toUpperCase()}`;

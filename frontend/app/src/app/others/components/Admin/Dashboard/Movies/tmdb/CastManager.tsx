@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Lexend } from "next/font/google";
 import { Users } from "lucide-react";
 
@@ -14,19 +14,36 @@ const lexendSmall = Lexend({
 
 interface CastManagerProps {
   cast: string[];
-  castInput: string;
-  onCastInputChange: (value: string) => void;
+  onCastChange: (castArray: string[]) => void;
+  castError?: string; 
 }
 
 const CastManager: React.FC<CastManagerProps> = ({
   cast,
-  castInput,
-  onCastInputChange,
+  onCastChange,
+  castError, 
 }) => {
+  const [castInput, setCastInput] = useState(cast.join(", "));
+
+  const handleCastInputChange = (value: string) => {
+    setCastInput(value);
+    const castArray = value
+      .split(",")
+      .map((actor) => actor.trim())
+      .filter((actor) => actor);
+    onCastChange(castArray);
+  };
+
+  React.useEffect(() => {
+    setCastInput(cast.join(", "));
+  }, [cast]);
+
   return (
-    <div className="bg-[#1a1a1a] border border-gray-600 rounded-lg p-4">
+    <div className={`bg-[#1a1a1a] border ${
+      castError ? 'border-red-400' : 'border-gray-600' 
+    } rounded-lg p-4`}>
       <h3 className={`${lexend.className} text-lg text-white mb-4`}>
-        Cast
+        Cast <span className="text-red-400">*</span> 
       </h3>
       <div className="space-y-2">
         <label
@@ -36,11 +53,17 @@ const CastManager: React.FC<CastManagerProps> = ({
         </label>
         <textarea
           value={castInput}
-          onChange={(e) => onCastInputChange(e.target.value)}
+          onChange={(e) => handleCastInputChange(e.target.value)} 
           rows={6}
-          className="w-full px-3 py-2 bg-[#2a2a2a] border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#e78f03] focus:ring-1 focus:ring-[#e78f03] resize-none"
+          className={`w-full px-3 py-2 bg-[#2a2a2a] border ${
+            castError ? 'border-red-400' : 'border-gray-500' 
+          } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#e78f03] focus:ring-1 focus:ring-[#e78f03] resize-none`}
           placeholder="Actor 1, Actor 2, Actor 3..."
         />
+        {/* 🔥 Add error message display */}
+        {castError && (
+          <p className="text-red-400 text-sm mt-1">{castError}</p>
+        )}
       </div>
       <div className="mt-4 space-y-2 max-h-40 overflow-y-auto">
         {cast.map((actor, index) => (

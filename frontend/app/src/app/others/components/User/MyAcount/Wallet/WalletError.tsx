@@ -1,4 +1,3 @@
-// components/wallet/WalletError.tsx
 import React from 'react';
 
 interface WalletErrorProps {

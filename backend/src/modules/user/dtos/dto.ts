@@ -1,4 +1,3 @@
-// All DTOs for User module
 
 export interface CreateUserDto {
   username: string;
@@ -46,7 +45,6 @@ export interface UserResponseDto {
 
 import { IUser } from '../interfaces/user.model.interface';
 
-// All DTOs for User module
 
 export interface SignupDto {
   username: string;
@@ -145,7 +143,6 @@ export interface GetUsersResponseDto {
 }
 
 
-// ... your existing DTOs ...
 
 export interface ChangePasswordDto {
   oldPassword: string;
@@ -189,7 +186,6 @@ export interface VerifyOTPDto {
   otp: string;
 }
 
-// Additional DTOs you might need
 export interface AddXpPointsDto {
   userId: string;
   points: number;

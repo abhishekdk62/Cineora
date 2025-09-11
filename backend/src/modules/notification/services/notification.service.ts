@@ -83,7 +83,7 @@ export class NotificationService implements INotificationService {
         };
       }
 
-      const notifications = await this.notificationRepository.findNotificationsByUserId(userId);
+      const notifications = await this.notificationRepository.findUnreadNotificationsByUserId(userId);
       const unreadCount = await this.notificationRepository.countUnreadNotificationsByUserId(userId);
       
       const notificationDTOs: NotificationResponseDTO[] = notifications.map(notification => ({

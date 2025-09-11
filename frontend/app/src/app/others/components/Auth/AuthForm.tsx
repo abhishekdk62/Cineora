@@ -4,6 +4,10 @@ import { Eye, EyeClosed } from "lucide-react";
 import { Lexend } from "next/font/google";
 import React, { useState } from "react";
 import { GoogleLogin } from '@react-oauth/google';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { loginSchema, signupSchema } from "../../Utils/zodSchemas";
 
 const lexendSmall = Lexend({
   weight: "200",
@@ -29,49 +33,23 @@ const Form: React.FC<AuthFormProps> = ({
   error,
   loading,
 }) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
 
-  const validateForm = () => {
-    const errors: {[key: string]: string} = {};
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(isSignup ? signupSchema : loginSchema)
+  });
 
-    if (!email) {
-      errors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      errors.email = "Please enter a valid email address";
-    }
-
-    if (!password) {
-      errors.password = "Password is required";
-    } else if (password.length < 6) {
-      errors.password = "Password must be at least 6 characters long";
-    }
-
-    if (isSignup) {
-      if (!confirmPassword) {
-        errors.confirmPassword = "Please confirm your password";
-      } else if (password !== confirmPassword) {
-        errors.confirmPassword = "Passwords do not match";
-      }
-    }
-
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validateForm()) {
-      onSubmit({
-        email,
-        password,
-        confirmPassword: isSignup ? confirmPassword : undefined,
-      });
-    }
+  const handleFormSubmit = (data: any) => {
+    onSubmit({
+      email: data.email,
+      password: data.password,
+      confirmPassword: isSignup ? data.confirmPassword : undefined,
+    });
   };
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
@@ -84,30 +62,9 @@ const Form: React.FC<AuthFormProps> = ({
     }
   };
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
-    if (validationErrors.email) {
-      setValidationErrors(prev => ({ ...prev, email: "" }));
-    }
-  };
-
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value);
-    if (validationErrors.password) {
-      setValidationErrors(prev => ({ ...prev, password: "" }));
-    }
-  };
-
-  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setConfirmPassword(e.target.value);
-    if (validationErrors.confirmPassword) {
-      setValidationErrors(prev => ({ ...prev, confirmPassword: "" }));
-    }
-  };
-
   return (
     <div>
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
         <div>
           <label
             htmlFor="email"
@@ -118,21 +75,19 @@ const Form: React.FC<AuthFormProps> = ({
           <input
             id="email"
             type="email"
-            value={email}
-            onChange={handleEmailChange}
-            className={`${lexendSmall.className} w-full px-4 py-3 bg-white/10 border ${
-              validationErrors.email ? 'border-red-400' : 'border-white/20'
-            } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent backdrop-blur-sm`}
+            {...register('email')}
+            className={`${lexendSmall.className} w-full px-4 py-3 bg-white/10 border ${errors.email ? 'border-red-400' : 'border-white/20'
+              } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent backdrop-blur-sm`}
             placeholder="Enter your email"
           />
-          {/* ✅ EMAIL ERROR DISPLAY */}
-          {validationErrors.email && (
+          {errors.email && (
             <p className={`${lexendSmall.className} text-red-400 text-sm mt-1`}>
-              {validationErrors.email}
+              {errors.email.message}
             </p>
           )}
         </div>
 
+        {/* PASSWORD FIELD - No changes needed */}
         <div>
           <label
             htmlFor="password"
@@ -144,11 +99,9 @@ const Form: React.FC<AuthFormProps> = ({
             <input
               id="password"
               type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={handlePasswordChange}
-              className={`${lexendSmall.className} w-full px-4 py-3 bg-white/10 border ${
-                validationErrors.password ? 'border-red-400' : 'border-white/20'
-              } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent backdrop-blur-sm pr-12`}
+              {...register('password')}
+              className={`${lexendSmall.className} w-full px-4 py-3 bg-white/10 border ${errors.password ? 'border-red-400' : 'border-white/20'
+                } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent backdrop-blur-sm pr-12`}
               placeholder="Enter your password"
             />
             <button
@@ -159,14 +112,14 @@ const Form: React.FC<AuthFormProps> = ({
               {showPassword ? <EyeClosed className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
           </div>
-          {/* ✅ PASSWORD ERROR DISPLAY */}
-          {validationErrors.password && (
+          {errors.password && (
             <p className={`${lexendSmall.className} text-red-400 text-sm mt-1`}>
-              {validationErrors.password}
+              {errors.password.message}
             </p>
           )}
         </div>
 
+        {/* FORGOT PASSWORD (LOGIN ONLY) - No changes needed */}
         {!isSignup && (
           <div className="text-right">
             <button
@@ -179,6 +132,7 @@ const Form: React.FC<AuthFormProps> = ({
           </div>
         )}
 
+        {/* CONFIRM PASSWORD (SIGNUP ONLY) - ONLY CHANGES ARE HERE */}
         {isSignup && (
           <div>
             <label
@@ -191,11 +145,9 @@ const Form: React.FC<AuthFormProps> = ({
               <input
                 id="confirmpassword"
                 type={showConfirmPassword ? "text" : "password"}
-                value={confirmPassword}
-                onChange={handleConfirmPasswordChange}
-                className={`${lexendSmall.className} w-full px-4 py-3 bg-white/10 border ${
-                  validationErrors.confirmPassword ? 'border-red-400' : 'border-white/20'
-                } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent backdrop-blur-sm pr-12`}
+                {...register('confirmPassword' as any)}
+                className={`${lexendSmall.className} w-full px-4 py-3 bg-white/10 border ${(errors as any).confirmPassword ? 'border-red-400' : 'border-white/20' 
+                  } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent backdrop-blur-sm pr-12`}
                 placeholder="Confirm your password"
               />
               <button
@@ -206,27 +158,31 @@ const Form: React.FC<AuthFormProps> = ({
                 {showConfirmPassword ? <EyeClosed className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
-            {/* ✅ CONFIRM PASSWORD ERROR DISPLAY */}
-            {validationErrors.confirmPassword && (
+            {/* 🔥 ADD '(errors as any)' HERE TOO */}
+            {(errors as any).confirmPassword && (
               <p className={`${lexendSmall.className} text-red-400 text-sm mt-1`}>
-                {validationErrors.confirmPassword}
+                {(errors as any).confirmPassword?.message}
               </p>
             )}
           </div>
         )}
+
+        {/* SERVER ERROR DISPLAY - No changes needed */}
         {error && (
           <div className="text-red-400 text-sm text-center">{error}</div>
         )}
+
+        {/* SUBMIT BUTTON - No changes needed */}
         <button
           type="submit"
           disabled={loading}
-          className={`px-8 py-3 ${
-            loading ? "bg-gray-500" : "bg-white"
-          } cursor-pointer text-black font-semibold rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 w-full`}
+          className={`px-8 py-3 ${loading ? "bg-gray-500" : "bg-white"
+            } cursor-pointer text-black font-semibold rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 w-full`}
         >
           {loading ? 'Loading...' : (isSignup ? "Sign Up" : "Sign In")}
         </button>
 
+        {/* REST OF THE FORM - No changes needed */}
         <div className="flex items-center my-6">
           <div className="flex-grow border-t border-white/20" />
           <span className={`${lexendSmall.className} px-4 text-gray-400`}>

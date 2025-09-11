@@ -1,12 +1,13 @@
 import React from "react";
 import { Movie } from "./MoviesList";
 import MovieListItem from "./MovieListItem";
+import { MovieResponseDto } from "@/app/others/dtos";
 
 interface MoviesListViewProps {
-  movies: Movie[];
-  onEdit: (movie: Movie) => void;
-  onDelete: (movie: Movie) => void;
-  onToggleStatus: (movie: Movie) => void;
+  movies: MovieResponseDto[];
+  onEdit: (movie: MovieResponseDto) => void;
+  onDelete: (movie: MovieResponseDto) => void;
+  onToggleStatus: (movie: MovieResponseDto) => void;
 }
 
 const MoviesListView: React.FC<MoviesListViewProps> = ({

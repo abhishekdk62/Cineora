@@ -7,14 +7,15 @@ import Pagination from "../../others/components/utils/Pagination";
 import { getMoviesWithFilters } from "@/app/others/services/userServices/movieServices";
 import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
 import { useDebounce } from "@/app/others/Utils/debounce";
+import { MovieResponseDto } from "@/app/others/dtos";
 
 const Page = () => {
-  const [movies, setMovies] = useState([]);
+  const [movies, setMovies] = useState<MovieResponseDto[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searchLoading, setSearchLoading] = useState(false); 
+  const [searchLoading, setSearchLoading] = useState(false);
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [currentFilters, setCurrentFilters] = useState({}); 
+  const [currentFilters, setCurrentFilters] = useState({});
 
   const fetchMovies = useCallback(async (filters: any) => {
     setLoading(true);
@@ -25,20 +26,25 @@ const Page = () => {
         page: currentPage,
         limit: 10
       });
-      
-      setMovies(response.data || []);
+
+      if (response.data) {
+        setMovies(response.data);
+      } else {
+        setMovies([]);
+      }
+
       setTotalPages(response.meta?.pagination?.totalPages || 0);
-      
-      console.log('Movies set:', response.data?.length);
-      console.log('Total pages from meta:', response.meta?.pagination?.totalPages);
-      
+
+      console.log('movie data', response);
+
+
     } catch (error) {
       console.error('Error fetching movies:', error);
       setMovies([]);
       setTotalPages(0);
     } finally {
       setLoading(false);
-      setSearchLoading(false); 
+      setSearchLoading(false);
     }
   }, [currentPage]);
 
@@ -48,7 +54,7 @@ const Page = () => {
   }, 550);
 
   const handleSearchChange = useCallback((searchTerm: string) => {
-    setSearchLoading(true); 
+    setSearchLoading(true);
     debouncedSearch(searchTerm);
   }, [debouncedSearch]);
 
@@ -62,7 +68,7 @@ const Page = () => {
   }, [currentPage]);
 
   return (
-    <RouteGuard excludedRoles={['owner','admin']}>
+    <RouteGuard excludedRoles={['owner', 'admin']}>
       <div className="relative min-h-screen bg-black overflow-hidden">
         <div className="fixed inset-0 z-0 pointer-events-none">
           <Orb
@@ -75,10 +81,10 @@ const Page = () => {
 
         <div className="relative z-10">
           <NavBar />
-          <MoviesPage 
+          <MoviesPage
             movies={movies}
-            loading={loading || searchLoading} 
-            searchLoading={searchLoading} 
+            loading={loading || searchLoading}
+            searchLoading={searchLoading}
             totalPages={totalPages}
             currentPage={currentPage}
             onPageChange={setCurrentPage}
@@ -86,7 +92,7 @@ const Page = () => {
             onSearchChange={handleSearchChange}
           />
 
-          <Pagination 
+          <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}

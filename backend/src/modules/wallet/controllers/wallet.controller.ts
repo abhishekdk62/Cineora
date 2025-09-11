@@ -143,7 +143,6 @@ export class WalletController {
 
       const { amount, type, description } = req.body;
 
-      // Validate request data
       const validationError = this._validateTransactionRequest(amount, type);
       if (validationError) {
         res.status(StatusCodes.BAD_REQUEST).json(createResponse({
@@ -175,7 +174,6 @@ export class WalletController {
       }
 
       if (result.success) {
-        // Create wallet transaction record
         await this._createWalletTransactionRecord(
           userInfo.userId,
           userInfo.userModel,
@@ -204,7 +202,6 @@ export class WalletController {
     }
   }
 
-  // Private helper methods for controller logic (SRP - Single Responsibility)
   private _extractUserInfo(req: AuthenticatedRequest): { userId: string; userModel: "User" | "Owner" } | null {
     if (req.user?.id) {
       return {

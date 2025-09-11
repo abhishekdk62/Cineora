@@ -1,4 +1,3 @@
-// components/wallet/WalletLoading.tsx
 import React from 'react';
 
 const WalletLoading: React.FC = () => {

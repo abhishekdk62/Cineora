@@ -13,7 +13,6 @@ import { Screen } from "../models/screens.model";
 
 export class ScreenRepository implements IScreenRepository {
   
-  // CREATE OPERATIONS
   async createScreen(screenData: CreateScreenDto): Promise<IScreen> {
     try {
       const screen = new Screen(screenData);
@@ -27,7 +26,6 @@ export class ScreenRepository implements IScreenRepository {
     }
   }
 
-  // READ OPERATIONS
   async getScreenById(screenId: string): Promise<IScreen | null> {
     try {
       if (!this._isValidObjectId(screenId)) {
@@ -163,7 +161,6 @@ export class ScreenRepository implements IScreenRepository {
     }
   }
 
-  // UPDATE OPERATIONS
   async updateScreen(screenId: string, updateData: UpdateScreenDto): Promise<IScreen> {
     try {
       if (!this._isValidObjectId(screenId)) {
@@ -206,7 +203,6 @@ export class ScreenRepository implements IScreenRepository {
     }
   }
 
-  // DELETE OPERATIONS
   async deleteScreen(screenId: string): Promise<IScreen> {
     try {
       if (!this._isValidObjectId(screenId)) {
@@ -240,7 +236,6 @@ export class ScreenRepository implements IScreenRepository {
     }
   }
 
-  // VALIDATION OPERATIONS
   async checkScreenExistsByNameAndTheater(
     name: string,
     theaterId: string,
@@ -267,7 +262,6 @@ export class ScreenRepository implements IScreenRepository {
     }
   }
 
-  // STATISTICS OPERATIONS
   async countScreensByTheaterId(theaterId: string): Promise<number> {
     try {
       if (!this._isValidObjectId(theaterId)) {
@@ -282,7 +276,6 @@ export class ScreenRepository implements IScreenRepository {
     }
   }
 
-  // Private helper methods
   private _isValidObjectId(id: string): boolean {
     return Types.ObjectId.isValid(id);
   }

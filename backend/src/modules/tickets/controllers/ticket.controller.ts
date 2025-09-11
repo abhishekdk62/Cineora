@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
 import { ITicketService } from "../interfaces/ticket.service.interface";
-import { 
+import {
   CancelTicketDto,
   GetUserTicketsDto,
-  ValidateTicketDto 
+  ValidateTicketDto,
 } from "../dtos/dto";
 import { createResponse } from "../../../utils/createResponse";
 import { IWalletService } from "../../wallet/interfaces/wallet.service.interface";
@@ -33,10 +33,12 @@ export class TicketController {
       const { ticketId } = req.params;
 
       if (!ticketId) {
-        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
-          success: false,
-          message: "Ticket ID is required",
-        }));
+        res.status(StatusCodes.BAD_REQUEST).json(
+          createResponse({
+            success: false,
+            message: "Ticket ID is required",
+          })
+        );
         return;
       }
 
@@ -48,7 +50,11 @@ export class TicketController {
         res.status(StatusCodes.NOT_FOUND).json(result);
       }
     } catch (error: unknown) {
-      this._handleControllerError(res, error, TICKET_MESSAGES.INTERNAL_SERVER_ERROR);
+      this._handleControllerError(
+        res,
+        error,
+        TICKET_MESSAGES.INTERNAL_SERVER_ERROR
+      );
     }
   }
 
@@ -58,19 +64,26 @@ export class TicketController {
       const userId = req.user?.id;
 
       if (!userId) {
-        res.status(StatusCodes.UNAUTHORIZED).json(createResponse({
-          success: false,
-          message: TICKET_MESSAGES.AUTH_REQUIRED,
-        }));
+        res.status(StatusCodes.UNAUTHORIZED).json(
+          createResponse({
+            success: false,
+            message: TICKET_MESSAGES.AUTH_REQUIRED,
+          })
+        );
         return;
       }
 
-      const validationError = this.validateCancelTicketParams(bookingId as string, amount);
+      const validationError = this.validateCancelTicketParams(
+        bookingId as string,
+        amount
+      );
       if (validationError) {
-        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
-          success: false,
-          message: validationError,
-        }));
+        res.status(StatusCodes.BAD_REQUEST).json(
+          createResponse({
+            success: false,
+            message: validationError,
+          })
+        );
         return;
       }
 
@@ -78,7 +91,7 @@ export class TicketController {
       const cancelDto: CancelTicketDto = {
         bookingId: bookingId as string,
         userId,
-        amount: amountNumber
+        amount: amountNumber,
       };
 
       const result = await this.ticketService.cancelTicket(cancelDto);
@@ -88,61 +101,84 @@ export class TicketController {
         return;
       }
 
-      // Handle booking cancellation
-      await this._handleBookingCancellation(result.data.cancelledTickets[0].bookingId, userId);
+      await this._handleBookingCancellation(
+        result.data.cancelledTickets[0].bookingId,
+        userId
+      );
 
       const { refundAmount, refundPercentage } = result.data;
 
-      // Handle wallet operations
       const walletProcessed = await this._handleWalletRefund(
-        userId, 
-        bookingId as string, 
-        refundAmount, 
-        refundPercentage, 
+        userId,
+        bookingId as string,
+        refundAmount,
+        refundPercentage,
         result.data
       );
 
       if (!walletProcessed) {
-        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
-          success: false,
-          message: TICKET_MESSAGES.WALLET_NOT_FOUND,
-        }));
+        res.status(StatusCodes.BAD_REQUEST).json(
+          createResponse({
+            success: false,
+            message: TICKET_MESSAGES.WALLET_NOT_FOUND,
+          })
+        );
         return;
       }
 
-      // Handle notifications
-      await this._handleCancellationNotifications(userId, bookingId as string, result.data);
+      await this._handleCancellationNotifications(
+        userId,
+        bookingId as string,
+        result.data
+      );
 
       const response = this._formatCancellationResponse(
-        bookingId as string, 
-        result.data, 
+        bookingId as string,
+        result.data,
         amountNumber
       );
 
       res.status(StatusCodes.OK).json(response);
     } catch (error: unknown) {
       console.error("Cancel ticket error:", error);
-      this._handleControllerError(res, error, TICKET_MESSAGES.INTERNAL_SERVER_ERROR);
+      this._handleControllerError(
+        res,
+        error,
+        TICKET_MESSAGES.INTERNAL_SERVER_ERROR
+      );
     }
   }
 
-  async getUserTickets(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async getUserTickets(
+    req: AuthenticatedRequest,
+    res: Response
+  ): Promise<void> {
     try {
       const userId = req.user?.id;
-      const { page = "1", limit = "10" } = req.query;
+      const { page = "1", limit = "10", type = "all" } = req.query;
 
       if (!userId) {
-        res.status(StatusCodes.UNAUTHORIZED).json(createResponse({
-          success: false,
-          message: TICKET_MESSAGES.AUTH_REQUIRED,
-        }));
+        res.status(StatusCodes.UNAUTHORIZED).json(
+          createResponse({
+            success: false,
+            message: TICKET_MESSAGES.AUTH_REQUIRED,
+          })
+        );
         return;
       }
+
+      const types = (type as string).split(",") as (
+        | "upcoming"
+        | "past"
+        | "cancelled"
+        | "all"
+      )[];
 
       const getUserTicketsDto: GetUserTicketsDto = {
         userId,
         page: parseInt(page as string) || 1,
-        limit: parseInt(limit as string) || 10
+        limit: parseInt(limit as string) || 10,
+        types,
       };
 
       const result = await this.ticketService.getUserTickets(getUserTicketsDto);
@@ -160,7 +196,11 @@ export class TicketController {
 
       res.status(StatusCodes.OK).json(responseWithMeta);
     } catch (error: unknown) {
-      this._handleControllerError(res, error, TICKET_MESSAGES.INTERNAL_SERVER_ERROR);
+      this._handleControllerError(
+        res,
+        error,
+        TICKET_MESSAGES.INTERNAL_SERVER_ERROR
+      );
     }
   }
 
@@ -169,10 +209,12 @@ export class TicketController {
       const { ticketId } = req.params;
 
       if (!ticketId) {
-        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
-          success: false,
-          message: "Ticket ID is required",
-        }));
+        res.status(StatusCodes.BAD_REQUEST).json(
+          createResponse({
+            success: false,
+            message: "Ticket ID is required",
+          })
+        );
         return;
       }
 
@@ -184,7 +226,11 @@ export class TicketController {
         res.status(StatusCodes.BAD_REQUEST).json(result);
       }
     } catch (error: unknown) {
-      this._handleControllerError(res, error, TICKET_MESSAGES.INTERNAL_SERVER_ERROR);
+      this._handleControllerError(
+        res,
+        error,
+        TICKET_MESSAGES.INTERNAL_SERVER_ERROR
+      );
     }
   }
 
@@ -194,16 +240,18 @@ export class TicketController {
 
       const validationError = this.validateTicketParams(ticketId, qrCode);
       if (validationError) {
-        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
-          success: false,
-          message: validationError,
-        }));
+        res.status(StatusCodes.BAD_REQUEST).json(
+          createResponse({
+            success: false,
+            message: validationError,
+          })
+        );
         return;
       }
 
       const validateDto: ValidateTicketDto = {
         ticketId,
-        qrCode
+        qrCode,
       };
 
       const result = await this.ticketService.validateTicket(validateDto);
@@ -214,7 +262,11 @@ export class TicketController {
         res.status(StatusCodes.BAD_REQUEST).json(result);
       }
     } catch (error: unknown) {
-      this._handleControllerError(res, error, TICKET_MESSAGES.INTERNAL_SERVER_ERROR);
+      this._handleControllerError(
+        res,
+        error,
+        TICKET_MESSAGES.INTERNAL_SERVER_ERROR
+      );
     }
   }
 
@@ -223,10 +275,12 @@ export class TicketController {
       const { data } = req.params;
 
       if (!data) {
-        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
-          success: false,
-          message: "QR code data is required",
-        }));
+        res.status(StatusCodes.BAD_REQUEST).json(
+          createResponse({
+            success: false,
+            message: "QR code data is required",
+          })
+        );
         return;
       }
 
@@ -240,12 +294,18 @@ export class TicketController {
 
       res.status(StatusCodes.OK).json(result);
     } catch (error: unknown) {
-      this._handleControllerError(res, error, TICKET_MESSAGES.INTERNAL_SERVER_ERROR);
+      this._handleControllerError(
+        res,
+        error,
+        TICKET_MESSAGES.INTERNAL_SERVER_ERROR
+      );
     }
   }
 
-  // Private helper methods for controller logic (SRP - Single Responsibility)
-  private validateCancelTicketParams(bookingId: string, amount: any): string | null {
+  private validateCancelTicketParams(
+    bookingId: string,
+    amount: any
+  ): string | null {
     if (!bookingId) {
       return "Booking ID is required";
     }
@@ -262,7 +322,10 @@ export class TicketController {
     return null;
   }
 
-  private validateTicketParams(ticketId: string, qrCode: string): string | null {
+  private validateTicketParams(
+    ticketId: string,
+    qrCode: string
+  ): string | null {
     if (!ticketId || !qrCode) {
       return "Ticket ID and QR code are required";
     }
@@ -273,7 +336,10 @@ export class TicketController {
     return Array.isArray(amount) ? Number(amount[0]) : Number(amount);
   }
 
-  private async _handleBookingCancellation(bookingId: string, userId: string): Promise<void> {
+  private async _handleBookingCancellation(
+    bookingId: string,
+    userId: string
+  ): Promise<void> {
     try {
       await this.bookingService.cancelBooking(bookingId, userId);
     } catch (error) {
@@ -282,10 +348,10 @@ export class TicketController {
   }
 
   private async _handleWalletRefund(
-    userId: string, 
-    bookingId: string, 
-    refundAmount: number, 
-    refundPercentage: number, 
+    userId: string,
+    bookingId: string,
+    refundAmount: number,
+    refundPercentage: number,
     cancellationData: any
   ): Promise<boolean> {
     try {
@@ -294,38 +360,40 @@ export class TicketController {
         return false;
       }
 
-      // Credit wallet with refund (using Unicode escape for rupee symbol)
       const refundDescription = `Booking cancelled - ${refundPercentage}% refund (\u20B9${refundAmount})`;
-      
+
       const creditResult = await this.walletService.creditWallet({
         userId,
         userModel: "User",
         amount: refundAmount,
-        description: refundDescription
+        description: refundDescription,
       });
 
       if (!creditResult.success) {
         console.error("Failed to credit wallet:", creditResult.message);
         return false;
       }
-const walletId = (wallet.data as any)._id;
+      const walletId = (wallet.data as any)._id;
 
-      // Create wallet transaction record
-      const walletTransactionResult = await this.walletTransactionService.createWalletTransaction({
-        userId,
-        userModel: "User",
-        walletId ,
-        type: "credit",
-        amount: refundAmount,
-        category: "refund",
-        description: `Movie ticket refund - ${refundPercentage}% refund for booking ${bookingId}`,
-        referenceId: bookingId,
-        movieId: cancellationData.movieId,
-        theaterId: cancellationData.theaterId,
-      });
+      const walletTransactionResult =
+        await this.walletTransactionService.createWalletTransaction({
+          userId,
+          userModel: "User",
+          walletId,
+          type: "credit",
+          amount: refundAmount,
+          category: "refund",
+          description: `Movie ticket refund - ${refundPercentage}% refund for booking ${bookingId}`,
+          referenceId: bookingId,
+          movieId: cancellationData.movieId,
+          theaterId: cancellationData.theaterId,
+        });
 
       if (!walletTransactionResult.success) {
-        console.error("Wallet transaction failed:", walletTransactionResult.message);
+        console.error(
+          "Wallet transaction failed:",
+          walletTransactionResult.message
+        );
       }
 
       return true;
@@ -335,7 +403,11 @@ const walletId = (wallet.data as any)._id;
     }
   }
 
-  private async _handleCancellationNotifications(userId: string, bookingId: string, cancellationData: any): Promise<void> {
+  private async _handleCancellationNotifications(
+    userId: string,
+    bookingId: string,
+    cancellationData: any
+  ): Promise<void> {
     try {
       await this.notificationService.sendCancellationNotification(userId, {
         bookingId,
@@ -348,12 +420,23 @@ const walletId = (wallet.data as any)._id;
     }
   }
 
-  private _formatCancellationResponse(bookingId: string, cancellationData: any, originalAmount: number): any {
-    const { refundAmount, refundPercentage, cancelledTickets, showDate, showTime } = cancellationData;
+  private _formatCancellationResponse(
+    bookingId: string,
+    cancellationData: any,
+    originalAmount: number
+  ): any {
+    const {
+      refundAmount,
+      refundPercentage,
+      cancelledTickets,
+      showDate,
+      showTime,
+    } = cancellationData;
 
-    const message = TICKET_MESSAGES.BOOKING_CANCEL_SUCCESS
-      .replace('{refundAmount}', refundAmount.toString())
-      .replace('{refundPercentage}', refundPercentage.toString());
+    const message = TICKET_MESSAGES.BOOKING_CANCEL_SUCCESS.replace(
+      "{refundAmount}",
+      refundAmount.toString()
+    ).replace("{refundPercentage}", refundPercentage.toString());
 
     return createResponse({
       success: true,
@@ -376,7 +459,11 @@ const walletId = (wallet.data as any)._id;
     });
   }
 
-  private _formatPaginatedTicketsResponse(result: any, page: number, limit: number): any {
+  private _formatPaginatedTicketsResponse(
+    result: any,
+    page: number,
+    limit: number
+  ): any {
     return createResponse({
       success: true,
       message: result.message || "User tickets retrieved successfully",
@@ -384,7 +471,9 @@ const walletId = (wallet.data as any)._id;
       meta: {
         pagination: {
           currentPage: page,
-          totalPages: result.data?.totalPages || Math.ceil((result.data?.total || 0) / limit),
+          totalPages:
+            result.data?.totalPages ||
+            Math.ceil((result.data?.total || 0) / limit),
           total: result.data?.total || 0,
           limit,
           hasNextPage: page < (result.data?.totalPages || 0),
@@ -394,12 +483,19 @@ const walletId = (wallet.data as any)._id;
     });
   }
 
-  private _handleControllerError(res: Response, error: unknown, defaultMessage: string): void {
-    const errorMessage = error instanceof Error ? error.message : defaultMessage;
-    
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(createResponse({
-      success: false,
-      message: errorMessage,
-    }));
+  private _handleControllerError(
+    res: Response,
+    error: unknown,
+    defaultMessage: string
+  ): void {
+    const errorMessage =
+      error instanceof Error ? error.message : defaultMessage;
+
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
+      createResponse({
+        success: false,
+        message: errorMessage,
+      })
+    );
   }
 }

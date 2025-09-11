@@ -91,10 +91,12 @@ export default function NavBar() {
 
   const handleNotificationClick = async (notification: any) => {
     try {
-      const data = await markNotificationAsSeen(notification._id)
+      
+      const data = await markNotificationAsSeen(notification.notificationId)
       console.log(data);
+    
       setUnreadCount(unreadCount-1)
-      let notif = notifications.filter((n, i) => n._id != notification._id)
+      let notif = notifications.filter((n, i) => n.notificationId != notification.notificationId)
       setNotifications(notif)
     } catch (error) {
       console.log(error);
@@ -153,7 +155,7 @@ export default function NavBar() {
                   onToggle={() => setShowNotifications(!showNotifications)}
                   onMarkAllRead={markAllAsRead}
                   onNotificationClick={handleNotificationClick}
-                  onViewAll={handleViewAllNotifications} // ✅ Pass handler
+                  onViewAll={handleViewAllNotifications} 
                   lexendSmall={lexendSmall}
                 />
               )}
@@ -174,7 +176,7 @@ export default function NavBar() {
                   onToggle={() => setShowNotifications(!showNotifications)}
                   onMarkAllRead={markAllAsRead}
                   onNotificationClick={handleNotificationClick}
-                  onViewAll={handleViewAllNotifications} // ✅ Pass handler
+                  onViewAll={handleViewAllNotifications} 
                   lexendSmall={lexendSmall}
                   isMobile={true}
                 />

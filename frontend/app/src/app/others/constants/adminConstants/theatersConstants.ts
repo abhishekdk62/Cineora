@@ -1,4 +1,3 @@
-// constants/adminRoutes/theaters.ts
 
 const ADMIN_THEATERS = {
   BASE: '/admin/theaters' as const,

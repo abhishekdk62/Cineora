@@ -20,7 +20,7 @@ export interface IUser extends Document {
   locationState?: string;
   location?: {
     type: "Point";
-    coordinates: [number, number]; // [longitude, latitude]
+    coordinates: [number, number]; 
   };
   isVerified: boolean;
   xpPoints: number;

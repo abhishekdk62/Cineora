@@ -2,6 +2,9 @@
 import React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+// Font variables for styling
+const lexendSmallStyle = { fontFamily: 'Lexend', fontWeight: '400' };
+
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
@@ -16,11 +19,11 @@ const Pagination: React.FC<PaginationProps> = ({
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-center gap-2 mt-8">
+    <div className="flex items-center justify-center gap-3 mt-8">
       <button
         onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
         disabled={currentPage === 1}
-        className="p-2 border border-gray-500 rounded-lg text-gray-300 hover:text-white hover:border-[#e78f03] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="p-3 bg-gray-800/50 border border-yellow-500/30 rounded-lg text-yellow-400 hover:bg-yellow-500/10 hover:border-yellow-500/60 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-800/50 disabled:hover:border-yellow-500/30 transition-all duration-200"
       >
         <ChevronLeft size={20} />
       </button>
@@ -34,11 +37,12 @@ const Pagination: React.FC<PaginationProps> = ({
             <button
               key={pageNumber}
               onClick={() => onPageChange(pageNumber)}
-              className={`px-3 py-2 rounded-lg transition-colors ${
+              className={`px-4 py-2 rounded-lg transition-all duration-200 ${
                 currentPage === pageNumber
-                  ? "bg-[#e78f03] text-black font-medium"
-                  : "border border-gray-500 text-gray-300 hover:text-white hover:border-[#e78f03]"
+                  ? "bg-yellow-500 text-black font-medium"
+                  : "bg-gray-800/50 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10 hover:border-yellow-500/60"
               }`}
+              style={lexendSmallStyle}
             >
               {pageNumber}
             </button>
@@ -49,7 +53,7 @@ const Pagination: React.FC<PaginationProps> = ({
       <button
         onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
         disabled={currentPage === totalPages}
-        className="p-2 border border-gray-500 rounded-lg text-gray-300 hover:text-white hover:border-[#e78f03] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="p-3 bg-gray-800/50 border border-yellow-500/30 rounded-lg text-yellow-400 hover:bg-yellow-500/10 hover:border-yellow-500/60 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-800/50 disabled:hover:border-yellow-500/30 transition-all duration-200"
       >
         <ChevronRight size={20} />
       </button>

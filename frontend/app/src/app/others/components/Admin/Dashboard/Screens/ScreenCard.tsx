@@ -1,6 +1,31 @@
 import React, { useState } from "react";
+import { Lexend } from "next/font/google";
+import {
+  Monitor,
+  MapPin,
+  Users,
+  Grid3X3,
+  Settings,
+  Calendar,
+  Eye,
+  EyeOff,
+  Power,
+  Star,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 import { LayoutPreview } from "../../../Owner/Screens/LayoutPreview";
 import { IScreen } from "./inedx";
+
+const lexend = Lexend({
+  weight: "500",
+  subsets: ["latin"],
+});
+
+const lexendSmall = Lexend({
+  weight: "300",
+  subsets: ["latin"],
+});
 
 interface ScreenCardProps {
   handleToggleScreenStatus: (screenId: string, isActive: boolean) => void
@@ -31,66 +56,135 @@ const ScreenCard: React.FC<ScreenCardProps> = ({
   };
 
   return (
-    <div className="bg-[#1a1a1a] p-4 rounded-lg border border-gray-600">
-      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+    <div className="bg-gray-800/50 border border-yellow-500/20 rounded-lg p-6 hover:bg-gray-700/50 hover:border-yellow-500/30 transition-all duration-200">
+      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+        {/* Main Content */}
         <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="text-lg text-white font-bold">{screen.name}</div>
-            <div className={`px-2 py-1 rounded text-xs font-medium ${screen.isActive
-              ? "bg-green-500/20 text-green-400"
-              : "bg-red-500/20 text-red-400"
-              }`}>
-              {screen.isActive ? "Active" : "Disabled"}
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-4">
+            <div className="bg-yellow-500/20 p-2 rounded-lg">
+              <Monitor className="text-yellow-400" size={20} />
+            </div>
+            <div className="flex-1">
+              <h3 className={`${lexend.className} text-xl font-medium text-white mb-1`}>
+                {screen.name}
+              </h3>
+              <div className="flex items-center gap-2">
+                <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium ${
+                  screen.isActive
+                    ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                    : "bg-red-500/20 text-red-400 border border-red-500/30"
+                }`}>
+                  {screen.isActive ? <CheckCircle size={12} /> : <XCircle size={12} />}
+                  {screen.isActive ? "Active" : "Disabled"}
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="text-gray-400 text-sm space-y-1">
-            <div>Theater: <span className="text-white">{getTheaterName()}</span></div>
-            {getTheaterLocation() && (
-              <div>Location: <span className="text-gray-300">{getTheaterLocation()}</span></div>
-            )}
-            <div>Total Seats: <span className="text-white">{screen.totalSeats}</span></div>
-            <div>Layout: <span className="text-white">{screen.layout?.rows || 0} rows × {screen.layout?.seatsPerRow || 0} seats/row</span></div>
-            {screen.screenType && (
-              <div>Type: <span className="text-white">{screen.screenType}</span></div>
-            )}
+          {/* Theater Information */}
+          <div className="bg-gray-700/30 rounded-lg p-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <div className="flex items-center gap-2">
+                <Monitor size={14} className="text-gray-400" />
+                <span className="text-gray-400">Theater:</span>
+                <span className="text-white font-medium">{getTheaterName()}</span>
+              </div>
+              
+              {getTheaterLocation() && (
+                <div className="flex items-center gap-2">
+                  <MapPin size={14} className="text-gray-400" />
+                  <span className="text-gray-400">Location:</span>
+                  <span className="text-gray-300">{getTheaterLocation()}</span>
+                </div>
+              )}
+              
+              <div className="flex items-center gap-2">
+                <Users size={14} className="text-gray-400" />
+                <span className="text-gray-400">Total Seats:</span>
+                <span className="text-white font-medium">{screen.totalSeats}</span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Grid3X3 size={14} className="text-gray-400" />
+                <span className="text-gray-400">Layout:</span>
+                <span className="text-white font-medium">
+                  {screen.layout?.rows || 0} rows × {screen.layout?.seatsPerRow || 0} seats/row
+                </span>
+              </div>
+              
+              {screen.screenType && (
+                <div className="flex items-center gap-2 md:col-span-2">
+                  <Settings size={14} className="text-gray-400" />
+                  <span className="text-gray-400">Type:</span>
+                  <span className="text-white font-medium">{screen.screenType}</span>
+                </div>
+              )}
+            </div>
           </div>
 
+          {/* Features */}
           {screen.features && screen.features.length > 0 && (
-            <div className="text-gray-500 text-xs mt-2">
-              Features: {screen.features.join(", ")}
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Star className="text-yellow-400" size={16} />
+                <span className="text-gray-400 text-sm">Features</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {screen.features.map((feature, index) => (
+                  <span
+                    key={index}
+                    className="bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 px-2 py-1 rounded text-xs font-medium"
+                  >
+                    {feature}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
         </div>
 
-        <div className="flex flex-col gap-2 md:min-w-[200px]">
+        {/* Action Buttons */}
+        <div className="flex flex-col gap-3 lg:min-w-[220px]">
+          {/* Primary Actions */}
           <div className="flex gap-2">
             <button
-              className="px-3 py-2 bg-[#e78f03] hover:bg-[#ffb300] text-black rounded font-medium transition-colors text-sm"
+              className="flex-1 flex items-center justify-center gap-2 bg-yellow-500 hover:bg-yellow-400 text-black px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm"
               onClick={() => onViewDetails(screen)}
             >
+              <Eye size={14} />
               View Details
             </button>
             <button
-              className="px-3 py-2 bg-[#2a2a2a] border border-gray-500 rounded text-white hover:bg-[#3a3a3a] font-medium transition-colors text-sm"
+              className="flex-1 flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600 border border-yellow-500/30 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm"
               onClick={() => onViewShowtimes(screen)}
             >
-              View Showtimes
+              <Calendar size={14} />
+              Showtimes
             </button>
           </div>
 
-          <div className="flex justify-center gap-2 items-center ">
+          {/* Secondary Actions */}
+          <div className="flex gap-2">
             {screen.layout?.advancedLayout && (
               <button
-                className="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded font-medium transition-colors text-sm"
+                className="flex-1 flex items-center justify-center gap-2 bg-purple-500/20 border border-purple-500/30 hover:bg-purple-500/30 text-purple-400 hover:text-purple-300 px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm"
                 onClick={() => setShowLayoutPreview(!showLayoutPreview)}
               >
+                {showLayoutPreview ? <EyeOff size={14} /> : <Eye size={14} />}
                 {showLayoutPreview ? "Hide Layout" : "Show Layout"}
               </button>
             )}
+            
             <button
               onClick={() => handleToggleScreenStatus(screen._id, screen.isActive)}
-              className={`px-2 py-1 rounded-sm ${screen.isActive ? 'bg-red-500 text-white' : 'bg-green-400 text-black'}`}>
+              className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm ${
+                screen.isActive 
+                  ? 'bg-red-500 hover:bg-red-400 text-white' 
+                  : 'bg-green-500 hover:bg-green-400 text-white'
+              }`}
+            >
+              <Power size={14} />
               {screen.isActive ? 'Disable' : 'Enable'}
             </button>
           </div>
@@ -99,11 +193,19 @@ const ScreenCard: React.FC<ScreenCardProps> = ({
 
       {/* Layout Preview */}
       {showLayoutPreview && screen.layout?.advancedLayout && (
-        <div className="mt-4 pt-4 border-t border-gray-600">
-          <LayoutPreview
-            advancedLayoutJSON={screen.layout.advancedLayout}
-            maxCols={screen.layout.seatsPerRow || 24}
-          />
+        <div className="mt-6 pt-6 border-t border-yellow-500/20">
+          <div className="bg-gray-700/30 rounded-lg p-4 border border-yellow-500/10">
+            <div className="flex items-center gap-2 mb-4">
+              <Grid3X3 className="text-yellow-400" size={16} />
+              <h4 className={`${lexend.className} text-white text-sm font-medium`}>
+                Seating Layout Preview
+              </h4>
+            </div>
+            <LayoutPreview
+              advancedLayoutJSON={screen.layout.advancedLayout}
+              maxCols={screen.layout.seatsPerRow || 24}
+            />
+          </div>
         </div>
       )}
     </div>

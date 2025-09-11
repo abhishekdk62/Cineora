@@ -19,6 +19,8 @@ interface OwnersContentProps {
   totalPages: number;
   totalItems: number;
   ownerId: string;
+  ownerSearchValue: string;
+  requestSearchValue: string;
   onPageChange: (page: number) => void;
   onOwnerFiltersChange: (filters: OwnerFilters, resetPage?: boolean) => void;
   onRequestFiltersChange: (filters: OwnerRequestFilters, resetPage?: boolean) => void;
@@ -42,6 +44,8 @@ const OwnersContent: React.FC<OwnersContentProps> = ({
   totalPages,
   totalItems,
   ownerId,
+  ownerSearchValue, 
+  requestSearchValue, 
   onPageChange,
   onOwnerFiltersChange,
   onRequestFiltersChange,
@@ -56,6 +60,7 @@ const OwnersContent: React.FC<OwnersContentProps> = ({
   const ownerCommonProps = {
     isLoading,
     currentFilters: ownerFilters,
+    ownerSearchValue, 
     currentPage,
     totalPages,
     totalItems,
@@ -67,6 +72,7 @@ const OwnersContent: React.FC<OwnersContentProps> = ({
   const requestCommonProps = {
     isLoading,
     currentFilters: requestFilters,
+    requestSearchValue, 
     currentPage,
     totalPages,
     totalItems,

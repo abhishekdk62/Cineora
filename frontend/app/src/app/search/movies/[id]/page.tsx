@@ -2,25 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Lexend } from "next/font/google";
 import { Footer, NavBar } from "../../../others/components/Home";
 import Orb from "../../../others/components/ReactBits/Orb";
 import { getMovieById } from "@/app/others/services/userServices/movieServices";
-
-const lexendSmall = Lexend({
-  weight: "200",
-  subsets: ["latin"],
-});
-
-const lexendMedium = Lexend({
-  weight: "400",
-  subsets: ["latin"],
-});
-
-const lexendBold = Lexend({
-  weight: "700",
-  subsets: ["latin"],
-});
+import { addToFavorites, checkIsFavorite, removeFromFavorites } from "@/app/others/services/userServices/favoriteServices";
+import { getMovieRatingApi, getMovieReviewStats } from "@/app/others/services/commonServices/ratingServices";
+import MovieReviews from "@/app/others/components/Search/Movies/MovieReviews";
+import LoadingSpinner from "@/app/others/components/Search/Movies/LoadingSpinner";
+import NotFoundPage from "@/app/others/components/Search/Movies/NotFoundPage";
+import MovieDetailsContent from "@/app/others/components/Search/Movies/MovieDetailsContent";
+import MovieTrailerModal from "@/app/others/components/Search/Movies/MovieTrailerModal";
 
 interface Movie {
   _id: string;
@@ -39,38 +30,37 @@ interface Movie {
   isActive: boolean;
 }
 
+interface ReviewsData {
+  averageRating: number;
+  limit: number;
+  page: number;
+  reviews: any[];
+  total: number;
+  totalPages: number;
+}
+
+interface RatingStats {
+  averageRating: number;
+  totalReviews: number;
+  ratingDistribution: { [key: number]: number };
+}
+
 export default function MovieDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const [movie, setMovie] = useState<Movie | null>(null);
   const [loading, setLoading] = useState(true);
   const [showTrailer, setShowTrailer] = useState(false);
+  const [isFav, setIsFav] = useState(false);
+  const [reviewsData, setReviewsData] = useState<ReviewsData | null>(null);
+  const [ratingStats, setRatingStats] = useState<RatingStats | null>(null);
 
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
-  };
-
-  const languageMap: { [key: string]: string } = {
-    "en": "English",
-    "es": "Spanish",
-    "fr": "French",
-    "de": "German",
-    "hi": "Hindi",
-    "zh": "Chinese",
-    "ja": "Japanese",
-    "ko": "Korean"
-  };
   useEffect(() => {
     const fetchMovieDetails = async () => {
       try {
         setLoading(true);
         const response = await getMovieById(params.id as string);
-        
         setMovie(response.data);
-        
-     
       } catch (error) {
         console.error("Error fetching movie details:", error);
       } finally {
@@ -81,55 +71,76 @@ export default function MovieDetailsPage() {
       fetchMovieDetails();
     }
   }, [params.id]);
-const handleBookTicket=()=>{
-  router.push(`/book/${params.id}?flow=movie-first`)
-}
+
+  const handleFavoriteToggle = async (isAdd: boolean) => {
+    try {
+      if (movie) {
+        if (isAdd) {
+          await addToFavorites(movie._id);
+        } else {
+          await removeFromFavorites(movie._id);
+        }
+        setIsFav(isAdd);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const checkIsFav = async () => {
+    try {
+      if (movie) {
+        const data = await checkIsFavorite(movie._id);
+        setIsFav(data.isFavorite);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const getMovieRating = async () => {
+    try {
+      const data = await getMovieRatingApi(params.id as string);
+      if (data.success) {
+        setReviewsData(data.data);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const getMovieRatingStats = async () => {
+    try {
+      const data = await getMovieReviewStats(params.id as string);
+      if (data.success) {
+        setRatingStats(data.data);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    checkIsFav();
+  }, [movie]);
+
+  useEffect(() => {
+    if (params.id) {
+      getMovieRating();
+      getMovieRatingStats();
+    }
+  }, [params.id]);
+
+  const handleBookTicket = () => {
+    router.push(`/book/${params.id}?flow=movie-first`);
+  };
+
   if (loading) {
-    return (
-      <div className="relative min-h-screen bg-black overflow-hidden">
-        <div className="fixed inset-0 z-0 pointer-events-none">
-          <Orb hoverIntensity={0.5} rotateOnHover={true} hue={0} forceHoverState={false} />
-        </div>
-        <div className="relative z-10">
-          <NavBar />
-          <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
-            <div className="backdrop-blur-sm bg-black/20 rounded-2xl p-8 border border-gray-500/30">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-              <p className={`${lexendMedium.className} text-white text-center`}>Loading movie details...</p>
-            </div>
-          </div>
-          <Footer />
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (!movie) {
-    return (
-      <div className="relative min-h-screen bg-black overflow-hidden">
-        <div className="fixed inset-0 z-0 pointer-events-none">
-          <Orb hoverIntensity={0.5} rotateOnHover={true} hue={0} forceHoverState={false} />
-        </div>
-        <div className="relative z-10">
-          <NavBar  />
-          <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
-            <div className="backdrop-blur-sm bg-black/20 rounded-2xl p-8 border border-gray-500/30 text-center">
-              <h2 className={`${lexendBold.className} text-white text-2xl mb-4`}>Movie Not Found</h2>
-              <p className={`${lexendSmall.className} text-gray-400 mb-6`}>
-                The movie you're looking for doesn't exist or has been removed.
-              </p>
-              <button
-                onClick={() => router.back()}
-                className={`${lexendMedium.className} bg-white text-black px-6 py-3 rounded-xl hover:bg-gray-200 transition-all duration-300`}
-              >
-                Go Back
-              </button>
-            </div>
-          </div>
-          <Footer />
-        </div>
-      </div>
-    );
+    return <NotFoundPage onGoBack={() => router.back()} />;
   }
 
   return (
@@ -139,153 +150,32 @@ const handleBookTicket=()=>{
       </div>
 
       <div className="relative z-10">
-        <NavBar  />
-        
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-          <div className="pt-20 pb-4">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <button
-                onClick={() => router.back()}
-                className={`${lexendSmall.className} flex items-center gap-2 text-gray-400 hover:text-white transition-all duration-300`}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                Back to Movies
-              </button>
-            </div>
-          </div>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-            <div className="backdrop-blur-sm bg-black/20 rounded-3xl p-8 border border-gray-500/30">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-1">
-                  <div className="relative group">
-                    <img
-                      src={movie.poster}
-                      alt={movie.title}
-                      className="w-full rounded-2xl shadow-2xl "
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = "/api/placeholder/400/600";
-                      }}
-                    />
-                    <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm px-3 py-1 rounded-lg">
-                      <span className={`${lexendSmall.className} text-white text-sm`}>{movie.rating}</span>
-                    </div>
-                  </div>
-                </div>
+        <NavBar />
 
-                {/* Movie Information */}
-                <div className="lg:col-span-2">
-                  <div className="space-y-6">
-                    
-                    {/* Title and Basic Info */}
-                    <div>
-                      <h1 className={`${lexendBold.className} text-4xl md:text-5xl text-white mb-4`}>
-                        {movie.title}
-                      </h1>
-                      <div className="flex flex-wrap items-center gap-4 text-gray-300">
-                        <span className={`${lexendSmall.className}`}>
-                          {new Date(movie.releaseDate).getFullYear()}
-                        </span>
-                        <span className={`${lexendSmall.className}`}>•</span>
-                        <span className={`${lexendSmall.className}`}>
-                          {formatDuration(movie.duration)}
-                        </span>
-                        <span className={`${lexendSmall.className}`}>•</span>
-                        <span className={`${lexendSmall.className}`}>
-                          {languageMap[movie.language] || movie.language}
-                        </span>
-                      </div>
-                    </div>
+    <MovieDetailsContent
+  movie={movie}
+  isFav={isFav}
+  onFavoriteToggle={handleFavoriteToggle}
+  onBookTicket={handleBookTicket}
+  onWatchTrailer={() => setShowTrailer(true)}
+  onGoBack={() => router.back()}
+  ratingStats={ratingStats} // Add this line
+/>
 
-                    {/* Genres */}
-                    <div>
-                      <h3 className={`${lexendMedium.className} text-white text-lg mb-3`}>Genres</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {movie.genre.map((genre, index) => (
-                          <span
-                            key={index}
-                            className={`${lexendSmall.className} bg-white/10 text-white px-3 py-1 rounded-lg text-sm border border-gray-500/30`}
-                          >
-                            {genre}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
 
-                    {/* Description */}
-                    <div>
-                      <h3 className={`${lexendMedium.className} text-white text-lg mb-3`}>Synopsis</h3>
-                      <p className={`${lexendSmall.className} text-gray-300 leading-relaxed`}>
-                        {movie.description}
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <h3 className={`${lexendMedium.className} text-white text-lg mb-3`}>Director</h3>
-                        <p className={`${lexendSmall.className} text-gray-300`}>{movie.director}</p>
-                      </div>
-                      <div>
-                        <h3 className={`${lexendMedium.className} text-white text-lg mb-3`}>Cast</h3>
-                        <div className="space-y-1">
-                          {movie.cast.map((actor, index) => (
-                            <p key={index} className={`${lexendSmall.className} text-gray-300`}>
-                              {actor}
-                            </p>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                      <button onClick={handleBookTicket} className={`${lexendMedium.className} flex-1 bg-white text-black py-4 px-6 rounded-xl hover:bg-gray-200 transition-all duration-300 font-medium`}>
-                        Book Tickets
-                      </button>
-                      
-                      {movie.trailer && (
-                        <button
-                          onClick={() => setShowTrailer(true)}
-                          className={`${lexendMedium.className} flex-1 bg-white/10 text-white py-4 px-6 rounded-xl hover:bg-white/20 border border-gray-500/30 transition-all duration-300`}
-                        >
-                          Watch Trailer
-                        </button>
-                      )}
-                      
-                      <button className={`${lexendMedium.className} bg-white/10 text-white py-4 px-6 rounded-xl hover:bg-white/20 border border-gray-500/30 transition-all duration-300`}>
-                        Add to Wishlist
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+          <MovieReviews
+            movieId={params.id as string}
+            reviewsData={reviewsData}
+            ratingStats={ratingStats}
+          />
         </div>
 
-        {showTrailer && movie.trailer && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <div className="relative w-full max-w-4xl">
-              <button
-                onClick={() => setShowTrailer(false)}
-                className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors duration-200"
-              >
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <div className="aspect-video rounded-2xl overflow-hidden">
-                <iframe
-                  src={movie.trailer}
-                  className="w-full h-full"
-                  allowFullScreen
-                  title={`${movie.title} Trailer`}
-                />
-              </div>
-            </div>
-          </div>
-        )}
+        <MovieTrailerModal
+          movie={movie}
+          showTrailer={showTrailer}
+          onClose={() => setShowTrailer(false)}
+        />
 
         <Footer />
       </div>

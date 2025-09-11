@@ -1,4 +1,3 @@
-// Existing DTOs that are already working
 export interface OwnerFilterDto {
   search?: string;
   status?: string;
@@ -21,7 +20,6 @@ export interface UpdateOwnerProfileDto {
   isVerified?: boolean;
 }
 
-// MISSING DTOs that you need to add:
 
 export interface UpdateToNewPasswordDto {
   oldPassword: string;
@@ -147,7 +145,6 @@ export interface GenerateSignedUrlDto {
 }
 
 export interface OwnerKYCDataDto extends SubmitKYCDto {
-  // Same as SubmitKYCDto for now, can be extended
 }
 
 export interface KYCSubmissionResponseDataDto {

@@ -16,12 +16,10 @@ const BookingTable: React.FC<BookingTableProps> = ({
   lexendMedium,
   lexendSmall,
 }) => {
-  // Calculate total revenue ONLY from confirmed bookings (exclude cancelled)
   const totalRevenue = bookings
     .filter(booking => booking.bookingStatus !== 'cancelled')
     .reduce((sum, booking) => sum + (booking.priceDetails?.total || 0), 0);
 
-  // Separate confirmed and cancelled bookings for analytics
   const confirmedBookings = bookings.filter(booking => booking.bookingStatus !== 'cancelled');
   const cancelledBookings = bookings.filter(booking => booking.bookingStatus === 'cancelled');
 

@@ -1,4 +1,3 @@
-// All DTOs for Wallet module
 
 export interface CreateWalletDto {
   userId: string;
@@ -10,7 +9,7 @@ export interface CreateWalletDto {
 
 export interface CreditWalletDto {
   userId: string;
-  userModel: 'User' | 'Owner';
+  userModel: 'User' | 'Owner'|'Admin';
   amount: number;
   description?: string;
 }

@@ -13,7 +13,6 @@ import { Movie } from "../models/movies.model";
 
 export class MovieRepository implements IMovieRepository {
   
-  // Read Operations
   async findMovieById(movieId: string): Promise<IMovie | null> {
     try {
       return await Movie.findById(movieId).exec();
@@ -87,7 +86,6 @@ export class MovieRepository implements IMovieRepository {
     }
   }
 
-  // Write Operations
   async createMovie(movieData: CreateMovieDto): Promise<IMovie> {
     try {
       const movie = new Movie(movieData);

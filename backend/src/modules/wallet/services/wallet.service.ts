@@ -41,7 +41,6 @@ export class WalletService implements IWalletService {
 
   async creditWallet(data: CreditWalletDto): Promise<ApiResponse<IWallet>> {
     try {
-      // Business logic validation
       this._validateCreditWalletData(data);
 
       const wallet = await this.walletRepository.updateWalletBalance(
@@ -111,7 +110,6 @@ export class WalletService implements IWalletService {
     userModel: "User" | "Owner"
   ): Promise<ApiResponse<{ balance: number }>> {
     try {
-      // Business logic validation
       this._validateUserParams(userId, userModel);
 
       const balance = await this.walletRepository.getWalletBalance(userId, userModel);
@@ -131,7 +129,6 @@ export class WalletService implements IWalletService {
     userModel: "User" | "Owner"
   ): Promise<ApiResponse<IWallet>> {
     try {
-      // Business logic validation
       this._validateUserParams(userId, userModel);
 
       const wallet = await this.walletRepository.findWalletByUser(userId, userModel);
@@ -203,7 +200,7 @@ export class WalletService implements IWalletService {
     }
   }
 
-  private _validateUserParams(userId: string, userModel: "User" | "Owner"): void {
+  private _validateUserParams(userId: string, userModel: "User" | "Owner" | "Admin"): void {
     if (!userId || !userModel) {
       throw new Error("UserId and userModel are required");
     }

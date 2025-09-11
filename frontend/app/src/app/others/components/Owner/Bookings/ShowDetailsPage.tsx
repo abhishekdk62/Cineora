@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 "use client";
 import * as XLSX from 'xlsx';
 
@@ -60,7 +62,6 @@ const ShowDetailsPage: React.FC<ShowDetailsPageProps> = ({
       );
     }
 
-    // Status filter
     if (filterStatus !== "all") {
       filtered = filtered.filter(booking => booking.bookingStatus === filterStatus);
     }

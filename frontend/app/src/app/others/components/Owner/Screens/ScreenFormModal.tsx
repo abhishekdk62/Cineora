@@ -20,6 +20,7 @@ import {
   createScreen,
   editScreenOwner,
 } from "@/app/others/services/ownerServices/screenServices";
+import { screenSchema } from "@/app/others/Utils/zodSchemas";
 
 const lexendBold = Lexend({ weight: "700", subsets: ["latin"] });
 const lexendMedium = Lexend({ weight: "500", subsets: ["latin"] });
@@ -155,60 +156,56 @@ const ScreenFormModal: React.FC<ScreenFormModalProps> = ({
     }
   };
 
-  const validateForm = (): boolean => {
-    const newErrors: ValidationErrors = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = "Screen name is required";
-    } else if (formData.name.trim().length < 2) {
-      newErrors.name = "Screen name must be at least 2 characters";
-    }
-
-    if (formData.totalSeats <= 0) {
-      newErrors.totalSeats = "Total seats must be greater than 0";
-    } else if (formData.totalSeats > 5000) {
-      newErrors.totalSeats = "Maximum 5000 total seats allowed";
-    }
-
-    if (rowsDefs.length === 0) {
-      newErrors.layout = "At least one row is required";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return;
-    setIsLoading(true);
+
     try {
+      const validatedData = screenSchema.parse(formData);
+
+      setIsLoading(true);
+      setErrors({}); 
+
       if (mode === "create") {
-        const result = await createScreen({ ...formData, theater });
+        const result = await createScreen({ ...validatedData, theater });
         onSuccess();
         toast.success("Screen created successfully");
       } else if (mode === "edit" && initialData?._id) {
         const result = await editScreenOwner(initialData._id, {
-          name: formData.name,
-          totalSeats: formData.totalSeats,
-          features: formData.features,
-          screenType: formData.screenType,
-          layout: formData.layout,
+          name: validatedData.name,
+          totalSeats: validatedData.totalSeats,
+          features: validatedData.features,
+          screenType: validatedData.screenType,
+          layout: validatedData.layout,
         });
         onSuccess();
         toast.success("Screen updated successfully");
       }
     } catch (error: any) {
-      console.error("Error saving screen:", error);
-      const errorMessage =
-        error?.response?.data?.message || "Network error. Please try again.";
-      setErrors({ submit: errorMessage });
-      toast.error(errorMessage);
+      if (error.errors) {
+        const newErrors: ValidationErrors = {};
+
+        error.errors.forEach((err: any) => {
+          const path = err.path.join('.');
+          newErrors[path] = err.message;
+        });
+
+        setErrors(newErrors);
+        toast.error("Please fix the validation errors");
+        return; 
+      } else {
+        console.error("Error saving screen:", error);
+        const errorMessage =
+          error?.response?.data?.message || "Network error. Please try again.";
+        setErrors({ submit: errorMessage });
+        toast.error(errorMessage);
+      }
     } finally {
-      onClose()
+      onClose();
       setIsLoading(false);
     }
   };
+
 
   const isFormValid = () => {
     return (

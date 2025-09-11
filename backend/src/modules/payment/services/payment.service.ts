@@ -28,7 +28,6 @@ export class PaymentService implements IPaymentService {
 
   async initiatePayment(paymentData: InitiatePaymentDTO): Promise<ServiceResponse> {
     try {
-      // Validate input data
       this._validateInitiatePaymentData(paymentData);
 
       const paymentId = this._generatePaymentId();
@@ -415,7 +414,6 @@ export class PaymentService implements IPaymentService {
     }
   }
 
-  // Private validation methods
   private _generatePaymentId(): string {
     return `PAY${Date.now()}${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
   }

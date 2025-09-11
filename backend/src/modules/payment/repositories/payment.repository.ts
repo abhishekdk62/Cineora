@@ -12,7 +12,6 @@ import {
 } from "../dtos/dto";
 
 export class PaymentRepository implements IPaymentRepository {
-  // Create Operations (IPaymentWriteRepository)
   async createPayment(paymentData: CreatePaymentDTO): Promise<IPayment> {
     try {
       const payment = new Payment(paymentData);
@@ -102,7 +101,6 @@ export class PaymentRepository implements IPaymentRepository {
     }
   }
 
-  // Read Operations (IPaymentReadRepository)
   async getPaymentById(paymentId: string): Promise<IPayment | null> {
     try {
       return await Payment.findById(paymentId)

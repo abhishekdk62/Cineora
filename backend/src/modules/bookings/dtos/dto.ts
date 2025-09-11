@@ -1,7 +1,6 @@
 import { Request } from "express";
 import { IBooking } from "../interfaces/bookings.model.interface";
 
-// Authentication interface
 export interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
@@ -9,7 +8,6 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
-// Request DTOs
 export interface CreateBookingDto {
   userId?: string;
   bookingId?:string;
@@ -20,12 +18,11 @@ export interface CreateBookingDto {
   screenId: string;
   showtimeId: string;
   selectedSeats?: string[];
-  // FIX: Update selectedRows to match ticket service expectations
   selectedRows?: Array<{
     rowLabel: string;
-    seatsSelected: number[]; // Changed from string[] to number[]
-    seatType: "VIP" | "Premium" | "Normal"; // Added required property
-    pricePerSeat: number; // Added required property
+    seatsSelected: number[]; 
+    seatType: "VIP" | "Premium" | "Normal";
+    pricePerSeat: number; 
   }>;
   selectedSeatIds: string[];
   seatPricing: Array<{
@@ -44,6 +41,7 @@ export interface CreateBookingDto {
   };
   showDate: string;
   showTime: string;
+  amount:number;
   contactInfo: {
     email: string;
   };
@@ -72,10 +70,8 @@ export interface BookingParamsDto {
   showtimeId?: string;
 }
 
-// Response DTOs
 export interface BookingResponseDto extends IBooking {}
 
-// Repository Result DTOs
 export interface BookingRepositoryFindResult {
   bookings: IBooking[];
   total: number;

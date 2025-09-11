@@ -40,6 +40,7 @@ export class OwnerController {
         );
         return;
       }
+      
 
       res.status(StatusCodes.OK).json(
         createResponse({

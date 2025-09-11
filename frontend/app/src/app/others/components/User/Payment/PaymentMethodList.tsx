@@ -23,7 +23,6 @@ export const PaymentMethodList: React.FC<PaymentMethodListProps> = ({
   return (
     <div className="space-y-3 mb-6">
       {paymentMethods.map((method: any) => {
-        // Check if wallet has insufficient balance
         const isWallet = method.id === 'wallet';
         const hasInsufficientBalance = isWallet && walletBalance !== null && walletBalance < totalAmount;
         const canSelectWallet = isWallet ? walletBalance !== null && walletBalance >= totalAmount : true;

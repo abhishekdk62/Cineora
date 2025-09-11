@@ -2,7 +2,18 @@
 
 import React from "react"
 import { Lexend } from "next/font/google"
-import { Search, Eye, XCircle, ChevronLeft, ChevronRight } from "lucide-react"
+import { 
+  Search, 
+  Eye, 
+  XCircle, 
+  ChevronLeft, 
+  ChevronRight,
+  Filter,
+  SortAsc,
+  AlertCircle,
+  Clock,
+  FileX
+} from "lucide-react"
 import { OwnerRequest, OwnerRequestFilters } from "./OwnerManager"
 import OwnerRequestCard from "./OwnerRequestCard"
 import { useDebounce } from "@/app/others/Utils/debounce"
@@ -35,17 +46,16 @@ const RejectedRequests: React.FC<RejectedRequestsProps> = ({
   onFiltersChange,
   onViewDetails,
 }) => {
-const debouncedSearch = useDebounce((searchTerm: string) => {
-  onFiltersChange({
-    ...currentFilters,
-    search: searchTerm,
-  });
-}, 500);
+  const debouncedSearch = useDebounce((searchTerm: string) => {
+    onFiltersChange({
+      ...currentFilters,
+      search: searchTerm,
+    });
+  }, 500);
 
-const handleSearch = (searchTerm: string) => {
-  debouncedSearch(searchTerm);
-};
-
+  const handleSearch = (searchTerm: string) => {
+    debouncedSearch(searchTerm);
+  };
 
   const handleSortChange = (sortBy: string, sortOrder: 'asc' | 'desc') => {
     onFiltersChange({
@@ -56,147 +66,248 @@ const handleSearch = (searchTerm: string) => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Search and Filters */}
-      <div className="bg-[#1a1a1a] border border-gray-600 rounded-lg p-4">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-            <input
-              type="text"
-              placeholder="Search rejected requests..."
-              value={currentFilters.search || ""}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-[#2a2a2a] border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#e78f03]"
-            />
-          </div>
-          
-          <select
-            value={`${currentFilters.sortBy || 'reviewedAt'}-${currentFilters.sortOrder || 'desc'}`}
-            onChange={(e) => {
-              const [sortBy, sortOrder] = e.target.value.split("-")
-              handleSortChange(sortBy, sortOrder as "asc" | "desc")
-            }}
-            className="bg-[#2a2a2a] border border-gray-500 rounded-lg text-white px-3 py-2 focus:outline-none focus:border-[#e78f03]"
-          >
-            <option value="reviewedAt-desc">Recently Rejected</option>
-            <option value="reviewedAt-asc">Oldest Rejected</option>
-            <option value="submittedAt-desc">Request Date (New)</option>
-            <option value="submittedAt-asc">Request Date (Old)</option>
-            <option value="ownerName-asc">Name (A-Z)</option>
-            <option value="ownerName-desc">Name (Z-A)</option>
-          </select>
-          
-          <div className="text-sm text-gray-400">
-            {totalItems} rejected requests
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-black/95 backdrop-blur-sm p-6">
+      <div className="space-y-6">
+     
 
-      {/* Rejected Requests List */}
-      <div className="space-y-4">
-        {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#e78f03]"></div>
-          </div>
-        ) : requests.length > 0 ? (
-          requests.map(request => (
-            <div key={request._id} className="relative">
-              {/* Rejection Banner */}
-              <div className="bg-red-500/20 border border-red-500/50 rounded-t-lg p-3">
-                <div className="flex items-center gap-2">
-                  <XCircle className="text-red-400" size={16} />
-                  <span className="text-red-400 font-medium text-sm">
-                    Request Rejected
-                  </span>
-                  {request.reviewedAt && (
-                    <span className="text-red-300 text-xs ml-auto">
-                      {new Date(request.reviewedAt).toLocaleDateString()}
-                    </span>
-                  )}
-                </div>
-                {request.rejectionReason && (
-                  <p className="text-red-300 text-sm mt-2 pl-6">
-                    <strong>Reason:</strong> {request.rejectionReason}
-                  </p>
-                )}
-              </div>
-              
-              {/* Request Card */}
-              <div className="border-t-0 rounded-t-none">
-                <OwnerRequestCard
-                  request={request}
-                  actions={[
-                
-                  ]}
-                  showProcessedInfo={true}
-                  showRejectionReason={false}
-                />
+        {/* Alert Banner */}
+        {totalItems > 0 && (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="text-red-400" size={20} />
+              <div>
+                <h3 className="text-red-400 font-medium">Rejected Applications</h3>
+                <p className="text-red-300 text-sm">
+                  {totalItems} application{totalItems > 1 ? 's' : ''} have been rejected. You can review the reasons and details here.
+                </p>
               </div>
             </div>
-          ))
-        ) : (
-          <div className="flex items-center justify-center h-64">
-            <div className="bg-[#1a1a1a] border border-gray-600 rounded-lg p-8 text-center">
-              <XCircle size={48} className="mx-auto text-gray-400 mb-4" />
-              <h3 className={`${lexend.className} text-xl text-white mb-2`}>No rejected requests</h3>
-              <p className="text-gray-400">No owner requests have been rejected.</p>
+          </div>
+        )}
+
+        {/* Search and Filters Card */}
+        <div className="bg-gray-900/90 border border-yellow-500/20 rounded-lg p-6 transition-all duration-200">
+          <div className="flex items-center gap-3 mb-4">
+            <Filter className="text-yellow-400" size={20} />
+            <h3 className={`${lexend.className} text-lg text-yellow-400 font-medium`}>
+              Search & Filters
+            </h3>
+          </div>
+
+          <div className="flex flex-col lg:flex-row items-center gap-4">
+            {/* Search Input */}
+            <div className="relative flex-1 w-full max-w-md">
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 transition-all duration-200"
+                size={18}
+              />
+              <input
+                type="text"
+                placeholder="Search rejected requests by name, email..."
+                value={currentFilters.search || ""}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-gray-800/50 border border-yellow-500/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500/20 transition-all duration-200"
+              />
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="relative">
+              <SortAsc className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+              <select
+                value={`${currentFilters.sortBy || 'reviewedAt'}-${currentFilters.sortOrder || 'desc'}`}
+                onChange={(e) => {
+                  const [sortBy, sortOrder] = e.target.value.split("-")
+                  handleSortChange(sortBy, sortOrder as "asc" | "desc")
+                }}
+                className="appearance-none bg-gray-800/50 border border-yellow-500/30 rounded-lg text-white pl-10 pr-8 py-3 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500/20 transition-all duration-200 min-w-[220px] cursor-pointer hover:bg-gray-700/50"
+              >
+                <option value="reviewedAt-desc">Recently Rejected</option>
+                <option value="reviewedAt-asc">Oldest Rejected</option>
+                <option value="submittedAt-desc">Request Date (New)</option>
+                <option value="submittedAt-asc">Request Date (Old)</option>
+                <option value="ownerName-asc">Name (A-Z)</option>
+                <option value="ownerName-desc">Name (Z-A)</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Results Count */}
+            <div className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-lg">
+              <span className="text-red-400 font-medium text-sm">
+                {totalItems}
+              </span>
+              <span className="text-gray-300 text-sm whitespace-nowrap">
+                rejected requests
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Rejected Requests List */}
+        <div className="bg-gray-900/90 border border-yellow-500/20 rounded-lg p-6 transition-all duration-200">
+          <div className="flex items-center gap-3 mb-6">
+            <XCircle className="text-yellow-400" size={20} />
+            <h3 className={`${lexend.className} text-lg text-yellow-400 font-medium`}>
+              Rejected Applications
+            </h3>
+          </div>
+
+          <div className="space-y-4">
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center h-64 space-y-4">
+                <div className="animate-spin rounded-full h-12 w-12 border-3 border-yellow-500 border-t-transparent"></div>
+                <p className="text-gray-300 text-sm">Loading rejected requests...</p>
+              </div>
+            ) : requests.length > 0 ? (
+              requests.map(request => (
+                <div key={request._id} className="relative transition-all duration-200 hover:scale-[1.01]">
+                  {/* Rejection Status Banner */}
+                  <div className="bg-red-500/20 border border-red-500/30 rounded-t-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-red-500/30 p-2 rounded-lg">
+                          <XCircle className="text-red-400" size={16} />
+                        </div>
+                        <div>
+                          <span className="text-red-400 font-medium text-sm block">
+                            Application Rejected
+                          </span>
+                          <span className="text-red-300/80 text-xs">
+                            Request was reviewed and declined
+                          </span>
+                        </div>
+                      </div>
+                      {request.reviewedAt && (
+                        <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 px-3 py-1 rounded-lg">
+                          <Clock className="text-red-400" size={12} />
+                          <span className="text-red-300 text-xs">
+                            {new Date(request.reviewedAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {request.rejectionReason && (
+                      <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                        <div className="flex items-start gap-2">
+                          <AlertCircle className="text-red-400 mt-0.5 flex-shrink-0" size={14} />
+                          <div>
+                            <p className="text-red-400 font-medium text-xs mb-1">Rejection Reason:</p>
+                            <p className="text-red-300 text-sm leading-relaxed">
+                              {request.rejectionReason}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Request Card */}
+                  <div className="border-t-0 rounded-t-none">
+                    <OwnerRequestCard
+                      request={request}
+                      actions={[
+                        {
+                          label: "View Details",
+                          icon: Eye,
+                          onClick: onViewDetails,
+                          className: "bg-blue-500 hover:bg-blue-400 text-white px-4 py-2 rounded-lg transition-all duration-200",
+                        },
+                      ]}
+                      showProcessedInfo={true}
+                      showRejectionReason={false}
+                    />
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="flex items-center justify-center h-64">
+                <div className="bg-gray-800/50 border border-yellow-500/20 rounded-lg p-8 text-center max-w-md mx-auto transition-all duration-200">
+                  <div className="bg-green-500/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                    <XCircle size={32} className="text-green-400" />
+                  </div>
+                  <h3 className={`${lexend.className} text-xl text-white mb-2`}>
+                    No Rejected Requests
+                  </h3>
+                  <p className="text-gray-400 text-sm leading-relaxed mb-4">
+                    Great! No owner applications have been rejected. All applications are being processed successfully.
+                  </p>
+                  <button 
+                    onClick={() => handleSearch("")}
+                    className="bg-yellow-500 hover:bg-yellow-400 text-black px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium"
+                  >
+                    Clear Search
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="bg-gray-900/90 border border-yellow-500/20 rounded-lg p-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-sm text-gray-300">
+                Page <span className="text-yellow-400 font-medium">{currentPage}</span> of{" "}
+                <span className="text-yellow-400 font-medium">{totalPages}</span> ({totalItems} total)
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onPageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="p-2 bg-gray-800/50 border border-yellow-500/30 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700/50 hover:border-yellow-500/50 transition-all duration-200"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+
+                <div className="flex gap-1">
+                  {[...Array(Math.min(totalPages, 5))].map((_, index) => {
+                    let page = index + 1
+                    if (totalPages > 5) {
+                      const start = Math.max(1, currentPage - 2)
+                      page = start + index
+                      if (page > totalPages) return null
+                    }
+                    
+                    const isActive = page === currentPage
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => onPageChange(page)}
+                        className={`px-3 py-2 rounded-lg font-medium transition-all duration-200 ${
+                          isActive
+                            ? "bg-yellow-500 hover:bg-yellow-400 text-black"
+                            : "bg-gray-800/50 border border-yellow-500/30 text-white hover:bg-gray-700/50 hover:border-yellow-500/50"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                <button
+                  onClick={() => onPageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="p-2 bg-gray-800/50 border border-yellow-500/30 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700/50 hover:border-yellow-500/50 transition-all duration-200"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
             </div>
           </div>
         )}
       </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="bg-[#1a1a1a] border border-gray-600 rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-400">
-              Page {currentPage} of {totalPages} ({totalItems} total)
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => onPageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-3 py-2 bg-[#2a2a2a] border border-gray-500 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#3a3a3a]"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              
-              {[...Array(Math.min(totalPages, 5))].map((_, index) => {
-                let page = index + 1
-                if (totalPages > 5) {
-                  const start = Math.max(1, currentPage - 2)
-                  page = start + index
-                  if (page > totalPages) return null
-                }
-                
-                const isActive = page === currentPage
-                return (
-                  <button
-                    key={page}
-                    onClick={() => onPageChange(page)}
-                    className={`px-3 py-2 rounded-lg ${
-                      isActive
-                        ? "bg-[#e78f03] text-black"
-                        : "bg-[#2a2a2a] border border-gray-500 text-white hover:bg-[#3a3a3a]"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                )
-              })}
-              
-              <button
-                onClick={() => onPageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="px-3 py-2 bg-[#2a2a2a] border border-gray-500 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#3a3a3a]"
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

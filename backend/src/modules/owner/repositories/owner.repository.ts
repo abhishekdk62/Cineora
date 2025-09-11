@@ -3,7 +3,6 @@ import { IOwnerRepository } from "../interfaces/owner.repository.interface";
 import { Owner } from "../models/owner.model";
 
 export class OwnerRepository implements IOwnerRepository {
-  // Read Operations - matching interface exactly
   async findByEmail(ownerEmail: string): Promise<IOwner | null> {
     try {
       return await Owner.findOne({ email: ownerEmail });
@@ -109,7 +108,6 @@ export class OwnerRepository implements IOwnerRepository {
     }
   }
 
-  // Write Operations - matching interface exactly
   async create(data: Partial<IOwner>): Promise<IOwner> {
     try {
       const owner = new Owner({
@@ -336,7 +334,6 @@ export class OwnerRepository implements IOwnerRepository {
     }
   }
 
-  // Private helper methods
   private _buildStatusQuery(status: string): Record<string, unknown> {
     switch (status) {
       case "active":

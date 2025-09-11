@@ -22,12 +22,12 @@ export interface IRowPricing {
 export interface IShowtime {
   _id: string;
   ownerId: string;
-  movieId: string | IMovie; // Can be populated
-  theaterId: string | ITheater; // Can be populated
-  screenId: string | IScreen; // Can be populated
-  showDate: string; // ISO date string
-  showTime: string; // "HH:mm"
-  endTime: string; // "HH:mm"
+  movieId: string | IMovie; 
+  theaterId: string | ITheater; 
+  screenId: string | IScreen; 
+  showDate: string; 
+  showTime: string; 
+  endTime: string; 
   format: "2D" | "3D" | "IMAX" | "4DX" | "Dolby Atmos";
   language: string;
   rowPricing: IRowPricing[];
@@ -42,9 +42,8 @@ export interface IShowtime {
 export interface IMovie {
   _id: string;
   title: string;
-  duration: number; // in minutes
+  duration: number; 
   language: string;
-  // Add other movie fields as needed
   createdAt: string;
   updatedAt: string;
 }
@@ -53,7 +52,6 @@ export interface ITheater {
   _id: string;
   name: string;
   location: string;
-  // Add other theater fields as needed
   createdAt: string;
   updatedAt: string;
 }

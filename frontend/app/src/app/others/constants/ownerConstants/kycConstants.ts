@@ -1,4 +1,3 @@
-// constants/ownerRoutes/kyc.ts
 
 const OWNER_KYC = {
   UPLOAD: '/owners/upload' as const,

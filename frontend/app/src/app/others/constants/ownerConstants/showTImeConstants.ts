@@ -1,4 +1,3 @@
-// constants/ownerRoutes/showtime.ts
 
 const OWNER_SHOWTIME = {
   BASE: '/owner/showtime' as const,

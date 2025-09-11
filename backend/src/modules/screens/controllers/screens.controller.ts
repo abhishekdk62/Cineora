@@ -10,7 +10,6 @@ import { StatusCodes } from "../../../utils/statuscodes";
 import { SCREEN_MESSAGES } from "../../../utils/messages.constants";
 import { createResponse } from "../../../utils/createResponse";
 
-// Controller-specific DTOs
 export interface GetAllScreensQueryDto {
   page: number;
   limit: number;
@@ -291,7 +290,6 @@ export class ScreenController {
     try {
       const { id } = req.params;
       
-      // Check if screen exists first using the correct method name
       const screenCheck = await this.screenService.getScreenWithTheaterData(id);
       if (!screenCheck.success) {
         res.status(StatusCodes.BAD_REQUEST).json(
@@ -355,7 +353,6 @@ export class ScreenController {
 
   async checkScreenExists(req: Request, res: Response): Promise<void> {
     try {
-      // Get data from query params, not body for GET requests
       const { name, theaterId, excludedId } = req.query;
       
       if (!name || !theaterId) {
@@ -386,7 +383,6 @@ export class ScreenController {
     }
   }
 
-  // Private helper methods - Following SRP (Single Responsibility Principle)
   private buildScreenFilters(query: any): ScreenFilterDto {
     return {
       isActive: this._parseActiveStatus(query.isActive),

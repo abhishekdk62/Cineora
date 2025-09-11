@@ -1,4 +1,3 @@
-// components/wallet/modal/SuccessStep.tsx
 import React from 'react';
 import { Check } from 'lucide-react';
 

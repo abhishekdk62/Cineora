@@ -23,13 +23,11 @@ export class TicketService implements ITicketService {
 
   async createTicketsFromRows(data: CreateTicketFromRowsDto): Promise<ApiResponse<ITicket[]>> {
     try {
-      // Business logic validation
       this._validateCreateTicketsFromRowsData(data);
 
       const tickets = this._prepareTicketsFromRows(data);
       const createdTickets = await this.ticketRepository.createBulkTickets(tickets);
 
-      // Send email notification
       await this._sendTicketEmail(data.bookingInfo.email, createdTickets, data.bookingInfo);
 
       return createResponse({
@@ -44,7 +42,6 @@ export class TicketService implements ITicketService {
 
   async createTicketsFromBooking(data: CreateTicketFromBookingDto): Promise<ApiResponse<ITicket[]>> {
     try {
-      // Business logic validation
       this._validateCreateTicketsFromBookingData(data);
 
       const tickets = this._prepareTicketsFromBooking(data);
@@ -62,7 +59,6 @@ export class TicketService implements ITicketService {
 
   async cancelTicket(data: CancelTicketDto): Promise<ApiResponse<RefundCalculationDto>> {
     try {
-      // Business logic validation
       this._validateCancelTicketData(data);
 
       const tickets = await this.ticketRepository.findTicketsByBookingId(data.bookingId);
@@ -74,7 +70,6 @@ export class TicketService implements ITicketService {
         });
       }
 
-      // Validate cancellation eligibility
       const validationError = this._validateCancellationEligibility(tickets, data.userId);
       if (validationError) {
         return createResponse({
@@ -87,7 +82,6 @@ export class TicketService implements ITicketService {
       const showDateTime = this._parseShowDateTime(firstTicket.showDate, firstTicket.showTime);
       const refundPercentage = this._calculateRefundPercentage(showDateTime);
 
-      // Cancel all tickets in the booking
       const updatedTickets = await this._cancelAllTicketsInBooking(tickets);
 
       const refundData: RefundCalculationDto = {
@@ -172,25 +166,27 @@ export class TicketService implements ITicketService {
     }
   }
 
-  async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
-    try {
-      this._validateGetUserTicketsData(data);
+async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
+  try {
+    this._validateGetUserTicketsData(data);
 
-      const result = await this.ticketRepository.findTicketsByUserIdPaginated(
-        data.userId,
-        data.page || 1,
-        data.limit || 10
-      );
+    const result = await this.ticketRepository.findTicketsByUserIdPaginated(
+      data.userId,
+      data.page || 1,
+      data.limit || 10,
+      data.types || ["all"]
+    );
 
-      return createResponse({
-        success: true,
-        message: "User tickets retrieved successfully",
-        data: result
-      });
-    } catch (error: unknown) {
-      return this._handleServiceError(error, "Failed to get user tickets");
-    }
+    return createResponse({
+      success: true,
+      message: "User tickets retrieved successfully",
+      data: result,
+    });
+  } catch (error: unknown) {
+    return this._handleServiceError(error, "Failed to get user tickets");
   }
+}
+
 
   async markTicketAsUsed(ticketId: string): Promise<ApiResponse<any>> {
     try {
@@ -302,7 +298,6 @@ export class TicketService implements ITicketService {
     }
   }
 
-  // Private helper methods for business logic (SRP - Single Responsibility)
   private _generateQREncryptedData(ticketData: any): string {
     const qrPayload = {
       tid: ticketData,
@@ -468,7 +463,6 @@ export class TicketService implements ITicketService {
     }
   }
 
-  // Validation methods
   private _validateCreateTicketsFromRowsData(data: CreateTicketFromRowsDto): void {
     if (!data.bookingId || !data.selectedRows || !data.bookingInfo) {
       throw new Error("Missing required fields for ticket creation");

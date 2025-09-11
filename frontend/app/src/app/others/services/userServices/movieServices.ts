@@ -2,17 +2,17 @@ import COMMON_MOVIES from "../../constants/userConstants/movieConstants";
 import apiClient from "../../Utils/apiClient";
 import {
   GetMoviesWithFiltersQueryDto,
-  GetMovieByIdUserResponseDto,
-  GetMoviesWithFiltersUserResponseDto,
+  GetMoviesResponseDto,
+  GetMoviesWithFiltersResponseDto,
   GetMoviesByTheaterResponseDto
 } from '../../dtos/movie.dto';
 
-export const getMovieById = async (id: string): Promise<GetMovieByIdUserResponseDto> => {
+export const getMovieById = async (id: string): Promise<GetMoviesResponseDto> => {
   const response = await apiClient.get(COMMON_MOVIES.BY_ID(id));
   return response.data;
 };
 
-export const getMoviesWithFilters = async (filters: GetMoviesWithFiltersQueryDto): Promise<GetMoviesWithFiltersUserResponseDto> => {
+export const getMoviesWithFilters = async (filters: GetMoviesWithFiltersQueryDto): Promise<GetMoviesWithFiltersResponseDto> => {
   const params = new URLSearchParams();
 
   Object.entries(filters).forEach(([key, value]) => {
@@ -22,6 +22,7 @@ export const getMoviesWithFilters = async (filters: GetMoviesWithFiltersQueryDto
   });
 
   const response = await apiClient.get(`${COMMON_MOVIES.FILTER}?${params.toString()}`);
+  
   return response.data;
 };
 

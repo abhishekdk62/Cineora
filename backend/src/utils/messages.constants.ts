@@ -40,6 +40,8 @@ export const MOVIE_MESSAGES = {
 export const NOTIFICATION_MESSAGES = {
   AUTH_REQUIRED: "Authentication required",
   INTERNAL_SERVER_ERROR: "Internal server error",
+  NOTIFICATION_ID_REQUIRED: "NotificationId parameter is required",
+  NOTIFICATION_RETRIEVED_SUCCESS: "Notifications retrieved successfully",
 };
 export const OWNER_MESSAGES = {
   REQUEST_ID_REQUIRED: "Request ID is required",
@@ -209,4 +211,50 @@ export const WALLET_TRANSACTION_MESSAGES = {
   TRANSACTION_FETCHED_SUCCESSFULLY: "Transaction fetched successfully",
   TRANSACTIONS_FETCHED_SUCCESSFULLY: "Transactions fetched successfully",
   WALLET_TRANSACTIONS_FETCHED: "Wallet transactions fetched successfully",
+};
+export const ANALYTICS_MESSAGES = {
+  // Success messages
+  ANALYTICS_RETRIEVED_SUCCESS: "Analytics data retrieved successfully",
+  REVENUE_ANALYTICS_SUCCESS: "Revenue analytics retrieved successfully",
+  MONTHLY_REVENUE_SUCCESS: "Monthly revenue trends retrieved successfully",
+  DAILY_REVENUE_SUCCESS: "Daily revenue trends retrieved successfully",
+  THEATER_REVENUE_SUCCESS: "Theater-wise revenue retrieved successfully",
+  OWNER_REVENUE_SUCCESS: "Owner-wise revenue retrieved successfully",
+  MOVIE_REVENUE_SUCCESS: "Movie-wise revenue retrieved successfully",
+  PERFORMANCE_METRICS_SUCCESS: "Performance metrics retrieved successfully",
+  OCCUPANCY_ANALYTICS_SUCCESS: "Occupancy analytics retrieved successfully",
+  TIME_SLOT_SUCCESS: "Time slot performance retrieved successfully",
+  CUSTOMER_INSIGHTS_SUCCESS: "Customer insights retrieved successfully",
+  CUSTOMER_SATISFACTION_SUCCESS: "Customer satisfaction data retrieved successfully",
+  MOVIE_PERFORMANCE_SUCCESS: "Movie performance data retrieved successfully",
+  TOP_MOVIES_SUCCESS: "Top performing movies retrieved successfully",
+  MOVIE_FORMAT_SUCCESS: "Movie format analytics retrieved successfully",
+  FINANCIAL_KPIS_SUCCESS: "Financial KPIs retrieved successfully",
+  GROWTH_RATES_SUCCESS: "Growth rates retrieved successfully",
+  OPERATIONAL_ANALYTICS_SUCCESS: "Operational analytics retrieved successfully",
+
+  // Error messages
+  ANALYTICS_RETRIEVAL_FAILED: "Failed to retrieve analytics data",
+  REVENUE_ANALYTICS_FAILED: "Failed to retrieve revenue analytics",
+  MONTHLY_REVENUE_FAILED: "Failed to retrieve monthly revenue trends",
+  DAILY_REVENUE_FAILED: "Failed to retrieve daily revenue trends",
+  THEATER_REVENUE_FAILED: "Failed to retrieve theater-wise revenue",
+  OWNER_REVENUE_FAILED: "Failed to retrieve owner-wise revenue",
+  MOVIE_REVENUE_FAILED: "Failed to retrieve movie-wise revenue",
+  PERFORMANCE_METRICS_FAILED: "Failed to retrieve performance metrics",
+  OCCUPANCY_ANALYTICS_FAILED: "Failed to retrieve occupancy analytics",
+  TIME_SLOT_FAILED: "Failed to retrieve time slot performance",
+  CUSTOMER_INSIGHTS_FAILED: "Failed to retrieve customer insights",
+  CUSTOMER_SATISFACTION_FAILED: "Failed to retrieve customer satisfaction data",
+  MOVIE_PERFORMANCE_FAILED: "Failed to retrieve movie performance data",
+  TOP_MOVIES_FAILED: "Failed to retrieve top performing movies",
+  MOVIE_FORMAT_FAILED: "Failed to retrieve movie format analytics",
+  FINANCIAL_KPIS_FAILED: "Failed to retrieve financial KPIs",
+  GROWTH_RATES_FAILED: "Failed to retrieve growth rates",
+  OPERATIONAL_ANALYTICS_FAILED: "Failed to retrieve operational analytics",
+
+  // Validation messages
+  INVALID_DATE_RANGE: "Invalid date range provided",
+  AUTH_REQUIRED: "Authentication required for admin analytics",
+  UNAUTHORIZED_ACCESS: "Unauthorized access to admin analytics"
 };
