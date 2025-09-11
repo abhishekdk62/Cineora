@@ -14,7 +14,6 @@ export class WalletTransactionService implements IWalletTransactionService {
     data: CreateWalletTransactionDto
   ): Promise<ApiResponse<IWalletTransaction>> {
     try {
-      // Business logic validation
       this._validateCreateWalletTransactionData(data);
 
       const transactionData = this._prepareWalletTransactionData(data);

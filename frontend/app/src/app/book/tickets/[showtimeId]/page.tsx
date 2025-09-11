@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 "use client";
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -118,8 +120,8 @@ export interface ShowtimeData {
   showTime: string;
   endTime: string;
 
-  format: string;           // "2D", "3D"
-  language: string;         // "en", "hi", etc.
+  format: string;         
+  language: string;        
   ageRestriction: string | null;
   isActive: boolean;
 

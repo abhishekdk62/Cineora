@@ -1,4 +1,3 @@
-// constants/commonRoutes/movies.ts
 
 const COMMON_MOVIES = {
   BY_ID: (id: string) => `/common/movies/${id}`,

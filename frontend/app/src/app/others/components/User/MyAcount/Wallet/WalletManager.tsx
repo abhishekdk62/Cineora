@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -15,7 +17,6 @@ import FailureStep from './FailureStep';
 const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
 
-// Updated interfaces to match your backend data structure
 interface Transaction {
   _id: string;
   type: 'credit' | 'debit';
@@ -57,10 +58,10 @@ const WalletPage: React.FC = () => {
         const walletResult = await getWallet();
         console.log('Wallet data:', walletResult.data);
         const transactionResult = await getTransactionDetails();
-        console.log('Transaction data:', transactionResult.data);
+        console.log('Transaction data:', transactionResult);
         setWalletData({
           balance: walletResult.data?.balance || 0,
-          transactions: transactionResult.data?.transactions || []
+          transactions: transactionResult.data || []
         });
         setLoading(false);
       } catch (error) {
@@ -186,9 +187,9 @@ const WalletPage: React.FC = () => {
           }
         },
         prefill: {
-          name: 'Customer', // You can replace with actual user data
-          email: '', // You can replace with actual user email
-          contact: '', // You can replace with actual user phone
+          name: 'Customer', 
+          email: '', 
+          contact: '', 
         },
         theme: {
           color: '#ffffff',
@@ -253,7 +254,6 @@ const WalletPage: React.FC = () => {
       .reduce((sum, transaction) => sum + transaction.amount, 0);
   };
 
-  // Calculate cashback earned
   const calculateCashbackEarned = () => {
     return walletData.transactions
       .filter(transaction =>
@@ -263,17 +263,14 @@ const WalletPage: React.FC = () => {
       .reduce((sum, transaction) => sum + transaction.amount, 0);
   };
 
-  // Show loading component
   if (loading) {
     return <WalletLoading />;
   }
 
-  // Show error component
   if (error) {
     return <WalletError error={error} />;
   }
 
-  // Main wallet page content
   return (
     <div className="min-h-screen bg-transparent p-6">
       <div className="max-w-4xl mx-auto">

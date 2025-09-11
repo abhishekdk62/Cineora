@@ -8,6 +8,10 @@ import SortDropdown from "./SortDropdown";
 import TheaterList from "./TheaterList";
 import FilterSidebar from "./FiltersSideBar";
 import { useRouter } from "next/navigation";
+import LocationDropdown, { LocationOption } from "./CitiesDropdown";
+import { Navigation } from "lucide-react";
+import { updateLocation } from "@/app/others/services/userServices/userServices";
+import toast from "react-hot-toast";
 
 const lexendMedium = Lexend({
   weight: "500",
@@ -35,6 +39,12 @@ interface Theater {
 type SortOption = "nearby" | "rating-high" | "rating-low" | "a-z" | "z-a";
 
 interface TheaterListManagerProps {
+  loadTheaters(search: string,
+    sort: SortOption,
+    page: number,
+    facilities: string[],
+    reset: boolean
+  ): void;
   theaters: Theater[];
   isLoading: boolean;
   searchLoading?: boolean;
@@ -48,9 +58,11 @@ interface TheaterListManagerProps {
   selectedFacilities: string[];
   onFacilityChange: (facilities: string[]) => void;
   hasMore: boolean;
+  handleClickReview:(theaterId:string)=>void
 }
 
 const TheaterListManager: React.FC<TheaterListManagerProps> = ({
+  loadTheaters,
   theaters,
   isLoading,
   searchLoading = false,
@@ -64,25 +76,75 @@ const TheaterListManager: React.FC<TheaterListManagerProps> = ({
   selectedFacilities = [],
   onFacilityChange,
   hasMore,
+  handleClickReview
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();
-  
-  const handleViewNowShowing = (theaterId: string) => {
-    // Your existing logic here
-  };
 
+  const handleViewNowShowing = (theaterId: string) => {
+  };
+  const [selectedLocation, setSelectedLocation] = useState<LocationOption>({
+    value: 'current',
+    icon: Navigation,
+    label: "Current Location",
+
+  })
+  const onLocationChange = (location: LocationOption) => {
+    setSelectedLocation({ value: location.value, icon: location.icon, label: location.label })
+    updateLocationFunc(location)
+  }
+
+  const updateLocationFunc = async (location: LocationOption) => {
+    if (location.value !== 'current' && location.coordinates) {
+      try {
+
+        const locationData = {
+          latitude: location.coordinates[1],
+          longitude: location.coordinates[0],
+        };
+
+        localStorage.setItem('userLocation', JSON.stringify(locationData))
+
+
+        loadTheaters(searchTerm, sortBy, 1, selectedFacilities, true)
+        toast.success('Location switched')
+      } catch (error) {
+        console.log(error);
+      }
+    }
+     else if(location.value=='current') {
+      if (!navigator.geolocation) {
+        toast.error("Sorry Geolocation not supported");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const locationData = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          };
+
+          localStorage.setItem('userLocation', JSON.stringify(locationData));
+          loadTheaters(searchTerm, sortBy, 1, selectedFacilities, true)
+
+        })
+    }
+  }
   return (
     <div className="min-h-screen bg-transparent">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className={`${lexendMedium.className} text-3xl text-white mb-2`}>
-            Theaters
-          </h1>
-          <p className={`${lexendSmall.className} text-gray-400`}>
-            Find theaters near you and book your favorite movies
-          </p>
+
+        <div className="mb-8 flex  items-center justify-between">
+          <div>
+            <h1 className={`${lexendMedium.className} text-3xl text-white mb-2`}>
+              Theaters
+            </h1>
+            <p className={`${lexendSmall.className} text-gray-400`}>
+              Find theaters near you and book your favorite movies
+            </p>
+          </div>
+          <LocationDropdown selectedLocation={selectedLocation} onLocationChange={onLocationChange} />
         </div>
 
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
@@ -96,9 +158,8 @@ const TheaterListManager: React.FC<TheaterListManagerProps> = ({
 
             <motion.button
               onClick={() => setIsSidebarOpen(true)}
-              className={`${lexendMedium.className} relative flex items-center gap-2 px-4 py-4 bg-white/10 backdrop-blur-sm border border-gray-500/30 rounded-2xl text-white hover:bg-white/20 transition-all duration-300 ${
-                selectedFacilities.length > 0 ? 'bg-blue-600/20 border-blue-500/50' : ''
-              }`}
+              className={`${lexendMedium.className} relative flex items-center gap-2 px-4 py-4 bg-white/10 backdrop-blur-sm border border-gray-500/30 rounded-2xl text-white hover:bg-white/20 transition-all duration-300 ${selectedFacilities.length > 0 ? 'bg-blue-600/20 border-blue-500/50' : ''
+                }`}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -110,11 +171,11 @@ const TheaterListManager: React.FC<TheaterListManagerProps> = ({
                 animate={{ rotate: isSidebarOpen ? 180 : 0 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
               >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" 
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"
                 />
               </motion.svg>
               <span className="hidden sm:inline">Filters</span>
@@ -172,6 +233,7 @@ const TheaterListManager: React.FC<TheaterListManagerProps> = ({
           theaters={theaters}
           isLoading={isLoading}
           onViewNowShowing={handleViewNowShowing}
+          handleClickReview={handleClickReview}
         />
 
         {/* Infinite Scroll Loading Indicators */}
@@ -192,10 +254,9 @@ const TheaterListManager: React.FC<TheaterListManagerProps> = ({
           </div>
         )}
 
-        {/* Auto-load trigger for when content is too short */}
         {hasMore && theaters.length > 0 && !isLoading && !scrollLoading && (
-          <div 
-            id="load-more-trigger" 
+          <div
+            id="load-more-trigger"
             className="h-10 flex items-center justify-center opacity-0"
           >
             Loading trigger

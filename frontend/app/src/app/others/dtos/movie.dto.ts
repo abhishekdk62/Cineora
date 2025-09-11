@@ -71,6 +71,8 @@ export interface MovieResponseDto {
   releaseDate: Date;
   duration: number;
   rating: string;
+  averageRating?:number;
+  totalReviews?:number;
   description: string;
   poster: string;
   trailer?: string;

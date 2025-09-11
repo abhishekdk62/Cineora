@@ -1,4 +1,3 @@
-// constants/userRoutes/wallet.ts
 
 const USER_WALLET = {
   WALLET: '/users/wallet' as const,

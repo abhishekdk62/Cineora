@@ -1,4 +1,3 @@
-// components/wallet/modal/PaymentStep.tsx
 import React from 'react';
 import { CreditCard, Smartphone, Building2, Banknote, CloudLightning } from 'lucide-react';
 

@@ -421,7 +421,6 @@ export class TheaterService implements ITheaterService {
     }
   }
 
-  // Private helper methods
   private _validateRequiredFields(theaterData: CreateTheaterDTO): boolean {
     return !!(
       theaterData.name &&

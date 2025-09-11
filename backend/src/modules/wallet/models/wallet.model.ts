@@ -10,7 +10,7 @@ const WalletSchema = new Schema<IWallet>({
   userModel: {
     type: String,
     required: true,
-    enum: ['User', 'Owner'],
+    enum: ['User', 'Owner','Admin'],
   },
   balance: {
     type: Number,

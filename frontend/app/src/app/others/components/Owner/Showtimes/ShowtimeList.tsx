@@ -6,11 +6,12 @@ import { confirmAction } from "@/app/others/components/utils/ConfirmDialog";
 import toast from "react-hot-toast";
 import ShowtimeFilters from "./ShowtimeFilters";
 import ShowtimeGrid from "./ShowtimeGrid";
+import { ShowtimeResponseDto } from "@/app/others/dtos";
 
 interface ShowtimeListProps {
-  showtimes: IShowtime[];
-  onEdit: (showtime: IShowtime) => void;
-  onView: (showtime: IShowtime) => void;
+  showtimes: ShowtimeResponseDto[];
+  onEdit: (showtime: ShowtimeResponseDto) => void;
+  onView: (showtime: ShowtimeResponseDto) => void;
   onRefresh: () => void;
   lexendMedium: any;
   lexendSmall: any;
@@ -30,7 +31,6 @@ const ShowtimeList: React.FC<ShowtimeListProps> = ({
   const [timeFilter, setTimeFilter] = useState("all");
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
-  // Debug: Log your showtime structure
   React.useEffect(() => {
     if (showtimes.length > 0) {
       console.log("Sample showtime structure:", showtimes[0]);
@@ -105,16 +105,17 @@ const ShowtimeList: React.FC<ShowtimeListProps> = ({
     });
   };
 
-  const isShowtimePast = (showtime: IShowtime) => {
+  const isShowtimePast = (showtime: ShowtimeResponseDto) => {
     try {
-      const showDate = showtime.showDate || showtime.date || showtime.showdate;
-      const showTime = showtime.showTime || showtime.time || showtime.showtime;
+      
+      const showDate = showtime.showDate 
+      const showTime = showtime.showTime 
       if (!showDate) {
         return false;
       }
       let showtimeDateTime;
       if (showTime) {
-        const dateStr = new Date(showDate).toISOString().split('T')[0]; // Get YYYY-MM-DD
+        const dateStr = new Date(showDate).toISOString().split('T')[0];
         showtimeDateTime = new Date(`${dateStr}T${showTime}`);
       } else {
         showtimeDateTime = new Date(showDate);
@@ -130,50 +131,48 @@ const ShowtimeList: React.FC<ShowtimeListProps> = ({
     }
   };
 
-  const groupShowtimesBy = (showtimes: IShowtime[], groupKey: string) => {
+  const groupShowtimesBy = (showtimes: ShowtimeResponseDto[], groupKey: string) => {
     if (groupKey === "none") return { "All Showtimes": showtimes };
     
     return showtimes.reduce((groups, showtime) => {
-      let groupValue: string;
-      let groupLabel: string;
-      
-      switch (groupKey) {
-        case "theater":
-          groupValue = typeof showtime.theaterId === "object" ? showtime.theaterId._id : showtime.theaterId;
-          groupLabel = getTheaterName(showtime.theaterId);
-          break;
-        case "movie":
-          groupValue = typeof showtime.movieId === "object" ? showtime.movieId._id : showtime.movieId;
-          groupLabel = getMovieName(showtime.movieId);
-          break;
-        case "screen":
-          groupValue = typeof showtime.screenId === "object" ? showtime.screenId._id : showtime.screenId;
-          groupLabel = `${getTheaterName(showtime.theaterId)} - ${getScreenName(showtime.screenId)}`;
-          break;
-        case "date":
-          const showDate = showtime.showDate || showtime.date || showtime.showdate;
-          groupValue = new Date(showDate).toDateString();
-          groupLabel = formatDate(showDate);
-          break;
-        default:
-          groupValue = "default";
-          groupLabel = "All Showtimes";
-      }
+
+          let groupValue: string = "";
+    let groupLabel: string = "";
+
+  switch (groupKey) {
+  case "theater":
+    groupValue = typeof showtime.theaterId === "object" 
+      ? (showtime.theaterId as any)._id 
+      : showtime.theaterId;
+    groupLabel = getTheaterName(showtime.theaterId);
+    break;
+  case "movie":
+    groupValue = typeof showtime.movieId === "object" 
+      ? (showtime.movieId as any)._id 
+      : showtime.movieId;
+    groupLabel = getMovieName(showtime.movieId);
+    break;
+  case "screen":
+    groupValue = typeof showtime.screenId === "object" 
+      ? (showtime.screenId as any)._id 
+      : showtime.screenId;
+    groupLabel = `${getTheaterName(showtime.theaterId)} - ${getScreenName(showtime.screenId)}`;
+    break;
+}
+
       
       const key = `${groupValue}|${groupLabel}`;
       if (!groups[key]) groups[key] = [];
       groups[key].push(showtime);
       return groups;
-    }, {} as Record<string, IShowtime[]>);
+    }, {} as Record<string, ShowtimeResponseDto[]>);
   };
 
   const filteredAndSortedShowtimes = showtimes
     .filter((showtime) => {
-      // Filter by active/inactive status
       if (filter === "active" && !showtime.isActive) return false;
       if (filter === "inactive" && showtime.isActive) return false;
       
-      // Filter by time (past/upcoming) - THIS IS THE KEY PART
       if (timeFilter === "past") {
         const isPast = isShowtimePast(showtime);
         if (!isPast) return false;
@@ -187,13 +186,13 @@ const ShowtimeList: React.FC<ShowtimeListProps> = ({
     })
     .sort((a, b) => {
       if (sortBy === "date") {
-        const dateA = a.showDate || a.date || a.showdate;
-        const dateB = b.showDate || b.date || b.showdate;
+        const dateA = a.showDate 
+        const dateB = b.showDate 
         return new Date(dateA).getTime() - new Date(dateB).getTime();
       }
       if (sortBy === "time") {
-        const timeA = a.showTime || a.time || a.showtime || "00:00";
-        const timeB = b.showTime || b.time || b.showtime || "00:00";
+        const timeA = a.showTime 
+        const timeB = b.showTime 
         return timeA.localeCompare(timeB);
       }
       return 0;
@@ -201,7 +200,6 @@ const ShowtimeList: React.FC<ShowtimeListProps> = ({
 
   const groupedShowtimes = groupShowtimesBy(filteredAndSortedShowtimes, groupBy);
 
-  // Debug: Log filtered results
   React.useEffect(() => {
     console.log(`Time filter: ${timeFilter}, Filtered showtimes:`, filteredAndSortedShowtimes.length);
   }, [timeFilter, filteredAndSortedShowtimes]);

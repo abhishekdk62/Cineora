@@ -2,15 +2,15 @@ import { FormData } from "../../components/Owner/Screens/types";
 import OWNER_SCREENS from "../../constants/ownerConstants/screenConstants";
 import apiClient from "../../Utils/apiClient";
 import {
-  CreateScreenOwnerResponseDto,
+  CreateScreenResponseDto,
   GetScreensByTheaterIdResponseDto,
   GetScreensStatsOwnerResponseDto,
-  ToggleScreenStatusOwnerResponseDto,
-  DeleteScreenOwnerResponseDto,
-  EditScreenOwnerResponseDto
+  
+  DeleteScreenResponseDto,
+  GetScreenResponseDto
 } from '../../dtos/screen.dto';
 
-export const createScreen = async (data: FormData & any): Promise<CreateScreenOwnerResponseDto> => {
+export const createScreen = async (data: FormData & any): Promise<CreateScreenResponseDto> => {
   const result = await apiClient.post(OWNER_SCREENS.BASE, data);
   return result.data;
 };
@@ -25,17 +25,17 @@ export const getScreensStatsOwner = async (theaterId: string): Promise<GetScreen
   return result.data;
 };
 
-export const toggleScreenStatusOwner = async (id: string): Promise<ToggleScreenStatusOwnerResponseDto> => {
+export const toggleScreenStatusOwner = async (id: string): Promise<GetScreensStatsOwnerResponseDto> => {
   const result = await apiClient.patch(OWNER_SCREENS.BY_ID(id));
   return result.data;
 };
 
-export const deleteScreenOwner = async (id: string): Promise<DeleteScreenOwnerResponseDto> => {
+export const deleteScreenOwner = async (id: string): Promise<DeleteScreenResponseDto> => {
   const result = await apiClient.delete(OWNER_SCREENS.BY_ID(id));
   return result.data;
 };
 
-export const editScreenOwner = async (id: string, data: any): Promise<EditScreenOwnerResponseDto> => {
+export const editScreenOwner = async (id: string, data: any): Promise<GetScreenResponseDto> => {
   const result = await apiClient.put(OWNER_SCREENS.BY_ID(id), data);
   return result.data;
 };

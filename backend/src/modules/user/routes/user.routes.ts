@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Router } from "express";
 import { UserController } from "../controllers/user.controller";
 import { TheaterController } from "../../theaters/controllers/theaters.controller";
 import { ShowtimeController } from "../../showtimes/controllers/showtimes.controller";
@@ -8,6 +8,8 @@ import { WalletController } from "../../wallet/controllers/wallet.controller";
 import { PaymentController } from "../../payment/controllers/payment.controller";
 import { WalletTransactionController } from "../../walletTransaction/controllers/walletTransaction.controller";
 import { NotificationController } from "../../notification/controllers/notification.controller";
+import { MovieFavoriteController } from "../../favorites/controllers/favorite.controller";
+import { ReviewController } from "../../reviews/controllers/review.controller";
 
 export class UserRoutes {
   constructor(
@@ -19,7 +21,9 @@ export class UserRoutes {
     private _ticketController: TicketController,
     private _walletController: WalletController,
     private _paymentController: PaymentController,
-    private _notificationController:NotificationController
+    private _notificationController: NotificationController,
+    private _favoritesController: MovieFavoriteController,
+    private reviewsController: ReviewController
   ) {
     this._setRoutes();
   }
@@ -92,6 +96,27 @@ export class UserRoutes {
     );
     this._router.patch("/notification/:notificationId", (req, res) =>
       this._notificationController.markNotificationAsRead(req, res)
+    );
+    this._router.post("/favorites", (req, res) =>
+      this._favoritesController.addToFavorites(req, res)
+    );
+    this._router.delete("/favorites/:movieId", (req, res) =>
+      this._favoritesController.removeFromFavorites(req, res)
+    );
+    this._router.get("/favorites", (req, res) =>
+      this._favoritesController.getUserFavorites(req, res)
+    );
+    this._router.get("/favorites/check/:movieId", (req, res) =>
+      this._favoritesController.isFavorite(req, res)
+    );
+    this._router.post("/reviews", (req, res) =>
+      this.reviewsController.addReview(req, res)
+    );
+    this._router.put("/reviews/:reviewId", (req, res) =>
+      this.reviewsController.updateReview(req, res)
+    );
+    this._router.delete("/reviews/:reviewId", (req, res) =>
+      this.reviewsController.deleteReview(req, res)
     );
   }
 

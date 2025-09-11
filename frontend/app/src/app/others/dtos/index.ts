@@ -1,7 +1,5 @@
-// Common DTOs
 export * from './common.dto';
 
-// Entity DTOs
 export * from './admin.dto';
 export * from './user.dto';
 export * from './owner.dto';

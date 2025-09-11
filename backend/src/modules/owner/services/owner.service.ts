@@ -3,11 +3,15 @@ import { IEmailService } from "../../../services/email.service";
 import { config } from "../../../config";
 import { IUserRepository } from "../../user/interfaces/user.repository.interface";
 import { IOwnerService } from "../interfaces/owner.services.interfaces";
-import { IOwnerRepository, IOwnerRequestRepository } from "../interfaces/owner.repository.interface";
+import {
+  IOwnerRepository,
+  IOwnerRequestRepository,
+} from "../interfaces/owner.repository.interface";
 import { ServiceResponse } from "../../../interfaces/interface";
 import { OwnerFilterDto, UpdateOwnerProfileDto } from "../dtos/owner.dtos";
 import { IOTPRepository } from "../../otp/interfaces/otp.repository.interface";
 import { IOwner } from "../interfaces/owner.model.interface";
+import { OwnerMapper } from "../../../mappers/owner.mapper";
 
 export class OwnerService implements IOwnerService {
   constructor(
@@ -32,17 +36,20 @@ export class OwnerService implements IOwnerService {
       }
 
       const profileData = this._transformOwnerProfileData(owner);
-
+      
+      const ownerDto = OwnerMapper.toDto(profileData);
+      
       return {
         success: true,
         message: "Owner account fetched successfully",
-        data: profileData,
+        data: ownerDto,
       };
     } catch (error) {
       console.error("Get owner account error:", error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Something went wrong",
+        message:
+          error instanceof Error ? error.message : "Something went wrong",
       };
     }
   }
@@ -59,17 +66,19 @@ export class OwnerService implements IOwnerService {
           message: "Owner not found",
         };
       }
+      const ownerDto = OwnerMapper.toDto(owner);
 
       return {
         success: true,
         message: "Owner fetched successfully",
-        data: owner,
+        data: ownerDto,
       };
     } catch (error) {
       console.error("Get owner by ID error:", error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Something went wrong",
+        message:
+          error instanceof Error ? error.message : "Something went wrong",
       };
     }
   }
@@ -89,7 +98,8 @@ export class OwnerService implements IOwnerService {
       console.error("Get owner counts error:", error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Something went wrong",
+        message:
+          error instanceof Error ? error.message : "Something went wrong",
       };
     }
   }
@@ -105,11 +115,13 @@ export class OwnerService implements IOwnerService {
       result = this._applySorting(result, filters);
       result = this._transformOwnersData(result);
 
+      const ownerDtos = result.owners.map((owner) => OwnerMapper.toDto(owner));
+
       return {
         success: true,
         message: "Owners fetched successfully",
         data: {
-          owners: result.owners,
+          owners: ownerDtos,
           meta: {
             pagination: {
               currentPage: Number(page),
@@ -124,7 +136,8 @@ export class OwnerService implements IOwnerService {
       console.error("Get owners error:", error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Something went wrong",
+        message:
+          error instanceof Error ? error.message : "Something went wrong",
       };
     }
   }
@@ -144,24 +157,33 @@ export class OwnerService implements IOwnerService {
 
       return {
         success: true,
-        message: `Owner ${updatedOwner.isActive ? "activated" : "blocked"} successfully`,
+        message: `Owner ${
+          updatedOwner.isActive ? "activated" : "blocked"
+        } successfully`,
         data: updatedOwner,
       };
     } catch (error) {
       console.error("Toggle owner status error:", error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Something went wrong",
+        message:
+          error instanceof Error ? error.message : "Something went wrong",
       };
     }
   }
 
-  async updateOwner(ownerId: string, updateData: UpdateOwnerProfileDto): Promise<ServiceResponse> {
+  async updateOwner(
+    ownerId: string,
+    updateData: UpdateOwnerProfileDto
+  ): Promise<ServiceResponse> {
     try {
       this.validateId(ownerId);
       this.validateUpdateData(updateData);
 
-      const updatedOwner = await this.ownerRepository.update(ownerId, updateData);
+      const updatedOwner = await this.ownerRepository.update(
+        ownerId,
+        updateData
+      );
 
       if (!updatedOwner) {
         return {
@@ -169,17 +191,18 @@ export class OwnerService implements IOwnerService {
           message: "Owner not found",
         };
       }
-
+      const ownerDto = OwnerMapper.toDto(updatedOwner);
       return {
         success: true,
         message: "Owner updated successfully",
-        data: updatedOwner,
+        data: ownerDto,
       };
     } catch (error) {
       console.error("Update owner error:", error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Something went wrong",
+        message:
+          error instanceof Error ? error.message : "Something went wrong",
       };
     }
   }
@@ -205,12 +228,17 @@ export class OwnerService implements IOwnerService {
       console.error("Delete owner error:", error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Something went wrong",
+        message:
+          error instanceof Error ? error.message : "Something went wrong",
       };
     }
   }
 
-  async sendEmailChangeOtp(ownerId: string, newEmail: string, password: string): Promise<ServiceResponse> {
+  async sendEmailChangeOtp(
+    ownerId: string,
+    newEmail: string,
+    password: string
+  ): Promise<ServiceResponse> {
     try {
       this.validateId(ownerId);
       this.validateEmailChangeData({ newEmail, password });
@@ -231,7 +259,11 @@ export class OwnerService implements IOwnerService {
         };
       }
 
-      const emailValidation = await this.validateEmailAvailability(newEmail, ownerId, owner.email);
+      const emailValidation = await this.validateEmailAvailability(
+        newEmail,
+        ownerId,
+        owner.email
+      );
       if (!emailValidation.isValid) {
         return {
           success: false,
@@ -239,19 +271,27 @@ export class OwnerService implements IOwnerService {
         };
       }
 
-      const otpResult = await this._generateAndSendEmailChangeOtp(newEmail, owner);
-      
+      const otpResult = await this._generateAndSendEmailChangeOtp(
+        newEmail,
+        owner
+      );
+
       return otpResult;
     } catch (error) {
       console.error("Send email change OTP error:", error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Something went wrong",
+        message:
+          error instanceof Error ? error.message : "Something went wrong",
       };
     }
   }
 
-  async verifyEmailChangeOtp(id: string, email: string, otp: string): Promise<ServiceResponse> {
+  async verifyEmailChangeOtp(
+    id: string,
+    email: string,
+    otp: string
+  ): Promise<ServiceResponse> {
     try {
       this.validateId(id);
       this.validateEmailOtpData({ email, otp });
@@ -277,7 +317,9 @@ export class OwnerService implements IOwnerService {
         };
       }
 
-      const updatedOwner = await this.ownerRepository.updateProfile(id, { email });
+      const updatedOwner = await this.ownerRepository.updateProfile(id, {
+        email,
+      });
 
       if (!updatedOwner) {
         return {
@@ -286,10 +328,11 @@ export class OwnerService implements IOwnerService {
         };
       }
 
-      const emailSent = await this.emailService.sendEmailChangeSuccessNotification(
-        updatedOwner.email,
-        otpRecord.userData?.oldEmail || "Unknown"
-      );
+      const emailSent =
+        await this.emailService.sendEmailChangeSuccessNotification(
+          updatedOwner.email,
+          otpRecord.userData?.oldEmail || "Unknown"
+        );
 
       if (!emailSent) {
         return { success: false, message: "Failed to send success email" };
@@ -309,12 +352,17 @@ export class OwnerService implements IOwnerService {
       console.error("Verify email change OTP error:", error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Something went wrong",
+        message:
+          error instanceof Error ? error.message : "Something went wrong",
       };
     }
   }
 
-  async changeOwnerPassword(userId: string, oldPassword: string, newPassword: string): Promise<ServiceResponse> {
+  async changeOwnerPassword(
+    userId: string,
+    oldPassword: string,
+    newPassword: string
+  ): Promise<ServiceResponse> {
     try {
       this.validateId(userId);
       this.validatePasswordChangeData({ oldPassword, newPassword });
@@ -324,13 +372,19 @@ export class OwnerService implements IOwnerService {
         return { success: false, message: "User not found" };
       }
 
-      const isOldPasswordValid = await this.verifyOwnerPassword(owner, oldPassword);
+      const isOldPasswordValid = await this.verifyOwnerPassword(
+        owner,
+        oldPassword
+      );
       if (!isOldPasswordValid) {
         return { success: false, message: "Old password is incorrect" };
       }
 
       const hashedNewPassword = await this.hashPassword(newPassword);
-      const updated = await this.ownerRepository.updatePassword(userId, hashedNewPassword);
+      const updated = await this.ownerRepository.updatePassword(
+        userId,
+        hashedNewPassword
+      );
 
       if (!updated) {
         return { success: false, message: "Failed to update password" };
@@ -339,11 +393,14 @@ export class OwnerService implements IOwnerService {
       return { success: true, message: "Password changed successfully" };
     } catch (error) {
       console.error("Change password error:", error);
-      return { success: false, message: error instanceof Error ? error.message : "Something went wrong" };
+      return {
+        success: false,
+        message:
+          error instanceof Error ? error.message : "Something went wrong",
+      };
     }
   }
 
-  // Private helper methods
   private validateId(id: string): void {
     if (!id || id.trim() === "") {
       throw new Error("Valid ID is required");
@@ -362,7 +419,10 @@ export class OwnerService implements IOwnerService {
     }
   }
 
-  private validateEmailChangeData(data: { newEmail: string; password: string }): void {
+  private validateEmailChangeData(data: {
+    newEmail: string;
+    password: string;
+  }): void {
     if (!data.newEmail || !data.password) {
       throw new Error("New email and password are required");
     }
@@ -377,7 +437,10 @@ export class OwnerService implements IOwnerService {
     }
   }
 
-  private validatePasswordChangeData(data: { oldPassword: string; newPassword: string }): void {
+  private validatePasswordChangeData(data: {
+    oldPassword: string;
+    newPassword: string;
+  }): void {
     if (!data.oldPassword || !data.newPassword) {
       throw new Error("Old password and new password are required");
     }
@@ -391,7 +454,10 @@ export class OwnerService implements IOwnerService {
     return emailRegex.test(email);
   }
 
-  private async verifyOwnerPassword(owner: IOwner, password: string): Promise<boolean> {
+  private async verifyOwnerPassword(
+    owner: IOwner,
+    password: string
+  ): Promise<boolean> {
     return await bcrypt.compare(password, owner.password);
   }
 
@@ -399,9 +465,16 @@ export class OwnerService implements IOwnerService {
     return await bcrypt.hash(password, config.bcryptRounds);
   }
 
-  private async validateEmailAvailability(email: string, ownerId?: string, currentEmail?: string): Promise<{ isValid: boolean; message?: string }> {
+  private async validateEmailAvailability(
+    email: string,
+    ownerId?: string,
+    currentEmail?: string
+  ): Promise<{ isValid: boolean; message?: string }> {
     if (currentEmail && email === currentEmail) {
-      return { isValid: false, message: "New email cannot be the same as current email" };
+      return {
+        isValid: false,
+        message: "New email cannot be the same as current email",
+      };
     }
 
     const existingUser = await this.userRepository.findUserByEmail(email);
@@ -414,8 +487,13 @@ export class OwnerService implements IOwnerService {
       return { isValid: false, message: "Email already in use" };
     }
 
-    const existingOwnerRequest = await this.ownerRequestRepository.findByEmail(email);
-    if (existingOwnerRequest && !["rejected", "approved"].includes(existingOwnerRequest.status)) {
+    const existingOwnerRequest = await this.ownerRequestRepository.findByEmail(
+      email
+    );
+    if (
+      existingOwnerRequest &&
+      !["rejected", "approved"].includes(existingOwnerRequest.status)
+    ) {
       return { isValid: false, message: "Email already in use" };
     }
 
@@ -430,11 +508,21 @@ export class OwnerService implements IOwnerService {
       approvedRequests,
       rejectedRequests,
     ] = await Promise.all([
-      this.ownerRepository.findByStatus("active", 1, 1).then((result) => result.total),
-      this.ownerRepository.findByStatus("inactive", 1, 1).then((result) => result.total),
-      this.ownerRequestRepository.findByStatus("pending", 1, 1).then((result) => result.total),
-      this.ownerRequestRepository.findByStatus("approved", 1, 1).then((result) => result.total),
-      this.ownerRequestRepository.findByStatus("rejected", 1, 1).then((result) => result.total),
+      this.ownerRepository
+        .findByStatus("active", 1, 1)
+        .then((result) => result.total),
+      this.ownerRepository
+        .findByStatus("inactive", 1, 1)
+        .then((result) => result.total),
+      this.ownerRequestRepository
+        .findByStatus("pending", 1, 1)
+        .then((result) => result.total),
+      this.ownerRequestRepository
+        .findByStatus("approved", 1, 1)
+        .then((result) => result.total),
+      this.ownerRequestRepository
+        .findByStatus("rejected", 1, 1)
+        .then((result) => result.total),
     ]);
 
     return {
@@ -446,17 +534,26 @@ export class OwnerService implements IOwnerService {
     };
   }
 
-  private async _fetchOwnersWithFilters(filters: OwnerFilterDto): Promise<{ owners: IOwner[]; total: number }> {
+  private async _fetchOwnersWithFilters(
+    filters: OwnerFilterDto
+  ): Promise<{ owners: IOwner[]; total: number }> {
     const { status, page = 1, limit = 10 } = filters;
 
     if (status) {
-      return await this.ownerRepository.findByStatus(status, Number(page), Number(limit));
+      return await this.ownerRepository.findByStatus(
+        status,
+        Number(page),
+        Number(limit)
+      );
     } else {
       return await this.ownerRepository.findAll(Number(page), Number(limit));
     }
   }
 
-  private _applyClientSideFilters(result: { owners: IOwner[]; total: number }, filters: OwnerFilterDto): { owners: IOwner[]; total: number } {
+  private _applyClientSideFilters(
+    result: { owners: IOwner[]; total: number },
+    filters: OwnerFilterDto
+  ): { owners: IOwner[]; total: number } {
     const { search } = filters;
 
     if (search) {
@@ -471,7 +568,10 @@ export class OwnerService implements IOwnerService {
     return result;
   }
 
-  private _applySorting(result: { owners: IOwner[]; total: number }, filters: OwnerFilterDto): { owners: IOwner[]; total: number } {
+  private _applySorting(
+    result: { owners: IOwner[]; total: number },
+    filters: OwnerFilterDto
+  ): { owners: IOwner[]; total: number } {
     const { sortBy, sortOrder } = filters;
 
     if (sortBy) {
@@ -495,18 +595,22 @@ export class OwnerService implements IOwnerService {
   }
 
   private _transformOwnerProfileData(owner: IOwner): IOwner {
-   
     return {
       ...owner,
-  
     };
   }
 
-  private _transformOwnersData(result: { owners: IOwner[]; total: number }): { owners: IOwner[]; total: number } {
+  private _transformOwnersData(result: { owners: IOwner[]; total: number }): {
+    owners: IOwner[];
+    total: number;
+  } {
     return result;
   }
 
-  private async _generateAndSendEmailChangeOtp(newEmail: string, owner: IOwner): Promise<ServiceResponse> {
+  private async _generateAndSendEmailChangeOtp(
+    newEmail: string,
+    owner: IOwner
+  ): Promise<ServiceResponse> {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
@@ -544,7 +648,10 @@ export class OwnerService implements IOwnerService {
     };
   }
 
-  private async _cleanupOtpRecords(otpId: string, email: string): Promise<void> {
+  private async _cleanupOtpRecords(
+    otpId: string,
+    email: string
+  ): Promise<void> {
     await this.otpRepository.markAsUsed(otpId);
     await this.otpRepository.deleteByEmail(email, "owner_email_change");
   }

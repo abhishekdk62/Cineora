@@ -15,7 +15,7 @@ export class WalletRepository implements IWalletRepository {
 
   async updateWalletBalance(
     userId: string,
-    userModel: "User" | "Owner",
+    userModel: "User" | "Owner"|"Admin",
     amount: number
   ): Promise<IWallet | null> {
     try {
@@ -29,7 +29,6 @@ export class WalletRepository implements IWalletRepository {
     }
   }
 
-  // IReadWalletRepository methods
   async findWalletByUser(
     userId: string,
     userModel: "User" | "Owner"

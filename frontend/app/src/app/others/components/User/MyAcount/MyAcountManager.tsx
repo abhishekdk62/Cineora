@@ -19,6 +19,7 @@ import MyAccountContent, { IUser } from "./Profile/MyAccountContent";
 import { getUserProfile } from "@/app/others/services/userServices/authServices";
 import MobileTicket from "./Tickets/TicketsList";
 import WalletPage from "./Wallet/WalletManager";
+import FavoritesList from "./Favorites/FavoritesList";
 const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
 const lexendSmall = { className: "font-normal text-sm" };
@@ -107,12 +108,6 @@ const AccountPage = () => {
       description: "View your tickets and ticket history",
     },
     {
-      id: "notifications" as SidebarItem,
-      label: "Notifications",
-      icon: Bell,
-      description: "Manage your preferences",
-    },
-    {
       id: "wallet" as SidebarItem,
       label: "Wallet & Credits",
       icon: Wallet,
@@ -124,12 +119,7 @@ const AccountPage = () => {
       icon: Heart,
       description: "Saved movies and theaters",
     },
-    {
-      id: "payment" as SidebarItem,
-      label: "Payment Methods",
-      icon: CreditCard,
-      description: "Cards and payment history",
-    },
+
     {
       id: "help" as SidebarItem,
       label: "Help & Support",
@@ -144,14 +134,11 @@ const AccountPage = () => {
         return <MyAccountContent getUeserDetails={getUeserDetails} userData={userData} />;
       case "bookings":
         return <MobileTicket />;
-      case "notifications":
-        return <ComingSoonContent title="Notifications" icon={Bell} />;
       case "wallet":
         return <WalletPage />;
       case "favorites":
-        return <ComingSoonContent title="Favorites" icon={Heart} />;
-      case "payment":
-        return <ComingSoonContent title="Payment Methods" icon={CreditCard} />;
+        return <FavoritesList />;
+
       case "help":
         return <ComingSoonContent title="Help & Support" icon={HelpCircle} />;
       default:
@@ -204,7 +191,6 @@ const AccountPage = () => {
               </div>
             </div>
 
-            {/* Expanded Sidebar Content */}
             <div className="absolute left-0 top-0 w-80 h-full bg-black/10 backdrop-blur-md border-r border-white/10 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transform -translate-x-full group-hover:translate-x-0 transition-all duration-300 ease-out">
               <div className="flex flex-col flex-1 min-h-0">
                 {/* Header */}

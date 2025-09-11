@@ -1,4 +1,4 @@
-import { ApiResponse, PaginationQuery } from './common.dto';
+import { ApiResponse, PaginationQuery } from "./common.dto";
 
 export interface SeatBlockDto {
   seatId: string;
@@ -82,22 +82,40 @@ export interface ShowtimeResponseDto {
   totalSeats: number;
   ageRestriction: number | null;
   availableSeats: number;
-  bookedSeats: string[];
+  bookedSeats?: string[];
   blockedSeats: SeatBlockDto[];
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
+export interface BulkCreateShowtimeResponseDto
+  extends ApiResponse<{
+    created: number;
+    skipped: number;
+    errors?: string[];
+    showtimes: ShowtimeResponseDto[];
+  }> {}
 
-export interface GetShowtimesByScreenIdResponseDto extends ApiResponse<ShowtimeResponseDto[]> {}
-export interface GetShowtimeResponseDto extends ApiResponse<ShowtimeResponseDto> {}
-export interface CreateShowtimeResponseDto extends ApiResponse<ShowtimeResponseDto> {}
-export interface GetShowtimesResponseDto extends ApiResponse<ShowtimeResponseDto[]> {}
-export interface UpdateShowtimeResponseDto extends ApiResponse<ShowtimeResponseDto> {}
+export interface GetShowtimesByScreenIdResponseDto
+  extends ApiResponse<ShowtimeResponseDto[]> {}
+export interface GetShowtimeResponseDto
+  extends ApiResponse<ShowtimeResponseDto> {}
+export interface CreateShowtimeResponseDto
+  extends ApiResponse<ShowtimeResponseDto> {}
+export interface GetShowtimesResponseDto
+  extends ApiResponse<ShowtimeResponseDto[]> {}
+export interface UpdateShowtimeResponseDto
+  extends ApiResponse<ShowtimeResponseDto> {}
 export interface DeleteShowtimeResponseDto extends ApiResponse<null> {}
-export interface ToggleShowtimeResponseDto extends ApiResponse<ShowtimeResponseDto> {}
-export interface GetShowTimesOwnerResponseDto extends ApiResponse<ShowtimeResponseDto[]> {}
-export interface CreateShowtimeOwnerResponseDto extends ApiResponse<ShowtimeResponseDto> {}
-export interface EditShowtimeOwnerResponseDto extends ApiResponse<ShowtimeResponseDto> {}
-export interface ToggleShowtimeStatusOwnerResponseDto extends ApiResponse<ShowtimeResponseDto> {}
-export interface GetShowTimeUserResponseDto extends ApiResponse<ShowtimeResponseDto> {}
+export interface ToggleShowtimeResponseDto
+  extends ApiResponse<ShowtimeResponseDto> {}
+export interface GetShowTimesOwnerResponseDto
+  extends ApiResponse<ShowtimeResponseDto[]> {}
+export interface CreateShowtimeOwnerResponseDto
+  extends ApiResponse<ShowtimeResponseDto> {}
+export interface EditShowtimeOwnerResponseDto
+  extends ApiResponse<ShowtimeResponseDto> {}
+export interface ToggleShowtimeStatusOwnerResponseDto
+  extends ApiResponse<ShowtimeResponseDto> {}
+export interface GetShowTimeUserResponseDto
+  extends ApiResponse<ShowtimeResponseDto> {}

@@ -18,9 +18,9 @@ export interface IRowPricing {
 
 export interface IMovieShowtime {
   _id: string;
-  movieId: any; // Populate with movie details
-  theaterId: any; // Populate with theater details  
-  screenId: any; // Populate with screen details
+  movieId: any; 
+  theaterId: any;   
+  screenId: any; 
   showDate: Date;
   showTime: string;
   endTime: string;

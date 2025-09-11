@@ -1,4 +1,3 @@
-// constants/userRoutes/showtime.ts
 
 const USER_SHOWTIME = {
   BY_ID: (id: string) => `/users/showtime/${id}`,

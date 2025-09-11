@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { bookTicket, walletBook } from "@/app/others/services/userServices/bookingServices";

@@ -14,7 +14,6 @@ interface NotificationBellProps {
   isMobile?: boolean;
 }
 
-// ✅ Updated interface to match your backend structure
 interface BackendNotification {
   _id: string;
   notificationId: string;

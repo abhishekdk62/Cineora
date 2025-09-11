@@ -1,6 +1,5 @@
 import { ITicket } from '../interfaces/ticket.model.interface';
 
-// All DTOs for Ticket module
 
 export interface CreateTicketDto {
   ticketId: string;
@@ -151,15 +150,14 @@ export interface RefundCalculationDto {
   showTime: string;
 }
 
-// ... existing DTOs ...
 
 export interface GetUserTicketsDto {
   userId: string;
-  page?: number;  // Optional, defaults to 1
-  limit?: number; // Optional, defaults to 10
+  page?: number;  
+  limit?: number; 
+  types?:("upcoming" | "past" | "cancelled" | "all" ) []
 }
 
-// Additional filter options you might want to add
 export interface GetUserTicketsFilterDto {
   userId: string;
   page?: number;

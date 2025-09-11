@@ -6,6 +6,9 @@ import MovieDetailsSection from "./MovieDetailsSection";
 import MovieFormFields from "./MovieFormFields";
 import GenreSelector from "./GenreSelector";
 import CastManager from "./CastManager";
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { movieSchema } from "@/app/others/Utils/zodSchemas";
 
 
 const lexend = Lexend({
@@ -45,28 +48,54 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({
   tmdbMovie,
   editingMovie,
 }) => {
-  const [formData, setFormData] = useState<Partial<Movie>>({
-    tmdbId: 0,
-    title: "",
-    genre: [],
-    releaseDate: "",
-    duration: 0,
-    rating: "",
-    description: "",
-    poster: "",
-    trailer: "",
-    cast: [],
-    director: "",
-    language: "",
-    isActive: true,
-  });
+
 
   const [loading, setLoading] = useState(false);
-  const [castInput, setCastInput] = useState("");
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    watch,
+    control,
+    reset
+  } = useForm({
+    resolver: zodResolver(movieSchema),
+    defaultValues: {
+      tmdbId: 0,
+      title: "",
+      genre: [],
+      releaseDate: "",
+      duration: 0,
+      rating: "",
+      description: "",
+      poster: "",
+      trailer: "",
+      cast: [],
+      director: "",
+      language: "",
+      isActive: true,
+    }
+  });
+
+  const watchedValues = watch();
+
+  const handleFormSubmit = async (data: any) => {
+    setLoading(true);
+    try {
+      onSubmit(data); 
+    } catch (error) {
+      console.error("Error saving movie:", error);
+      alert("Error saving movie. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (tmdbMovie) {
-      setFormData({
+      reset({
         tmdbId: tmdbMovie.tmdbId || 0,
         title: tmdbMovie.title || "",
         genre: Array.isArray(tmdbMovie.genre) ? tmdbMovie.genre : [],
@@ -81,60 +110,12 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({
         language: tmdbMovie.language || "en",
         isActive: true,
       });
-      setCastInput(
-        Array.isArray(tmdbMovie.cast) ? tmdbMovie.cast.join(", ") : ""
-      );
     } else if (editingMovie) {
-      setFormData(editingMovie);
-      setCastInput(editingMovie.cast.join(", "));
+      reset(editingMovie);
     }
-  }, [tmdbMovie, editingMovie]);
+  }, [tmdbMovie, editingMovie, reset]);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    const { name, value, type } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "number" ? Number.parseFloat(value) || 0 : value,
-    }));
-  };
 
-  const handleGenreChange = (genre: string) => {
-    const currentGenres = formData.genre || [];
-    const updatedGenres = currentGenres.includes(genre)
-      ? currentGenres.filter((g) => g !== genre)
-      : [...currentGenres, genre];
-
-    setFormData((prev) => ({ ...prev, genre: updatedGenres }));
-  };
-
-  const handleCastInputChange = (value: string) => {
-    setCastInput(value);
-    const castArray = value
-      .split(",")
-      .map((actor) => actor.trim())
-      .filter((actor) => actor);
-    setFormData((prev) => ({ ...prev, cast: castArray }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    setLoading(true);
-    try {
-      if (!formData.title || !formData.description || !formData.releaseDate) {
-        alert("Please fill in all required fields");
-        return;
-      }
-      onSubmit(formData);
-    } catch (error) {
-      console.error("Error saving movie:", error);
-      alert("Error saving movie. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (!isOpen) return null;
 
@@ -157,44 +138,58 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({
           </button>
         </div>
 
-        <form className="p-6">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="p-6">
+          {/* 🔥 CHANGE YOUR COMPONENT CALLS TO THIS */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column */}
             <div className="space-y-6">
               <MoviePosterSection
-                poster={formData.poster || ""}
-                onPosterChange={handleInputChange}
+                poster={watchedValues.poster || ""}
+                onPosterChange={(e) => setValue('poster', e.target.value)}
+                posterError={errors.poster?.message} 
               />
-              <MovieDetailsSection formData={formData} />
+              <MovieDetailsSection
+                formData={watchedValues}
+              />
             </div>
 
             {/* Middle Column */}
             <div className="space-y-6">
-              <MovieFormFields 
-                formData={formData}
-                onInputChange={handleInputChange}
+              <MovieFormFields
+                register={register}
+                errors={errors} 
+                watchedValues={watchedValues}
+
+
               />
             </div>
 
             {/* Right Column */}
             <div className="space-y-6">
               <GenreSelector
-                selectedGenres={formData.genre || []}
-                onGenreChange={handleGenreChange}
+                selectedGenres={watchedValues.genre || []}
+                onGenreChange={(genre) => {
+                  const currentGenres = watchedValues.genre || [];
+                  const updatedGenres = currentGenres.includes(genre)
+                    ? currentGenres.filter((g) => g !== genre)
+                    : [...currentGenres, genre];
+                  setValue('genre', updatedGenres);
+                }}
+                genreError={errors.genre?.message}
               />
               <CastManager
-                cast={formData.cast || []}
-                castInput={castInput}
-                onCastInputChange={handleCastInputChange}
+                cast={watchedValues.cast || []}
+                onCastChange={(castArray) => setValue('cast', castArray)}
+                castError={errors.cast?.message}
               />
             </div>
           </div>
 
+
           {/* Submit Buttons */}
           <div className="flex gap-3 pt-6 mt-6 border-t border-gray-600">
             <button
-              type="button"
-              onClick={handleSubmit}
+              type="submit"
               disabled={loading}
               className="bg-[#e78f03] text-black hover:bg-[#d17a02] px-6 py-3 rounded-lg flex items-center gap-2 transition-colors font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >

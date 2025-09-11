@@ -85,7 +85,6 @@ export class UserController {
         return;
       }
 
-      // Create wallet for new user
       await this._createUserWallet(result.data?.user._id);
 
       const user = result.data?.user;
@@ -158,6 +157,8 @@ export class UserController {
       const refreshTokenDto: RefreshTokenDto = {
         refreshToken: req.cookies?.refreshToken,
       };
+
+      
 
       if (!refreshTokenDto.refreshToken) {
         res.status(StatusCodes.UNAUTHORIZED).json(createResponse({
@@ -487,7 +488,6 @@ export class UserController {
     }
   }
 
-  // Private helper methods for controller logic (SRP - Single Responsibility)
   private _extractUserId(req: AuthenticatedRequest): string | null {
     return req.user?.id || req.user?._id || null;
   }

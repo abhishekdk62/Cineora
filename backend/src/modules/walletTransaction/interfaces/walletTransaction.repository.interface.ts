@@ -1,6 +1,5 @@
 import { IWalletTransaction } from './walletTransaction.model.interface';
 
-// Interface Segregation Principle - separate read and write operations
 export interface IReadWalletTransactionRepository {
   findWalletTransactionById(transactionId: string): Promise<IWalletTransaction | null>;
   findWalletTransactionByTransactionId(transactionId: string): Promise<IWalletTransaction | null>;
@@ -18,6 +17,5 @@ export interface IWriteWalletTransactionRepository {
   updateWalletTransactionStatus(transactionId: string, status: string): Promise<IWalletTransaction | null>;
 }
 
-// Combined interface following ISP
 export interface IWalletTransactionRepository 
   extends IReadWalletTransactionRepository, IWriteWalletTransactionRepository {}

@@ -84,9 +84,10 @@ export default function NotificationModal({
       />
       
       <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className="relative w-full max-w-4xl h-[90vh] backdrop-blur-sm bg-black rounded-2xl border border-gray-500/30 shadow-2xl overflow-hidden">
+        <div className="relative w-full max-w-4xl h-[90vh] backdrop-blur-sm bg-black rounded-2xl border border-gray-500/30 shadow-2xl flex flex-col overflow-hidden">
           
-          <div className="flex items-center justify-between p-6 border-b border-gray-600/30">
+          {/* Header - Fixed */}
+          <div className="flex items-center justify-between p-6 border-b border-gray-600/30 flex-shrink-0">
             <div>
               <h2 className={`${lexendBold.className} text-white text-2xl`}>
                 All Notifications
@@ -112,7 +113,8 @@ export default function NotificationModal({
             </div>
           </div>
 
-          <div className="flex items-center gap-1 p-6 border-b border-gray-600/30 overflow-x-auto">
+          {/* Filter Buttons - Fixed */}
+          <div className="flex items-center gap-1 p-6 border-b border-gray-600/30 overflow-x-auto flex-shrink-0">
             {filterOptions.map((option) => (
               <button
                 key={option.value}
@@ -128,7 +130,8 @@ export default function NotificationModal({
             ))}
           </div>
 
-          <div className="flex-1 overflow-y-auto p-6">
+          {/* Content Area - Scrollable */}
+          <div className="flex-1 overflow-y-auto p-6 min-h-0">
             {filteredNotifications.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center">
                 <div className="w-20 h-20 rounded-full bg-gray-700/50 flex items-center justify-center mb-4">
@@ -175,7 +178,7 @@ export default function NotificationModal({
                           {notification.message}
                         </p>
 
-                        {/* ✅ Enhanced details section */}
+                        {/* Enhanced details section */}
                         {notification.data && (
                           <div className="bg-gray-800/50 rounded-lg p-3 mb-3">
                             <div className="grid grid-cols-2 gap-2 text-xs">

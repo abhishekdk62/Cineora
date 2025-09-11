@@ -1,4 +1,3 @@
-// components/wallet/modal/AmountStep.tsx
 import React from 'react';
 
 interface AmountStepProps {

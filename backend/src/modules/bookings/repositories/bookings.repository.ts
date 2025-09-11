@@ -13,7 +13,6 @@ import Booking from "../models/bookings.model";
 
 export class BookingRepository implements IBookingRepository {
   
-  // Read Operations
   async findBookingById(bookingId: string): Promise<IBooking | null> {
     try {
       return await Booking.findById(bookingId)
@@ -146,7 +145,6 @@ export class BookingRepository implements IBookingRepository {
     }
   }
 
-  // Write Operations
   async createBooking(bookingData: CreateBookingDto): Promise<IBooking | null> {
     try {
       const booking = new Booking(bookingData);

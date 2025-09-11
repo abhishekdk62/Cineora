@@ -12,7 +12,6 @@ interface SeatRowProps {
   maxCols: number;
 }
 
-// Enhanced seat box with proper colors
 const SeatBox = ({ 
   status, 
   seatType, 
@@ -27,18 +26,17 @@ const SeatBox = ({
   const getBoxColor = () => {
     switch (status) {
       case 'booked':
-        return '#595959'; // Gray for unavailable/booked
+        return '#595959'; 
       case 'selected':
-        // Different colors based on seat type when selected
-        if (seatType === 'VIP') return '#EAB308'; // Yellow for VIP
-        if (seatType === 'Premium') return '#9333EA'; // Purple for Premium
-        return '#06B6D4'; // Cyan for General
+        if (seatType === 'VIP') return '#EAB308'; 
+        if (seatType === 'Premium') return '#9333EA'; 
+        return '#06B6D4'; 
       case 'available':
-        return '#F1F5F9'; // Light gray for available
+        return '#F1F5F9'; 
       case 'blocked':
-        return '#374151'; // Dark gray for blocked
+        return '#374151'; 
       default:
-        return '#64748B'; // Default slate
+        return '#64748B';
     }
   };
 
@@ -51,7 +49,9 @@ const SeatBox = ({
         if (seatType === 'Premium') return '#7C3AED'; // Darker purple
         return '#0891B2'; 
       case 'available':
-        return '#E2E8F0'; 
+            if (seatType === 'VIP') return '#CA8A04'; 
+        if (seatType === 'Premium') return '#7C3AED'; // Darker purple
+        return '#0891B2';  
       case 'blocked':
         return '#1F2937'; // Dark border
       default:

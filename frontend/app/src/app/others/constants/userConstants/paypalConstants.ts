@@ -1,4 +1,3 @@
-// constants/userRoutes/payments.ts
 
 const USER_PAYMENTS = {
   CREATE_RAZORPAY_ORDER: '/users/razorpay/create-order' as const,

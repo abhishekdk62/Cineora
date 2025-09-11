@@ -1,4 +1,3 @@
-// constants/userRoutes/tickets.ts
 
 const USER_TICKETS = {
   LIST: '/users/tickets' as const,

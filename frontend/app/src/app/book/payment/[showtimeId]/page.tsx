@@ -77,7 +77,6 @@ export default function PaymentPage() {
     return rowPricing ? { id: rowPricing._id } : { id: 'unknown' };
   }, [showTimeData?.rowPricing]);
 
-  // ✅ Fixed: Separated computation from side effects
   const seatBreakdown = useMemo(() => {
     if (!bookingDatasRedux?.selectedSeats || !showTimeData?.rowPricing) {
       return { breakdown: [], selectedRowIds: [] };
@@ -103,7 +102,6 @@ export default function PaymentPage() {
       selectedRowIds.push(seatIdObj.id);
     });
 
-    // ✅ Return both breakdown and selectedRowIds without dispatching
     return { breakdown, selectedRowIds };
   }, [
     bookingDatasRedux?.selectedSeats,
@@ -112,7 +110,6 @@ export default function PaymentPage() {
     getSeatIds
   ]);
 
-  // ✅ Fixed: Moved dispatch to useEffect
   useEffect(() => {
     if (!seatIdsUpdated && seatBreakdown.selectedRowIds.length > 0) {
       dispatch(setBookingData({ selectedRowIds: seatBreakdown.selectedRowIds }));
@@ -123,7 +120,7 @@ export default function PaymentPage() {
   const paymentData = useMemo(() => {
     if (!bookingDatasRedux || !showTimeData) return null;
     
-    let finalSeatBreakdown = seatBreakdown.breakdown; // ✅ Updated to use breakdown property
+    let finalSeatBreakdown = seatBreakdown.breakdown; 
     
     if (finalSeatBreakdown.length === 0 && bookingDatasRedux.selectedSeats) {
       finalSeatBreakdown = bookingDatasRedux.selectedSeats.map((seatId: string) => ({
@@ -165,7 +162,7 @@ export default function PaymentPage() {
       total: totalAmount,
       savings: 0
     };
-  }, [bookingDatasRedux, showTimeData, seatBreakdown.breakdown]); // ✅ Updated dependency
+  }, [bookingDatasRedux, showTimeData, seatBreakdown.breakdown]); 
 
   const handleBack = useCallback(() => {
     router.back();

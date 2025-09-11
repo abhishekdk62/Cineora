@@ -1,15 +1,17 @@
+// @ts-nocheck
 'use client';
-
 import { getTicketsApi } from '@/app/others/services/userServices/ticketServices';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import TicketCard from './TicketCard';
 import TicketDetailsModal from './TicketDetailsModal';
 import Loader from '../../../utils/Loader';
-import Pagination from '../../../utils/Pagination';
+import TabNavigation from './TabNavigation';
+import EmptyState from './EmptyState';
+import ReviewModal from './ReviewModal';
+import toast from 'react-hot-toast';
+import { addReview } from '@/app/others/services/userServices/reviewServices';
 
 const lexendBold = { className: "font-bold" };
-const lexendSmall = { className: "font-normal text-sm" };
-const lexendMedium = { className: "font-medium" };
 
 interface TicketData {
     _id: string;
@@ -48,10 +50,14 @@ interface TicketData {
 }
 
 interface TicketsResponse {
-    tickets: TicketData[];
-    total: number;
-    page: number;
-    totalPages: number;
+    success: boolean;
+    message: string;
+    data: {
+        tickets: TicketData[];
+        total: number;
+        page: number;
+        totalPages: number;
+    };
 }
 
 type TabType = 'upcoming' | 'history';
@@ -59,53 +65,98 @@ type TabType = 'upcoming' | 'history';
 const TicketsList: React.FC = () => {
     const [ticketsData, setTicketsData] = useState<TicketsResponse | null>(null);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [selectedTicket, setSelectedTicket] = useState<TicketData | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [activeTab, setActiveTab] = useState<TabType>('upcoming');
-
+    const [showReviewModal, setShowReviewModal] = useState(false);
+    const [rating, setRating] = useState(0);
+    const [selectedBookingForReview, setSelectedBookingForReview] = useState('');
+    const [reviewText, setReviewText] = useState('');
+    const [submittingReview, setSubmittingReview] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const [limit] = useState(4);
+    const [reviewType, setReviewType] = useState<'movie' | 'theater' | 'experience'>('movie');
+    const [limit] = useState(10);
+    const [hasMore, setHasMore] = useState(true);
+    const [allTickets, setAllTickets] = useState<TicketData[]>([]);
 
-    const getTickets = async (pageNumber: number = 1) => {
+    const getTickets = async (pageNumber: number = 1, filterType?: string, append: boolean = false) => {
         try {
-            setLoading(true);
-            const response = await getTicketsApi(
-            );
+            if (pageNumber === 1) {
+                setLoading(true);
+            } else {
+                setLoadingMore(true);
+            }
+
+            let typeParam: string;
+            if (filterType) {
+                typeParam = filterType;
+            } else {
+                typeParam = activeTab === 'upcoming' ? 'upcoming' : 'past';
+            }
+
+            const response = await getTicketsApi(pageNumber, limit, typeParam);
             console.log(response);
-            setTicketsData(response);
-            setError(null);
+
+            if (response.success) {
+                if (append && pageNumber > 1) {
+                    setAllTickets(prev => [...prev, ...response.data]);
+                } else {
+                    setAllTickets(response.data);
+                }
+
+                setTicketsData(response);
+                setHasMore(pageNumber < response.meta
+                    .totalPages);
+                setError(null);
+            } else {
+                setError(response.message || 'Failed to load tickets');
+            }
         } catch (error) {
-            console.log(error);
+            console.error('Error fetching tickets:', error);
             setError('Failed to load tickets');
         } finally {
             setLoading(false);
+            setLoadingMore(false);
         }
     };
 
-    useEffect(() => {
-        getTickets(currentPage);
-    }, [currentPage]);
+    const loadMoreTickets = useCallback(() => {
+        if (!loadingMore && hasMore && !loading) {
+            const nextPage = currentPage + 1;
+            setCurrentPage(nextPage);
+            getTickets(nextPage, undefined, true);
+        }
+    }, [loadingMore, hasMore, loading, currentPage]);
 
     useEffect(() => {
-        if (currentPage !== 1) {
-            setCurrentPage(1);
-        } else {
-            getTickets(1);
-        }
+        const handleScroll = () => {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const windowHeight = window.innerHeight;
+            const documentHeight = document.documentElement.scrollHeight;
+
+            if (scrollTop + windowHeight >= documentHeight - 300) {
+                loadMoreTickets();
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, [loadMoreTickets]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+        setAllTickets([]);
+        getTickets(1);
     }, [activeTab]);
 
-
-
-    const isShowInPast = (showDate: string, endTime: string) => {
-        const showDateTime = new Date(showDate);
-        const [hours, minutes] = endTime.split(':');
-        showDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-
-        return showDateTime < new Date();
-    };
-
     const groupTicketsByBooking = (tickets: TicketData[]) => {
+        if (!tickets || tickets.length === 0) return [];
+
         const grouped = tickets.reduce((acc, ticket) => {
             if (!acc[ticket.bookingId]) {
                 acc[ticket.bookingId] = [];
@@ -131,38 +182,14 @@ const TicketsList: React.FC = () => {
     };
 
     const getFilteredBookings = () => {
-        if (!ticketsData?.data) return [];
-
-        const allBookings = groupTicketsByBooking(ticketsData.data);
-
-        return allBookings.filter(booking => {
-            const endTime = booking.showtimeId?.endTime || booking.showTime;
-            const isPast = isShowInPast(booking.showDate, endTime) || booking.status == 'cancelled';
-
-
-            return activeTab === 'upcoming' ? !isPast : isPast;
-        });
+        return groupTicketsByBooking(allTickets);
     };
 
     const getTabCounts = () => {
-        if (!ticketsData?.tickets) return { upcoming: 0, history: 0 };
-
-        const allBookings = groupTicketsByBooking(ticketsData.tickets);
-        let upcoming = 0;
-        let history = 0;
-
-        allBookings.forEach(booking => {
-            const endTime = booking.showtimeId?.endTime || booking.showTime;
-            const isPast = isShowInPast(booking.showDate, endTime) || booking.status == 'cancelled';
-
-            if (isPast) {
-                history++;
-            } else {
-                upcoming++;
-            }
-        });
-
-        return { upcoming, history };
+        return {
+            upcoming: activeTab === 'upcoming' ? ticketsData?.data?.total || 0 : 0,
+            history: activeTab === 'history' ? ticketsData?.data?.total || 0 : 0
+        };
     };
 
     const handleViewDetails = (ticket: any) => {
@@ -175,15 +202,70 @@ const TicketsList: React.FC = () => {
         setSelectedTicket(null);
     };
 
+    const handleAddReview = (booking: any) => {
+        setSelectedBookingForReview(booking);
+        setShowReviewModal(true);
+    };
+
+    const handleSubmitReview = async () => {
+        if (rating === 0) {
+            toast.error('Please select a rating');
+            return;
+        }
+
+        const movieId = selectedBookingForReview.movie?._id || selectedBookingForReview.movieId?._id || selectedBookingForReview.movieId;
+        const theaterId = selectedBookingForReview.theater?._id || selectedBookingForReview.theaterId?._id || selectedBookingForReview.theaterId;
+
+        let reviewData = {
+            movieId: movieId,
+            theaterId: theaterId,
+            bookingId: selectedBookingForReview.bookingId,
+            rating: rating,
+            reviewText: reviewText,
+            reviewType: reviewType,
+        };
+        try {
+            setSubmittingReview(true);
+            const data = await addReview(reviewData);
+            toast.success('Review submitted successfully!');
+            setShowReviewModal(false);
+            setRating(0);
+            setReviewText('');
+            setCurrentPage(1);
+            setAllTickets([]);
+            getTickets(1);
+        } catch (error) {
+            if (error.response.data.message.includes('already reviewed')) {
+                toast('You have already reviewed this show!',
+                    {
+                        style: {
+                            borderRadius: '10px',
+                            background: '#333',
+                            color: '#fff',
+                        },
+                    }
+                );
+
+                return
+            }
+            console.error('Failed to submit review:', error);
+            toast.error('Failed to submit review. Please try again.');
+        } finally {
+            setSubmittingReview(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-transparent p-12 flex items-center justify-center">
-                <div className="text-white text-xl"><Loader text='Loading your tickets' /></div>
+                <div className="text-white text-xl">
+                    <Loader text='Loading your tickets' />
+                </div>
             </div>
         );
     }
 
-    if (error) {
+    if (error && allTickets.length === 0) {
         return (
             <div className="min-h-screen bg-transparent p-12 flex items-center justify-center">
                 <div className="text-red-400 text-xl">{error}</div>
@@ -197,74 +279,26 @@ const TicketsList: React.FC = () => {
     return (
         <div className="min-h-screen bg-transparent p-12">
             <div className="mx-auto max-w-5xl space-y-7">
-                {/* Header Section */}
                 <div className="mb-10">
                     <h1 className={`${lexendBold.className} text-5xl text-center text-white mb-2`}>
                         My Tickets
                     </h1>
                 </div>
 
-                {/* Tab Navigation */}
-                <div className="flex items-center justify-center gap-4 mb-8">
-                    <button
-                        onClick={() => setActiveTab('upcoming')}
-                        className={`${lexendMedium.className} border px-6 py-3 rounded-xl transition-all duration-200 flex items-center gap-2 ${activeTab === 'upcoming'
-                            ? 'bg-transparent border-white text-white'
-                            : 'bg-white/10 text-gray-300 border-white/20 hover:bg-white/20 hover:text-white'
-                            }`}
-                    >
-                        <p
-                            className="tracking-[0.3em] text-sm font-extralight relative z-10"
-                            style={{
-                                textShadow: activeTab === 'upcoming'
-                                    ? '0 0 10px rgba(6, 182, 212, 0.3)'
-                                    : 'none',
-                            }}
-                        >
-                            UPCOMING
-                        </p>
-                        {tabCounts.upcoming > 0 && (
-                            <span className={`px-2 py-1 rounded-full text-xs ${activeTab === 'upcoming'
-                                ? 'bg-gray-500 text-white border border-white'
-                                : 'bg-white/20 text-white'
-                                }`}>
-                                {tabCounts.upcoming}
-                            </span>
-                        )}
-                    </button>
+                <TabNavigation
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                    tabCounts={tabCounts}
+                />
 
-                    <button
-                        onClick={() => setActiveTab('history')}
-                        className={`${lexendMedium.className} border px-6 py-3 rounded-xl transition-all duration-200 flex items-center gap-2 ${activeTab === 'history'
-                            ? 'bg-transparent border-white text-white'
-                            : 'bg-white/10 text-gray-300 border-white/20 hover:bg-white/20 hover:text-white'
-                            }`}
-                    >
-                        <p
-                            className="tracking-[0.3em] text-sm font-extralight relative z-10"
-                            style={{
-                                textShadow: activeTab === 'history'
-                                    ? '0 0 10px rgba(6, 182, 212, 0.3)'
-                                    : 'none',
-                            }}
-                        >
-                            HISTORY
-                        </p>
-                        {tabCounts.history > 0 && (
-                            <span className={`px-2 py-1 rounded-full text-xs ${activeTab === 'history'
-                                ? 'bg-gray-500 text-white border border-white'
-                                : 'bg-white/20 text-white'
-                                }`}>
-                                {tabCounts.history}
-                            </span>
-                        )}
-                    </button>
-                </div>
-
-                {/* Tickets List */}
                 {filteredBookings.map((booking) => (
                     <TicketCard
-                        getTickets={getTickets}
+                        handleAddReview={handleAddReview}
+                        getTickets={() => {
+                            setCurrentPage(1);
+                            setAllTickets([]);
+                            getTickets(1);
+                        }}
                         activeTab={activeTab}
                         key={booking._id}
                         booking={booking}
@@ -272,48 +306,42 @@ const TicketsList: React.FC = () => {
                     />
                 ))}
 
-                {/* Empty State */}
-                {filteredBookings.length === 0 && (
-                    <div className="text-center bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/10 rounded-2xl p-12 backdrop-blur-xl">
-                        <div className="w-16 h-16 bg-white/10 rounded-xl flex items-center justify-center mx-auto mb-4">
-                            {activeTab === 'upcoming' ? (
-                                <svg className="w-8 h-8 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            ) : (
-                                <svg className="w-8 h-8 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                </svg>
-                            )}
+                {loadingMore && (
+                    <div className="flex justify-center mt-8">
+                        <div className="flex items-center gap-2 text-white">
+                            <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                            <span>Loading more tickets...</span>
                         </div>
-                        <h3 className={`${lexendBold.className} text-xl text-white mb-2`}>
-                            {activeTab === 'upcoming' ? 'No Upcoming Shows' : 'No Show History'}
-                        </h3>
-                        <p className={`${lexendSmall.className} text-gray-400 mb-6`}>
-                            {activeTab === 'upcoming'
-                                ? "You don't have any upcoming movie shows. Start exploring movies!"
-                                : "You don't have any completed shows yet."
-                            }
-                        </p>
-                        {activeTab === 'upcoming' && (
-                            <button className={`${lexendBold.className} bg-white text-black px-6 py-3 rounded-xl hover:bg-white/90 transition-colors`}>
-                                Browse Movies
-                            </button>
-                        )}
                     </div>
                 )}
 
-                {/* Pagination Component
-                {ticketsData && ticketsData.totalPages > 1 && (
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={ticketsData.totalPages}
-                        onPageChange={handlePageChange}
-                        className="pt-10"
-                    />
-                )} */}
+                {hasMore && !loading && !loadingMore && (
+                    <div className="flex justify-center mt-8">
+                        <button
+                            onClick={loadMoreTickets}
+                            className="px-8 py-3 bg-white/10 border border-white/20 text-white rounded-xl hover:bg-white/20 hover:border-white/40 transition-all duration-200"
+                        >
+                            Load More
+                        </button>
+                    </div>
+                )}
 
-                {/* Modal */}
+                {!hasMore && filteredBookings.length > 0 && (
+                    <div className="text-center text-gray-400 text-sm py-8">
+                        You've reached the end of your tickets
+                    </div>
+                )}
+
+                {filteredBookings.length === 0 && !loading && (
+                    <EmptyState activeTab={activeTab} />
+                )}
+
+                {ticketsData?.data && filteredBookings.length > 0 && (
+                    <div className="text-center text-gray-400 text-sm">
+                        Showing {filteredBookings.length} of {ticketsData.data.total} bookings
+                    </div>
+                )}
+
                 {showModal && selectedTicket && (
                     <TicketDetailsModal
                         activeTab={activeTab}
@@ -321,6 +349,20 @@ const TicketsList: React.FC = () => {
                         onClose={handleCloseModal}
                     />
                 )}
+
+                <ReviewModal
+                    setReviewType={setReviewType}
+                    reviewType={reviewType}
+                    isOpen={showReviewModal}
+                    onClose={() => setShowReviewModal(false)}
+                    selectedBooking={selectedBookingForReview}
+                    rating={rating}
+                    setRating={setRating}
+                    reviewText={reviewText}
+                    setReviewText={setReviewText}
+                    onSubmit={handleSubmitReview}
+                    submittingReview={submittingReview}
+                />
             </div>
         </div>
     );

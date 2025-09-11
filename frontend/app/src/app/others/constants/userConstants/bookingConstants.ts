@@ -1,4 +1,3 @@
-// constants/userBookingRoutes.ts
 
 const USER_BOOKING_ROUTES = {
   CREATE_BOOKING: '/users/bookings/create-booking' as const,

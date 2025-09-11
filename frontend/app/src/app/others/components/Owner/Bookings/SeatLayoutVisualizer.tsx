@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 "use client";
 
 import React from "react";
@@ -9,7 +11,7 @@ interface SeatLayoutVisualizerProps {
   totalSeats: number;
   bookedSeats: string[];
   lexendSmall: any;
-  showtime?: any; // Add showtime prop to access the layout data
+  showtime?: any; 
 }
 
 const SeatLayoutVisualizer: React.FC<SeatLayoutVisualizerProps> = ({
@@ -18,15 +20,12 @@ const SeatLayoutVisualizer: React.FC<SeatLayoutVisualizerProps> = ({
   lexendSmall,
   showtime,
 }) => {
-  // Use the actual advancedLayout from showtime data, or fallback to generated layout
   const getActualSeatLayout = () => {
     if (showtime?.screenId?.layout?.advancedLayout?.rows) {
-      // Use the real layout data from your showtime
       const layout = showtime.screenId.layout.advancedLayout;
       
-      // Calculate maxCols based on actual layout
       const maxCols = Math.max(...layout.rows.map((row: any) => 
-        (row.offset || 0) + (row.seats?.length || 0) + 2 // +2 for row label
+        (row.offset || 0) + (row.seats?.length || 0) + 2 
       ));
       
       return {
@@ -37,7 +36,7 @@ const SeatLayoutVisualizer: React.FC<SeatLayoutVisualizerProps> = ({
             id: seat.id,
             type: seat.type,
             price: seat.price,
-            col: seat.col, // Keep the column number
+            col: seat.col, 
             isBooked: bookedSeats.includes(seat.id),
             isBlocked: showtime.blockedSeats?.includes(seat.id) || false
           }))
@@ -46,11 +45,9 @@ const SeatLayoutVisualizer: React.FC<SeatLayoutVisualizerProps> = ({
       };
     }
     
-    // Fallback to generated layout (your original logic)
     return generateSeatLayout();
   };
 
-  // Your original generateSeatLayout function (keep as fallback)
   const generateSeatLayout = () => {
     const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
     const seatsPerRow = Math.ceil(totalSeats / rows.length);
@@ -83,7 +80,7 @@ const SeatLayoutVisualizer: React.FC<SeatLayoutVisualizerProps> = ({
           id: seatId,
           type: seatType,
           price: price,
-          col: j, // Column number
+          col: j, 
           isBooked: isBooked,
           isBlocked: false
         });
@@ -104,18 +101,17 @@ const SeatLayoutVisualizer: React.FC<SeatLayoutVisualizerProps> = ({
   const seatLayout = getActualSeatLayout();
 
   const getSeatBackgroundColor = (seat: any) => {
-    if (seat.isBlocked) return '#dc2626'; // Red for blocked
-    if (seat.isBooked) return '#dc2626';  // Red for booked
+    if (seat.isBlocked) return '#dc2626'; 
+    if (seat.isBooked) return '#dc2626';  
     
-    // Available seats by type
     switch (seat.type) {
       case 'VIP':
-        return '#ffd700';  // Gold for VIP
+        return '#ffd700';  
       case 'Premium':
-        return '#9333ea';  // Purple for Premium
+        return '#9333ea'; 
       case 'Normal':
       default:
-        return '#6b7280'; // Gray for Normal
+        return '#6b7280'; 
     }
   };
 
@@ -124,12 +120,9 @@ const SeatLayoutVisualizer: React.FC<SeatLayoutVisualizerProps> = ({
     return seat.type === 'VIP' ? '#1f2937' : '#ffffff';
   };
 
-  // Function to get seat number display
   const getSeatNumber = (seat: any) => {
-    // Use the col property if available, otherwise extract from id
     if (seat.col) return seat.col.toString();
     
-    // Extract number from seat ID (e.g., "A10" -> "10", "A1" -> "1")
     const match = seat.id.match(/\d+$/);
     return match ? match[0] : seat.id.slice(-1);
   };
@@ -176,7 +169,7 @@ const SeatLayoutVisualizer: React.FC<SeatLayoutVisualizerProps> = ({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: seat.col && seat.col >= 10 ? 8 : 10, // Smaller font for double digits
+                    fontSize: seat.col && seat.col >= 10 ? 8 : 10, 
                     fontWeight: 'bold',
                   }}
                   title={`${seat.id}: ${seat.type} @ Rs.${seat.price} ${

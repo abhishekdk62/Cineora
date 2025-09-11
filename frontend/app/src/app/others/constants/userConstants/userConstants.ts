@@ -1,4 +1,3 @@
-// constants/userRoutes/general.ts
 
 const USER_GENERAL = {
   PROFILE: '/users/profile' as const,

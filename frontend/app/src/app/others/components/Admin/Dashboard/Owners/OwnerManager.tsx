@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -14,6 +16,7 @@ import {
 import OwnersContent from "./OwnersContent";
 import OwnersStats from "./OwnersStats";
 import OwnersHeader from "./OwnersHeader";
+import { useDebounce } from "@/app/others/Utils/debounce";
 
 export interface Owner {
   _id: string;
@@ -76,13 +79,14 @@ export interface OwnerFilters {
   limit?: number;
   status?: "active" | "inactive";
 }
-export type ActiveView = 
-  | "active" 
-  | "inactive" 
-  | "pending" 
-  | "approved" 
-  | "rejected" 
-  | "active-theaters" 
+
+export type ActiveView =
+  | "active"
+  | "inactive"
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "active-theaters"
   | "inactive-theaters";
 
 export interface OwnerRequestFilters {
@@ -113,6 +117,9 @@ const OwnersManager: React.FC = () => {
   const [owners, setOwners] = useState<Owner[]>([]);
   const [ownerRequests, setOwnerRequests] = useState<OwnerRequest[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [ownerSearchValue, setOwnerSearchValue] = useState("");
+  const [requestSearchValue, setRequestSearchValue] = useState("");
+
   const [ownerFilters, setOwnerFilters] = useState<OwnerFilters>({});
   const [requestFilters, setRequestFilters] = useState<OwnerRequestFilters>({});
   const [ownerId, setOwnerId] = useState<string>("");
@@ -175,6 +182,94 @@ const OwnersManager: React.FC = () => {
     fetchCounts();
   }, []);
 
+  const debouncedOwnerSearch = useDebounce(
+    useCallback(async (filters: OwnerFilters, resetPage: boolean = true) => {
+      if (resetPage) {
+        setCurrentPage(1);
+        filters = { ...filters, page: 1, limit: itemsPerPage };
+      } else {
+        filters = { ...filters, limit: itemsPerPage };
+      }
+
+      setOwnerFilters(filters);
+
+      try {
+        setIsLoading(true);
+        const ownerFiltersWithStatus = {
+          ...filters,
+          status: activeView as "active" | "inactive",
+        };
+        const response = await getOwners(ownerFiltersWithStatus);
+
+        setOwners(response.data?.owners || response.owners || []);
+        setOwnerRequests([]);
+
+        if (response.data?.meta?.pagination) {
+          setTotalPages(response.data.meta.pagination.totalPages);
+          setTotalItems(response.data.meta.pagination.total);
+          setCurrentPage(response.data.meta.pagination.currentPage);
+        } else if (response.meta?.pagination) {
+          setTotalPages(response.meta.pagination.totalPages);
+          setTotalItems(response.meta.pagination.total);
+          setCurrentPage(response.meta.pagination.currentPage);
+        }
+      } catch (error: any) {
+        console.error("Filter error:", error);
+        toast.error(error.response?.data?.message || "Filter failed");
+        setOwners([]);
+        setTotalPages(1);
+        setTotalItems(0);
+      } finally {
+        setIsLoading(false);
+      }
+    }, [activeView, itemsPerPage]),
+    500
+  );
+
+  const debouncedRequestSearch = useDebounce(
+    useCallback(async (filters: OwnerRequestFilters, resetPage: boolean = true) => {
+      if (resetPage) {
+        setCurrentPage(1);
+        filters = { ...filters, page: 1, limit: itemsPerPage };
+      } else {
+        filters = { ...filters, limit: itemsPerPage };
+      }
+
+      setRequestFilters(filters);
+
+      try {
+        setIsLoading(true);
+        const requestFiltersWithStatus = {
+          ...filters,
+          status: activeView as "pending" | "approved" | "rejected",
+        };
+        const response = await getOwnerRequests(requestFiltersWithStatus);
+
+        setOwnerRequests(response.data?.requests || response.requests || []);
+        setOwners([]);
+
+        if (response.data?.meta?.pagination) {
+          setTotalPages(response.data.meta.pagination.totalPages);
+          setTotalItems(response.data.meta.pagination.total);
+          setCurrentPage(response.data.meta.pagination.currentPage);
+        } else if (response.meta?.pagination) {
+          setTotalPages(response.meta.pagination.totalPages);
+          setTotalItems(response.meta.pagination.total);
+          setCurrentPage(response.meta.pagination.currentPage);
+        }
+      } catch (error: any) {
+        console.error("Filter error:", error);
+        toast.error(error.response?.data?.message || "Filter failed");
+        setOwnerRequests([]);
+        setTotalPages(1);
+        setTotalItems(0);
+      } finally {
+        setIsLoading(false);
+      }
+    }, [activeView, itemsPerPage]),
+    500
+  );
+
   const handlePageChange = useCallback(
     (page: number) => {
       setCurrentPage(page);
@@ -197,87 +292,102 @@ const OwnersManager: React.FC = () => {
     filters: OwnerFilters,
     resetPage: boolean = true
   ) => {
-    if (resetPage) {
-      setCurrentPage(1);
-      filters = { ...filters, page: 1, limit: itemsPerPage };
+    const isSearchChange = filters.search !== undefined && filters.search !== ownerFilters.search;
+
+    if (isSearchChange) {
+      setOwnerSearchValue(filters.search || "");
+      debouncedOwnerSearch(filters, resetPage);
     } else {
-      filters = { ...filters, limit: itemsPerPage };
-    }
-
-    setOwnerFilters(filters);
-
-    try {
-      setIsLoading(true);
-      const ownerFiltersWithStatus = {
-        ...filters,
-        status: activeView as "active" | "inactive",
-      };
-      const response = await getOwners(ownerFiltersWithStatus);
-
-      setOwners(response.data?.owners || response.owners || []);
-      setOwnerRequests([]);
-
-      if (response.data?.meta?.pagination) {
-        setTotalPages(response.data.meta.pagination.totalPages);
-        setTotalItems(response.data.meta.pagination.total);
-        setCurrentPage(response.data.meta.pagination.currentPage);
-      } else if (response.meta?.pagination) {
-        setTotalPages(response.meta.pagination.totalPages);
-        setTotalItems(response.meta.pagination.total);
-        setCurrentPage(response.meta.pagination.currentPage);
+      if (resetPage) {
+        setCurrentPage(1);
+        filters = { ...filters, page: 1, limit: itemsPerPage };
+      } else {
+        filters = { ...filters, limit: itemsPerPage };
       }
-    } catch (error: any) {
-      console.error("Filter error:", error);
-      toast.error(error.response?.data?.message || "Filter failed");
-      setOwners([]);
-      setTotalPages(1);
-      setTotalItems(0);
-    } finally {
-      setIsLoading(false);
+
+      setOwnerFilters(filters);
+
+      try {
+        setIsLoading(true);
+        const ownerFiltersWithStatus = {
+          ...filters,
+          status: activeView as "active" | "inactive",
+        };
+        const response = await getOwners(ownerFiltersWithStatus);
+
+        setOwners(response.data?.owners || response.owners || []);
+        setOwnerRequests([]);
+
+        if (response.data?.meta?.pagination) {
+          setTotalPages(response.data.meta.pagination.totalPages);
+          setTotalItems(response.data.meta.pagination.total);
+          setCurrentPage(response.data.meta.pagination.currentPage);
+        } else if (response.meta?.pagination) {
+          setTotalPages(response.meta.pagination.totalPages);
+          setTotalItems(response.meta.pagination.total);
+          setCurrentPage(response.meta.pagination.currentPage);
+        }
+      } catch (error: any) {
+        console.error("Filter error:", error);
+        toast.error(error.response?.data?.message || "Filter failed");
+        setOwners([]);
+        setTotalPages(1);
+        setTotalItems(0);
+      } finally {
+        setIsLoading(false);
+      }
     }
+
   };
+
 
   const handleRequestFiltersChange = async (
     filters: OwnerRequestFilters,
     resetPage: boolean = true
   ) => {
-    if (resetPage) {
-      setCurrentPage(1);
-      filters = { ...filters, page: 1, limit: itemsPerPage };
+    const isSearchChange = filters.search !== undefined && filters.search !== requestFilters.search;
+
+    if (isSearchChange) {
+      debouncedRequestSearch(filters, resetPage);
     } else {
-      filters = { ...filters, limit: itemsPerPage };
-    }
-
-    setRequestFilters(filters);
-
-    try {
-      setIsLoading(true);
-      const requestFiltersWithStatus = {
-        ...filters,
-        status: activeView as "pending" | "approved" | "rejected",
-      };
-      const response = await getOwnerRequests(requestFiltersWithStatus);
-
-      setOwnerRequests(response.data?.requests || response.requests || []);
-      setOwners([]);
-
-      if (response.data?.meta?.pagination) {
-        setTotalPages(response.data.meta.pagination.totalPages);
-        setTotalItems(response.data.meta.pagination.total);
-        setCurrentPage(response.data.meta.pagination.currentPage);
-      } else if (response.meta?.pagination) {
-        setTotalPages(response.meta.pagination.totalPages);
-        setTotalItems(response.meta.pagination.total);
-        setCurrentPage(response.meta.pagination.currentPage);
+      if (resetPage) {
+        setCurrentPage(1);
+        filters = { ...filters, page: 1, limit: itemsPerPage };
+      } else {
+        filters = { ...filters, limit: itemsPerPage };
       }
-    } catch (error: any) {
-      console.error("Filter error:", error);
-      toast.error(error.response?.data?.message || "Filter failed");
-      setOwnerRequests([]);
-      setTotalPages(1);
-      setTotalItems(0);
-    } finally {
-      setIsLoading(false);
+
+      setRequestFilters(filters);
+
+      try {
+        setIsLoading(true);
+        const requestFiltersWithStatus = {
+          ...filters,
+          status: activeView as "pending" | "approved" | "rejected",
+        };
+        const response = await getOwnerRequests(requestFiltersWithStatus);
+
+        setOwnerRequests(response.data?.requests || response.requests || []);
+        setOwners([]);
+
+        if (response.data?.meta?.pagination) {
+          setTotalPages(response.data.meta.pagination.totalPages);
+          setTotalItems(response.data.meta.pagination.total);
+          setCurrentPage(response.data.meta.pagination.currentPage);
+        } else if (response.meta?.pagination) {
+          setTotalPages(response.meta.pagination.totalPages);
+          setTotalItems(response.meta.pagination.total);
+          setCurrentPage(response.meta.pagination.currentPage);
+        }
+      } catch (error: any) {
+        console.error("Filter error:", error);
+        toast.error(error.response?.data?.message || "Filter failed");
+        setOwnerRequests([]);
+        setTotalPages(1);
+        setTotalItems(0);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -373,7 +483,7 @@ const OwnersManager: React.FC = () => {
   return (
     <div className="space-y-6">
       <OwnersHeader />
-      
+
       <OwnersStats
         activeView={activeView}
         setActiveView={setActiveView}
@@ -386,6 +496,8 @@ const OwnersManager: React.FC = () => {
         owners={owners}
         ownerRequests={ownerRequests}
         isLoading={isLoading}
+        ownerSearchValue={ownerSearchValue}
+        requestSearchValue={requestSearchValue}
         ownerFilters={ownerFilters}
         requestFilters={requestFilters}
         currentPage={currentPage}

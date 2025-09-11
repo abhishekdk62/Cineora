@@ -20,12 +20,14 @@ interface TheaterListProps {
   theaters: Theater[];
   isLoading: boolean;
   onViewNowShowing: (theaterId: string) => void;
+  handleClickReview:(theaterId:string)=>void
 }
 
 const TheaterList: React.FC<TheaterListProps> = ({
   theaters,
   isLoading,
   onViewNowShowing,
+  handleClickReview
 }) => {
   if (isLoading) {
     return (
@@ -65,6 +67,7 @@ const TheaterList: React.FC<TheaterListProps> = ({
     <div className="space-y-4">
       {theaters.map((theater) => (
         <TheaterCard
+        handleClickReview={handleClickReview}
           key={theater._id}
           theater={theater}
           onViewNowShowing={onViewNowShowing}

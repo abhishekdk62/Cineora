@@ -20,6 +20,7 @@ interface Theater {
   _id: string;
   name: string;
   city: string;
+  averageRating?: number;
   state: string;
   location: {
     coordinates: [number, number]
@@ -32,39 +33,65 @@ interface Theater {
 interface TheaterCardProps {
   theater: Theater;
   onViewNowShowing: (theaterId: string) => void;
+  handleClickReview: (theaterId: string) => void
 }
 
-const TheaterCard: React.FC<TheaterCardProps> = ({ theater, onViewNowShowing }) => {
+const TheaterCard: React.FC<TheaterCardProps> = ({ theater, onViewNowShowing, handleClickReview }) => {
   const renderStars = (rating: number) => {
     return [...Array(5)].map((_, index) => (
       <Star
         key={index}
         className={`h-4 w-4 ${index < Math.floor(rating)
-            ? "text-yellow-400 fill-current"
-            : index < rating
-              ? "text-yellow-400 fill-current opacity-50"
-              : "text-gray-600"
+          ? "text-yellow-400 fill-current"
+          : index < rating
+            ? "text-yellow-400 fill-current opacity-50"
+            : "text-gray-600"
           }`}
       />
     ));
   };
-const router=useRouter()
+  const router = useRouter()
+  const renderStarRating = (rating: number) => {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
 
-const handleClick=(theaterId:string)=>{
-    
+    return (
+      <>
+        {/* Full Stars */}
+        {[...Array(fullStars)].map((_, index) => (
+          <Star key={`full-${index}`} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+        ))}
+
+        {/* Half Star */}
+        {hasHalfStar && (
+          <div key="half" className="relative">
+            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" style={{ clipPath: 'inset(0 50% 0 0)' }} />
+            <Star className="w-4 h-4 text-white absolute top-0 left-0" style={{ clipPath: 'inset(0 0 0 50%)' }} />
+          </div>
+        )}
+
+        {/* Empty Stars */}
+        {[...Array(emptyStars)].map((_, index) => (
+          <Star key={`empty-${index}`} className="w-4 h-4 text-white" />
+        ))}
+      </>
+    );
+  };
+
+  const handleClick = (theaterId: string) => {
+
     router.push(`/book/${theaterId}?flow=theater-first`)
-}
+  }
   return (
     <div className="backdrop-blur-sm bg-black/20 rounded-2xl p-6 border border-gray-500/30 hover:border-white/30 transition-all duration-300">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
         {/* Left Side - Theater Info */}
         <div className="flex-1">
-          {/* Theater Name */}
           <h3 className={`${lexendMedium.className} text-white text-xl mb-2`}>
             {theater.name}
           </h3>
 
-          {/* Location */}
           <div className="flex items-center gap-1 mb-3">
             <MapPin className="h-4 w-4 text-gray-400" />
             <p className={`${lexendSmall.className} text-gray-400`}>
@@ -73,17 +100,28 @@ const handleClick=(theaterId:string)=>{
             </p>
           </div>
 
-          {/* Rating */}
           <div className="flex items-center gap-2 mb-4">
             <div className="flex items-center gap-1">
-              {renderStars(theater?.rating)}
+              {/* 5-Star Rating Display */}
+              {renderStarRating(theater.averageRating || 0)}
+
+              {/* Numeric Rating */}
+              <span className={`${lexendSmall.className} text-yellow-400 font-semibold text-sm ml-2`}>
+                {theater.averageRating ? theater.averageRating.toFixed(1) : '0.0'}
+              </span>
             </div>
-            <span className={`${lexendSmall.className} text-gray-300`}>
-              {theater?.rating?.toFixed(1)} ({Math.floor(theater?.rating * 127)} reviews)
-            </span>
+
+            <div>
+              <p
+                className="ml-8 text-xs text-[#24a1cf] hover:text-[#1694c3] underline cursor-pointer"
+                onClick={() => handleClickReview(theater._id)}
+              >
+                View Reviews
+              </p>
+            </div>
           </div>
 
-          {/* Facilities */}
+
           <div className="flex flex-wrap gap-2">
             {theater.facilities.slice(0, 6).map((facility, index) => (
               <span

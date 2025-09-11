@@ -14,6 +14,7 @@ const lexendSmall = Lexend({
 interface MoviePosterSectionProps {
   poster: string;
   onPosterChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  posterError?: string;
 }
 
 const MoviePosterSection: React.FC<MoviePosterSectionProps> = ({

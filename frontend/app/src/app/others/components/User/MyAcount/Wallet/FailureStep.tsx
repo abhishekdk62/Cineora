@@ -1,4 +1,3 @@
-// components/wallet/modal/FailureStep.tsx
 import React from 'react';
 import { X, AlertCircle, Wallet } from 'lucide-react';
 

@@ -42,7 +42,6 @@ const BankDetailsModal: React.FC<BankDetailsModalProps> = ({
   saving,
   setSaving,
 }) => {
-  // Prefill bank details when modal opens and profile data is available
   useEffect(() => {
     if (show && profile) {
       setBankDetails({
@@ -109,10 +108,8 @@ const BankDetailsModal: React.FC<BankDetailsModalProps> = ({
     }
   };
 
-  // Reset form when modal closes
   const handleClose = () => {
     if (!saving) {
-      // Reset to original values when closing without saving
       if (profile) {
         setBankDetails({
           bankName: profile.bankName || "",

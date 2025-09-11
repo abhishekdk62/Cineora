@@ -5,7 +5,6 @@ import { Request, Response, NextFunction } from 'express';
 
 const logDir = 'logs';
 
-// Create logs directory if it doesn't exist
 if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir, { recursive: true });
 }
@@ -18,7 +17,6 @@ const transport = new winston.transports.DailyRotateFile({
   maxFiles: '14d'
 });
 
-// Create the logger - THIS IS IMPORTANT
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(
@@ -34,13 +32,12 @@ const logger = winston.createLogger({
   exitOnError: false,
 });
 
-// Now create the middleware functions that USE the logger
 export const requestLogger = (req: Request, res: Response, next: NextFunction) => {
-  logger.info(`${req.method} ${req.url}`);  // Now logger exists here
+  logger.info(`${req.method} ${req.url}`); 
   next();
 };
 
 export const errorLogger = (err: any, req: Request, res: Response, next: NextFunction) => {
-  logger.error(err.stack || err.message);   // Now logger exists here
+  logger.error(err.stack || err.message);   
   res.status(err.status || 500).send('Internal Server Error');
 };

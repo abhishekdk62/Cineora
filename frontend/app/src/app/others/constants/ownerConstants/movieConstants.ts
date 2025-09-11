@@ -1,4 +1,3 @@
-// constants/ownerRoutes/movies.ts
 
 const OWNER_MOVIES = {
   FILTER: '/owner/movies/filter' as const,

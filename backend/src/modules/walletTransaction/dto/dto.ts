@@ -1,4 +1,3 @@
-// All DTOs for WalletTransaction module
 
 export interface CreateWalletTransactionDto {
   userId: string;

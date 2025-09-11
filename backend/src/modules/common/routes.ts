@@ -3,6 +3,7 @@ import { TheaterController } from "../theaters/controllers/theaters.controller";
 import { MoviesController } from "../movies/controllers/movies.controllers";
 import { ShowtimeController } from "../showtimes/controllers/showtimes.controller";
 import { TicketController } from "../tickets/controllers/ticket.controller";
+import { ReviewController } from "../reviews/controllers/review.controller";
 
 export class CommonRoutes {
   constructor(
@@ -10,7 +11,8 @@ export class CommonRoutes {
     private _moviesController: MoviesController,
     private _theaterController: TheaterController,
     private _showTimeController: ShowtimeController,
-    private _ticketController: TicketController
+    private _ticketController: TicketController,
+    private reviewsController: ReviewController
   ) {
     this._setRoutes();
   }
@@ -40,7 +42,18 @@ export class CommonRoutes {
     this._router.get("/verify-ticket/:data", (req, res) =>
       this._ticketController.verifyTicketFromQrCode(req, res)
     );
-    
+    this._router.get("/reviews/movies/:movieId", (req, res) =>
+      this.reviewsController.getMovieReviews(req, res)
+    );
+    this._router.get("/reviews/theater/:theaterId", (req, res) =>
+      this.reviewsController.getTheaterReviews(req, res)
+    );
+    this._router.get("/reviews/stats/movies/:movieId", (req, res) =>
+      this.reviewsController.getMovieRatingStats(req, res)
+    );
+    this._router.get("/reviews/stats/theaters/:theaterId", (req, res) =>
+      this.reviewsController.getTheaterRatingStats(req, res)
+    );
   }
 
   public getRouter() {

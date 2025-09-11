@@ -16,7 +16,6 @@ const ShowtimeCard: React.FC<ShowtimeCardProps> = ({
   lexendMedium,
   lexendSmall,
 }) => {
-  // Calculate occupancy from bookedSeats array length
   const bookedSeatsCount = showtime.bookedSeats?.length || 0;
   const occupancyPercentage = Math.round((bookedSeatsCount / showtime.totalSeats) * 100);
   

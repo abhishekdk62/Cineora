@@ -3,7 +3,6 @@ import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
-
 import { MoviesController } from "./modules/movies/controllers/movies.controllers";
 import { OwnerController } from "./modules/owner/controllers/owner.controller";
 import { OwnerRequestController } from "./modules/owner/controllers/ownerRequest.controller";
@@ -17,11 +16,9 @@ import { OwnerRoute as OwnerMainRoute } from "./modules/owner/routes/owner.route
 import { OwnerRoute as OwnerRequestRoute } from "./modules/owner/routes/ownerRequest.routes";
 import { CommonRoutes } from "./modules/common/routes";
 import { AuthRoute } from "./modules/auth/routes/auth.routes";
-
 import { UserService } from "./modules/user/services/user.service";
 import { TheaterService } from "./modules/theaters/services/theater.service";
 import { MovieService } from "./modules/movies/services/movies.service";
-import { OwnerService } from "./modules/owner/services/owner.service";
 import { OwnerRequestService } from "./modules/owner/services/ownerRequest.service";
 import { OTPService } from "./modules/otp/services/otp.service";
 import { AuthService } from "./modules/auth/services/auth.service";
@@ -67,6 +64,21 @@ import { NotificationRepository } from "./modules/notification/repositories/noti
 import { NotificationScheduler } from "./services/scheduler.service";
 import { NotificationController } from "./modules/notification/controllers/notification.controller";
 import { errorLogger, requestLogger } from "./utils/logger";
+import { MovieFavoriteController } from "./modules/favorites/controllers/favorite.controller";
+import { FavoriteService } from "./modules/favorites/services/favorite.service";
+import { FavoriteRepository } from "./modules/favorites/repositories/favorite.repository";
+import { ReviewController } from "./modules/reviews/controllers/review.controller";
+import { ReviewService } from "./modules/reviews/services/review.service";
+import { ReviewRepository } from "./modules/reviews/repositories/review.repository";
+import { AnalyticsRoute } from "./modules/analytics/routes/analytics.routes";
+import { AnalyticsController } from "./modules/analytics/controllers/analytics.controller";
+import { AnalyticsRepository } from "./modules/analytics/repository/analytics.repository";
+import { OwnerService } from "./modules/owner/services/owner.service";
+import { AdminAnalyticsController } from "./modules/adminAnalytics/controllers/adminAnalytics.controller";
+import { AnalyticsService } from "./modules/analytics/services/analytics.service";
+import { AdminAnalyticsRoute } from "./modules/adminAnalytics/routes/adminAnalytics.routes";
+import { AdminAnalyticsService } from "./modules/adminAnalytics/services/adminAnalytics.service";
+import { AdminAnalyticsRepository } from "./modules/adminAnalytics/repository/adminAnalytics.repository";
 
 export class App {
   private _app: Application;
@@ -76,7 +88,7 @@ export class App {
     this._setMiddlewares();
     this._setUtilityRoutes();
     this._setModuleRoutes();
-    this._setErrorHandling()
+    this._setErrorHandling();
   }
   private _setMiddlewares() {
     this._app.use(helmet());
@@ -112,6 +124,10 @@ export class App {
     const movieRepo = new MovieRepository();
     const ticketRepo = new TicketRepository();
     const paymentRepo = new PaymentRepository();
+    const favoriteRepo = new FavoriteRepository();
+    const reviewRepo = new ReviewRepository();
+    const analyticsRepository = new AnalyticsRepository();
+    const adminAnalyticsRepository = new AdminAnalyticsRepository();
     const notificationRepo = new NotificationRepository();
     const walletTransactionRepo = new WalletTransactionRepository();
     const bookingRepo = new BookingRepository();
@@ -148,6 +164,7 @@ export class App {
     const notificationScheduler = new NotificationScheduler(
       notificationService
     );
+    const favoriteService = new FavoriteService(favoriteRepo);
     const walletTransactionService = new WalletTransactionService(
       walletTransactionRepo
     );
@@ -160,7 +177,11 @@ export class App {
       emailService,
       ownerRequestRepo
     );
-
+    const analyticsService = new AnalyticsService(analyticsRepository);
+    const adminAnalyticsService = new AdminAnalyticsService(
+      adminAnalyticsRepository
+    );
+    const reviewService = new ReviewService(reviewRepo);
     const userController = new UserController(
       userService,
       authService,
@@ -192,9 +213,10 @@ export class App {
     const showtimeController = new ShowtimeController(showtimeService);
     const theaterController = new TheaterController(
       theaterService,
-      screenService
+      screenService,
+      reviewService
     );
-    const moviesController = new MoviesController(movieService);
+    const moviesController = new MoviesController(movieService, reviewService);
     const authController = new AuthController(authService);
     const walletController = new WalletController(
       walletService,
@@ -209,6 +231,20 @@ export class App {
     );
     const walletTransactionController = new WalletTransactionController(
       walletTransactionService
+    );
+    const analyticsController = new AnalyticsController(analyticsService);
+    const adminAnalyticsController = new AdminAnalyticsController(
+      adminAnalyticsService
+    );
+    const reviewController = new ReviewController(reviewService);
+    const favoriteController = new MovieFavoriteController(favoriteService);
+    const analyticsRoutes = new AnalyticsRoute(
+      express.Router(),
+      analyticsController
+    );
+    const adminAnalyticsRoutes = new AdminAnalyticsRoute(
+      express.Router(),
+      adminAnalyticsController
     );
     const adminRoutes = new AdminRoutes(
       express.Router(),
@@ -230,7 +266,9 @@ export class App {
       ticketController,
       walletController,
       paymentController,
-      notificationController
+      notificationController,
+      favoriteController,
+      reviewController
     );
 
     const ownerRoutes = new OwnerMainRoute(
@@ -253,7 +291,8 @@ export class App {
       moviesController,
       theaterController,
       showtimeController,
-      ticketController
+      ticketController,
+      reviewController
     );
 
     const authRoutes = new AuthRoute(
@@ -275,6 +314,16 @@ export class App {
       authenticateToken,
       requireOwner,
       ownerRoutes.getRouter()
+    );
+    this._app.use(
+      "/api/analytics",
+      authenticateToken,
+      analyticsRoutes.getRouter()
+    );
+    this._app.use(
+      "/api/admin/analytics",
+      authenticateToken,
+      adminAnalyticsRoutes.getRouter()
     );
     this._app.use(
       "/api/admin",

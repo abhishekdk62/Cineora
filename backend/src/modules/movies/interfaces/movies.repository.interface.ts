@@ -5,7 +5,6 @@ import {
 } from "../dtos/dtos";
 import { IMovie } from "./movies.model.interface";
 
-// Interface Segregation Principle - Separate read and write operations
 export interface IMovieReadRepository {
   findMovieById(movieId: string): Promise<IMovie | null>;
   findMovieByTmdbId(tmdbId: string): Promise<IMovie | null>;
@@ -26,5 +25,4 @@ export interface IMovieWriteRepository {
   toggleMovieStatus(movieId: string): Promise<IMovie | null>;
 }
 
-// Combined interface following Interface Segregation Principle
 export interface IMovieRepository extends IMovieReadRepository, IMovieWriteRepository {}

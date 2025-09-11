@@ -23,9 +23,9 @@ const Barcode: React.FC<BarcodeProps> = ({ code }) => {
           />
         ))}
       </div>
-      <div className={`${lexendSmall.className} text-[10px] font-mono text-gray-600 mt-2 tracking-widest text-center`}>
+      {/* <div className={`${lexendSmall.className} text-[10px] font-mono text-gray-600 mt-2 tracking-widest text-center`}>
         {code.slice(-8)}
-      </div>
+      </div> */}
     </div>
   );
 };

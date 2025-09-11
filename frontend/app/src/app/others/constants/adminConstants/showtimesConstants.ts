@@ -1,4 +1,3 @@
-// constants/adminRoutes/showtimes.ts
 
 const ADMIN_SHOWTIMES = {
   BY_SCREEN_ID: (id: string) => `/admin/showtimes/${id}`,

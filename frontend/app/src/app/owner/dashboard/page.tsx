@@ -9,6 +9,8 @@ import ScreensManager from "@/app/others/components/Owner/Screens/ScreensManager
 import ShowtimesManager from "@/app/others/components/Owner/Showtimes/ShowtimesManager";
 import { lexendMedium, lexendSmall } from "@/app/others/Utils/fonts";
 import BookingsManager from "@/app/others/components/Owner/Bookings/BookingsManager";
+import AnalyticsManager from "@/app/others/components/Owner/Analytics/AnalyticsManager";
+import { RevenueManager } from "@/app/others/components/Owner/Revenue/RevenueManager";
 const OwnerManager = () => {
   const [activeTab, setActiveTab] = useState("theaters");
   const renderContent = () => {
@@ -29,11 +31,15 @@ const OwnerManager = () => {
         );
       case "analytics":
         return (
-          <div className="text-white">Analytics component coming soon...</div>
+          <AnalyticsManager />
         );
       case "offers":
         return (
           <div className="text-white">Offers component coming soon...</div>
+        );
+      case "revenue":
+        return (
+          <RevenueManager />
         );
       case "account":
         return <MyAccount />;

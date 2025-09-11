@@ -469,7 +469,6 @@ export class ShowtimeController {
       );
 
       if (result.success) {
-        // Create response with additional requestedDate field
         const responseData: ExtendedCreateResponseParams = {
           success: true,
           message: result.message,

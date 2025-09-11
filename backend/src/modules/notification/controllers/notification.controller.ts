@@ -25,7 +25,7 @@ export class NotificationController {
       if (result.success) {
         res.status(StatusCodes.OK).json(createResponse({
           success: true,
-          message: result.message || "Notifications retrieved successfully",
+          message: result.message || NOTIFICATION_MESSAGES.NOTIFICATION_RETRIEVED_SUCCESS,
           data: result.data,
         }));
       } else {
@@ -50,7 +50,7 @@ export class NotificationController {
       if (!notificationId) {
         res.status(StatusCodes.BAD_REQUEST).json(createResponse({
           success: false,
-          message: "NotificationId parameter is required",
+          message: NOTIFICATION_MESSAGES.NOTIFICATION_ID_REQUIRED,
         }));
         return;
       }
@@ -85,7 +85,7 @@ export class NotificationController {
       if (!notificationId) {
         res.status(StatusCodes.BAD_REQUEST).json(createResponse({
           success: false,
-          message: "NotificationId parameter is required",
+          message: NOTIFICATION_MESSAGES.NOTIFICATION_ID_REQUIRED,
         }));
         return;
       }

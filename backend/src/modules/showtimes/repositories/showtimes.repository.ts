@@ -565,7 +565,6 @@ export class ShowtimeRepository implements IShowtimeRepository {
     }
   }
 
-  // Private helper methods
   private _getDayBounds(date: Date): { startOfDay: Date; endOfDay: Date } {
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);

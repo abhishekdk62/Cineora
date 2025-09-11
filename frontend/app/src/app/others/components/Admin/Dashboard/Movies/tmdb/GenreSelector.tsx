@@ -14,11 +14,13 @@ const lexendSmall = Lexend({
 interface GenreSelectorProps {
   selectedGenres: string[];
   onGenreChange: (genre: string) => void;
+  genreError?: string; 
 }
 
 const GenreSelector: React.FC<GenreSelectorProps> = ({
   selectedGenres,
   onGenreChange,
+  genreError, 
 }) => {
   const genres = [
     "Action",
@@ -43,9 +45,11 @@ const GenreSelector: React.FC<GenreSelectorProps> = ({
   ];
 
   return (
-    <div className="bg-[#1a1a1a] border border-gray-600 rounded-lg p-4">
+    <div className={`bg-[#1a1a1a] border ${
+      genreError ? 'border-red-400' : 'border-gray-600' 
+    } rounded-lg p-4`}>
       <h3 className={`${lexend.className} text-lg text-white mb-4`}>
-        Genres
+        Genres <span className="text-red-400">*</span> 
       </h3>
       <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">
         {genres.map((genre) => (
@@ -67,6 +71,12 @@ const GenreSelector: React.FC<GenreSelectorProps> = ({
           </label>
         ))}
       </div>
+      
+      {/* 🔥 Add error message display */}
+      {genreError && (
+        <p className="text-red-400 text-sm mt-2">{genreError}</p>
+      )}
+      
       <div className="mt-4 flex flex-wrap gap-2">
         {selectedGenres.map((genre, index) => (
           <span

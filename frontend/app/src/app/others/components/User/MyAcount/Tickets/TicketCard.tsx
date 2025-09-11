@@ -6,38 +6,42 @@ import { generateTicketPDF } from '@/app/others/Utils/pdfGenerator';
 import { cancelTicket } from '@/app/others/services/userServices/ticketServices';
 import { confirmAction, ConfirmDialog } from '../../../utils/ConfirmDialog';
 import toast from 'react-hot-toast';
+import QRCodeDisplay from './QRCodeDisplay';
+import { Star } from 'lucide-react';
+import { addReview } from '@/app/others/services/userServices/reviewServices';
+import { AddReviewRequestDto } from '@/app/others/dtos/review.dto';
 
 const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
 const lexendSmall = { className: "font-normal text-sm" };
 
 interface TicketCardProps {
+  handleAddReview: (booking: any) => void;
   booking: any;
   activeTab: string;
   onViewDetails: (booking: any) => void;
-  getTickets: (pageNumber: number) => void
+  getTickets: (pageNumber: number) => void;
 }
 
-const TicketCard: React.FC<TicketCardProps> = ({ booking, onViewDetails, activeTab, getTickets }) => {
+const TicketCard: React.FC<TicketCardProps> = ({ 
+  handleAddReview, 
+  booking, 
+  onViewDetails, 
+  activeTab, 
+  getTickets 
+}) => {
   const [downloadingPdf, setDownloadingPdf] = useState(false);
 
-  const calculateTotalPrice = (booking: any) => {
-    const baseTotal = booking.totalPrice;
-    const tax = baseTotal * 0.18;
-    const convenienceFee = baseTotal * 0.05;
-    return baseTotal + tax + convenienceFee;
+  const getMovieData = (booking: any) => {
+    return booking.movie || booking.movieId || {};
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
-    });
+  const getTheaterData = (booking: any) => {
+    return booking.theater || booking.theaterId || {};
   };
 
-  const formatTime = (timeString: string) => {
-    return timeString;
+  const getShowtimeData = (booking: any) => {
+    return booking.showtime || booking.showtimeId || {};
   };
 
   const groupTicketsBySeatType = (tickets: any[]) => {
@@ -71,23 +75,52 @@ const TicketCard: React.FC<TicketCardProps> = ({ booking, onViewDetails, activeT
     }));
   };
 
+  const calculatePricing = () => {
+    if (booking.allTickets) {
+      const groups = groupTicketsBySeatType(booking.allTickets);
+      const totalAmount = groups.reduce((sum, group) => sum + group.totalPrice, 0);
+      const totalSeats = groups.reduce((sum, group) => sum + group.count, 0);
+      const allSeats = groups.flatMap(group => group.seats);
+      return { groups, totalAmount, totalSeats, allSeats };
+    } else {
+      const basePrice = booking.price;
+      const taxAmount = basePrice * 0.18;
+      const convenienceAmount = basePrice * 0.05;
+      const totalPrice = basePrice + taxAmount + convenienceAmount;
+      
+      const groups = [{
+        seatType: booking.seatType,
+        seats: [`${booking.seatRow}${booking.seatNumber}`],
+        count: 1,
+        price: basePrice,
+        totalPrice: totalPrice
+      }];
+      
+      return {
+        groups,
+        totalAmount: totalPrice,
+        totalSeats: 1,
+        allSeats: [`${booking.seatRow}${booking.seatNumber}`]
+      };
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  const formatTime = (timeString: string) => {
+    return timeString;
+  };
+
   const handleDownloadPdf = async () => {
     try {
       setDownloadingPdf(true);
-
-      const seatGroups = booking.allTickets ?
-        groupTicketsBySeatType(booking.allTickets) :
-        [{
-          seatType: booking.seatType,
-          seats: booking.seats,
-          count: booking.seats.length,
-          price: booking.totalPrice / booking.seats.length,
-          totalPrice: calculateTotalPrice(booking)
-        }];
-
-      const totalAmount = calculateTotalPrice(booking);
-      const totalSeats = booking.seats.length;
-      const allSeats = booking.seats;
+      const { groups: seatGroups, totalAmount, totalSeats, allSeats } = calculatePricing();
 
       await generateTicketPDF({
         ticket: booking,
@@ -104,54 +137,75 @@ const TicketCard: React.FC<TicketCardProps> = ({ booking, onViewDetails, activeT
       setDownloadingPdf(false);
     }
   };
+
   const handleCancel = async () => {
     try {
       const confirm = await confirmAction({
         title: 'Cancel ticket?',
-        message: 'Do you really want to cancell this ticket?',
+        message: 'Do you really want to cancel this ticket?',
         confirmText: 'Yes',
         cancelText: 'No'
-      })
+      });
+      
       if (!confirm) {
-        return
+        return;
       }
-      const data = await cancelTicket(booking.bookingId, Math.round(calculateTotalPrice(booking)))
-      toast.success('Ticket cancelled ')
-      getTickets(1)
-
-
+      
+      const { totalAmount } = calculatePricing();
+      const data = await cancelTicket(booking.bookingId, Math.round(totalAmount));
+      toast.success('Ticket cancelled');
+      getTickets(1);
     } catch (error) {
       console.log(error);
-
+      toast.error('Failed to cancel ticket');
     }
-  }
+  };
+
+  const movieData = getMovieData(booking);
+  const theaterData = getTheaterData(booking);
+  const showtimeData = getShowtimeData(booking);
+  const { totalAmount } = calculatePricing();
+
   return (
     <div className="flex bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl hover:scale-[1.02] transition-transform duration-300 group">
-      {/* Poster */}
       <div className="w-40 shrink-0 relative bg-gray-800">
         <img
-          src={booking.movieId.poster}
-          alt={booking.movieId.title}
+          src={movieData.poster || '/placeholder-movie.jpg'}
+          alt={movieData.title || 'Movie'}
           className="w-full h-full object-cover"
+          onError={(e) => {
+            e.currentTarget.src = '/placeholder-movie.jpg';
+          }}
         />
       </div>
 
-
       <div className="flex flex-col flex-1 px-7 py-6">
-        <div className={` gap-1 flex items-center text-white mb-2`}>
-
+        <div className="flex items-center justify-between text-white mb-2">
           <div className={`${lexendBold.className} text-xl`}>
-
-            {booking.movieId.title}
+            {movieData.title || 'Unknown Movie'}
           </div>
 
-          {booking.status == 'cancelled' && <button className=' bg-transparent text-red-400 border border-red-500 p-1 rounded-2xl'>
-            Cancelled
-          </button>}
+          <div className="flex items-center gap-2">
+            {booking.status === "confirmed" && !booking.isUsed && activeTab === "history" && (
+              <button
+                onClick={() => handleAddReview(booking)}
+                className={`${lexendMedium.className} justify-center items-center flex gap-0.5 px-1.5 py-0.5 rounded-lg bg-yellow-500 text-black hover:bg-yellow-600 transition`}
+              >
+                <Star size={13} className="fill-current text-black" />
+                Add Review
+              </button>
+            )}
+
+            {booking.status === 'cancelled' && (
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-600 border border-red-200">
+                Cancelled
+              </span>
+            )}
+          </div>
         </div>
 
         <p className={`${lexendSmall.className} text-gray-300 mb-4`}>
-          {booking.theaterId.name} - {booking.screenId.name}
+          {theaterData.name || 'Unknown Theater'} - Screen: {booking.screen?.name || 'N/A'}
         </p>
 
         <div className={`${lexendMedium.className} flex items-center gap-8 mt-2 text-base text-white`}>
@@ -174,11 +228,11 @@ const TicketCard: React.FC<TicketCardProps> = ({ booking, onViewDetails, activeT
             {booking.seatType}
           </span>
           <span className={`${lexendSmall.className} bg-white/10 text-white px-3 py-1.5 rounded-lg font-medium border border-white/20`}>
-            Seats: {booking.seats.join(', ')}
+            Seat: {booking.seatRow}{booking.seatNumber}
           </span>
-          {/* <span className={`${lexendSmall.className} bg-white/10 text-white px-3 py-1.5 rounded-lg font-medium border border-white/20`}>
-            ₹{Math.round(calculateTotalPrice(booking))}
-          </span> */}
+          <span className={`${lexendSmall.className} bg-white/10 text-white px-3 py-1.5 rounded-lg font-medium border border-white/20`}>
+            ₹{Math.round(totalAmount)}
+          </span>
         </div>
 
         <div className="mt-auto flex gap-3">
@@ -195,10 +249,11 @@ const TicketCard: React.FC<TicketCardProps> = ({ booking, onViewDetails, activeT
           >
             {downloadingPdf ? 'Generating...' : 'Download PDF'}
           </button>
-          {booking.status === 'confirmed' && !booking.isUsed && activeTab == 'upcoming' && (
+          {booking.status === 'confirmed' && !booking.isUsed && activeTab === 'upcoming' && (
             <button
               onClick={handleCancel}
-              className={`${lexendMedium.className} bg-transparent text-white/70 px-5 py-2.5 rounded-xl border border-white/50 hover:bg-red-900/20 hover:text-red-400 hover:border-red-500/30 transition-colors text-sm`}>
+              className={`${lexendMedium.className} bg-transparent text-white/70 px-5 py-2.5 rounded-xl border border-white/50 hover:bg-red-900/20 hover:text-red-400 hover:border-red-500/30 transition-colors text-sm`}
+            >
               Cancel Ticket
             </button>
           )}
@@ -207,8 +262,9 @@ const TicketCard: React.FC<TicketCardProps> = ({ booking, onViewDetails, activeT
 
       <div className="flex flex-col justify-center items-center w-24 bg-white border-l border-white/20 relative">
         <Barcode code={booking.qrCode} />
+
         <div className={`${lexendSmall.className} absolute bottom-4 left-1/2 transform -translate-x-1/2 text-xs text-gray-700 font-mono`}>
-          #{booking.ticketId.slice(-4)}
+          {booking.ticketId?.slice(0, 7) || 'N/A'}
         </div>
       </div>
     </div>

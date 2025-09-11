@@ -1,6 +1,5 @@
 import { Types } from "mongoose";
 
-// Screen DTOs
 export interface CreateScreenDto {
   theaterId?: Types.ObjectId;
   theater?: { _id: Types.ObjectId };
@@ -52,7 +51,6 @@ export interface UpdateScreenDto {
   theaterId?: Types.ObjectId;
 }
 
-// Filter DTOs
 export interface ScreenFilterDto {
   isActive?: boolean;
   screenType?: string;
@@ -72,7 +70,6 @@ export interface AdvancedScreenFilterDto {
   sortOrder?: "asc" | "desc";
 }
 
-// Response DTOs
 export interface PaginatedScreenResultDto {
   screens: any[];
   total: number;
@@ -118,13 +115,11 @@ export interface ScreenCountDto {
   count: number;
 }
 
-// Utility DTOs
 export interface PaginationDto {
   page: number;
   limit: number;
 }
 
-// Legacy DTOs (if you still need them from your original dtos/dtos file)
 export interface ScreenFilters {
   isActive?: boolean;
   screenType?: string;

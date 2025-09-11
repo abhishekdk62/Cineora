@@ -1,6 +1,5 @@
 import { IMovie } from "../interfaces/movies.model.interface";
 
-// Request DTOs
 export interface CreateMovieDto {
   tmdbId: string;
   title: string;
@@ -58,7 +57,6 @@ export interface UpdateMovieParamsDto {
   movieId: string;
 }
 
-// Response DTOs
 export interface MovieResponseDto extends IMovie {}
 
 export interface PaginatedMoviesResponseDto {
@@ -70,14 +68,12 @@ export interface PaginatedMoviesResponseDto {
   hasPrevPage: boolean;
 }
 
-// Repository Result DTOs
 export interface MovieRepositoryFindResult {
   movies: IMovie[];
   total: number;
   totalPages: number;
 }
 
-// Configuration Types
 export interface MovieSortConfiguration {
   title: (order: number) => Record<string, number>;
   releaseDate: (order: number) => Record<string, number>;

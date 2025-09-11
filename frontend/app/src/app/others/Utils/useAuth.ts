@@ -1,4 +1,3 @@
-// hooks/useAuth.ts
 'use client'
 
 import { useSelector, useDispatch } from 'react-redux'

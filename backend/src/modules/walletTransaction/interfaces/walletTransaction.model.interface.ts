@@ -1,4 +1,3 @@
-// interfaces/walletTransaction.model.interface.ts
 import { Document, Types } from 'mongoose';
 
 export interface IWalletTransaction extends Document {

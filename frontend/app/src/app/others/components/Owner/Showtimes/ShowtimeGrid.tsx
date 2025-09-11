@@ -3,14 +3,15 @@ import React from "react";
 import { Calendar, ChevronDown, ChevronUp } from "lucide-react";
 import { IShowtime } from "./showtime.interfaces";
 import ShowtimeCard from "./ShowtimeCard";
+import { ShowtimeResponseDto } from "@/app/others/dtos";
 
 interface ShowtimeGridProps {
-  groupedShowtimes: Record<string, IShowtime[]>;
+  groupedShowtimes: Record<string, ShowtimeResponseDto[]>;
   groupBy: string;
   collapsedGroups: Set<string>;
   onToggleGroupCollapse: (groupKey: string) => void;
-  onEdit: (showtime: IShowtime) => void;
-  onView: (showtime: IShowtime) => void;
+  onEdit: (showtime: ShowtimeResponseDto) => void;
+  onView: (showtime: ShowtimeResponseDto) => void;
   onToggleStatus: (showtimeId: string, isActive: boolean) => void;
   lexendMedium: any;
   lexendSmall: any;

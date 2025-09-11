@@ -1,4 +1,3 @@
-// constants/ownerRoutes/bookingConstants.ts
 
 const OWNER_BOOKINGS = {
   SHOWTIMES_FOR_BOOKINGS: (theaterId: string, screenId: string, date: string) =>

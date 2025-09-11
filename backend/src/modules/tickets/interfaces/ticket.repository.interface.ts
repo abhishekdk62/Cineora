@@ -1,6 +1,5 @@
 import { ITicket } from './ticket.model.interface';
 
-// Interface Segregation Principle - separate read and write operations
 export interface IReadTicketRepository {
   findTicketById(ticketId: string): Promise<ITicket | null>;
   findTicketByTicketId(ticketId: string): Promise<ITicket | null>;
@@ -9,7 +8,11 @@ export interface IReadTicketRepository {
   findTicketsByUserIdPaginated(
     userId: string,
     page: number,
-    limit: number
+    limit: number,
+     types: ("upcoming" | "past" | "cancelled" | "all")[]
+
+
+
   ): Promise<{
     tickets: ITicket[];
     total: number;
@@ -29,6 +32,5 @@ export interface IWriteTicketRepository {
   deleteTicketById(ticketId: string): Promise<boolean>;
 }
 
-// Combined interface following ISP
 export interface ITicketRepository 
   extends IReadTicketRepository, IWriteTicketRepository {}

@@ -1,12 +1,13 @@
 import React from "react";
 import { Movie } from "./MoviesList";
 import MovieCard from "./MovieCard";
+import { MovieResponseDto } from "@/app/others/dtos";
 
 interface MoviesGridProps {
-  movies: Movie[];
-  onEdit: (movie: Movie) => void;
-  onDelete: (movie: Movie) => void;
-  onToggleStatus: (movie: Movie) => void;
+  movies: MovieResponseDto[];
+  onEdit: (movie: MovieResponseDto) => void;
+  onDelete: (movie: MovieResponseDto) => void;
+  onToggleStatus: (movie: MovieResponseDto) => void;
 }
 
 const MoviesGrid: React.FC<MoviesGridProps> = ({

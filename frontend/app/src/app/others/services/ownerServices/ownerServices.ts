@@ -1,4 +1,3 @@
-// Add these imports and functions to the existing ownerService.ts file
 
 import { UserProfile } from "../../components/Owner/MyAccount/MyAccount";
 import OWNER_ROUTES from "../../constants/ownerConstants/ownerConstants";
@@ -22,7 +21,6 @@ import {
 } from '../../dtos/owner.dto';
 import apiClient from "../../Utils/apiClient";
 
-// Add these functions to existing owner service
 
 export const sendOwnerOTP = async (email: string): Promise<SendOwnerOTPResponseDto> => {
   const requestData: SendOwnerOTPRequestDto = { email };

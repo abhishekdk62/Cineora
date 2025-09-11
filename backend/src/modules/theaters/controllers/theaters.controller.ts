@@ -5,11 +5,13 @@ import { IScreenService } from "../../screens/interfaces/screens.services.interf
 import { CreateTheaterDTO, UpdateTheaterDTO, TheaterFilters } from "../dtos/dto";
 import { StatusCodes } from "../../../utils/statuscodes";
 import { THEATER_MESSAGES } from "../../../utils/messages.constants";
+import { IReviewService } from "../../reviews/interfaces/review.service.interface";
 
 export class TheaterController {
   constructor(
     private readonly theaterService: ITheaterService,
-    private readonly screenService: IScreenService
+    private readonly screenService: IScreenService,
+    private readonly _reviewService:IReviewService
   ) {}
 
   async getTheatersWithFilters(req: Request, res: Response): Promise<void> {
@@ -17,11 +19,21 @@ export class TheaterController {
       const filters = this._extractTheaterFilters(req);
       
       const result = await this.theaterService.getTheatersWithFilters(filters);
+    const theaterIds = result.theaters.map(theater => theater._id.toString());
+
+    const ratingsResponse = await this._reviewService.getBulkTheaterRatings(theaterIds);
+    const ratingsMap = ratingsResponse.data || {};
+
+    const theatersWithRatings = result.theaters.map(theater => ({
+      ...theater, 
+      averageRating: ratingsMap[theater._id.toString()]?.averageRating || 0,
+      totalReviews: ratingsMap[theater._id.toString()]?.totalReviews || 0,
+    }));
 
       res.status(StatusCodes.OK).json(createResponse({
         success: true,
         message: "Theaters retrieved successfully",
-        data: result.theaters,
+        data: theatersWithRatings,
         meta: {
           pagination: {
             currentPage: result.currentPage,
@@ -74,6 +86,7 @@ export class TheaterController {
 
   async getTheatersByOwnerId(req: Request, res: Response): Promise<void> {
     try {
+      
       const ownerId = this._extractOwnerId(req);
       if (!ownerId) {
         res.status(StatusCodes.BAD_REQUEST).json(createResponse({
@@ -303,7 +316,6 @@ export class TheaterController {
     }
   }
 
-  // Private helper methods
   private _extractTheaterFilters(req: Request): TheaterFilters {
     let facilities: string[] | undefined;
 

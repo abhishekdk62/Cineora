@@ -28,6 +28,8 @@ export const getTheatersByOwnerIdAdmin = async (
   filters?: TheaterFilters
 ): Promise<GetTheatersByOwnerIdResponseDto> => {
   try {
+    console.log(ownerId);
+    
     const result = await apiClient.get(ADMIN_THEATERS.BASE, { params: { ownerId, ...filters } });
     return result.data;
   } catch (error) {

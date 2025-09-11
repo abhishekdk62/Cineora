@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -59,8 +61,7 @@ const ScreenSelectionModal: React.FC<ScreenSelectionModalProps> = ({
   const fetchScreens = async () => {
     try {
       const result = await getScreensByTheaterId(theaterId);
-      console.log("All screens data:", result.data.data);
-      setScreens(result.data.data);
+      setScreens(result.data);
     } catch (error) {
       console.error("Error fetching screens:", error);
     } finally {

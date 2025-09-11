@@ -1,4 +1,3 @@
-// components/wallet/AddMoneyModal.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -54,7 +53,6 @@ const AddMoneyModal: React.FC<AddMoneyModalProps> = ({
             setStep('success');
         } catch (error) {
             console.error('Failed to add money:', error);
-            // Handle error - you might want to show an error message
         } finally {
             setLoading(false);
         }

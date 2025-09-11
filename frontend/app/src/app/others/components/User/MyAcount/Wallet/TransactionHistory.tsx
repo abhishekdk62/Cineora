@@ -1,4 +1,3 @@
-// components/wallet/TransactionHistory.tsx
 import React, { useState, useRef } from 'react';
 import { History } from 'lucide-react';
 
@@ -95,7 +94,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
     hoverTimeoutRef.current = setTimeout(() => {
       setHoveredTransactionId(transactionId);
       setShowDetailPopup(true);
-    }, 1000); // 1 second delay
+    }, 1000); 
   };
 
   const handleMouseLeave = () => {
@@ -106,7 +105,6 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
     setHoveredTransactionId(null);
   };
 
-  // Get transactions to display (first 5 or all based on showAllTransactions)
   const displayedTransactions = showAllTransactions
     ? transactions
     : transactions.slice(0, 5);
