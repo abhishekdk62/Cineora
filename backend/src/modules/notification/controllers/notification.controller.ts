@@ -43,6 +43,41 @@ export class NotificationController {
     }
   }
   
+  async getAllUserNotifications(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+      
+      if (!userId) {
+        res.status(StatusCodes.UNAUTHORIZED).json(createResponse({
+          success: false,
+          message: NOTIFICATION_MESSAGES.AUTH_REQUIRED
+        }));
+        return;
+      }
+      
+      const result = await this.notificationService.getAllUserNotifications(userId);
+      
+      if (result.success) {
+        res.status(StatusCodes.OK).json(createResponse({
+          success: true,
+          message: result.message || NOTIFICATION_MESSAGES.NOTIFICATION_RETRIEVED_SUCCESS,
+          data: result.data,
+        }));
+      } else {
+        res.status(StatusCodes.BAD_REQUEST).json(createResponse({
+          success: false,
+          message: result.message,
+        }));
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : NOTIFICATION_MESSAGES.INTERNAL_SERVER_ERROR;
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(createResponse({
+        success: false,
+        message: errorMessage,
+      }));
+    }
+  }
+  
   async markNotificationAsRead(req: Request, res: Response): Promise<void> {
     try {
       const { notificationId } = req.params;

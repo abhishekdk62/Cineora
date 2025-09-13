@@ -228,6 +228,7 @@ const ScreenViewModal: React.FC<ScreenViewModalProps> = ({
               <LayoutPreview 
                 advancedLayoutJSON={screen.layout.advancedLayout}
                 maxCols={getMaxCols()}
+                showAisles={true}
               />
             </div>
           </div>

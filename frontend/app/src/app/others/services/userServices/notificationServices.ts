@@ -9,6 +9,10 @@ export const getAllUserNotifications = async (): Promise<GetNotificationsRespons
   const response = await apiClient.get(USER_NOTIFICATIONS.ALL);
   return response.data;
 };
+export const getFullUserNotifications = async (): Promise<GetNotificationsResponseDto> => {
+  const response = await apiClient.get(USER_NOTIFICATIONS.FULL);
+  return response.data;
+};
 
 export const markNotificationAsSeen = async (notificationId: string): Promise<MarkNotificationReadResponseDto> => {
   const response = await apiClient.patch(USER_NOTIFICATIONS.MARK_AS_SEEN(notificationId));

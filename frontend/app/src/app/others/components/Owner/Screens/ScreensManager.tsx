@@ -10,11 +10,12 @@ import {
   Users,
   Grid,
   Power,
-} from "lucide-react";
+} from "lucide-react"; // REMOVED Route import
 import TheatersList from "./TheatersList";
 import ScreensList from "./ScreensList";
 import ScreenFormModal from "./ScreenFormModal";
 import ScreenViewModal from "./ScreenViewModal";
+// REMOVED AisleManagementModal import
 import { ITheater } from "@/app/others/types";
 import { IScreen } from "@/app/others/types/screen.types";
 import {
@@ -30,6 +31,7 @@ const ScreenManagement = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
+  // REMOVED showAisleModal state
   const [selectedScreen, setSelectedScreen] = useState<IScreen | null>(null);
   const [theaters, setTheaters] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -56,7 +58,6 @@ const ScreenManagement = () => {
     try {
       setIsLoading(true);
       const data = await getTheatersByOwnerId();
-      
       setTheaters(data.data.theaters || []);
     } catch (error) {
       console.error("Error fetching theaters:", error);
@@ -64,6 +65,7 @@ const ScreenManagement = () => {
       setIsLoading(false);
     }
   };
+
   const fetchScreenStats = async () => {
     if (!selectedTheater) return;
 
@@ -71,7 +73,7 @@ const ScreenManagement = () => {
       const data = await getScreensStatsOwner(selectedTheater._id);
       setScreenStats({
         total: data.data.overview.totalScreens,
-        active: data.data.overview.inactiveScreens,
+        active: data.data.overview.activeScreens,
         inactive: data.data.overview.inactiveScreens,
         totalSeats: data.data.overview.totalSeats,
       });
@@ -94,7 +96,7 @@ const ScreenManagement = () => {
   };
 
   const handleEditScreen = (screen: IScreen) => {
-    setShowViewModal(false)
+    setShowViewModal(false);
     setSelectedScreen(screen);
     setShowEditModal(true);
   };
@@ -160,6 +162,7 @@ const ScreenManagement = () => {
               </div>
             </div>
 
+            {/* SIMPLIFIED Action Buttons - Only Add New Screen */}
             <button
               onClick={handleCreateScreen}
               className={`${lexendMedium.className} bg-white text-black px-6 py-3 rounded-xl hover:bg-gray-200 transition-all duration-300 flex items-center gap-2 font-medium`}
@@ -169,6 +172,7 @@ const ScreenManagement = () => {
             </button>
           </div>
 
+          {/* Stats cards remain the same... */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="bg-black/90 backdrop-blur-sm border border-gray-500/30 rounded-2xl p-6">
               <div className="flex items-center justify-between">
@@ -297,6 +301,7 @@ const ScreenManagement = () => {
             handleRefreshScreens();
           }}
           mode="create"
+          initialData={null}
         />
       )}
 
@@ -321,6 +326,7 @@ const ScreenManagement = () => {
           onEdit={handleEditScreen}
         />
       )}
+
     </div>
   );
 };

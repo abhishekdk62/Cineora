@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { LayoutPreview } from "../../../Owner/Screens/LayoutPreview";
 import { IScreen } from "./inedx";
+import { Screen } from "../../../Owner/Showtimes/ScreenSelectionModal";
 
 const lexend = Lexend({
   weight: "500",
@@ -29,9 +30,9 @@ const lexendSmall = Lexend({
 
 interface ScreenCardProps {
   handleToggleScreenStatus: (screenId: string, isActive: boolean) => void
-  screen: IScreen;
-  onViewDetails: (screen: IScreen) => void;
-  onViewShowtimes: (screen: IScreen) => void;
+  screen: Screen;
+  onViewDetails: (screen: Screen) => void;
+  onViewShowtimes: (screen: Screen) => void;
 }
 
 const ScreenCard: React.FC<ScreenCardProps> = ({
@@ -54,7 +55,13 @@ const ScreenCard: React.FC<ScreenCardProps> = ({
     }
     return '';
   };
-
+  const hasAisles = () => {
+    const aisles = screen.layout.advancedLayout?.aisles;
+    return aisles && (
+      (aisles.vertical && aisles.vertical.length > 0) || 
+      (aisles.horizontal && aisles.horizontal.length > 0)
+    );
+  };
   return (
     <div className="bg-gray-800/50 border border-yellow-500/20 rounded-lg p-6 hover:bg-gray-700/50 hover:border-yellow-500/30 transition-all duration-200">
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
@@ -113,13 +120,7 @@ const ScreenCard: React.FC<ScreenCardProps> = ({
                 </span>
               </div>
               
-              {screen.screenType && (
-                <div className="flex items-center gap-2 md:col-span-2">
-                  <Settings size={14} className="text-gray-400" />
-                  <span className="text-gray-400">Type:</span>
-                  <span className="text-white font-medium">{screen.screenType}</span>
-                </div>
-              )}
+            
             </div>
           </div>
 
@@ -190,7 +191,7 @@ const ScreenCard: React.FC<ScreenCardProps> = ({
           </div>
         </div>
       </div>
-
+ 
       {/* Layout Preview */}
       {showLayoutPreview && screen.layout?.advancedLayout && (
         <div className="mt-6 pt-6 border-t border-yellow-500/20">
@@ -204,6 +205,7 @@ const ScreenCard: React.FC<ScreenCardProps> = ({
             <LayoutPreview
               advancedLayoutJSON={screen.layout.advancedLayout}
               maxCols={screen.layout.seatsPerRow || 24}
+                 showAisles={hasAisles()} 
             />
           </div>
         </div>

@@ -11,6 +11,8 @@ import {
   FormData,
   RowDef,
   ValidationErrors,
+  VerticalAisle,
+  HorizontalAisle,
 } from "./types";
 import { SetupModeToggle } from "./SetupModeToggle";
 import { QuickStartTemplates } from "./QuickStartTemplates";
@@ -60,7 +62,11 @@ const ScreenFormModal: React.FC<ScreenFormModalProps> = ({
     { rowLabel: "E", seatCount: 16, offset: 0, type: "VIP", price: 300 },
   ]);
 
+  const [verticalAisles, setVerticalAisles] = useState<VerticalAisle[]>([]);
+  const [horizontalAisles, setHorizontalAisles] = useState<HorizontalAisle[]>([]);
+
   const maxCols = useMemo(() => {
+    if (rowsDefs.length === 0) return 0;
     return Math.max(...rowsDefs.map((d) => d.offset + d.seatCount));
   }, [rowsDefs]);
 
@@ -76,45 +82,93 @@ const ScreenFormModal: React.FC<ScreenFormModalProps> = ({
           price: def.price,
         })),
       })),
+      aisles: {
+        vertical: verticalAisles,
+        horizontal: horizontalAisles,
+      },
     }),
-    [rowsDefs]
+    [rowsDefs, verticalAisles, horizontalAisles]
   );
 
   const totalSeats = useMemo(() => {
     return rowsDefs.reduce((total, row) => total + row.seatCount, 0);
   }, [rowsDefs]);
 
-  const convertScreenLayoutToRowsDefs = (screen: IScreen): RowDef[] => {
-    if (!screen.layout?.advancedLayout?.rows) return [];
+const convertScreenLayoutToRowsDefs = (screen: IScreen): RowDef[] => {
+  if (!screen.layout?.advancedLayout?.rows) return [];
 
-    return screen.layout.advancedLayout.rows.map((row) => ({
-      rowLabel: row.rowLabel,
-      seatCount: row.seats.length,
-      offset: row.offset || 0,
-      type: row.seats[0]?.type || "Normal",
-      price: row.seats[0].price || 150,
-    }));
-  };
-
-  useEffect(() => {
-    if (mode === "edit" && initialData) {
-      const existingRowsDefs = convertScreenLayoutToRowsDefs(initialData);
-      setRowsDefs(existingRowsDefs);
-
-      setFormData({
-        name: initialData.name || "",
-        features: initialData.features || [],
-        screenType: initialData.screenType || "",
-        totalSeats: initialData.totalSeats || 0,
-        layout: {
-          rows: initialData.layout?.rows || 0,
-          seatsPerRow: initialData.layout?.seatsPerRow || 0,
-          advancedLayout: initialData.layout?.advancedLayout || { rows: [] },
-        },
-      });
-      setSetupMode("manual");
+  return screen.layout.advancedLayout.rows.map((row: any, index: number) => {
+    const seats = Array.isArray(row.seats) ? row.seats : [];
+    
+    // More defensive seat access
+    let seatType = "Normal";
+    let seatPrice = 150;
+    
+    if (seats.length > 0) {
+      const firstSeat = seats;
+      if (firstSeat && typeof firstSeat === 'object') {
+        seatType = firstSeat.type || "Normal";
+        seatPrice = firstSeat.price || 150;
+      }
     }
-  }, [mode, initialData]);
+    
+    // Fallback: Try to get type/price from row-level data
+    if (seatType === "Normal" && row.type) {
+      seatType = row.type;
+    }
+    if (seatPrice === 150 && row.price) {
+      seatPrice = row.price;
+    }
+    
+    return {
+      rowLabel: row.rowLabel || String.fromCharCode(65 + index), // A, B, C...
+      seatCount: seats.length,
+      offset: row.offset || 0,
+      type: seatType,
+      price: seatPrice,
+    };
+  });
+};
+
+
+  // SINGLE useEffect for edit mode - removed duplicate
+useEffect(() => {
+  if (mode === "edit" && initialData) {
+    const existingRowsDefs = convertScreenLayoutToRowsDefs(initialData);
+    setRowsDefs(existingRowsDefs);
+
+    const existingAisles = initialData.layout?.advancedLayout?.aisles;
+    if (existingAisles) {
+      setVerticalAisles(existingAisles.vertical);
+      setHorizontalAisles(existingAisles.horizontal);
+    } else {
+      setVerticalAisles([]);
+      setHorizontalAisles([]);
+    }
+
+    const baseAdvancedLayout = initialData.layout?.advancedLayout || { rows: [] };
+    
+    setFormData({
+      name: initialData.name || "",
+      features: initialData.features || [],
+      screenType: initialData.screenType || "Standard",
+      totalSeats: initialData.totalSeats || 0,
+      layout: {
+        rows: initialData.layout?.rows || 0,
+        seatsPerRow: initialData.layout?.seatsPerRow || 0,
+        advancedLayout: {
+          ...baseAdvancedLayout,
+          // ENSURE aisles structure exists
+          aisles: baseAdvancedLayout.aisles || {
+            vertical: [],
+            horizontal: []
+          }
+        },
+      },
+    });
+    setSetupMode("manual");
+  }
+}, [mode, initialData]);
 
   useEffect(() => {
     setFormData((prev) => ({
@@ -123,7 +177,7 @@ const ScreenFormModal: React.FC<ScreenFormModalProps> = ({
       layout: {
         ...prev.layout,
         rows: rowsDefs.length,
-        seatsPerRow: Math.max(...rowsDefs.map((r) => r.seatCount)),
+        seatsPerRow: rowsDefs.length > 0 ? Math.max(...rowsDefs.map((r) => r.seatCount)) : 0,
         advancedLayout: advancedLayoutJSON,
       },
     }));
@@ -146,6 +200,16 @@ const ScreenFormModal: React.FC<ScreenFormModalProps> = ({
   const applyTemplate = (templateIndex: number) => {
     const template = screenTemplates[templateIndex];
     setRowsDefs(template.layout);
+    
+    // Apply template aisles if they exist
+    if (template.aisles) {
+      setVerticalAisles(template.aisles.vertical || []);
+      setHorizontalAisles(template.aisles.horizontal || []);
+    } else {
+      setVerticalAisles([]);
+      setHorizontalAisles([]);
+    }
+    
     setSetupMode("manual");
 
     if (!formData.name.trim()) {
@@ -156,7 +220,6 @@ const ScreenFormModal: React.FC<ScreenFormModalProps> = ({
     }
   };
 
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -164,14 +227,23 @@ const ScreenFormModal: React.FC<ScreenFormModalProps> = ({
       const validatedData = screenSchema.parse(formData);
 
       setIsLoading(true);
-      setErrors({}); 
+      setErrors({});
 
       if (mode === "create") {
-        const result = await createScreen({ ...validatedData, theater });
+        console.log({...validatedData, theater});
+        await createScreen({ ...validatedData, theater });
         onSuccess();
         toast.success("Screen created successfully");
       } else if (mode === "edit" && initialData?._id) {
-        const result = await editScreenOwner(initialData._id, {
+        console.log(initialData._id, {
+          name: validatedData.name,
+          totalSeats: validatedData.totalSeats,
+          features: validatedData.features,
+          screenType: validatedData.screenType,
+          layout: validatedData.layout,
+        });
+    
+        await editScreenOwner(initialData._id, {
           name: validatedData.name,
           totalSeats: validatedData.totalSeats,
           features: validatedData.features,
@@ -192,7 +264,7 @@ const ScreenFormModal: React.FC<ScreenFormModalProps> = ({
 
         setErrors(newErrors);
         toast.error("Please fix the validation errors");
-        return; 
+        return;
       } else {
         console.error("Error saving screen:", error);
         const errorMessage =
@@ -206,7 +278,6 @@ const ScreenFormModal: React.FC<ScreenFormModalProps> = ({
     }
   };
 
-
   const isFormValid = () => {
     return (
       formData.name.trim().length > 0 &&
@@ -216,7 +287,7 @@ const ScreenFormModal: React.FC<ScreenFormModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-10 pb-10">
+    <div className="fixed inset-0 z-999 flex items-start justify-center pt-10 pb-10">
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={onClose}
@@ -275,6 +346,10 @@ const ScreenFormModal: React.FC<ScreenFormModalProps> = ({
                 onClose={onClose}
                 mode={mode}
                 setSetupMode={setSetupMode}
+                verticalAisles={verticalAisles}
+                horizontalAisles={horizontalAisles}
+                setVerticalAisles={setVerticalAisles}
+                setHorizontalAisles={setHorizontalAisles}
               />
             )}
           </div>

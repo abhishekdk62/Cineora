@@ -1,4 +1,4 @@
-import mongoose,{ Document, Types } from "mongoose";
+import mongoose, { Document, Types } from "mongoose";
 
 export interface IScreen extends Document {
   theaterId: Types.ObjectId;
@@ -18,6 +18,19 @@ export interface IScreen extends Document {
           price: number;
         }[];
       }[];
+      // ADD THIS: Aisle configuration (optional for backwards compatibility)
+      aisles?: {
+        vertical: {
+          id: string;
+          position: number;
+          width: number;
+        }[];
+        horizontal: {
+          id: string;
+          afterRow: number;
+          width: number;
+        }[];
+      };
     };
     seatMap?: any; 
   };

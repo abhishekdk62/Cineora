@@ -14,7 +14,7 @@ import NavLinks from "./NavLinks";
 import AuthButtons from "./AuthButtons";
 import NotificationBell from "./NotificationBell";
 import NotificationModal, { BackendNotification } from './NotificationModal'
-import { getAllUserNotifications, markNotificationAsSeen } from "../../services/userServices/notificationServices";
+import { getAllUserNotifications, getFullUserNotifications, markNotificationAsSeen } from "../../services/userServices/notificationServices";
 
 const lexendSmall = Lexend({
   weight: "200",
@@ -41,6 +41,7 @@ export default function NavBar() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false); // ✅ New state
   const [notifications, setNotifications] = useState<BackendNotification[]>([]);
+  const [unreadNotifications, setUnreadNotifications] = useState<BackendNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
   const dispatch = useDispatch<AppDispatch>();
@@ -52,16 +53,31 @@ export default function NavBar() {
     setMounted(true);
   }, []);
 
-  const getAllNotifications = async () => {
+  const getUnreadNotifications = async () => {
     try {
+      console.log('getUnreadNotifications');
+      
       const data = await getAllUserNotifications()
-      setNotifications(data.data.notifications)
-      console.log(notifications);
+
+      setUnreadNotifications(data.data.notifications)
+      console.log('getUnreadNotifications',data);
+      console.log('getUnreadNotifications',data.data.notifications);
 
       setUnreadCount(data.data.unreadCount)
-      console.log(data.data);
 
 
+    } catch (error) {
+      console.log(error);
+
+
+    }
+  }
+  const getAllNotifications = async () => {
+    try {
+
+      const data = await getFullUserNotifications()
+      setNotifications(data.data.notifications)
+      setUnreadCount(data.data.unreadCount)
     } catch (error) {
       console.log(error);
 
@@ -72,7 +88,7 @@ export default function NavBar() {
   useEffect(() => {
     if (isAuthenticated) {
       getAllNotifications()
-
+getUnreadNotifications()
 
     }
   }, [isAuthenticated]);
@@ -149,7 +165,7 @@ export default function NavBar() {
 
               {mounted && isAuthenticated && (
                 <NotificationBell
-                  notifications={notifications}
+                  notifications={unreadNotifications}
                   unreadCount={unreadCount}
                   showNotifications={showNotifications}
                   onToggle={() => setShowNotifications(!showNotifications)}
@@ -170,7 +186,7 @@ export default function NavBar() {
             <div className="md:hidden flex items-center gap-4">
               {mounted && isAuthenticated && (
                 <NotificationBell
-                  notifications={notifications}
+                  notifications={unreadNotifications}
                   unreadCount={unreadCount}
                   showNotifications={showNotifications}
                   onToggle={() => setShowNotifications(!showNotifications)}
@@ -214,13 +230,13 @@ export default function NavBar() {
         </div>
       </nav>
 
-      {/* ✅ Notification Modal */}
       <NotificationModal
+                  unreadNotifications={unreadNotifications}
+
         isOpen={showNotificationModal}
         onClose={() => setShowNotificationModal(false)}
         notifications={notifications}
         onMarkAllRead={markAllAsRead}
-        onNotificationClick={handleNotificationClick}
         lexendSmall={lexendSmall}
         lexendBold={lexendBold}
       />

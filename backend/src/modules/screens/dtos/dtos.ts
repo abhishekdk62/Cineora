@@ -1,30 +1,45 @@
 import { Types } from "mongoose";
 
 export interface CreateScreenDto {
-  theaterId?: Types.ObjectId;
-  theater?: { _id: Types.ObjectId };
   name: string;
   totalSeats: number;
+  theater:{
+    _id:string
+  }
   layout: {
     rows: number;
     seatsPerRow: number;
     advancedLayout: {
-      rows: Array<{
-        rowNumber: number;
-        seats: Array<{
-          seatNumber: string;
+      rows: {
+        rowLabel: string;
+        offset: number;
+        seats: {
+          col: number;
+          id: string;
           type: string;
           price: number;
-          isAvailable: boolean;
-        }>;
-      }>;
+        }[];
+      }[];
+      // ADD THIS: Aisle configuration
+      aisles?: {
+        vertical?: {
+          id: string;
+          position: number;
+          width: number;
+        }[];
+        horizontal?: {
+          id: string;
+          afterRow: number;
+          width: number;
+        }[];
+      };
     };
-    seatMap?: Record<string, any>;
   };
   screenType?: string;
   features?: string[];
-  isActive?: boolean;
+  theaterId: string;
 }
+
 
 export interface UpdateScreenDto {
   name?: string;
@@ -33,22 +48,34 @@ export interface UpdateScreenDto {
     rows?: number;
     seatsPerRow?: number;
     advancedLayout?: {
-      rows: Array<{
-        rowNumber: number;
-        seats: Array<{
-          seatNumber: string;
+      rows?: {
+        rowLabel: string;
+        offset: number;
+        seats: {
+          col: number;
+          id: string;
           type: string;
           price: number;
-          isAvailable: boolean;
-        }>;
-      }>;
+        }[];
+      }[];
+      // ADD THIS: Aisle configuration
+      aisles?: {
+        vertical?: {
+          id: string;
+          position: number;
+          width: number;
+        }[];
+        horizontal?: {
+          id: string;
+          afterRow: number;
+          width: number;
+        }[];
+      };
     };
-    seatMap?: Record<string, any>;
   };
   screenType?: string;
   features?: string[];
   isActive?: boolean;
-  theaterId?: Types.ObjectId;
 }
 
 export interface ScreenFilterDto {

@@ -49,10 +49,26 @@ export const screenSchema = z.object({
           type: z.string(),
           price: z.number().min(0),
         }))
-      })).min(1, "At least one row is required")
+      })).min(1, "At least one row is required"),
+      
+      // ADD THIS: Aisle validation (optional)
+      aisles: z.object({
+        vertical: z.array(z.object({
+          id: z.string(),
+          position: z.number().min(1, "Aisle position must be at least 1"),
+          width: z.number().min(1, "Aisle width must be at least 1").max(2, "Aisle width cannot exceed 2 units")
+        })).optional().default([]),
+        
+        horizontal: z.array(z.object({
+          id: z.string(),
+          afterRow: z.number().min(0, "Aisle afterRow must be at least 0"),
+          width: z.number().min(1, "Aisle width must be at least 1").max(2, "Aisle width cannot exceed 2 units")
+        })).optional().default([])
+      }).optional().default({ vertical: [], horizontal: [] })
     })
   })
 });
+
 
 export const showtimeSchema = z.object({
   movieId: z.string().min(1, "Please select a movie"),

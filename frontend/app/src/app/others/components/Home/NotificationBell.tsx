@@ -110,7 +110,7 @@ export default function NotificationBell({
                     <Bell className="w-8 h-8 text-gray-400" />
                   </div>
                   <p className={`${lexendSmall.className} text-gray-300 font-medium`}>
-                    No notifications yet
+                    No unread notifications here
                   </p>
                   <p className={`${lexendSmall.className} text-gray-400 text-sm mt-2`}>
                     We'll notify you about your bookings here
@@ -154,7 +154,6 @@ export default function NotificationBell({
             )}
           </div>
 
-          {notifications.length > 0 && (
             <div className="p-4 border-t border-gray-600/30 text-center">
               <button 
                 onClick={onViewAll}
@@ -163,7 +162,6 @@ export default function NotificationBell({
                 View All Notifications
               </button>
             </div>
-          )}
         </div>
       )}
     </div>

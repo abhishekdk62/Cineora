@@ -4,6 +4,7 @@ import { CreateNotificationDTO } from "../dtos/dto";
 export interface INotificationReadRepository {
   findNotificationsByUserId(userId: string): Promise<INotification[]>;
   findUnreadNotificationsByUserId(userId: string): Promise<INotification[]>;
+  findAllNotificationsByUserId(userId: string): Promise<INotification[]>;
   countUnreadNotificationsByUserId(userId: string): Promise<number>;
   findNotificationByNotificationId(notificationId: string): Promise<INotification | null>;
 }
