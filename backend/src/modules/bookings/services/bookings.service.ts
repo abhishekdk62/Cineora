@@ -156,7 +156,6 @@ async updateBookingById(
   }
 }
 
-// Optional: Method to handle partial booking cancellation specifically
 async updateBookingAfterTicketCancellation(
   bookingId: string,
   cancelledSeats: string[],
@@ -170,7 +169,6 @@ async updateBookingAfterTicketCancellation(
       return this._createErrorResponse("Booking not found");
     }
 
-    // Remove cancelled seats from current booking
     const updatedSelectedSeats = booking.selectedSeats.filter(
       seat => !cancelledSeats.includes(seat)
     );

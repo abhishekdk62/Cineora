@@ -559,10 +559,7 @@ async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
       return "Unauthorized: You can only cancel your own tickets";
     }
 
-    const alreadyCancelledTickets = tickets.filter(ticket => ticket.status === 'cancelled');
-    if (alreadyCancelledTickets.length > 0) {
-      return "Booking is already cancelled";
-    }
+    
 
     const usedTickets = tickets.filter(ticket => ticket.status === 'used');
     if (usedTickets.length > 0) {
