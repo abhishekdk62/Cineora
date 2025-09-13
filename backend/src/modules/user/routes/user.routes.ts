@@ -95,6 +95,9 @@ export class UserRoutes {
     this._router.delete("/cancel/ticket", (req, res) =>
       this._ticketController.cancelTicket(req, res)
     );
+    this._router.post("/cancel/single/ticket", (req, res) =>
+      this._ticketController.cancelSingleTicket(req, res)
+    );
     this._router.post("/wallet/debit", (req, res) =>
       this._walletController.debitWallet(req, res)
     );
@@ -107,6 +110,9 @@ export class UserRoutes {
     );
     this._router.get("/notifications/all", (req, res) =>
       this._notificationController.getAllUserNotifications(req, res)
+    );
+    this._router.patch("/notifications/all", (req, res) =>
+      this._notificationController.markAllNotificationsRead(req, res)
     );
     this._router.patch("/notification/:notificationId", (req, res) =>
       this._notificationController.markNotificationAsRead(req, res)

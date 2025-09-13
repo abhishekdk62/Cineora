@@ -205,7 +205,8 @@ export class App {
       bookingService,
       notificationService,
       notificationScheduler,
-      theaterService
+      theaterService,
+      showtimeService
     );
     const bookingController = new BookingController(
       bookingService,

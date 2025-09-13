@@ -1,5 +1,6 @@
 import { Lexend } from "next/font/google";
-import { Star } from "lucide-react";
+import { Star, Edit2, Trash2 } from "lucide-react";
+import { useSelector } from "react-redux";
 import UserAvatar from "./UserAvatar";
 import ReviewActions from "./ReviewActions";
 
@@ -30,9 +31,21 @@ interface Review {
 
 interface ReviewCardProps {
   review: Review;
+  onEdit: (reviewId: string) => void;
+  onDelete: (reviewId: string) => void;
 }
 
-export default function ReviewCard({ review }: ReviewCardProps) {
+interface RootState {
+  auth: {
+    user: {
+      id: string;
+    };
+  };
+}
+
+export default function ReviewCard({ review, onEdit, onDelete }: ReviewCardProps) {
+  const isAuthenticated = useSelector((state: RootState) => state?.auth?.user?.id)||45345;
+  
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -56,8 +69,11 @@ export default function ReviewCard({ review }: ReviewCardProps) {
   };
 
   const getUserDisplayName = (user: Review['userId']) => {
-    return user.username || user.email.split('@')[0];
+    return user.username || user.email.split('@');
   };
+
+  // Check if current user is the owner of this review
+  const isOwner = isAuthenticated === review.userId._id;
 
   return (
     <div className="bg-white/5 rounded-2xl p-6 border border-gray-600/30 mb-4">
@@ -83,6 +99,26 @@ export default function ReviewCard({ review }: ReviewCardProps) {
             </div>
           </div>
         </div>
+        
+        {/* Edit and Delete buttons - only show for review owner */}
+        {isOwner && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onEdit(review._id)}
+              className="flex items-center gap-1 px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-colors"
+            >
+              <Edit2 className="w-3 h-3" />
+              <span className={`${lexendSmall.className} text-xs`}>Edit</span>
+            </button>
+            <button
+              onClick={() => onDelete(review._id)}
+              className="flex items-center gap-1 px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors"
+            >
+              <Trash2 className="w-3 h-3" />
+              <span className={`${lexendSmall.className} text-xs`}>Delete</span>
+            </button>
+          </div>
+        )}
       </div>
 
       <p className={`${lexendSmall.className} text-gray-300 leading-relaxed mb-4`}>

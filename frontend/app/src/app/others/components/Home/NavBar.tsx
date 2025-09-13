@@ -14,7 +14,7 @@ import NavLinks from "./NavLinks";
 import AuthButtons from "./AuthButtons";
 import NotificationBell from "./NotificationBell";
 import NotificationModal, { BackendNotification } from './NotificationModal'
-import { getAllUserNotifications, getFullUserNotifications, markNotificationAsSeen } from "../../services/userServices/notificationServices";
+import { getAllUserNotifications, getFullUserNotifications, markAllNotificationAsSeen, markNotificationAsSeen } from "../../services/userServices/notificationServices";
 
 const lexendSmall = Lexend({
   weight: "200",
@@ -120,9 +120,17 @@ getUnreadNotifications()
     }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+  const markAllAsRead =async () => {
+    try {
+      setUnreadNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      let data=await markAllNotificationAsSeen()
     setUnreadCount(0);
+
+    } catch (error) {
+      console.log(error);
+      
+      
+    }
   };
 
   const handleViewAllNotifications = () => {

@@ -55,7 +55,11 @@ export class NotificationRepository implements INotificationRepository {
       throw new Error(`Find unread notifications failed: ${errorMessage}`);
     }
   }
-
+async markAllNotificationsRead(userId:string):Promise<boolean>
+{
+  const data=await Notification.updateMany({userId},{isRead:true}).exec()
+  return !!data
+}
   async markNotificationAsRead(notificationId: string): Promise<INotification> {
     try {
       const updatedNotification = await Notification.findOneAndUpdate(

@@ -12,6 +12,7 @@ export interface INotificationReadRepository {
 export interface INotificationWriteRepository {
   createNotification(notificationData: CreateNotificationDTO): Promise<INotification>;
   markNotificationAsRead(notificationId: string): Promise<INotification>;
+  markAllNotificationsRead(userId:string):Promise<boolean>
   deleteNotificationById(notificationId: string): Promise<boolean>;
 }
 

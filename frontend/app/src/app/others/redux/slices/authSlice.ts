@@ -6,7 +6,7 @@ import {
 import { googleAuth, logout } from "../../services/authServices/authService";
 
 interface User {
-  id: string;
+  user: string;
   email: string;
   username?: string;
   firstName?: string;

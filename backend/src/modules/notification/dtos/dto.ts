@@ -63,6 +63,7 @@ export interface ReminderNotificationDataDTO {
 export interface CancellationNotificationDataDTO {
   bookingId: string;
   refundAmount: number;
+  ticketCount?: number
 }
 
 export interface BookingNotificationRequestDTO {

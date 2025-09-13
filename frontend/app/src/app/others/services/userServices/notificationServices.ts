@@ -18,3 +18,7 @@ export const markNotificationAsSeen = async (notificationId: string): Promise<Ma
   const response = await apiClient.patch(USER_NOTIFICATIONS.MARK_AS_SEEN(notificationId));
   return response.data;
 };
+export const markAllNotificationAsSeen = async (): Promise<MarkNotificationReadResponseDto> => {
+  const response = await apiClient.patch(USER_NOTIFICATIONS.MARK_ALL_SEEN);
+  return response.data;
+};
