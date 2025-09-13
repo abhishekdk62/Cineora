@@ -18,6 +18,56 @@ export interface CreateTicketDto {
   status?: 'confirmed' | 'cancelled' | 'used' | 'expired';
   qrCode?: string;
 }
+export interface CancelSingleTicketDto {
+  ticketIds: string[];
+  userId: string;
+  totalAmount: number;
+}
+// Add this interface to your existing dto file (usually dtos/dto.ts or ticket/dtos/dto.ts)
+
+export interface CancelSingleTicketDto {
+  ticketIds: string[];
+  userId: string;
+  totalAmount: number;
+}
+
+// Optional: Enhanced interface with more details
+export interface CancelSingleTicketRequestDto {
+  ticketIds: string[];
+  totalAmount: number;
+  reason?: string; // Optional cancellation reason
+  cancelledSeats?: string[]; // Optional: seat identifiers for validation
+}
+
+// Optional: Response interface for better type safety
+export interface SingleTicketCancellationResponseDto {
+  cancelledTickets: any[];
+  ticketCount: number;
+  refundDetails: {
+    originalAmount: number;
+    refundAmount: number;
+    refundPercentage: number;
+    cancellationFee: number;
+  };
+  showDetails: {
+    showDate: Date;
+    showTime: string;
+  };
+  walletCredited: boolean;
+}
+
+export interface RefundCalculationDto {
+  cancelledTickets: ITicket[];
+  refundPercentage: number;
+  originalAmount: number;
+  refundAmount: number;
+  showDate: Date;
+  showTime: string;
+  movieId?: string;
+  theaterId?: string;
+  totalAmount?: number; 
+}
+
 
 export interface UpdateTicketDto {
   seatNumber?: string;
@@ -141,14 +191,7 @@ export interface CancelTicketDto {
   amount: number;
 }
 
-export interface RefundCalculationDto {
-  cancelledTickets: ITicket[];
-  refundPercentage: number;
-  originalAmount: number;
-  refundAmount: number;
-  showDate: Date;
-  showTime: string;
-}
+
 
 
 export interface GetUserTicketsDto {

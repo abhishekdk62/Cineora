@@ -52,12 +52,16 @@ interface RatingStats {
 }
 
 interface TheaterReviewsContentProps {
+  onEdit:(rev:string)=>void
+  onDelete:(rev:string)=>void
   theaterId: string;
   reviewsData: ReviewsData | null;
   ratingStats: RatingStats | null;
 }
 
 export default function TheaterReviewsContent({
+  onEdit,
+  onDelete,
   theaterId,
   reviewsData,
   ratingStats
@@ -90,7 +94,7 @@ export default function TheaterReviewsContent({
             
             <div className="space-y-4">
               {theaterReviews.slice(0, 2).map((review: Review) => (
-                <TheaterReviewCard key={review._id} review={review} />
+                <TheaterReviewCard key={review._id} review={review} onEdit={onEdit} onDelete={onDelete} />
               ))}
             </div>
             
@@ -101,7 +105,7 @@ export default function TheaterReviewsContent({
                 }`}>
                   <div className="space-y-4 mt-4">
                     {theaterReviews.slice(2).map((review: Review) => (
-                      <TheaterReviewCard key={review._id} review={review} />
+                      <TheaterReviewCard  key={review._id} review={review} onEdit={onEdit} onDelete={onDelete} />
                     ))}
                   </div>
                 </div>
@@ -129,6 +133,7 @@ export default function TheaterReviewsContent({
           </div>
         </div>
       )}
+      
     </div>
   );
 }

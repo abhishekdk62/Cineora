@@ -6,7 +6,8 @@ import {
   CancelTicketDto,
   GetUserTicketsDto,
   ValidateTicketDto,
-  RefundCalculationDto
+  RefundCalculationDto,
+  CancelSingleTicketDto
 } from "../dtos/dto";
 import { ApiResponse, createResponse } from "../../../utils/createResponse";
 import { ITicket } from "../interfaces/ticket.model.interface";
@@ -21,6 +22,10 @@ export class TicketService implements ITicketService {
     private readonly emailService: IEmailService
   ) {}
 
+
+
+
+  
   async createTicketsFromRows(data: CreateTicketFromRowsDto): Promise<ApiResponse<ITicket[]>> {
     try {
       this._validateCreateTicketsFromRowsData(data);
@@ -39,6 +44,160 @@ export class TicketService implements ITicketService {
       return this._handleServiceError(error, "Failed to create tickets from rows");
     }
   }
+
+
+
+
+
+
+
+async cancelSingleTicket(data: CancelSingleTicketDto): Promise<ApiResponse<RefundCalculationDto>> {
+  try {
+    this._validateCancelSingleTicketData(data);
+
+    // Get all tickets to be cancelled
+    const tickets = await this._getTicketsForCancellation(data.ticketIds);
+    
+    if (tickets.length === 0) {
+      return createResponse({
+        success: false,
+        message: "No valid tickets found for cancellation"
+      });
+    }
+
+    // Validate ownership and eligibility
+    const validationError = this._validateSingleTicketCancellationEligibility(tickets, data.userId);
+    if (validationError) {
+      return createResponse({
+        success: false,
+        message: validationError
+      });
+    }
+
+    // Calculate refund based on the first ticket's show time
+    const firstTicket = tickets[0];
+    const showDateTime = this._parseShowDateTime(firstTicket.showDate, firstTicket.showTime);
+    const refundPercentage = this._calculateRefundPercentage(showDateTime);
+
+    // Cancel selected tickets
+    const updatedTickets = await this._cancelSelectedTickets(tickets);
+
+    // REMOVED: The booking update is now handled in the controller
+    // await this._updateBookingStatusAfterCancellation(firstTicket.bookingId.toString());
+
+    const refundData: RefundCalculationDto = {
+      cancelledTickets: updatedTickets,
+      refundPercentage,
+      originalAmount: data.totalAmount,
+      refundAmount: Math.round(data.totalAmount * refundPercentage / 100),
+      showDate: firstTicket.showDate,
+      showTime: firstTicket.showTime,
+      totalAmount: data.totalAmount // Add this line to match what the controller expects
+    };
+
+    return createResponse({
+      success: true,
+      message: "Selected tickets cancelled successfully",
+      data: refundData
+    });
+  } catch (error: unknown) {
+    return this._handleServiceError(error, "Failed to cancel selected tickets");
+  }
+}
+
+// Validation for single ticket cancellation data
+private _validateCancelSingleTicketData(data: CancelSingleTicketDto): void {
+  if (!data.ticketIds || !Array.isArray(data.ticketIds) || data.ticketIds.length === 0) {
+    throw new Error("At least one ticket ID is required");
+  }
+
+  if (!data.userId || data.totalAmount <= 0) {
+    throw new Error("Missing required fields for ticket cancellation");
+  }
+
+  if (!this._isValidObjectId(data.userId)) {
+    throw new Error("Invalid user ID format");
+  }
+
+  // Validate all ticket IDs
+  for (const ticketId of data.ticketIds) {
+    if (!this._isValidObjectId(ticketId)) {
+      throw new Error(`Invalid ticket ID format: ${ticketId}`);
+    }
+  }
+}
+
+// Get tickets for cancellation
+private async _getTicketsForCancellation(ticketIds: string[]): Promise<ITicket[]> {
+  const tickets: ITicket[] = [];
+  
+  for (const ticketId of ticketIds) {
+    const ticket = await this.ticketRepository.findTicketById(ticketId);
+    if (ticket) {
+      tickets.push(ticket);
+    }
+  }
+  
+  return tickets;
+}
+
+// Validate eligibility for single ticket cancellation
+private _validateSingleTicketCancellationEligibility(tickets: ITicket[], userId: string): string | null {
+  // Check if all tickets belong to the same user
+  for (const ticket of tickets) {
+    if (ticket.userId._id.toString() !== userId) {
+      return "Unauthorized: You can only cancel your own tickets";
+    }
+
+    if (ticket.status === 'cancelled') {
+      return `Ticket ${ticket.ticketId} is already cancelled`;
+    }
+
+    if (ticket.status === 'used') {
+      return `Cannot cancel used ticket ${ticket.ticketId}`;
+    }
+  }
+
+  // Check if cancellation is within allowed time
+  const firstTicket = tickets[0];
+  const showDateTime = this._parseShowDateTime(firstTicket.showDate, firstTicket.showTime);
+  if (showDateTime <= new Date()) {
+    return "Cannot cancel tickets for past shows";
+  }
+
+  // Validate all tickets are from the same booking and showtime
+  const firstBookingId = tickets[0].bookingId.toString();
+  const firstShowtimeId = tickets[0].showtimeId.toString();
+  
+  for (const ticket of tickets) {
+    if (ticket.bookingId.toString() !== firstBookingId) {
+      return "All tickets must be from the same booking";
+    }
+    
+    if (ticket.showtimeId.toString() !== firstShowtimeId) {
+      return "All tickets must be from the same showtime";
+    }
+  }
+
+  return null;
+}
+
+// Cancel selected tickets
+private async _cancelSelectedTickets(tickets: ITicket[]): Promise<ITicket[]> {
+  const updatePromises = tickets.map(ticket => 
+    this.ticketRepository.updateTicketById(
+      (ticket as any)._id.toString(),
+      { 
+        status: 'cancelled',
+        updatedAt: new Date()
+      }
+    )
+  );
+
+  return await Promise.all(updatePromises);
+}
+
+
 
   async createTicketsFromBooking(data: CreateTicketFromBookingDto): Promise<ApiResponse<ITicket[]>> {
     try {

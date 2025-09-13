@@ -46,6 +46,48 @@ export class TicketRepository implements ITicketRepository {
       );
     }
   }
+// Add this method to your existing TicketRepository class
+
+async findTicketsByIds(ticketIds: string[]): Promise<ITicket[]> {
+  try {
+    return await Ticket.find({ 
+      _id: { $in: ticketIds } 
+    })
+    .populate("userId")
+    .populate("movieId") 
+    .populate("theaterId")
+    .populate("screenId")
+    .populate("showtimeId");
+  } catch (error) {
+    throw new Error(
+      `Failed to find tickets by IDs: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
+  }
+}
+
+// Optional: Enhanced method to get tickets with more details for cancellation
+async findTicketsForCancellation(ticketIds: string[]): Promise<ITicket[]> {
+  try {
+    return await Ticket.find({ 
+      _id: { $in: ticketIds },
+      status: { $in: ['confirmed'] } // Only get confirmed tickets
+    })
+    .populate("userId", "firstName lastName email")
+    .populate("movieId", "title duration") 
+    .populate("theaterId", "name location")
+    .populate("screenId", "name")
+    .populate("showtimeId")
+    .populate("bookingId");
+  } catch (error) {
+    throw new Error(
+      `Failed to find tickets for cancellation: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
+  }
+}
 
   async markTicketAsUsed(ticketId: string): Promise<ITicket | null> {
     try {

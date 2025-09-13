@@ -130,6 +130,81 @@ export class BookingService implements IBookingService {
       return this._createErrorResponse(error.message || "Failed to update payment status");
     }
   }
+// Add this method to your existing BookingService class
+
+async updateBookingById(
+  bookingId: string, 
+  updateData: any
+): Promise<ServiceResponse> {
+  try {
+    if (!bookingId) {
+      return this._createErrorResponse("Booking ID is required");
+    }
+
+    const updatedBooking = await this.bookingRepository.updateBookingById(
+      bookingId,
+      updateData
+    );
+
+    if (!updatedBooking) {
+      return this._createErrorResponse("Booking not found or update failed");
+    }
+
+    return this._createSuccessResponse("Booking updated successfully", updatedBooking);
+  } catch (error) {
+    return this._createErrorResponse(error.message || "Failed to update booking");
+  }
+}
+
+// Optional: Method to handle partial booking cancellation specifically
+async updateBookingAfterTicketCancellation(
+  bookingId: string,
+  cancelledSeats: string[],
+  newPricing: any,
+  newSeatPricing: any[]
+): Promise<ServiceResponse> {
+  try {
+    const booking = await this.bookingRepository.findBookingById(bookingId);
+    
+    if (!booking) {
+      return this._createErrorResponse("Booking not found");
+    }
+
+    // Remove cancelled seats from current booking
+    const updatedSelectedSeats = booking.selectedSeats.filter(
+      seat => !cancelledSeats.includes(seat)
+    );
+
+    const updatedSelectedSeatIds = booking.selectedSeatIds.filter(
+      seatId => !cancelledSeats.includes(seatId)
+    );
+
+    // Determine booking status
+    const newStatus = updatedSelectedSeats.length === 0 ? "cancelled" : "confirmed";
+
+    const updateData = {
+      selectedSeats: updatedSelectedSeats,
+      selectedSeatIds: updatedSelectedSeatIds,
+      seatPricing: newSeatPricing,
+      priceDetails: newPricing,
+      bookingStatus: newStatus,
+      ...(newStatus === "cancelled" && { cancelledAt: new Date() })
+    };
+
+    const updatedBooking = await this.bookingRepository.updateBookingById(
+      bookingId,
+      updateData
+    );
+
+    return this._createSuccessResponse(
+      `Booking updated - ${updatedSelectedSeats.length} seats remaining`,
+      updatedBooking
+    );
+
+  } catch (error) {
+    return this._createErrorResponse(error.message || "Failed to update booking after cancellation");
+  }
+}
 
   async getBookingById(bookingId: string): Promise<ServiceResponse> {
     return this.getBookingByBookingId(bookingId);

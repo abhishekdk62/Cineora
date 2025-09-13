@@ -2,20 +2,22 @@ import { ServiceResponse } from "../../../interfaces/interface";
 import mongoose from "mongoose";
 import { INotificationService } from "../interfaces/notification.service.interface";
 import { INotificationRepository } from "../interfaces/notification.repository.interface";
-import { 
-  CreateNotificationDTO, 
-  NotificationResponseDTO, 
+import {
+  CreateNotificationDTO,
+  NotificationResponseDTO,
   UserNotificationsResponseDTO,
   BookingNotificationDataDTO,
   PaymentNotificationDataDTO,
   CancellationNotificationDataDTO,
-  ReminderNotificationDataDTO
+  ReminderNotificationDataDTO,
 } from "../dtos/dto";
 import { NotificationType } from "../models/notification.model";
 
 export class NotificationService implements INotificationService {
-  constructor(private readonly notificationRepository: INotificationRepository) {}
-  
+  constructor(
+    private readonly notificationRepository: INotificationRepository
+  ) {}
+
   async sendNotification(
     userId: string,
     title: string,
@@ -27,13 +29,14 @@ export class NotificationService implements INotificationService {
       if (!userId || !title || !message || !type) {
         return {
           success: false,
-          message: "Missing required fields: userId, title, message, and type are required",
+          message:
+            "Missing required fields: userId, title, message, and type are required",
           data: null,
         };
       }
 
       const notificationId = this.generateNotificationId();
-      
+
       const createNotificationData: CreateNotificationDTO = {
         notificationId,
         userId: new mongoose.Types.ObjectId(userId),
@@ -41,11 +44,13 @@ export class NotificationService implements INotificationService {
         message,
         type,
         isRead: false,
-        data
+        data,
       };
-      
-      const notification = await this.notificationRepository.createNotification(createNotificationData);
-      
+
+      const notification = await this.notificationRepository.createNotification(
+        createNotificationData
+      );
+
       const responseData: NotificationResponseDTO = {
         notificationId: notification.notificationId,
         userId: notification.userId.toString(),
@@ -54,17 +59,17 @@ export class NotificationService implements INotificationService {
         type: notification.type,
         isRead: notification.isRead,
         createdAt: notification.createdAt,
-        data: notification.data
+        data: notification.data,
       };
-      
+
       return {
         success: true,
         message: "Notification sent successfully",
         data: responseData,
       };
-      
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to send notification";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to send notification";
       return {
         success: false,
         message: errorMessage,
@@ -72,8 +77,10 @@ export class NotificationService implements INotificationService {
       };
     }
   }
-  
-  async getUserNotifications(userId: string): Promise<ServiceResponse<UserNotificationsResponseDTO>> {
+
+  async getUserNotifications(
+    userId: string
+  ): Promise<ServiceResponse<UserNotificationsResponseDTO>> {
     try {
       if (!userId) {
         return {
@@ -83,33 +90,42 @@ export class NotificationService implements INotificationService {
         };
       }
 
-      const notifications = await this.notificationRepository.findUnreadNotificationsByUserId(userId);
-      const unreadCount = await this.notificationRepository.countUnreadNotificationsByUserId(userId);
-      
-      const notificationDTOs: NotificationResponseDTO[] = notifications.map(notification => ({
-        notificationId: notification.notificationId,
-        userId: notification.userId.toString(),
-        title: notification.title,
-        message: notification.message,
-        type: notification.type,
-        isRead: notification.isRead,
-        createdAt: notification.createdAt,
-        readAt: notification.readAt,
-        data: notification.data
-      }));
+      const notifications =
+        await this.notificationRepository.findUnreadNotificationsByUserId(
+          userId
+        );
+      const unreadCount =
+        await this.notificationRepository.countUnreadNotificationsByUserId(
+          userId
+        );
+
+      const notificationDTOs: NotificationResponseDTO[] = notifications.map(
+        (notification) => ({
+          notificationId: notification.notificationId,
+          userId: notification.userId.toString(),
+          title: notification.title,
+          message: notification.message,
+          type: notification.type,
+          isRead: notification.isRead,
+          createdAt: notification.createdAt,
+          readAt: notification.readAt,
+          data: notification.data,
+        })
+      );
 
       const responseData: UserNotificationsResponseDTO = {
         notifications: notificationDTOs,
-        unreadCount
+        unreadCount,
       };
-      
+
       return {
         success: true,
         message: "Notifications retrieved successfully",
         data: responseData,
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get notifications";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to get notifications";
       return {
         success: false,
         message: errorMessage,
@@ -117,8 +133,10 @@ export class NotificationService implements INotificationService {
       };
     }
   }
-    
-  async getAllUserNotifications(userId: string): Promise<ServiceResponse<UserNotificationsResponseDTO>> {
+
+  async getAllUserNotifications(
+    userId: string
+  ): Promise<ServiceResponse<UserNotificationsResponseDTO>> {
     try {
       if (!userId) {
         return {
@@ -128,33 +146,40 @@ export class NotificationService implements INotificationService {
         };
       }
 
-      const notifications = await this.notificationRepository.findAllNotificationsByUserId(userId);
-      const unreadCount = await this.notificationRepository.countUnreadNotificationsByUserId(userId);
-      
-      const notificationDTOs: NotificationResponseDTO[] = notifications.map(notification => ({
-        notificationId: notification.notificationId,
-        userId: notification.userId.toString(),
-        title: notification.title,
-        message: notification.message,
-        type: notification.type,
-        isRead: notification.isRead,
-        createdAt: notification.createdAt,
-        readAt: notification.readAt,
-        data: notification.data
-      }));
+      const notifications =
+        await this.notificationRepository.findAllNotificationsByUserId(userId);
+      const unreadCount =
+        await this.notificationRepository.countUnreadNotificationsByUserId(
+          userId
+        );
+
+      const notificationDTOs: NotificationResponseDTO[] = notifications.map(
+        (notification) => ({
+          notificationId: notification.notificationId,
+          userId: notification.userId.toString(),
+          title: notification.title,
+          message: notification.message,
+          type: notification.type,
+          isRead: notification.isRead,
+          createdAt: notification.createdAt,
+          readAt: notification.readAt,
+          data: notification.data,
+        })
+      );
 
       const responseData: UserNotificationsResponseDTO = {
         notifications: notificationDTOs,
-        unreadCount
+        unreadCount,
       };
-      
+
       return {
         success: true,
         message: "Notifications retrieved successfully",
         data: responseData,
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get notifications";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to get notifications";
       return {
         success: false,
         message: errorMessage,
@@ -162,8 +187,36 @@ export class NotificationService implements INotificationService {
       };
     }
   }
-  
-  async markNotificationAsRead(notificationId: string): Promise<ServiceResponse<NotificationResponseDTO>> {
+  async markAllNotificationsRead(
+    userId: string
+  ): Promise<ServiceResponse<boolean>> {
+    try {
+      if (!userId) {
+        return {
+          success: false,
+          message: "UserId is required",
+          data: null,
+        };
+      }
+      let data = this.notificationRepository.markAllNotificationsRead(userId);
+      if (data) {
+        return {
+          success: true,
+          message: "marked as read",
+          data: true,
+        };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message,
+        data: null,
+      };
+    }
+  }
+  async markNotificationAsRead(
+    notificationId: string
+  ): Promise<ServiceResponse<NotificationResponseDTO>> {
     try {
       if (!notificationId) {
         return {
@@ -172,9 +225,12 @@ export class NotificationService implements INotificationService {
           data: null,
         };
       }
-      
-      const notification = await this.notificationRepository.markNotificationAsRead(notificationId);
-      
+
+      const notification =
+        await this.notificationRepository.markNotificationAsRead(
+          notificationId
+        );
+
       const responseData: NotificationResponseDTO = {
         notificationId: notification.notificationId,
         userId: notification.userId.toString(),
@@ -184,16 +240,19 @@ export class NotificationService implements INotificationService {
         isRead: notification.isRead,
         createdAt: notification.createdAt,
         readAt: notification.readAt,
-        data: notification.data
+        data: notification.data,
       };
-      
+
       return {
         success: true,
         message: "Notification marked as read",
         data: responseData,
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to mark notification as read";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to mark notification as read";
       return {
         success: false,
         message: errorMessage,
@@ -201,8 +260,10 @@ export class NotificationService implements INotificationService {
       };
     }
   }
-  
-  async deleteNotification(notificationId: string): Promise<ServiceResponse<null>> {
+
+  async deleteNotification(
+    notificationId: string
+  ): Promise<ServiceResponse<null>> {
     try {
       if (!notificationId) {
         return {
@@ -212,15 +273,22 @@ export class NotificationService implements INotificationService {
         };
       }
 
-      const deleted = await this.notificationRepository.deleteNotificationById(notificationId);
-      
+      const deleted = await this.notificationRepository.deleteNotificationById(
+        notificationId
+      );
+
       return {
         success: deleted,
-        message: deleted ? "Notification deleted successfully" : "Notification not found",
+        message: deleted
+          ? "Notification deleted successfully"
+          : "Notification not found",
         data: null,
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to delete notification";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to delete notification";
       return {
         success: false,
         message: errorMessage,
@@ -228,26 +296,33 @@ export class NotificationService implements INotificationService {
       };
     }
   }
-  
-  async sendBookingNotification(userId: string, bookingData: BookingNotificationDataDTO): Promise<ServiceResponse<NotificationResponseDTO>> {
+
+  async sendBookingNotification(
+    userId: string,
+    bookingData: BookingNotificationDataDTO
+  ): Promise<ServiceResponse<NotificationResponseDTO>> {
     try {
       if (!bookingData.bookingId || !bookingData.movieTitle) {
         return {
           success: false,
-          message: "Missing required booking data: bookingId and movieTitle are required",
+          message:
+            "Missing required booking data: bookingId and movieTitle are required",
           data: null,
         };
       }
 
       const title = "Booking Confirmed! 🎬";
       const message = `Your booking for ${bookingData.movieTitle} is confirmed.`;
-      
+
       return this.sendNotification(userId, title, message, "booking", {
         bookingId: bookingData.bookingId,
         movieTitle: bookingData.movieTitle,
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to send booking notification";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to send booking notification";
       return {
         success: false,
         message: errorMessage,
@@ -255,28 +330,39 @@ export class NotificationService implements INotificationService {
       };
     }
   }
-  
-  async sendPaymentNotification(userId: string, paymentData: PaymentNotificationDataDTO): Promise<ServiceResponse<NotificationResponseDTO>> {
+
+  async sendPaymentNotification(
+    userId: string,
+    paymentData: PaymentNotificationDataDTO
+  ): Promise<ServiceResponse<NotificationResponseDTO>> {
     try {
       if (!paymentData.amount || !paymentData.status) {
         return {
           success: false,
-          message: "Missing required payment data: amount and status are required",
+          message:
+            "Missing required payment data: amount and status are required",
           data: null,
         };
       }
 
-      const title = paymentData.status === "completed" ? "Payment Successful! 💳" : "Payment Failed ❌";
-      const message = paymentData.status === "completed" 
-        ? `Your payment of Rs ${paymentData.amount} has been processed successfully.`
-        : `Your payment of Rs ${paymentData.amount} could not be processed.`;
-      
+      const title =
+        paymentData.status === "completed"
+          ? "Payment Successful! 💳"
+          : "Payment Failed ❌";
+      const message =
+        paymentData.status === "completed"
+          ? `Your payment of Rs ${paymentData.amount} has been processed successfully.`
+          : `Your payment of Rs ${paymentData.amount} could not be processed.`;
+
       return this.sendNotification(userId, title, message, "payment", {
         amount: paymentData.amount,
         status: paymentData.status,
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to send payment notification";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to send payment notification";
       return {
         success: false,
         message: errorMessage,
@@ -284,8 +370,11 @@ export class NotificationService implements INotificationService {
       };
     }
   }
-  
-  async sendReminderNotification(userId: string, reminderData: ReminderNotificationDataDTO): Promise<ServiceResponse<NotificationResponseDTO>> {
+
+  async sendReminderNotification(
+    userId: string,
+    reminderData: ReminderNotificationDataDTO
+  ): Promise<ServiceResponse<NotificationResponseDTO>> {
     try {
       if (!reminderData.movieTitle) {
         return {
@@ -297,12 +386,15 @@ export class NotificationService implements INotificationService {
 
       const title = "Movie Reminder! 🍿";
       const message = `Your movie ${reminderData.movieTitle} starts in 2 hours.`;
-      
+
       return this.sendNotification(userId, title, message, "reminder", {
         movieTitle: reminderData.movieTitle,
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to send reminder notification";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to send reminder notification";
       return {
         success: false,
         message: errorMessage,
@@ -310,26 +402,36 @@ export class NotificationService implements INotificationService {
       };
     }
   }
-  
-  async sendCancellationNotification(userId: string, cancellationData: CancellationNotificationDataDTO): Promise<ServiceResponse<NotificationResponseDTO>> {
+
+  async sendCancellationNotification(
+    userId: string,
+    cancellationData: CancellationNotificationDataDTO
+  ): Promise<ServiceResponse<NotificationResponseDTO>> {
     try {
-      if (!cancellationData.bookingId || cancellationData.refundAmount === undefined) {
+      if (
+        !cancellationData.bookingId ||
+        cancellationData.refundAmount === undefined
+      ) {
         return {
           success: false,
-          message: "Missing required cancellation data: bookingId and refundAmount are required",
+          message:
+            "Missing required cancellation data: bookingId and refundAmount are required",
           data: null,
         };
       }
 
       const title = "Booking Cancelled";
       const message = `Your booking has been cancelled. Rs ${cancellationData.refundAmount} has been refunded.`;
-      
+
       return this.sendNotification(userId, title, message, "cancellation", {
         bookingId: cancellationData.bookingId,
         refundAmount: cancellationData.refundAmount,
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to send cancellation notification";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to send cancellation notification";
       return {
         success: false,
         message: errorMessage,
@@ -339,6 +441,9 @@ export class NotificationService implements INotificationService {
   }
 
   private generateNotificationId(): string {
-    return `NOT${Date.now()}${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
+    return `NOT${Date.now()}${Math.random()
+      .toString(36)
+      .substr(2, 4)
+      .toUpperCase()}`;
   }
 }

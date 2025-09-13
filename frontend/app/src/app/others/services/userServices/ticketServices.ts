@@ -29,3 +29,14 @@ export const cancelTicket = async (
   });
   return result.data;
 };
+export const cancelSingleTicket = async (
+  ticketIds: string[],
+  totalAmount: number,
+): Promise<CancelTicketResponseDto> => {
+  const result = await apiClient.post(USER_TICKETS.CANCEL_SINGLE, {
+    ticketIds,
+    totalAmount
+  });
+  return result.data;
+};
+

@@ -7,7 +7,9 @@ import {
   ValidateTicketDto,
   TicketResponseDto,
   PaginatedTicketsResponseDto,
-  TicketValidationResponseDto
+  TicketValidationResponseDto,
+  RefundCalculationDto,
+  CancelSingleTicketDto
 } from '../dtos/dto';
 import { ApiResponse } from '../../../utils/createResponse';
 
@@ -16,6 +18,7 @@ export interface ITicketService {
   createTicketsFromBooking(data: CreateTicketFromBookingDto): Promise<ApiResponse<ITicket[]>>;
   cancelTicket(data: CancelTicketDto): Promise<ApiResponse<any>>;
   verifyTicket(encryptedData: string): Promise<ApiResponse<any>>;
+  cancelSingleTicket(data: CancelSingleTicketDto): Promise<ApiResponse<RefundCalculationDto>>
   getTicketById(ticketId: string): Promise<ApiResponse<TicketResponseDto>>;
   getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<PaginatedTicketsResponseDto>>;
   markTicketAsUsed(ticketId: string): Promise<ApiResponse<TicketResponseDto>>;
