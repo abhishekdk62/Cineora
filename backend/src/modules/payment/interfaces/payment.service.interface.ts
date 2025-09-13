@@ -4,7 +4,9 @@ import {
   PaymentCallbackDTO,
   RefundPaymentDTO,
   CreateRazorpayOrderDTO,
-  VerifyRazorpayPaymentDTO
+  VerifyRazorpayPaymentDTO,
+  ConfirmPayoutDTO,
+  CreatePayoutOrderDTO
 } from "../dtos/dto";
 
 export interface IPaymentService {
@@ -16,6 +18,8 @@ export interface IPaymentService {
   getUserPayments(userId: string): Promise<ServiceResponse>;
   refundPayment(paymentId: string, refundAmount: number, refundReason: string): Promise<ServiceResponse>;
   getPaymentsByBooking(bookingId: string): Promise<ServiceResponse>;
+  confirmPayout(data: ConfirmPayoutDTO) ;
+   createPayoutOrder(data: CreatePayoutOrderDTO)
   cancelPayment(paymentId: string): Promise<ServiceResponse>;
   verifyPayment(paymentId: string, gatewayTransactionId: string): Promise<ServiceResponse>;
   getPaymentStatus(paymentId: string): Promise<ServiceResponse>;

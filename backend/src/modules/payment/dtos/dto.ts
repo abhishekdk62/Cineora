@@ -60,3 +60,20 @@ export interface VerifyRazorpayPaymentDTO {
   razorpay_signature: string;
   bookingData?: unknown;
 }
+
+
+
+export interface CreatePayoutOrderDTO {
+  ownerId: string;
+  amount: number;
+  mode: string;
+  purpose: string;
+}
+
+export interface ConfirmPayoutDTO {
+  ownerId: string;
+  amount: number;
+  mode: string;
+  razorpay_payment_id: string;
+  order_id: string;
+}

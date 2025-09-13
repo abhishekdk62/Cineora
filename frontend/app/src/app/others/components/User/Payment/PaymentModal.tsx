@@ -128,6 +128,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose
         },
         modal: {
           ondismiss: () => {
+            router.push(`/booking/failed`)
 
             if (!isPaymentProcessing) {
               console.log('Payment cancelled by user');

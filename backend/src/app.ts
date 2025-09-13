@@ -160,7 +160,7 @@ export class App {
     const theaterService = new TheaterService(theaterRepo, emailService);
     const screenService = new ScreenService(screenRepo, theaterRepo);
     const ticketService = new TicketService(ticketRepo, emailService);
-    const paymentService = new PaymentService(paymentRepo);
+    const paymentService = new PaymentService(paymentRepo,walletRepo,walletTransactionRepo);
     const bookingService = new BookingService(bookingRepo, showtimeRepo);
     const walletService = new WalletService(walletRepo);
     const showtimeService = new ShowtimeService(showtimeRepo);
@@ -294,7 +294,8 @@ export class App {
       bookingController,
       walletController,
       walletTransactionController,
-couponController
+couponController,
+paymentController
     );
 
     const ownerReqRoutes = new OwnerRequestRoute(

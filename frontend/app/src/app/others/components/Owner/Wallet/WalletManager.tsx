@@ -1,8 +1,10 @@
+// WalletManager.tsx - Complete with ResultModal at parent level
 import React, { useState, useEffect } from 'react';
 import { Filter, DollarSign, Wallet } from 'lucide-react';
 import { getTransactionDetailsOwner, getWalletOwner } from '@/app/others/services/ownerServices/walletServices';
 import WalletBalance from './WalletBalance';
 import TransactionHistory from './TransactionHistory';
+import ResultModal from './ResultModal';
 
 interface WalletData {
   balance: number;
@@ -19,6 +21,13 @@ const WalletManager: React.FC = () => {
   });
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
+
+  // Result Modal State
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [resultType, setResultType] = useState<'success' | 'failure'>('success');
+  const [resultMessage, setResultMessage] = useState('');
+  const [resultAmount, setResultAmount] = useState<number | undefined>(undefined);
+  const [resultMode, setResultMode] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     fetchWalletData();
@@ -46,6 +55,27 @@ const WalletManager: React.FC = () => {
     }
   };
 
+  // Result Modal Handler
+  const showPayoutResult = (
+    type: 'success' | 'failure',
+    message: string,
+    amount?: number,
+    mode?: string
+  ) => {
+    setResultType(type);
+    setResultMessage(message);
+    setResultAmount(amount);
+    setResultMode(mode);
+    setShowResultModal(true);
+  };
+
+  const handleResultModalClose = () => {
+    setShowResultModal(false);
+    setResultAmount(undefined);
+    setResultMode(undefined);
+    setResultMessage('');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 p-6 flex items-center justify-center">
@@ -70,17 +100,27 @@ const WalletManager: React.FC = () => {
               View your wallet balance, transaction history and manage your earnings.
             </p>
           </div>
-    
         </div>
-
-     
 
         {/* Main Content */}
         <div className="space-y-6">
-          <WalletBalance balance={walletData.balance} onRefresh={fetchWalletData} />
+          <WalletBalance 
+            balance={walletData.balance} 
+            onRefresh={fetchWalletData}
+            onShowResult={showPayoutResult}
+          />
           <TransactionHistory transactions={walletData.transactions} />
         </div>
       </div>
+
+      <ResultModal
+        isOpen={showResultModal}
+        onClose={handleResultModalClose}
+        type={resultType}
+        amount={resultAmount}
+        mode={resultMode}
+        message={resultMessage}
+      />
     </div>
   );
 };
