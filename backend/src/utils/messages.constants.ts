@@ -53,6 +53,31 @@ export const OWNER_MESSAGES = {
   PASSWORD_UPDATED_SUCCESS: "Password updated successfully",
   INTERNAL_SERVER_ERROR: "Internal server error",
 };
+export const COUPON_MESSAGES = {
+COUPON_ID_REQUIRED: "Coupon ID is required",
+OWNER_ID_REQUIRED: "Owner ID is required",
+NAME_REQUIRED: "Coupon name is required",
+UNIQUE_ID_REQUIRED: "Unique coupon code is required",
+THEATER_IDS_REQUIRED: "At least one theater ID is required",
+DISCOUNT_PERCENTAGE_REQUIRED: "Discount percentage is required",
+DESCRIPTION_REQUIRED: "Coupon description is required",
+EXPIRY_DATE_REQUIRED: "Expiry date is required",
+INVALID_COUPON_ID: "Invalid coupon ID",
+COUPON_NOT_FOUND: "Coupon not found",
+COUPON_ALREADY_EXISTS: "Coupon with this code already exists",
+COUPON_EXPIRED: "Coupon has expired",
+COUPON_INACTIVE: "Coupon is inactive",
+COUPON_USED: "Coupon usage limit reached",
+COUPON_NOT_VALID_FOR_THEATER: "Coupon is not valid for selected theater",
+UNAUTHORIZED_ACTION: "You are not authorized to perform this action",
+USER_AUTH_REQUIRED: "User authentication required",
+OWNER_AUTH_REQUIRED: "Owner authentication required",
+VALIDATION_DATA_REQUIRED: "Coupon validation data required",
+COUPON_APPLIED_SUCCESS: "Coupon applied successfully",
+INTERNAL_SERVER_ERROR: "Internal server error",
+};
+
+
 export const OWNER_REQUEST_MESSAGES = {
   EMAIL_REQUIRED: "Email is required",
   INVALID_EMAIL: "Please enter a valid email address",

@@ -12,7 +12,8 @@ import {
   User,
   LogOut,
   Menu,
-  DollarSign
+  DollarSign,
+  Ticket
 } from "lucide-react"
 import { useDispatch } from "react-redux"
 import { AppDispatch } from "@/app/others/redux/store"
@@ -43,7 +44,7 @@ const OwnerSidebar: React.FC<OwnerSidebarProps> = ({ activeTab, setActiveTab }) 
     { id: "wallet", label: "Wallet", icon: Wallet },
     { id: "analytics", label: "Analytics", icon: BarChart3 },
     { id: "revenue", label: "Revenue", icon: DollarSign },
-    { id: "offers", label: "Offers", icon: Gift },
+    { id: "coupons", label: "Coupons", icon: Ticket },
     { id: "account", label: "My Account", icon: User },
   ]
 

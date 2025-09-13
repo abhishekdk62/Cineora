@@ -4,10 +4,11 @@ import { CreateWalletDto, CreditWalletDto, DebitWalletDto } from "../dtos/dto";
 import { ApiResponse, createResponse } from "../../../utils/createResponse";
 import { IWallet } from "../interfaces/wallet.model.interface";
 import mongoose from "mongoose";
+import { IWalletTransactionRepository } from "../../walletTransaction/interfaces/walletTransaction.repository.interface";
 
 export class WalletService implements IWalletService {
   constructor(
-    private readonly walletRepository: IWalletRepository
+    private readonly walletRepository: IWalletRepository,
   ) {}
 
   async createWallet(data: CreateWalletDto): Promise<ApiResponse<IWallet>> {
@@ -38,6 +39,34 @@ export class WalletService implements IWalletService {
       return this._handleServiceError(error, "Failed to create wallet");
     }
   }
+
+  async debitWalletAllowNegative(data: DebitWalletDto): Promise<ApiResponse<IWallet>> {
+  try {
+    this._validateDebitWalletData(data);
+
+    // Force debit even if insufficient balance
+    const wallet = await this.walletRepository.updateWalletBalanceAllowNegative(
+      data.userId,
+      data.userModel,
+      -data.amount  // Negative amount for debit
+    );
+
+    if (!wallet) {
+      return createResponse({
+        success: false,
+        message: "Wallet not found"
+      });
+    }
+
+    return createResponse({
+      success: true,
+      message: "Wallet debited successfully (negative balance allowed)",
+      data: wallet
+    });
+  } catch (error: unknown) {
+    return this._handleServiceError(error, "Failed to debit wallet");
+  }
+}
 
   async creditWallet(data: CreditWalletDto): Promise<ApiResponse<IWallet>> {
     try {
@@ -107,7 +136,7 @@ export class WalletService implements IWalletService {
 
   async getWalletBalance(
     userId: string,
-    userModel: "User" | "Owner"
+    userModel: "User" | "Owner"|"Admin"
   ): Promise<ApiResponse<{ balance: number }>> {
     try {
       this._validateUserParams(userId, userModel);
@@ -126,7 +155,7 @@ export class WalletService implements IWalletService {
 
   async getWalletDetails(
     userId: string,
-    userModel: "User" | "Owner"
+    userModel: "User" | "Owner"|"Admin"
   ): Promise<ApiResponse<IWallet>> {
     try {
       this._validateUserParams(userId, userModel);
@@ -159,7 +188,7 @@ export class WalletService implements IWalletService {
       throw new Error("Invalid userId format");
     }
 
-    const validUserModels = ['User', 'Owner'];
+    const validUserModels = ['User', 'Owner','Admin'];
     if (!validUserModels.includes(data.userModel)) {
       throw new Error(`User model must be one of: ${validUserModels.join(', ')}`);
     }
@@ -209,7 +238,7 @@ export class WalletService implements IWalletService {
       throw new Error("Invalid userId format");
     }
 
-    const validUserModels = ['User', 'Owner'];
+    const validUserModels = ['User', 'Owner','Admin'];
     if (!validUserModels.includes(userModel)) {
       throw new Error(`User model must be one of: ${validUserModels.join(', ')}`);
     }

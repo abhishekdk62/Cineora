@@ -1,7 +1,7 @@
 
 export interface CreateWalletDto {
   userId: string;
-  userModel: 'User' | 'Owner';
+  userModel: 'User' | 'Owner'|'Admin';
   balance?: number;
   currency?: string;
   status?: 'active' | 'frozen' | 'closed';
@@ -16,7 +16,7 @@ export interface CreditWalletDto {
 
 export interface DebitWalletDto {
   userId: string;
-  userModel: 'User' | 'Owner';
+  userModel: 'User' | 'Owner'|'Admin';
   amount: number;
   description?: string;
 }

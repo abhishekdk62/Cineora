@@ -17,7 +17,8 @@ import { BOOKING_MESSAGES } from "../../../utils/messages.constants";
 import { createResponse } from "../../../utils/createResponse";
 import { OwnerService } from "../../owner/services/owner.service";
 import { ITheaterService } from "../../theaters/interfaces/theater.service.interface";
-import { CreditWalletDto } from "../../wallet/dtos/dto";
+import { CreateWalletDto, CreditWalletDto } from "../../wallet/dtos/dto";
+import { ICouponService } from "../../coupons/interfaces/coupons.service.interface";
 
 export class BookingController {
   constructor(
@@ -28,7 +29,9 @@ export class BookingController {
     private readonly walletTransactionService: IWalletTransactionService,
     private readonly notificationService: INotificationService,
     private readonly notificationScheduler: NotificationScheduler,
-    private readonly theaterService: ITheaterService
+    private readonly theaterService: ITheaterService,
+    private readonly couponService: ICouponService,
+    
   ) {}
 
   async createBooking(
@@ -39,6 +42,8 @@ export class BookingController {
       const bookingDto: CreateBookingDto = this._mapBodyToCreateBookingDto(
         req.body
       );
+
+      
       const userId = this._extractAuthenticatedUserId(req);
 
       if (!userId) {
@@ -77,11 +82,19 @@ export class BookingController {
         bookingDto,
         bookingResult.data
       );
-      console.log(bookingDto);
+      console.log('create books');
+      
+          if (bookingDto.appliedCoupon && bookingDto.appliedCoupon._id) {
+      try {
+      console.log('create books 2');
+        
+        await this.couponService.incrementCouponUsage(bookingDto.appliedCoupon._id);
+        console.log(`Coupon usage incremented for: ${bookingDto.appliedCoupon.uniqueId}`);
+      } catch (error) {
+        console.error('Failed to increment coupon usage:', error);
+      }
+    }
          await this._distributePayment(bookingDto);
-
-
-
       return this._sendSuccessResponse(res, StatusCodes.CREATED, {
         message: BOOKING_MESSAGES.BOOKING_TICKET_SUCCESS,
         data: {
@@ -526,7 +539,6 @@ private async _distributePayment(bookingDto: CreateBookingDto): Promise<void> {
     console.error("Payment distribution error:", error);
   }
 }
-
 private async _creditOwnerWallet(ownerId: string, amount: number, bookingDto: CreateBookingDto): Promise<void> {
   try {
     const creditData: CreditWalletDto = {
@@ -537,14 +549,60 @@ private async _creditOwnerWallet(ownerId: string, amount: number, bookingDto: Cr
 
     const result = await this.walletService.creditWallet(creditData);
     
-    if (!result.success) {
+    if (!result.success && result.message === "Wallet not found") {
+      console.log(`Creating wallet for owner: ${ownerId}`);
+      
+      const createWalletData: CreateWalletDto = {
+        userId: ownerId,
+        userModel: 'Owner',
+        balance: amount,
+        status: 'active'
+      };
+      
+      const createResult = await this.walletService.createWallet(createWalletData);
+      
+      if (!createResult.success) {
+        console.error("Failed to create owner wallet:", createResult.message);
+      } else {
+        console.log(`✅ Owner wallet created and credited with ₹${amount}`);
+        
+        await this.walletTransactionService.createWalletTransaction({
+          userId: ownerId,
+          userModel: "Owner",
+          walletId: createResult.data._id,
+          type: "credit",
+          amount: amount,
+          category: "revenue",
+          description: `Initial revenue from ticket booking - ${bookingDto.movieTitle || "Movie Ticket"}`,
+          referenceId: bookingDto.showtimeId,
+          movieId: bookingDto.movieId,
+          theaterId: bookingDto.theaterId,
+        });
+      }
+    } else if (!result.success) {
       console.error("Failed to credit owner wallet:", result.message);
+    } else {
+      console.log(`✅ Owner wallet credited with ₹${amount}`);
+      
+      await this.walletTransactionService.createWalletTransaction({
+        userId: ownerId,
+        userModel: "Owner",
+        walletId: result.data._id,
+        type: "credit",
+        amount: amount,
+        category: "revenue",
+        description: `Ticket booking revenue - ${bookingDto.movieTitle || "Movie Ticket"}`,
+        referenceId: bookingDto.showtimeId,
+        movieId: bookingDto.movieId,
+        theaterId: bookingDto.theaterId,
+      });
     }
     
   } catch (error) {
     console.error("Owner wallet credit error:", error);
   }
 }
+
 
 private async _creditAdminWallet(amount: number, bookingDto: CreateBookingDto): Promise<void> {
   try {
@@ -554,19 +612,66 @@ private async _creditAdminWallet(amount: number, bookingDto: CreateBookingDto): 
       userId: ADMIN_USER_ID,
       userModel: 'Admin', 
       amount: amount,
-      description: `Platform commission - ${bookingDto.movieTitle}`,
     };
 
     const result = await this.walletService.creditWallet(creditData);
     
-    if (!result.success) {
+    if (!result.success && result.message === "Wallet not found") {
+      // Create wallet if it doesn't exist
+      console.log(`Creating wallet for admin: ${ADMIN_USER_ID}`);
+      
+      const createWalletData: CreateWalletDto = {
+        userId: ADMIN_USER_ID,
+        userModel: 'Admin',
+        balance: amount,
+        status: 'active'
+      };
+      
+      const createResult = await this.walletService.createWallet(createWalletData);
+      
+      if (!createResult.success) {
+        console.error("Failed to create admin wallet:", createResult.message);
+      } else {
+        console.log(`✅ Admin wallet created and credited with ₹${amount}`);
+        
+        await this.walletTransactionService.createWalletTransaction({
+          userId: ADMIN_USER_ID,
+          userModel: "Admin",
+          walletId: createResult.data._id,
+          type: "credit",
+          amount: amount,
+          category: "revenue",
+          description: `Initial platform commission - ${bookingDto.movieTitle || "Movie Ticket"}`,
+          referenceId: bookingDto.showtimeId,
+          movieId: bookingDto.movieId,
+          theaterId: bookingDto.theaterId,
+        });
+      }
+    } else if (!result.success) {
       console.error("Failed to credit admin wallet:", result.message);
+    } else {
+      console.log(`✅ Admin wallet credited with ₹${amount}`);
+      
+      await this.walletTransactionService.createWalletTransaction({
+        userId: ADMIN_USER_ID,
+        userModel: "Admin",
+        walletId: result.data._id,
+        type: "credit",
+        amount: amount,
+        category: "revenue",
+        description: `Platform commission - ${bookingDto.movieTitle || "Movie Ticket"}`,
+        referenceId: bookingDto.showtimeId,
+        movieId: bookingDto.movieId,
+        theaterId: bookingDto.theaterId,
+      });
     }
     
   } catch (error) {
     console.error("Admin wallet credit error:", error);
   }
 }
+
+
 
   private _sendErrorResponse(
     res: Response,

@@ -11,7 +11,7 @@ const walletTransactionSchema = new Schema<IWalletTransaction>(
     userModel: {
       type: String,
       required: true,
-      enum: ["User", "Owner"],
+      enum: ["User", "Owner","Admin"],
     },
     walletId: {
       type: Schema.Types.ObjectId,

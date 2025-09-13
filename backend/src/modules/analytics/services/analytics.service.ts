@@ -42,7 +42,6 @@ import { IAnalyticsRepository } from "../interfaces/analytics.repository.interfa
 export class AnalyticsService implements IAnalyticsService {
   constructor(private readonly analyticsRepository: IAnalyticsRepository) {}
 
-  // Main comprehensive analytics method
   async getComprehensiveAnalytics(filters: IAnalyticsFilterDTO): Promise<ServiceResponse<IComprehensiveAnalyticsDTO>> {
     try {
       if (!filters.ownerId) {

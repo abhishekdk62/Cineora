@@ -31,7 +31,7 @@ export class WalletRepository implements IWalletRepository {
 
   async findWalletByUser(
     userId: string,
-    userModel: "User" | "Owner"
+    userModel: "User" | "Owner"|'Admin'
   ): Promise<IWallet | null> {
     try {
       return await Wallet.findOne({ userId, userModel });
@@ -39,6 +39,26 @@ export class WalletRepository implements IWalletRepository {
       throw new Error(`Failed to find wallet by user: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
+  async updateWalletBalanceAllowNegative(
+  userId: string, 
+  userModel: string, 
+  amount: number
+): Promise<IWallet | null> {
+  try {
+    // This allows balance to go negative
+    return await Wallet.findOneAndUpdate(
+      { userId, userModel },
+      { 
+        $inc: { balance: amount },  // Can go negative
+        $set: { updatedAt: new Date() }
+      },
+      { new: true }
+    );
+  } catch (error) {
+    throw new Error(`Error updating wallet balance: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
 
   async findWalletById(walletId: string): Promise<IWallet | null> {
     try {
@@ -50,7 +70,7 @@ export class WalletRepository implements IWalletRepository {
 
   async getWalletBalance(
     userId: string,
-    userModel: "User" | "Owner"
+    userModel: "User" | "Owner"|"Admin"
   ): Promise<number> {
     try {
       const wallet = await Wallet.findOne({ userId, userModel });

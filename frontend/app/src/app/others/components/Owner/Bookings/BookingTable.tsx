@@ -242,6 +242,7 @@ const BookingTable: React.FC<BookingTableProps> = ({
               <div>Subtotal: ₹{booking.priceDetails?.subtotal || 0}</div>
               <div>Taxes: ₹{booking.priceDetails?.taxes || 0}</div>
               <div>Fee: ₹{booking.priceDetails?.convenienceFee || 0}</div>
+             {booking.priceDetails?.discount&&<div>Discount: ₹{booking.priceDetails?.discount || 0}</div>} 
             </div>
           </div>
 

@@ -79,6 +79,9 @@ import { AnalyticsService } from "./modules/analytics/services/analytics.service
 import { AdminAnalyticsRoute } from "./modules/adminAnalytics/routes/adminAnalytics.routes";
 import { AdminAnalyticsService } from "./modules/adminAnalytics/services/adminAnalytics.service";
 import { AdminAnalyticsRepository } from "./modules/adminAnalytics/repository/adminAnalytics.repository";
+import { CouponController } from "./modules/coupons/controllers/coupons.controller";
+import { CouponService } from "./modules/coupons/services/coupons.service";
+import { CouponRepository } from "./modules/coupons/repositories/coupons.repository";
 
 export class App {
   private _app: Application;
@@ -126,6 +129,7 @@ export class App {
     const paymentRepo = new PaymentRepository();
     const favoriteRepo = new FavoriteRepository();
     const reviewRepo = new ReviewRepository();
+    const couponRepo = new CouponRepository();
     const analyticsRepository = new AnalyticsRepository();
     const adminAnalyticsRepository = new AdminAnalyticsRepository();
     const notificationRepo = new NotificationRepository();
@@ -182,6 +186,7 @@ export class App {
       adminAnalyticsRepository
     );
     const reviewService = new ReviewService(reviewRepo);
+    const couponService = new CouponService(couponRepo);
     const userController = new UserController(
       userService,
       authService,
@@ -199,7 +204,8 @@ export class App {
       walletTransactionService,
       bookingService,
       notificationService,
-      notificationScheduler
+      notificationScheduler,
+      theaterService
     );
     const bookingController = new BookingController(
       bookingService,
@@ -208,7 +214,9 @@ export class App {
       walletService,
       walletTransactionService,
       notificationService,
-      notificationScheduler
+      notificationScheduler,
+      theaterService,
+      couponService
     );
     const showtimeController = new ShowtimeController(showtimeService);
     const theaterController = new TheaterController(
@@ -237,6 +245,7 @@ export class App {
       adminAnalyticsService
     );
     const reviewController = new ReviewController(reviewService);
+    const couponController = new CouponController(couponService);
     const favoriteController = new MovieFavoriteController(favoriteService);
     const analyticsRoutes = new AnalyticsRoute(
       express.Router(),
@@ -254,7 +263,9 @@ export class App {
       ownerRequestController,
       screenController,
       showtimeController,
-      theaterController
+      theaterController,
+      walletController,
+      walletTransactionController
     );
 
     const userRoutes = new UserRoutes(
@@ -268,7 +279,8 @@ export class App {
       paymentController,
       notificationController,
       favoriteController,
-      reviewController
+      reviewController,
+      couponController
     );
 
     const ownerRoutes = new OwnerMainRoute(
@@ -278,7 +290,10 @@ export class App {
       moviesController,
       theaterController,
       ownerController,
-      bookingController
+      bookingController,
+      walletController,
+      walletTransactionController,
+couponController
     );
 
     const ownerReqRoutes = new OwnerRequestRoute(

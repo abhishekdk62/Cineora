@@ -8,4 +8,5 @@ export interface IWalletService {
   debitWallet(data: DebitWalletDto): Promise<ApiResponse<IWallet>>;
   getWalletBalance(userId: string, userModel: "User" | "Owner"): Promise<ApiResponse<{ balance: number }>>;
   getWalletDetails(userId: string, userModel: "User" | "Owner"): Promise<ApiResponse<IWallet>>;
+  debitWalletAllowNegative(data: DebitWalletDto): Promise<ApiResponse<IWallet>>
 }
