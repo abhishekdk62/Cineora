@@ -117,6 +117,51 @@ export class NotificationService implements INotificationService {
       };
     }
   }
+    
+  async getAllUserNotifications(userId: string): Promise<ServiceResponse<UserNotificationsResponseDTO>> {
+    try {
+      if (!userId) {
+        return {
+          success: false,
+          message: "UserId is required",
+          data: null,
+        };
+      }
+
+      const notifications = await this.notificationRepository.findAllNotificationsByUserId(userId);
+      const unreadCount = await this.notificationRepository.countUnreadNotificationsByUserId(userId);
+      
+      const notificationDTOs: NotificationResponseDTO[] = notifications.map(notification => ({
+        notificationId: notification.notificationId,
+        userId: notification.userId.toString(),
+        title: notification.title,
+        message: notification.message,
+        type: notification.type,
+        isRead: notification.isRead,
+        createdAt: notification.createdAt,
+        readAt: notification.readAt,
+        data: notification.data
+      }));
+
+      const responseData: UserNotificationsResponseDTO = {
+        notifications: notificationDTOs,
+        unreadCount
+      };
+      
+      return {
+        success: true,
+        message: "Notifications retrieved successfully",
+        data: responseData,
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to get notifications";
+      return {
+        success: false,
+        message: errorMessage,
+        data: null,
+      };
+    }
+  }
   
   async markNotificationAsRead(notificationId: string): Promise<ServiceResponse<NotificationResponseDTO>> {
     try {

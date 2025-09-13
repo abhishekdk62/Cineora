@@ -20,7 +20,7 @@ interface Layout {
   advancedLayout: any;
 }
 
-interface Screen {
+export interface Screen {
   _id: string;
   name: string;
   theaterId: Theater;
@@ -61,6 +61,8 @@ const ScreenSelectionModal: React.FC<ScreenSelectionModalProps> = ({
   const fetchScreens = async () => {
     try {
       const result = await getScreensByTheaterId(theaterId);
+      console.log(result.data);
+      
       setScreens(result.data);
     } catch (error) {
       console.error("Error fetching screens:", error);

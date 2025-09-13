@@ -1,6 +1,7 @@
 
 const USER_NOTIFICATIONS = {
   ALL: '/users/notifications' as const,
+  FULL: '/users/notifications/all' as const,
   MARK_AS_SEEN: (id: string) => `/users/notification/${id}`,
 };
 

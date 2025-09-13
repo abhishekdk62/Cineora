@@ -21,6 +21,7 @@ export interface INotificationService {
   ): Promise<ServiceResponse<NotificationResponseDTO>>;
   
   getUserNotifications(userId: string): Promise<ServiceResponse<UserNotificationsResponseDTO>>;
+  getAllUserNotifications(userId: string): Promise<ServiceResponse<UserNotificationsResponseDTO>>;
   markNotificationAsRead(notificationId: string): Promise<ServiceResponse<NotificationResponseDTO>>;
   deleteNotification(notificationId: string): Promise<ServiceResponse<null>>;
   

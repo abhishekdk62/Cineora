@@ -44,6 +44,17 @@ export class NotificationRepository implements INotificationRepository {
       throw new Error(`Find unread notifications failed: ${errorMessage}`);
     }
   }
+  async findAllNotificationsByUserId(userId: string): Promise<INotification[]> {
+    try {
+      const notifications = await Notification.find({ userId })
+        .sort({ createdAt: -1 })
+        .lean();
+      return notifications;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred while finding unread notifications";
+      throw new Error(`Find unread notifications failed: ${errorMessage}`);
+    }
+  }
 
   async markNotificationAsRead(notificationId: string): Promise<INotification> {
     try {

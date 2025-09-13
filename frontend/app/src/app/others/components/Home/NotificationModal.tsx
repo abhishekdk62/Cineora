@@ -3,11 +3,12 @@ import React, { useState } from "react";
 import { X, Bell } from "lucide-react";
 
 interface NotificationModalProps {
+  unreadNotifications: BackendNotification[];
+
   isOpen: boolean;
   onClose: () => void;
   notifications: BackendNotification[];
   onMarkAllRead: () => void;
-  onNotificationClick: (notification: BackendNotification) => void;
   lexendSmall: any;
   lexendBold: any;
 }
@@ -36,11 +37,12 @@ export interface BackendNotification {
 }
 
 export default function NotificationModal({
+                  unreadNotifications,
+
   isOpen,
   onClose,
   notifications,
   onMarkAllRead,
-  onNotificationClick,
   lexendSmall,
   lexendBold
 }: NotificationModalProps) {
@@ -98,12 +100,7 @@ export default function NotificationModal({
             </div>
             
             <div className="flex items-center gap-4">
-              <button
-                onClick={onMarkAllRead}
-                className={`${lexendSmall.className} text-[#FF5A3C] hover:text-[#e54a32] transition-colors text-sm`}
-              >
-                Mark all as read
-              </button>
+        
               <button
                 onClick={onClose}
                 className="text-gray-400 hover:text-white transition-colors p-2"
@@ -152,7 +149,6 @@ export default function NotificationModal({
                 {filteredNotifications.map((notification) => (
                   <div
                     key={notification._id}
-                    onClick={() => onNotificationClick(notification)}
                     className={`p-4 rounded-xl cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:bg-gradient-to-r hover:from-gray-700/30 hover:to-gray-800/30 ${
                       !notification.isRead 
                         ? 'border border-gray-500/30 bg-gray-800/30' 

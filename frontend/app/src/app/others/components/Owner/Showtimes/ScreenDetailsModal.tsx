@@ -61,6 +61,13 @@ const ScreenDetailsModal: React.FC<ScreenDetailsModalProps> = ({
       (row.offset || 0) + (row.seats?.length || 0)
     ));
   };
+  const hasAisles = () => {
+    const aisles = screen.layout.advancedLayout?.aisles;
+    return aisles && (
+      (aisles.vertical && aisles.vertical.length > 0) || 
+      (aisles.horizontal && aisles.horizontal.length > 0)
+    );
+  };
 
   const renderLayoutSection = () => {
     if (screen.layout.advancedLayout && screen.layout.advancedLayout.rows) {
@@ -69,6 +76,7 @@ const ScreenDetailsModal: React.FC<ScreenDetailsModalProps> = ({
           <LayoutPreview
             advancedLayoutJSON={screen.layout.advancedLayout}
             maxCols={getMaxCols()}
+            showAisles={hasAisles()} 
           />
         </div>
       );

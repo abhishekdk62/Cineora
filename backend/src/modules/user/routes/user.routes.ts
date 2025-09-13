@@ -105,6 +105,9 @@ export class UserRoutes {
     this._router.get("/notifications", (req, res) =>
       this._notificationController.getUserNotifications(req, res)
     );
+    this._router.get("/notifications/all", (req, res) =>
+      this._notificationController.getAllUserNotifications(req, res)
+    );
     this._router.patch("/notification/:notificationId", (req, res) =>
       this._notificationController.markNotificationAsRead(req, res)
     );

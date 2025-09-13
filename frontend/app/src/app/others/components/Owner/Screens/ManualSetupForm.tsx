@@ -3,27 +3,32 @@ import { X, Grid, Zap, Plus, Trash2 } from 'lucide-react';
 import { Lexend } from "next/font/google";
 import { LayoutPreview } from './LayoutPreview';
 import { RowConfiguration } from './RowConfiguration';
-import { FormData, RowDef } from './types';
+import { AisleConfiguration } from './AisleConfiguration'; // ADD THIS IMPORT
+import { FormData, ManualSetupFormProps, RowDef } from './types';
 
 const lexendMedium = Lexend({ weight: "500", subsets: ["latin"] });
 const lexendSmall = Lexend({ weight: "400", subsets: ["latin"] });
 
-interface ManualSetupFormProps {
-  formData: FormData;
-  errors: any;
-  rowsDefs: RowDef[];
-  setRowsDefs: React.Dispatch<React.SetStateAction<RowDef[]>>;
-  maxCols: number;
-  advancedLayoutJSON: any;
-  handleInputChange: (field: string, value: string | number | string[]) => void; 
-  handleSubmit: (e: React.FormEvent) => void;
-  isLoading: boolean;
-  isFormValid: () => boolean;
-  onClose: () => void;
-  mode: 'create' | 'edit';
-  setSetupMode: (mode: 'quickstart' | 'manual') => void;
+// ADD THESE INTERFACES
+interface VerticalAisle {
+  id: string;
+  position: number;
+  width: number;
+  type: 'main' | 'side' | 'emergency';
+  label?: string;
 }
 
+interface HorizontalAisle {
+  id: string;
+  afterRow: number;
+  width: number;
+  type: 'cross' | 'emergency';
+  label?: string;
+}
+
+
+
+// UPDATE THE COMPONENT TO ACCEPT AISLE PROPS
 export const ManualSetupForm: React.FC<ManualSetupFormProps> = ({
   formData,
   errors,
@@ -37,7 +42,12 @@ export const ManualSetupForm: React.FC<ManualSetupFormProps> = ({
   isFormValid,
   onClose,
   mode,
-  setSetupMode
+  setSetupMode,
+  // ADD THESE AISLE PROPS
+  verticalAisles,
+  horizontalAisles,
+  setVerticalAisles,
+  setHorizontalAisles
 }) => {
   const addFeature = () => {
     const currentFeatures = formData.features || [];
@@ -134,8 +144,6 @@ export const ManualSetupForm: React.FC<ManualSetupFormProps> = ({
             </button>
           </div>
         </div>
-
-      
       </div>
 
       {/* Layout Configuration */}
@@ -162,15 +170,25 @@ export const ManualSetupForm: React.FC<ManualSetupFormProps> = ({
           setRowsDefs={setRowsDefs} 
         />
 
+        {/* ADD THIS: Aisle Configuration */}
+        <AisleConfiguration
+          verticalAisles={verticalAisles}
+          horizontalAisles={horizontalAisles}
+          setVerticalAisles={setVerticalAisles}
+          setHorizontalAisles={setHorizontalAisles}
+          maxSeatsPerRow={formData.layout.seatsPerRow}
+          maxRows={formData.layout.rows}
+        />
+
         <LayoutPreview
           advancedLayoutJSON={advancedLayoutJSON} 
-          maxCols={maxCols} 
+          maxCols={maxCols}
+          showAisles={true} // ADD THIS: Show aisles in preview
         />
       </div>
 
-      {/* Layout Summary */}
+      {/* Layout Summary - SAME AS BEFORE */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Total Seats */}
         <div className="p-4 bg-white/5 border border-gray-500/30 rounded-xl">
           <div className="text-center">
             <span className={`${lexendSmall.className} text-gray-300 block`}>
@@ -182,7 +200,6 @@ export const ManualSetupForm: React.FC<ManualSetupFormProps> = ({
           </div>
         </div>
 
-        {/* Total Rows */}
         <div className="p-4 bg-white/5 border border-gray-500/30 rounded-xl">
           <div className="text-center">
             <span className={`${lexendSmall.className} text-gray-300 block`}>
@@ -194,7 +211,6 @@ export const ManualSetupForm: React.FC<ManualSetupFormProps> = ({
           </div>
         </div>
 
-        {/* Max Seats Per Row */}
         <div className="p-4 bg-white/5 border border-gray-500/30 rounded-xl">
           <div className="text-center">
             <span className={`${lexendSmall.className} text-gray-300 block`}>
@@ -207,7 +223,7 @@ export const ManualSetupForm: React.FC<ManualSetupFormProps> = ({
         </div>
       </div>
 
-      {/* Seat Type Summary */}
+      {/* Seat Type Summary - SAME AS BEFORE */}
       <div className="p-4 bg-white/5 border border-gray-500/30 rounded-xl">
         <h4 className={`${lexendMedium.className} text-white mb-3`}>Seat Distribution</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
@@ -234,7 +250,7 @@ export const ManualSetupForm: React.FC<ManualSetupFormProps> = ({
         </div>
       </div>
 
-      {/* Error Message */}
+      {/* Error Message - SAME AS BEFORE */}
       {errors.submit && (
         <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
           <p className="text-red-400 text-sm flex items-center gap-2">

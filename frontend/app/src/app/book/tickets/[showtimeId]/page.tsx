@@ -120,8 +120,8 @@ export interface ShowtimeData {
   showTime: string;
   endTime: string;
 
-  format: string;         
-  language: string;        
+  format: string;
+  language: string;
   ageRestriction: string | null;
   isActive: boolean;
 
@@ -154,8 +154,19 @@ export default function SeatSelectionPage() {
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [seatStatuses, setSeatStatuses] = useState<Record<string, SeatStatus>>({});
 
-  const getMaxCols = (rows: Row[]): number =>
-    Math.max(...rows.map(row => row.offset + row.seats.length));
+// This should match exactly how the owner side calculates it
+const getMaxCols = (rows: Row[], aisles?: any) => {
+  if (!rows || rows.length === 0) return 0;
+  
+  // Base calculation - same as owner side
+  const baseMaxCols = Math.max(...rows.map((row: Row) => 
+    (row.offset || 0) + (row.seats?.length || 0)
+  ));
+  
+  // DON'T add aisle width here - the owner side doesn't do this
+  return baseMaxCols; // This should be 16 for your data
+};
+
 
   const getSeatPrice = (seatId: string): number => {
     if (!showtimeData) return 0;
@@ -324,7 +335,7 @@ export default function SeatSelectionPage() {
         releaseDate: showtimeData.movieId.releaseDate,
         tmdbId: showtimeData.movieId.tmdbId,
         trailer: showtimeData.movieId.trailer,
-      }, 
+      },
 
       theaterName: showtimeData.theaterId.name,
       theaterDetails: {
@@ -484,6 +495,8 @@ export default function SeatSelectionPage() {
                   getSeatPrice={getSeatPrice}
                   lexendMediumClassName={lexendMedium.className}
                   maxCols={getMaxCols(showtimeData.screenId.layout.advancedLayout.rows)}
+                  aisles={showtimeData.screenId.layout.advancedLayout.aisles}
+
                 />
 
                 <Legend lexendSmallClassName={lexendSmall.className} />
