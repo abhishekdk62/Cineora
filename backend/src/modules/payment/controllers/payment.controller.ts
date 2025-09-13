@@ -157,6 +157,9 @@ export class PaymentController {
       );
     }
   }
+  
+
+ 
 
   async getPaymentById(req: Request, res: Response): Promise<void> {
     try {
@@ -299,6 +302,125 @@ export class PaymentController {
       );
     }
   }
+//!payout 
+//!payout 
+//!payout 
+//!payout 
+//!payout 
+
+
+  async createPayoutOrder(req: Request, res: Response): Promise<void> {
+    try {
+      const { amount, mode, purpose } = req.body;
+      const ownerId = req.owner?.ownerId;
+
+      console.log('🏦 Creating payout order:', { ownerId, amount, mode, purpose });
+
+      // Validate inputs
+      if (!amount || amount < 100) {
+        res.status(StatusCodes.BAD_REQUEST).json(
+          createResponse({
+            success: false,
+            message: 'Minimum payout amount is ₹100'
+          })
+        );
+        return;
+      }
+
+      // Check wallet balance
+      const result = await this._paymentService.createPayoutOrder({
+        ownerId,
+        amount,
+        mode,
+        purpose
+      });
+
+      if (result.success) {
+        res.status(StatusCodes.OK).json(
+          createResponse({
+            success: true,
+            message: 'Payout order created successfully',
+            data: result.data
+          })
+        );
+      } else {
+        res.status(StatusCodes.BAD_REQUEST).json(
+          createResponse({
+            success: false,
+            message: result.message
+          })
+        );
+      }
+
+    } catch (error: any) {
+      console.error('❌ Create payout order error:', error);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
+        createResponse({
+          success: false,
+          message: 'Failed to create payout order'
+        })
+      );
+    }
+  }
+
+  // 🔥 Step 2: Confirm payout (after Razorpay UI approval)
+  async confirmPayout(req: Request, res: Response): Promise<void> {
+    try {
+      const { razorpay_payment_id, amount, mode, order_id } = req.body;
+      const ownerId = req.owner?.ownerId;
+
+      console.log('✅ Confirming payout:', { 
+        ownerId, 
+        amount, 
+        mode, 
+        razorpay_payment_id,
+        order_id 
+      });
+
+      // Process payout confirmation
+      const result = await this._paymentService.confirmPayout({
+        ownerId,
+        amount,
+        mode,
+        razorpay_payment_id,
+        order_id
+      });
+
+      if (result.success) {
+        res.status(StatusCodes.OK).json(
+          createResponse({
+            success: true,
+            message: 'Payout confirmed! Money will be transferred to your account.',
+            data: result.data
+          })
+        );
+      } else {
+        res.status(StatusCodes.BAD_REQUEST).json(
+          createResponse({
+            success: false,
+            message: result.message
+          })
+        );
+      }
+
+    } catch (error: any) {
+      console.error('❌ Confirm payout error:', error);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
+        createResponse({
+          success: false,
+          message: 'Failed to confirm payout'
+        })
+      );
+    }
+  }
+
+
+
+
+
+
+
+
 
   async getPaymentStatus(req: Request, res: Response): Promise<void> {
     try {

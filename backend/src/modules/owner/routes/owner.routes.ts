@@ -8,6 +8,7 @@ import { BookingController } from "../../bookings/controllers/bookings.controlle
 import { WalletController } from "../../wallet/controllers/wallet.controller";
 import { WalletTransactionController } from "../../walletTransaction/controllers/walletTransaction.controller";
 import { CouponController } from "../../coupons/controllers/coupons.controller";
+import { PaymentController } from "../../payment/controllers/payment.controller";
 
 export class OwnerRoute {
   constructor(
@@ -20,7 +21,8 @@ export class OwnerRoute {
     private _bookingsController: BookingController,
     private _walletController: WalletController,
     private _walletTransactionController: WalletTransactionController,
-    private _couponController: CouponController
+    private _couponController: CouponController,
+    private _paymentController: PaymentController,
   ) {
     this._setRoutes();
   }
@@ -30,6 +32,15 @@ export class OwnerRoute {
     );
     this._router.post("/coupon", (req, res) =>
       this._couponController.createCoupon(req, res)
+    );
+    //! payout
+    this._router.post("/payout/create-order", (req, res) =>
+      this._paymentController.createPayoutOrder(req, res)
+    );
+    //! payout
+
+    this._router.post("/payout/confirm", (req, res) =>
+      this._paymentController.confirmPayout(req, res)
     );
     this._router.get("/coupon", (req, res) =>
       this._couponController.getCouponsByOwner(req, res)
