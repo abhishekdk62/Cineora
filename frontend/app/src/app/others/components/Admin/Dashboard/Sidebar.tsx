@@ -10,6 +10,7 @@ import {
   Ticket,
   Menu,
   LogOut,
+  Wallet,
 } from "lucide-react";
 import { logoutUser } from "@/app/others/redux/slices/authSlice";
 import { useDispatch } from "react-redux";
@@ -49,6 +50,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: "owners", label: "Owners and Theaters", icon: User, count: 12 },
     { id: "screens", label: "Screens and Showtimes", icon: TvMinimal, count: 1247 },
     { id: "analytics", label: "Analytics", icon: BarChart3 },
+    { id: "wallet", label: "Wallet", icon: Wallet },
     { id: "bookings", label: "Bookings", icon: Calendar, count: 89 },
     { id: "coupons", label: "Coupons", icon: Ticket, count: 5 },
   ];

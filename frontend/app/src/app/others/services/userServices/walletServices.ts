@@ -17,6 +17,7 @@ export const getTransactionDetails = async (): Promise<GetTransactionDetailsResp
   return data.data;
 };
 
+
 export const creditWallet = async (params: CreditWalletRequestDto): Promise<CreditWalletResponseDto> => {
   const data = await apiClient.post(USER_WALLET.CREDIT_TRANSACTION, params);
   return data.data;

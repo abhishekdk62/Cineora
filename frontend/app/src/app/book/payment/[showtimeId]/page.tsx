@@ -11,8 +11,9 @@ import { BookingSummary } from "@/app/others/components/User/Payment/BookingSumm
 import { lexendBold } from "@/app/others/Utils/fonts";
 import { useSelector, useDispatch } from "react-redux";
 import { getShowTimeUser } from "@/app/others/services/userServices/showTimeServices";
-import { calculateTotalAmount, setBookingData } from "@/app/others/redux/slices/bookingSlice";
+import { applyCoupon, calculateTotalAmount, removeCoupon, setBookingData } from "@/app/others/redux/slices/bookingSlice";
 import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
+import { getCouponsByTheaterId } from "@/app/others/services/userServices/couponServices";
 
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
 
@@ -26,6 +27,10 @@ export default function PaymentPage() {
   const [loading, setLoading] = useState(true);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [seatIdsUpdated, setSeatIdsUpdated] = useState(false);
+  const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
+  const [selectedCoupon, setSelectedCoupon] = useState<any>(null);
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [showCouponsModal, setShowCouponsModal] = useState(false);
 
   useEffect(() => {
     const fetchShowTimeData = async () => {
@@ -81,7 +86,7 @@ export default function PaymentPage() {
     if (!bookingDatasRedux?.selectedSeats || !showTimeData?.rowPricing) {
       return { breakdown: [], selectedRowIds: [] };
     }
-    
+
     const breakdown: any[] = [];
     const selectedRowIds: string[] = [];
 
@@ -116,57 +121,97 @@ export default function PaymentPage() {
       setSeatIdsUpdated(true);
     }
   }, [seatBreakdown.selectedRowIds, seatIdsUpdated, dispatch]);
-
-  const paymentData = useMemo(() => {
-    if (!bookingDatasRedux || !showTimeData) return null;
-    
-    let finalSeatBreakdown = seatBreakdown.breakdown; 
-    
-    if (finalSeatBreakdown.length === 0 && bookingDatasRedux.selectedSeats) {
-      finalSeatBreakdown = bookingDatasRedux.selectedSeats.map((seatId: string) => ({
-        type: "Standard",
-        displayType: `Standard - ${seatId}`,
-        price: Math.round(bookingDatasRedux.amount / bookingDatasRedux.selectedSeats.length),
-        count: 1,
-        total: Math.round(bookingDatasRedux.amount / bookingDatasRedux.selectedSeats.length),
-        seats: [seatId],
-        seatId: seatId
-      }));
-    }
-    
-    const seatTotal = finalSeatBreakdown.reduce((sum: number, item: any) => sum + item.total, 0);
-    const convenienceFee = Math.round(seatTotal * 0.05);
-    const taxes = Math.round(seatTotal * 0.18);
-    const totalAmount = seatTotal + convenienceFee + taxes;
-    
-    return {
-      movieTitle: showTimeData.movieId?.title || "Movie Title",
-      moviePoster: showTimeData.movieId?.poster,
-      movieRating: showTimeData.movieId?.rating || 0,
-      theaterName: showTimeData.theaterId?.name || "Theater Name",
-      screenName: `Screen ${showTimeData.screenId?.name || showTimeData.screenId || 1}`,
-      showDate: new Date(showTimeData.showDate).toLocaleDateString('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric'
-      }),
-      showTime: showTimeData.showTime || "Show Time",
-      format: showTimeData.format || "2D",
-      language: showTimeData.language || "English",
-      selectedSeats: bookingDatasRedux.selectedSeats,
-      seatBreakdown: finalSeatBreakdown,
-      subtotal: seatTotal,
-      convenienceFee: convenienceFee,
-      taxes: taxes,
-      discount: 0,
-      total: totalAmount,
-      savings: 0
+  useEffect(() => {
+    const fetchTheaterCoupons = async () => {
+      if (bookingDatasRedux?.theaterId) {
+        try {
+          const result = await getCouponsByTheaterId(bookingDatasRedux.theaterId);
+          setAvailableCoupons(result.data || []);
+        } catch (error) {
+          console.error("Failed to fetch coupons:", error);
+          setAvailableCoupons([]);
+        }
+      }
     };
-  }, [bookingDatasRedux, showTimeData, seatBreakdown.breakdown]); 
+
+    fetchTheaterCoupons();
+  }, [bookingDatasRedux?.theaterId]);
+
+const paymentData = useMemo(() => {
+  if (!bookingDatasRedux || !showTimeData) return null;
+
+  let finalSeatBreakdown = seatBreakdown.breakdown;
+
+  if (finalSeatBreakdown.length === 0 && bookingDatasRedux.selectedSeats) {
+    finalSeatBreakdown = bookingDatasRedux.selectedSeats.map((seatId: string) => ({
+      type: "Standard",
+      displayType: `Standard - ${seatId}`,
+      price: Math.round(bookingDatasRedux.amount / bookingDatasRedux.selectedSeats.length),
+      count: 1,
+      total: Math.round(bookingDatasRedux.amount / bookingDatasRedux.selectedSeats.length),
+      seats: [seatId],
+      seatId: seatId
+    }));
+  }
+
+  // Use Redux calculated values instead of local calculations
+  return {
+    movieTitle: showTimeData.movieId?.title || "Movie Title",
+    moviePoster: showTimeData.movieId?.poster,
+    movieRating: showTimeData.movieId?.rating || 0,
+    theaterName: showTimeData.theaterId?.name || "Theater Name",
+    screenName: `Screen ${showTimeData.screenId?.name || showTimeData.screenId || 1}`,
+    showDate: new Date(showTimeData.showDate).toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    }),
+    showTime: showTimeData.showTime || "Show Time",
+    format: showTimeData.format || "2D",
+    language: showTimeData.language || "English",
+    selectedSeats: bookingDatasRedux.selectedSeats,
+    seatBreakdown: finalSeatBreakdown,
+    
+    // Use Redux state values (these include coupon discounts)
+    subtotal: bookingDatasRedux.priceDetails?.subtotal || 0,
+    convenienceFee: bookingDatasRedux.priceDetails?.convenienceFee || 0,
+    taxes: bookingDatasRedux.priceDetails?.taxes || 0,
+    discount: bookingDatasRedux.priceDetails?.discount || 0, // This will have coupon discount
+    total: bookingDatasRedux.priceDetails?.total || 0, // This will be reduced by coupon
+    savings: bookingDatasRedux.priceDetails?.discount || 0,
+    
+    selectedCoupon: bookingDatasRedux.appliedCoupon || selectedCoupon,
+    availableCoupons: availableCoupons
+  };
+}, [bookingDatasRedux, showTimeData, seatBreakdown.breakdown, selectedCoupon, availableCoupons]);
 
   const handleBack = useCallback(() => {
     router.back();
   }, [router]);
+  const handleSelectCoupon = useCallback((coupon: any) => {
+    setSelectedCoupon(coupon);
+  const discount = Math.round(paymentData.subtotal * (coupon.discountPercentage / 100));
+    setCouponDiscount(discount);
+      dispatch(applyCoupon({
+    coupon: coupon,
+    discountAmount: discount
+  }));
+  
+
+    setShowCouponsModal(false);
+  }, [paymentData?.subtotal,dispatch]);
+
+  const handleRemoveCoupon = useCallback(() => {
+    setSelectedCoupon(null);
+      dispatch(removeCoupon());
+
+    setCouponDiscount(0);
+  }, [dispatch]);
+
+  const handleShowCouponsModal = useCallback(() => {
+    setShowCouponsModal(true);
+  }, []);
+
 
   const handleOpenPaymentModal = useCallback(() => {
     setShowPaymentModal(true);
@@ -218,6 +263,12 @@ export default function PaymentPage() {
             <BookingSummary
               data={paymentData}
               onPayment={handleOpenPaymentModal}
+              selectedCoupon={selectedCoupon}
+              availableCoupons={availableCoupons}
+              onSelectCoupon={handleSelectCoupon}
+              onRemoveCoupon={handleRemoveCoupon}
+              onShowCouponsModal={handleShowCouponsModal}
+
             />
           </div>
         </div>

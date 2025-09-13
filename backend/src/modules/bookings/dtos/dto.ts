@@ -10,19 +10,25 @@ export interface AuthenticatedRequest extends Request {
 
 export interface CreateBookingDto {
   userId?: string;
-  bookingId?:string;
+  bookingId?: string;
   movieId: string;
-  paymentStatus?:any;
-  bookingStatus?:any;
+  appliedCoupon?: {
+    _id:string;
+    discountPercentage?: number;
+    name?: string;
+    uniqueId?: string;
+  };
+  paymentStatus?: any;
+  bookingStatus?: any;
   theaterId: string;
   screenId: string;
   showtimeId: string;
   selectedSeats?: string[];
   selectedRows?: Array<{
     rowLabel: string;
-    seatsSelected: number[]; 
+    seatsSelected: number[];
     seatType: "VIP" | "Premium" | "Normal";
-    pricePerSeat: number; 
+    pricePerSeat: number;
   }>;
   selectedSeatIds: string[];
   seatPricing: Array<{
@@ -41,7 +47,7 @@ export interface CreateBookingDto {
   };
   showDate: string;
   showTime: string;
-  amount:number;
+  amount: number;
   contactInfo: {
     email: string;
   };
@@ -49,7 +55,6 @@ export interface CreateBookingDto {
   movieTitle?: string;
   theaterName?: string;
 }
-
 
 export interface UpdateBookingDto {
   bookingStatus?: "confirmed" | "cancelled" | "expired";

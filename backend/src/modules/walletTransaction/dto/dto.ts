@@ -1,7 +1,7 @@
 
 export interface CreateWalletTransactionDto {
   userId: string;
-  userModel: 'User' | 'Owner';
+  userModel: 'User' | 'Owner'|'Admin';
   walletId: string;
   type: 'credit' | 'debit';
   amount: number;

@@ -38,12 +38,9 @@ export class WalletTransactionService implements IWalletTransactionService {
     pagination: { page: number; limit: number; total: number; totalPages: number }
   }>> {
     try {
-      // Business logic validation
       this._validateGetUserWalletTransactionsParams(userId, page, limit);
-
       const result = await this.walletTransactionRepository.findWalletTransactionsByUserId(userId, page, limit);
       const paginationData = this._calculatePaginationData(page, limit, result.total);
-
       return createResponse({
         success: true,
         message: "User wallet transactions retrieved successfully",
@@ -93,7 +90,7 @@ export class WalletTransactionService implements IWalletTransactionService {
       throw new Error(`Category must be one of: ${validCategories.join(', ')}`);
     }
 
-    const validUserModels = ['User', 'Owner'];
+    const validUserModels = ['User', 'Owner','Admin'];
     if (!validUserModels.includes(data.userModel)) {
       throw new Error(`User model must be one of: ${validUserModels.join(', ')}`);
     }

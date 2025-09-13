@@ -11,6 +11,8 @@ import { lexendMedium, lexendSmall } from "@/app/others/Utils/fonts";
 import BookingsManager from "@/app/others/components/Owner/Bookings/BookingsManager";
 import AnalyticsManager from "@/app/others/components/Owner/Analytics/AnalyticsManager";
 import { RevenueManager } from "@/app/others/components/Owner/Revenue/RevenueManager";
+import WalletManager from "@/app/others/components/Owner/Wallet/WalletManager";
+import CouponsManager from "@/app/others/components/Owner/Coupons/CouponsManager";
 const OwnerManager = () => {
   const [activeTab, setActiveTab] = useState("theaters");
   const renderContent = () => {
@@ -27,15 +29,15 @@ const OwnerManager = () => {
 
       case "wallet":
         return (
-          <div className="text-white">Wallet component coming soon...</div>
+          <WalletManager />
         );
       case "analytics":
         return (
           <AnalyticsManager />
         );
-      case "offers":
+      case "coupons":
         return (
-          <div className="text-white">Offers component coming soon...</div>
+          <CouponsManager />
         );
       case "revenue":
         return (

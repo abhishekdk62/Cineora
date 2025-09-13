@@ -6,6 +6,9 @@ import { ScreenController } from "../../screens/controllers/screens.controller";
 import { ShowtimeController } from "../../showtimes/controllers/showtimes.controller";
 import { TheaterController } from "../../theaters/controllers/theaters.controller";
 import { UserController } from "../../user/controllers/user.controller";
+import { WalletController } from "../../wallet/controllers/wallet.controller";
+import { WalletTransactionController } from "../../walletTransaction/controllers/walletTransaction.controller";
+
 
 export class AdminRoutes {
   constructor(
@@ -16,12 +19,24 @@ export class AdminRoutes {
     private _ownerRequestController: OwnerRequestController,
     private _screenController: ScreenController,
     private _controller: ShowtimeController,
-    private _theaterController: TheaterController
+    private _theaterController: TheaterController,
+    private _walletController: WalletController,
+    private _walletTransactionController: WalletTransactionController,
   ) {
     this._setRoutes();
   }
   private _setRoutes() {
-    this._router.get("/users", (req, res) => this._userController.getUsers(req, res));
+
+    this._router.get("/wallet", (req, res) =>
+      this._walletController.getWalletBalance(req, res)
+    );
+    this._router.get("/transaction", (req, res) =>
+      this._walletTransactionController.getUserWalletTransactions(req, res)
+    );
+
+    this._router.get("/users", (req, res) =>
+      this._userController.getUsers(req, res)
+    );
 
     this._router.get("/users/counts", (req, res) =>
       this._userController.getUserCounts(req, res)
@@ -53,8 +68,6 @@ export class AdminRoutes {
       this._controller.getShowtimesByScreenAdmin(req, res)
     );
 
- 
-
     this._router.patch("/showtimes/:showtimeId", (req, res) =>
       this._controller.changeShowtimeStatus(req, res)
     );
@@ -66,11 +79,10 @@ export class AdminRoutes {
       this._screenController.getAllScreensPaginated(req, res)
     );
 
-    
     this._router.get("/screens/theater/:theaterId", (req, res) =>
       this._screenController.getScreensByTheaterId(req, res)
     );
-this._router.get("/screens/:id", (req, res) =>
+    this._router.get("/screens/:id", (req, res) =>
       this._screenController.getScreenById(req, res)
     );
 

@@ -13,6 +13,7 @@ import { INotificationService } from "../../notification/interfaces/notification
 import { NotificationScheduler } from "../../../services/scheduler.service";
 import { StatusCodes } from "../../../utils/statuscodes";
 import { TICKET_MESSAGES } from "../../../utils/messages.constants";
+import { ITheaterService } from "../../theaters/interfaces/theater.service.interface";
 
 interface AuthenticatedRequest extends Request {
   user?: { id: string };
@@ -25,7 +26,8 @@ export class TicketController {
     private readonly walletTransactionService: IWalletTransactionService,
     private readonly bookingService: IBookingService,
     private readonly notificationService: INotificationService,
-    private readonly notificationScheduler: NotificationScheduler
+    private readonly notificationScheduler: NotificationScheduler,
+    private readonly theaterService: ITheaterService
   ) {}
 
   async getTicketById(req: Request, res: Response): Promise<void> {
@@ -57,97 +59,140 @@ export class TicketController {
       );
     }
   }
-
-  async cancelTicket(req: AuthenticatedRequest, res: Response): Promise<void> {
-    try {
-      const { bookingId, amount } = req.query;
-      const userId = req.user?.id;
-
-      if (!userId) {
-        res.status(StatusCodes.UNAUTHORIZED).json(
-          createResponse({
-            success: false,
-            message: TICKET_MESSAGES.AUTH_REQUIRED,
-          })
-        );
-        return;
-      }
-
-      const validationError = this.validateCancelTicketParams(
-        bookingId as string,
-        amount
-      );
-      if (validationError) {
-        res.status(StatusCodes.BAD_REQUEST).json(
-          createResponse({
-            success: false,
-            message: validationError,
-          })
-        );
-        return;
-      }
-
-      const amountNumber = this.parseAmount(amount);
-      const cancelDto: CancelTicketDto = {
-        bookingId: bookingId as string,
-        userId,
-        amount: amountNumber,
-      };
-
-      const result = await this.ticketService.cancelTicket(cancelDto);
-
-      if (!result.success) {
-        res.status(StatusCodes.BAD_REQUEST).json(result);
-        return;
-      }
-
-      await this._handleBookingCancellation(
-        result.data.cancelledTickets[0].bookingId,
-        userId
-      );
-
-      const { refundAmount, refundPercentage } = result.data;
-
-      const walletProcessed = await this._handleWalletRefund(
-        userId,
-        bookingId as string,
-        refundAmount,
-        refundPercentage,
-        result.data
-      );
-
-      if (!walletProcessed) {
-        res.status(StatusCodes.BAD_REQUEST).json(
-          createResponse({
-            success: false,
-            message: TICKET_MESSAGES.WALLET_NOT_FOUND,
-          })
-        );
-        return;
-      }
-
-      await this._handleCancellationNotifications(
-        userId,
-        bookingId as string,
-        result.data
-      );
-
-      const response = this._formatCancellationResponse(
-        bookingId as string,
-        result.data,
-        amountNumber
-      );
-
-      res.status(StatusCodes.OK).json(response);
-    } catch (error: unknown) {
-      console.error("Cancel ticket error:", error);
-      this._handleControllerError(
-        res,
-        error,
-        TICKET_MESSAGES.INTERNAL_SERVER_ERROR
-      );
+  private async _handlePaymentReversal(
+  cancelledTicket: any,
+  refundPercentage: number
+): Promise<void> {
+  try {
+    // Get theater owner
+    const theaterResult = await this.theaterService.getTheaterById(cancelledTicket.theaterId);
+    
+    if (!theaterResult.success) {
+      console.error("Theater not found for payment reversal");
+      return;
     }
+
+    const ownerId = theaterResult.data.ownerId;
+    const originalBaseAmount = cancelledTicket.amount || 300; // Base ticket price
+    
+    // Calculate original shares
+    const originalAdminCommission = Math.round(originalBaseAmount * 0.15);
+    const originalOwnerShare = originalBaseAmount - originalAdminCommission;
+    
+    // Calculate debit amounts based on refund percentage
+    const refundRatio = refundPercentage / 100;
+    const ownerDebit = Math.round(originalOwnerShare * refundRatio);
+    const adminDebit = Math.round(originalAdminCommission * refundRatio);
+
+    // Debit wallets
+    await this._debitOwnerWalletForCancellation(ownerId, ownerDebit, cancelledTicket);
+    await this._debitAdminWalletForCancellation(adminDebit, cancelledTicket);
+
+    console.log(`💸 Payment reversed - Owner debited: ₹${ownerDebit}, Admin debited: ₹${adminDebit}`);
+    
+  } catch (error) {
+    console.error("Payment reversal error:", error);
   }
+}
+
+
+async cancelTicket(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const { bookingId, amount } = req.query;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      res.status(StatusCodes.UNAUTHORIZED).json(
+        createResponse({
+          success: false,
+          message: TICKET_MESSAGES.AUTH_REQUIRED,
+        })
+      );
+      return;
+    }
+
+    const validationError = this.validateCancelTicketParams(
+      bookingId as string,
+      amount
+    );
+    if (validationError) {
+      res.status(StatusCodes.BAD_REQUEST).json(
+        createResponse({
+          success: false,
+          message: validationError,
+        })
+      );
+      return;
+    }
+
+    const amountNumber = this.parseAmount(amount);
+    const cancelDto: CancelTicketDto = {
+      bookingId: bookingId as string,
+      userId,
+      amount: amountNumber,
+    };
+
+    const result = await this.ticketService.cancelTicket(cancelDto);
+
+    if (!result.success) {
+      res.status(StatusCodes.BAD_REQUEST).json(result);
+      return;
+    }
+
+    await this._handleBookingCancellation(
+      result.data.cancelledTickets[0].bookingId,
+      userId
+    );
+
+    const { refundAmount, refundPercentage } = result.data;
+
+    // **ADD THIS: Handle payment reversal**
+    await this._handlePaymentReversal(
+      result.data.cancelledTickets[0],
+      refundPercentage
+    );
+
+    const walletProcessed = await this._handleWalletRefund(
+      userId,
+      bookingId as string,
+      refundAmount,
+      refundPercentage,
+      result.data
+    );
+
+    if (!walletProcessed) {
+      res.status(StatusCodes.BAD_REQUEST).json(
+        createResponse({
+          success: false,
+          message: TICKET_MESSAGES.WALLET_NOT_FOUND,
+        })
+      );
+      return;
+    }
+
+    await this._handleCancellationNotifications(
+      userId,
+      bookingId as string,
+      result.data
+    );
+
+    const response = this._formatCancellationResponse(
+      bookingId as string,
+      result.data,
+      amountNumber
+    );
+
+    res.status(StatusCodes.OK).json(response);
+  } catch (error: unknown) {
+    console.error("Cancel ticket error:", error);
+    this._handleControllerError(
+      res,
+      error,
+      TICKET_MESSAGES.INTERNAL_SERVER_ERROR
+    );
+  }
+}
+
 
   async getUserTickets(
     req: AuthenticatedRequest,
@@ -402,6 +447,79 @@ export class TicketController {
       return false;
     }
   }
+private async _debitOwnerWalletForCancellation(
+  ownerId: string,
+  amount: number,
+  cancelledTicket: any
+): Promise<void> {
+  try {
+    if (amount <= 0) return;
+
+    const debitResult = await this.walletService.debitWalletAllowNegative({
+      userId: ownerId,
+      userModel: "Owner",
+      amount: amount,
+    });
+
+    if (debitResult.success) {
+      
+      await this.walletTransactionService.createWalletTransaction({
+        userId: ownerId,
+        userModel: "Owner",
+        walletId: debitResult.data._id,
+        type: "debit",
+        amount: amount,
+        category: "refund",
+        description: `Revenue reversal for cancellation - ${cancelledTicket.movieTitle || "Movie Ticket"}`,
+        referenceId: cancelledTicket.bookingId,
+        movieId: cancelledTicket.movieId,
+        theaterId: cancelledTicket.theaterId,
+      });
+    }
+    
+  } catch (error) {
+    console.error("Owner wallet debit error:", error);
+  }
+}
+
+
+private async _debitAdminWalletForCancellation(
+  amount: number,
+  cancelledTicket: any
+): Promise<void> {
+  try {
+    if (amount <= 0) return;
+
+    const ADMIN_USER_ID = process.env.ADMIN_USER_ID || "your-default-admin-id";
+    
+    const debitResult = await this.walletService.debitWalletAllowNegative({
+      userId: ADMIN_USER_ID,
+      userModel: "Admin",
+      amount: amount,
+    });
+
+    if (debitResult.success) {
+      console.log(`✅ Admin wallet debited ₹${amount}`);
+      
+      await this.walletTransactionService.createWalletTransaction({
+        userId: ADMIN_USER_ID,
+        userModel: "Admin",
+        walletId: debitResult.data._id,
+        type: "debit",
+        amount: amount,
+        category: "refund",
+        description: `Commission reversal for cancellation - ${cancelledTicket.movieTitle || "Movie Ticket"}`,
+        referenceId: cancelledTicket.bookingId,
+        movieId: cancelledTicket.movieId,
+        theaterId: cancelledTicket.theaterId,
+      });
+    }
+    
+  } catch (error) {
+    console.error("Admin wallet debit error:", error);
+  }
+}
+
 
   private async _handleCancellationNotifications(
     userId: string,

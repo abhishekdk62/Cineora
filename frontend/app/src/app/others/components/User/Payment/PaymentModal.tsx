@@ -76,7 +76,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose
 
     try {
       const orderResponse = await createRazorpayOrder({
-        amount: totalAmount * 100,
+        amount: bookingDatasRedux.totalAmount * 100,
         currency: 'INR'
       });
 
@@ -87,7 +87,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose
       }
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: totalAmount * 100,
+        amount: bookingDatasRedux.totalAmount * 100,
         currency: 'INR',
         name: 'Movie Tickets',
         description: 'Movie Ticket Booking',
@@ -170,17 +170,18 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose
 
   async function handleWalletPayment() {
     try {
+      console.log(bookingDatasRedux);
+      
       setIsProcessing(true);
-
-      const data = await walletBook(totalAmount, 'User')
+      const data = await walletBook(bookingDatasRedux.totalAmount, 'User')
       console.log(data.data);
       const res = await bookTicket(bookingDatasRedux);
+
       console.log(res.data);
       router.push('/booking/success');
     } catch (error: any) {
       console.log(error);
       
-
       if (error.response.data.message == 'Insufficient balance') {
 
         toast.error(' Insufficient balance 😵‍💫')

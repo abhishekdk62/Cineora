@@ -49,7 +49,10 @@ export class WalletController {
 
   async getWalletBalance(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
+      console.log('heheheh');
+      
       const userInfo = this._extractUserInfo(req);
+      
 
       if (!userInfo) {
         res.status(StatusCodes.UNAUTHORIZED).json(createResponse({
@@ -203,6 +206,8 @@ export class WalletController {
   }
 
   private _extractUserInfo(req: AuthenticatedRequest): { userId: string; userModel: "User" | "Owner" } | null {
+
+    
     if (req.user?.id) {
       return {
         userId: req.user.id,
@@ -216,6 +221,13 @@ export class WalletController {
         userModel: "Owner"
       };
     }
+    if (req.admin?.adminId) {
+      return {
+        userId: req.admin.adminId,
+        userModel: "Owner"
+      };
+    }
+
 
     return null;
   }

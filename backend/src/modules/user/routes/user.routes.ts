@@ -10,6 +10,7 @@ import { WalletTransactionController } from "../../walletTransaction/controllers
 import { NotificationController } from "../../notification/controllers/notification.controller";
 import { MovieFavoriteController } from "../../favorites/controllers/favorite.controller";
 import { ReviewController } from "../../reviews/controllers/review.controller";
+import { CouponController } from "../../coupons/controllers/coupons.controller";
 
 export class UserRoutes {
   constructor(
@@ -23,7 +24,8 @@ export class UserRoutes {
     private _paymentController: PaymentController,
     private _notificationController: NotificationController,
     private _favoritesController: MovieFavoriteController,
-    private reviewsController: ReviewController
+    private reviewsController: ReviewController,
+    private _couponController: CouponController
   ) {
     this._setRoutes();
   }
@@ -35,6 +37,15 @@ export class UserRoutes {
 
     this._router.patch("/reset-password", (req, res) =>
       this._userController.resetPassword(req, res)
+    );
+    this._router.get("/coupon/:theaterId", (req, res) =>
+      this._couponController.getCouponsByTheaterId(req, res)
+    );
+    this._router.post("/coupon/check", (req, res) =>
+      this._couponController.validateCouponByCode(req, res)
+    );
+    this._router.get("/coupon", (req, res) =>
+      this._couponController.getAllCoupons(req, res)
     );
 
     this._router.put("/profile", (req, res) =>

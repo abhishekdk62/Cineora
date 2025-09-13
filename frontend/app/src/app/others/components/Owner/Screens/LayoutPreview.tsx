@@ -24,7 +24,6 @@ export const LayoutPreview: React.FC<LayoutPreviewProps> = ({
           </div>
         </div>
         
-        {/* Fixed Preview with Proper Row Alignment */}
         <div className="flex flex-col items-center space-y-1">
           {advancedLayoutJSON.rows.map((row: any) => (
             <div
@@ -35,7 +34,6 @@ export const LayoutPreview: React.FC<LayoutPreviewProps> = ({
                 gap: '4px',
               }}
             >
-              {/* Offset spacing */}
               {Array.from({ length: row.offset }).map((_, idx) => (
                 <div key={`offset-${row.rowLabel}-${idx}`} />
               ))}

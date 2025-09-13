@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { IBooking, IContactInfo, IPriceDetails, ISeatPricing } from "../interfaces/bookings.model.interface";
+import { IBooking, IContactInfo, IPriceDetails, ISeatPricing, ICouponUsage } from "../interfaces/bookings.model.interface";
 
 const SeatPricingSchema = new Schema<ISeatPricing>({
   rowId: {
@@ -60,7 +60,39 @@ const ContactInfoSchema = new Schema<IContactInfo>({
     type: String,
     required: true,
   },
+});
 
+// Optional coupon usage schema - all fields optional
+const CouponUsageSchema = new Schema<ICouponUsage>({
+  couponId: {
+    type: Schema.Types.ObjectId,
+    ref: "Coupon",
+    required: false, // Optional
+  },
+  couponCode: {
+    type: String,
+    required: false, // Optional
+    uppercase: true,
+  },
+  couponName: {
+    type: String,
+    required: false, // Optional
+  },
+  discountPercentage: {
+    type: Number,
+    required: false, // Optional
+    min: 0,
+    max: 100,
+  },
+  discountAmount: {
+    type: Number,
+    required: false, // Optional
+    min: 0,
+  },
+  appliedAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 const BookingSchema = new Schema<IBooking>({
@@ -112,6 +144,13 @@ const BookingSchema = new Schema<IBooking>({
     required: true,
   },
   
+  // OPTIONAL coupon field - only present if coupon was used
+  couponUsed: {
+    type: CouponUsageSchema,
+    required: false, // Completely optional
+    default: undefined, // No default value
+  },
+  
   paymentStatus: {
     type: String,
     enum: ["pending", "completed", "failed", "refunded"],
@@ -153,11 +192,5 @@ const BookingSchema = new Schema<IBooking>({
 }, {
   timestamps: true,
 });
-
-BookingSchema.index({ userId: 1, bookedAt: -1 });
-BookingSchema.index({ bookingId: 1 });
-BookingSchema.index({ showtimeId: 1 });
-BookingSchema.index({ paymentStatus: 1 });
-BookingSchema.index({ bookingStatus: 1 });
 
 export default mongoose.model<IBooking>("Booking", BookingSchema);

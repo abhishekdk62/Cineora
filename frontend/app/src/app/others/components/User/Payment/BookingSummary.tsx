@@ -6,13 +6,24 @@ import { MovieDetails } from "./MovieDetails";
 import { PriceSummary } from "./PriceSummary";
 import { setBookingData } from "@/app/others/redux/slices/bookingSlice";
 import { useDispatch } from "react-redux";
+import { CouponDetails } from "./Coupondetails";
 const lexendMedium = Lexend({ weight: "400", subsets: ["latin"] });
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
 interface BookingSummaryProps {
   data: any;
   onPayment: () => void;
+  selectedCoupon?: any;
+  availableCoupons?: any[];
+  onSelectCoupon?: (coupon: any) => void;
+  onRemoveCoupon?: () => void;
+  onShowCouponsModal?: () => void;
+
 }
-export const BookingSummary: React.FC<BookingSummaryProps> = ({ data, onPayment }) => {
+export const BookingSummary: React.FC<BookingSummaryProps> = ({ data, onPayment, selectedCoupon,
+  availableCoupons,
+  onSelectCoupon,
+  onRemoveCoupon,
+  onShowCouponsModal }) => {
   const dispatch = useDispatch()
   return (
     <div className="backdrop-blur-sm bg-black/20 rounded-2xl p-8 border border-gray-500/30">
@@ -23,11 +34,19 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({ data, onPayment 
           selectedSeats={data.selectedSeats}
           seatBreakdown={data.seatBreakdown}
         />
+        <CouponDetails
+          selectedCoupon={selectedCoupon}
+          availableCoupons={availableCoupons}
+          onSelectCoupon={onSelectCoupon}
+          onRemoveCoupon={onRemoveCoupon}
+          onShowCouponsModal={onShowCouponsModal}
+          discount={data.discount}
+        />
 
         <PriceSummary data={data} />
 
         <button
-        
+
           onClick={() => {
             dispatch(setBookingData({ totalAmount: data.total, tax: data.taxes, amount: data.subtotal }))
             onPayment()

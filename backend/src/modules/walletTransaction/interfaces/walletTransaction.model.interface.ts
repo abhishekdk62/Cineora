@@ -3,7 +3,7 @@ import { Document, Types } from 'mongoose';
 export interface IWalletTransaction extends Document {
   _id: Types.ObjectId;
   userId: Types.ObjectId;
-  userModel: 'User' | 'Owner';
+  userModel: 'User' | 'Owner'|'Admin';
   walletId: Types.ObjectId;
   transactionId: string;
   type: 'credit' | 'debit';

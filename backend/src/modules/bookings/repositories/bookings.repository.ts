@@ -144,15 +144,48 @@ export class BookingRepository implements IBookingRepository {
       throw new Error(`Failed to find booking by payment id: ${error.message}`);
     }
   }
-
-  async createBooking(bookingData: CreateBookingDto): Promise<IBooking | null> {
-    try {
-      const booking = new Booking(bookingData);
-      return await booking.save();
-    } catch (error) {
-      throw new Error(`Failed to create booking: ${error.message}`);
+async createBooking(bookingData: any): Promise<IBooking | null> {
+  try {
+    console.log("Raw booking data:", bookingData);
+    
+    let transformedBookingData: any = {
+      bookingId: bookingData.bookingId,
+      userId: bookingData.userId,
+      movieId: bookingData.movieId,
+      theaterId: bookingData.theaterId,
+      screenId: bookingData.screenId,
+      showtimeId: bookingData.showtimeId,
+      selectedSeats: bookingData.selectedSeats,
+      selectedSeatIds: bookingData.selectedSeatIds,
+      seatPricing: bookingData.seatPricing,
+      priceDetails: bookingData.priceDetails,
+      paymentStatus: bookingData.paymentStatus,
+      paymentMethod: bookingData.paymentMethod,
+      bookingStatus: bookingData.bookingStatus,
+      showDate: bookingData.showDate,
+      showTime: bookingData.showTime,
+      contactInfo: bookingData.contactInfo,
+    };
+    
+    if (bookingData.appliedCoupon) {
+      transformedBookingData.couponUsed = {
+        couponId: bookingData.appliedCoupon._id,
+        couponCode: bookingData.appliedCoupon.uniqueId,
+        couponName: bookingData.appliedCoupon.name,
+        discountPercentage: bookingData.appliedCoupon.discountPercentage,
+        discountAmount: bookingData.discountApplied,
+        appliedAt: new Date()
+      };
     }
+    
+    const booking = new Booking(transformedBookingData);
+    return await booking.save();
+  } catch (error) {
+    throw new Error(`Failed to create booking: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
+}
+
+
 
   async updateBookingById(
     bookingId: string,

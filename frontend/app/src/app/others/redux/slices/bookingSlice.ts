@@ -44,6 +44,17 @@ interface BookingData {
   showDetails?: {};
   allRowPricing?: any;
   selectedRows: SelectedRow[];
+  appliedCoupon?: {
+    _id: string;
+    name: string;
+    uniqueId: string;
+    discountPercentage: number;
+    description?: string;
+    expiryDate?: string;
+    maxUsageCount: number;
+    isActive: boolean;
+  };
+
 
   selectedSeats: string[];
   selectedSeatIds: string[];
@@ -160,6 +171,48 @@ const bookingSlice = createSlice({
         state.bookingData.totalAmount = total;
       }
     },
+// Add these new reducers to your bookingSlice
+applyCoupon: (
+  state,
+  action: PayloadAction<{
+    coupon: any;
+    discountAmount: number;
+  }>
+) => {
+  if (state.bookingData) {
+    // Store the coupon details
+    state.bookingData.appliedCoupon = action.payload.coupon;
+    state.bookingData.couponCode = action.payload.coupon.uniqueId;
+    state.bookingData.discountApplied = action.payload.discountAmount;
+    
+    // Update the discount in price details
+    state.bookingData.priceDetails.discount = action.payload.discountAmount;
+    
+    // Recalculate total
+    const { subtotal, convenienceFee, taxes, discount } = state.bookingData.priceDetails;
+    const total = subtotal + convenienceFee + taxes - discount;
+    state.bookingData.priceDetails.total = total;
+    state.bookingData.totalAmount = total;
+  }
+},
+
+removeCoupon: (state) => {
+  if (state.bookingData) {
+    // Clear coupon details
+    state.bookingData.appliedCoupon = undefined;
+    state.bookingData.couponCode = undefined;
+    state.bookingData.discountApplied = 0;
+    
+    // Reset discount to 0
+    state.bookingData.priceDetails.discount = 0;
+    
+    // Recalculate total without discount
+    const { subtotal, convenienceFee, taxes } = state.bookingData.priceDetails;
+    const total = subtotal + convenienceFee + taxes;
+    state.bookingData.priceDetails.total = total;
+    state.bookingData.totalAmount = total;
+  }
+},
 
     addSeatToRow: (
       state,
@@ -524,6 +577,8 @@ export const {
   setError,
   resetBookingData,
   clearError,
+  applyCoupon,
+  removeCoupon,
   clearSelectedSeats,
 } = bookingSlice.actions;
 
@@ -543,5 +598,10 @@ export const selectTotalAmount = (state: { booking: BookingState }) =>
   state.booking.bookingData?.priceDetails.total || 0;
 export const selectSeatCount = (state: { booking: BookingState }) =>
   state.booking.bookingData?.selectedSeats.length || 0;
+export const selectAppliedCoupon = (state: { booking: BookingState }) =>
+  state.booking.bookingData?.appliedCoupon;
+
+export const selectDiscountAmount = (state: { booking: BookingState }) =>
+  state.booking.bookingData?.priceDetails.discount || 0;
 
 export default bookingSlice.reducer;

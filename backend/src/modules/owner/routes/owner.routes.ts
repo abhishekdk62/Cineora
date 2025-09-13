@@ -5,6 +5,9 @@ import { MoviesController } from "../../movies/controllers/movies.controllers";
 import { TheaterController } from "../../theaters/controllers/theaters.controller";
 import { OwnerController } from "../controllers/owner.controller";
 import { BookingController } from "../../bookings/controllers/bookings.controller";
+import { WalletController } from "../../wallet/controllers/wallet.controller";
+import { WalletTransactionController } from "../../walletTransaction/controllers/walletTransaction.controller";
+import { CouponController } from "../../coupons/controllers/coupons.controller";
 
 export class OwnerRoute {
   constructor(
@@ -14,11 +17,33 @@ export class OwnerRoute {
     private _movieController: MoviesController,
     private _theaterController: TheaterController,
     private _ownerController: OwnerController,
-    private _bookingsController: BookingController
+    private _bookingsController: BookingController,
+    private _walletController: WalletController,
+    private _walletTransactionController: WalletTransactionController,
+    private _couponController: CouponController
   ) {
     this._setRoutes();
   }
   private _setRoutes() {
+    this._router.get("/wallet", (req, res) =>
+      this._walletController.getWalletBalance(req, res)
+    );
+    this._router.post("/coupon", (req, res) =>
+      this._couponController.createCoupon(req, res)
+    );
+    this._router.get("/coupon", (req, res) =>
+      this._couponController.getCouponsByOwner(req, res)
+    );
+    this._router.put("/coupon/:couponId", (req, res) =>
+      this._couponController.updateCoupon(req, res)
+    );
+    this._router.delete("/coupon/:couponId", (req, res) =>
+      this._couponController.updateCoupon(req, res)
+    );
+    this._router.get("/transaction", (req, res) =>
+      this._walletTransactionController.getUserWalletTransactions(req, res)
+    );
+
     this._router.get("/screen/:screenId", (req, res) =>
       this._showtimeController.getShowtimesByScreen(req, res)
     );

@@ -21,6 +21,16 @@ export interface ISeatPricing {
   rowLabel: string;
 }
 
+// Coupon interface - all fields optional since coupon usage is optional
+export interface ICouponUsage {
+  couponId?: mongoose.Types.ObjectId;
+  couponCode?: string;
+  couponName?: string;
+  discountPercentage?: number;
+  discountAmount?: number;
+  appliedAt?: Date;
+}
+
 export interface IBooking extends Document {
   bookingId: string;
   userId: mongoose.Types.ObjectId;
@@ -34,6 +44,9 @@ export interface IBooking extends Document {
   seatPricing: ISeatPricing[];
   
   priceDetails: IPriceDetails;
+  
+  // Optional coupon field - only exists if coupon was used
+  couponUsed?: ICouponUsage;
   
   paymentStatus: "pending" | "completed" | "failed" | "refunded";
   paymentId?: string;

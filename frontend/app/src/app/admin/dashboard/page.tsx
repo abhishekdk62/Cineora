@@ -12,6 +12,7 @@ import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
 import ScreenAndShowManager from "@/app/others/components/Admin/Dashboard/Screens/ScreenAndShowManager";
 import BookingsManager from "@/app/others/components/Admin/Dashboard/Bookings/BookingsManager";
 import AnalyticsManager from "@/app/others/components/Admin/Dashboard/Analytics/AnalyticsManager";
+import AdminWalletManager from "@/app/others/components/Admin/Dashboard/Wallet/AdminWalletManager";
 
 const lexend = Lexend({
   weight: "500",
@@ -38,6 +39,8 @@ const AdminDashboard = () => {
         return <ScreenAndShowManager />
       case 'bookings':
         return <BookingsManager />
+      case 'wallet':
+        return <AdminWalletManager />
       case 'analytics':
         return <AnalyticsManager />
       default:

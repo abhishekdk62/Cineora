@@ -43,6 +43,8 @@ const ShowDetailsPage: React.FC<ShowDetailsPageProps> = ({
   const fetchBookingDetails = async () => {
     try {
       const response = await getBookingDetails(showtime._id)
+      console.log('booking respm',response.data);
+      
        setBookings(response.data);
        
       setIsLoading(false);
@@ -75,7 +77,9 @@ const handleExportExcel = () => {
     return;
   }
 
-  const worksheetData = filteredBookings.map(booking => ({
+const worksheetData = filteredBookings.map(booking => {
+  // Base booking data
+  const baseData = {
     'Booking ID': booking.bookingId || 'N/A',
     'Customer Email': booking.userId?.email || booking.contactInfo?.email || 'N/A',
     'Customer ID': booking.userId?._id?.slice(-8) || 'N/A',
@@ -98,35 +102,64 @@ const handleExportExcel = () => {
     'Screen': screen?.name || 'N/A',
     'Language': showtime.language?.toUpperCase() || 'N/A',
     'Format': showtime.format || 'N/A'
-  }));
+  };
 
-  const worksheet = XLSX.utils.json_to_sheet(worksheetData);
-  
-  // Set column widths
-  const columnWidths = [
-    { width: 20 }, // Booking ID
-    { width: 25 }, // Customer Email
-    { width: 12 }, // Customer ID
-    { width: 20 }, // Selected Seats
-    { width: 8 },  // Number of Seats
-    { width: 12 }, // Subtotal
-    { width: 10 }, // Taxes
-    { width: 15 }, // Convenience Fee
-    { width: 15 }, // Total Amount
-    { width: 15 }, // Payment Status
-    { width: 15 }, // Payment Method
-    { width: 15 }, // Booking Status
-    { width: 15 }, // Booking Date
-    { width: 12 }, // Booking Time
-    { width: 15 }, // Show Date
-    { width: 10 }, // Show Time
-    { width: 15 }, // Cancelled At
-    { width: 25 }, // Movie Title
-    { width: 20 }, // Theater
-    { width: 15 }, // Screen
-    { width: 10 }, // Language
-    { width: 8 }   // Format
-  ];
+  // Conditionally add coupon data only if it exists
+  if (booking.couponUsed) {
+    return {
+      ...baseData,
+      'Coupon Used': booking.couponUsed.couponName || 'N/A',
+      'Coupon Code': booking.couponUsed.couponCode || 'N/A',
+      'Discount %': booking.couponUsed.discountPercentage ? `${booking.couponUsed.discountPercentage}%` : 'N/A',
+      'Discount Amount': booking.couponUsed.discountAmount || 0,
+      'Coupon Applied At': booking.couponUsed.appliedAt ? new Date(booking.couponUsed.appliedAt).toLocaleDateString('en-IN') : 'N/A'
+    };
+  }
+
+  // If no coupon, add empty coupon fields for consistent columns
+  return {
+    ...baseData,
+    'Coupon Used': 'No Coupon',
+    'Coupon Code': 'N/A',
+    'Discount %': '0%',
+    'Discount Amount': 0,
+    'Coupon Applied At': 'N/A'
+  };
+});
+
+const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+
+// Updated column widths including coupon columns
+const columnWidths = [
+  { width: 20 }, // Booking ID
+  { width: 25 }, // Customer Email
+  { width: 12 }, // Customer ID
+  { width: 20 }, // Selected Seats
+  { width: 8 },  // Number of Seats
+  { width: 12 }, // Subtotal
+  { width: 10 }, // Taxes
+  { width: 15 }, // Convenience Fee
+  { width: 15 }, // Total Amount
+  { width: 15 }, // Payment Status
+  { width: 15 }, // Payment Method
+  { width: 15 }, // Booking Status
+  { width: 15 }, // Booking Date
+  { width: 12 }, // Booking Time
+  { width: 15 }, // Show Date
+  { width: 10 }, // Show Time
+  { width: 15 }, // Cancelled At
+  { width: 25 }, // Movie Title
+  { width: 20 }, // Theater
+  { width: 15 }, // Screen
+  { width: 10 }, // Language
+  { width: 8 },  // Format
+  { width: 18 }, // Coupon Used
+  { width: 15 }, // Coupon Code
+  { width: 12 }, // Discount %
+  { width: 15 }, // Discount Amount
+  { width: 18 }  // Coupon Applied At
+];
+
   
   worksheet['!cols'] = columnWidths;
 

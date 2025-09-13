@@ -4,6 +4,8 @@ import { MoviesController } from "../movies/controllers/movies.controllers";
 import { ShowtimeController } from "../showtimes/controllers/showtimes.controller";
 import { TicketController } from "../tickets/controllers/ticket.controller";
 import { ReviewController } from "../reviews/controllers/review.controller";
+import { WalletController } from "../wallet/controllers/wallet.controller";
+import { WalletTransactionController } from "../walletTransaction/controllers/walletTransaction.controller";
 
 export class CommonRoutes {
   constructor(
@@ -12,7 +14,8 @@ export class CommonRoutes {
     private _theaterController: TheaterController,
     private _showTimeController: ShowtimeController,
     private _ticketController: TicketController,
-    private reviewsController: ReviewController
+    private reviewsController: ReviewController,
+
   ) {
     this._setRoutes();
   }
@@ -36,6 +39,7 @@ export class CommonRoutes {
     this._router.get("/theaters/from-movie/:movieId", (req, res) =>
       this._showTimeController.getTheatersByMovie(req, res)
     );
+   
     this._router.get("/movies/from-theater/:theaterId", (req, res) =>
       this._showTimeController.getShowtimesByTheater(req, res)
     );

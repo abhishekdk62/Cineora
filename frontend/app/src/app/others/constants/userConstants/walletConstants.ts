@@ -5,6 +5,7 @@ const USER_WALLET = {
   CREDIT_TRANSACTION: '/users/wallet/transactions' as const,
 };
 
+
 export default USER_WALLET;
 
 export type UserWalletRoutes = typeof USER_WALLET;
