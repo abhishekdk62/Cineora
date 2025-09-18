@@ -28,24 +28,28 @@ const SingleTicketCancellationModal: React.FC<SingleTicketCancellationModalProps
 
   // Get all tickets for this booking
   const allTickets = booking.allTickets || [booking];
-  
-  // Calculate pricing for selected tickets
+
   const calculateSelectedAmount = () => {
     return selectedTickets.reduce((total, ticketId) => {
       const ticket = allTickets.find((t: TicketData) => t._id === ticketId);
       if (ticket) {
-        const basePrice = ticket.price;
-        const tax = basePrice * 0.18;
-        const convenience = basePrice * 0.05;
-        return total + basePrice + tax + convenience;
+        let basePrice = ticket.price;
+        if (ticket.coupon && ticket.coupon.discountPercentage) {
+          const discountAmount = (basePrice * ticket.coupon.discountPercentage) / 100;
+          basePrice = basePrice - discountAmount;
+        }
+        const tax = ticket.price * 0.18;
+        const convenience = ticket.price * 0.05;
+        const totalTicketPrice = basePrice + tax + convenience;
+        return total + totalTicketPrice;
       }
       return total;
     }, 0);
   };
 
   const handleTicketToggle = (ticketId: string) => {
-    setSelectedTickets(prev => 
-      prev.includes(ticketId) 
+    setSelectedTickets(prev =>
+      prev.includes(ticketId)
         ? prev.filter(id => id !== ticketId)
         : [...prev, ticketId]
     );
@@ -71,15 +75,15 @@ const SingleTicketCancellationModal: React.FC<SingleTicketCancellationModalProps
     try {
       setCancelling(true);
       const totalAmount = calculateSelectedAmount();
-      
+
       await cancelSingleTicket(selectedTickets, totalAmount);
-      
+
       toast.success(`${selectedTickets.length} ticket(s) cancelled successfully`);
       onSuccess();
       onClose();
     } catch (error: unknown) {
       console.error('Cancellation failed:', error);
-      toast.error( 'Failed to cancel tickets');
+      toast.error('Failed to cancel tickets');
     } finally {
       setCancelling(false);
     }
@@ -121,19 +125,24 @@ const SingleTicketCancellationModal: React.FC<SingleTicketCancellationModalProps
             {/* Individual Tickets */}
             <div className="space-y-3">
               {allTickets.map((ticket: TicketData) => {
-                const basePrice = ticket.price;
-                const tax = basePrice * 0.18;
-                const convenience = basePrice * 0.05;
+                let basePrice = ticket.price;
+
+                if (ticket.coupon && ticket.coupon.discountPercentage) {
+                  const discountAmount = (basePrice * ticket.coupon.discountPercentage) / 100;
+                  basePrice=basePrice-discountAmount
+
+                }
+                const tax = ticket.price * 0.18;
+                const convenience = ticket.price * 0.05;
                 const totalPrice = basePrice + tax + convenience;
 
                 return (
                   <div
                     key={ticket._id}
-                    className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-colors ${
-                      selectedTickets.includes(ticket._id)
+                    className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-colors ${selectedTickets.includes(ticket._id)
                         ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-200 hover:border-gray-300'
-                    }`}
+                      }`}
                     onClick={() => handleTicketToggle(ticket._id)}
                   >
                     <div className="flex-1">
@@ -185,8 +194,8 @@ const SingleTicketCancellationModal: React.FC<SingleTicketCancellationModalProps
               disabled={selectedTickets.length === 0 || cancelling}
               className={`${lexendMedium.className} flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
             >
-              {cancelling 
-                ? 'Cancelling...' 
+              {cancelling
+                ? 'Cancelling...'
                 : `Cancel ${selectedTickets.length || ''} Ticket${selectedTickets.length !== 1 ? 's' : ''}`
               }
             </button>

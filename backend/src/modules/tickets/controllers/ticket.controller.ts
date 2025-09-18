@@ -104,7 +104,6 @@ export class TicketController {
         userId,
         totalAmount: Number(totalAmount),
       };
-console.log('klopps cancelldto',cancelDto);
 
       const result = await this.ticketService.cancelSingleTicket(cancelDto);
 
@@ -128,7 +127,6 @@ console.log('klopps cancelldto',cancelDto);
         );
       }
 
-     console.log('jurgen klop',result.data.refundAmount);
       const walletProcessed = await this._handleSingleTicketWalletRefund(
         userId,
         result.data.cancelledTickets,
@@ -363,7 +361,6 @@ console.log('klopps cancelldto',cancelDto);
       const ownerDebit = Math.round(originalOwnerShare * refundRatio);
       const adminDebit = Math.round(originalAdminCommission * refundRatio);
 
-      console.log('canceled neymar owner debt and admin edbt ',ownerDebit,adminDebit);
       
       await this._debitOwnerWalletForCancellation(
         ownerId,
@@ -393,7 +390,6 @@ console.log('klopps cancelldto',cancelDto);
 
       const ticketCount = cancelledTickets.length;
       const refundDescription = `${ticketCount} ticket(s) cancelled - ${refundPercentage}% refund (₹${refundAmount})`;
-console.log('mbape refund wallet uer',refundAmount);
 
       const creditResult = await this.walletService.creditWallet({
         userId,

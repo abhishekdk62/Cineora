@@ -23,7 +23,7 @@ export const config = {
     },
   },
   otpExpiry: 5 * 60 * 1000,
-  corsOrigin: process.env.CORS_ORIGIN || "http://localhost:3000",
+  corsOrigin: process.env.CLIENT_URL || "http://localhost:3000",
   rateLimitWindowMs: 15 * 60 * 1000,
   rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX) || 100,
   qrCodeSecret:process.env.QR_VERIFICATION_SECRET,
