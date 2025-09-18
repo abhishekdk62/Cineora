@@ -2,7 +2,7 @@
 import React from "react";
 import { X, MapPin, CheckCircle ,Popcorn} from "lucide-react";
 
-interface TheaterData {
+export interface TheaterData {
   _id: string;
   name: string;
   city: string;

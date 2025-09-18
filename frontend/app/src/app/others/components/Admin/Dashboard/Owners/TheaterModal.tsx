@@ -32,6 +32,7 @@ import {
   verifyTheaterAdmin,
 } from "@/app/others/services/adminServices/theaterServices";
 import dynamic from "next/dynamic";
+import { AxiosError } from "axios";
 
 const MapLocationPicker = dynamic(() => import('../../../../components/Leaflet/MapLocationPicker'), {
   ssr: false,
@@ -112,8 +113,11 @@ const TheaterDetailsModal: React.FC<TheaterDetailsModalProps> = ({
         toast.success(`Theater ${verb}d successfully!`);
         onStatusToggle();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+        if (error instanceof AxiosError) {
+
       toast.error(error.message || `Failed to ${verb} theater`);
+        }
     }
   };
 
@@ -133,8 +137,12 @@ const TheaterDetailsModal: React.FC<TheaterDetailsModalProps> = ({
         toast.success("Theater verified successfully!");
         onVerifyTheater();
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to verify theater");
+    } catch (error: unknown) {
+      if(error instanceof AxiosError)
+      {
+
+        toast.error(error.message || "Failed to verify theater");
+      }
     }
   };
 
@@ -154,8 +162,12 @@ const TheaterDetailsModal: React.FC<TheaterDetailsModalProps> = ({
         toast.success("Theater rejected successfully!");
         onRejectTheater();
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to reject theater");
+    } catch (error: unknown) {
+      if(error instanceof AxiosError)
+      {
+
+        toast.error(error.message || "Failed to reject theater");
+      }
     }
   };
 

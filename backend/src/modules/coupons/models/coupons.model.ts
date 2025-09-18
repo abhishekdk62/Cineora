@@ -33,6 +33,10 @@ const CouponSchema = new Schema<ICoupon>({
     trim: true,
     maxlength: 500
   },
+  minAmount:{
+    type:Number,
+    required:true,
+  },
   expiryDate: {
     type: Date,
     required: true,

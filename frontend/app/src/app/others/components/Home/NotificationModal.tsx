@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { X, Bell } from "lucide-react";
+import { lexendBold, lexendSmall } from "../../Utils/fonts";
 
 interface NotificationModalProps {
   unreadNotifications: BackendNotification[];
@@ -9,8 +10,7 @@ interface NotificationModalProps {
   onClose: () => void;
   notifications: BackendNotification[];
   onMarkAllRead: () => void;
-  lexendSmall: any;
-  lexendBold: any;
+
 }
 
 export interface BackendNotification {
@@ -43,8 +43,7 @@ export default function NotificationModal({
   onClose,
   notifications,
   onMarkAllRead,
-  lexendSmall,
-  lexendBold
+
 }: NotificationModalProps) {
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
 

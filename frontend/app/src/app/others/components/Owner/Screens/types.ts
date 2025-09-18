@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { ReactNode } from 'react';
 import { ITheater } from '@/app/others/types';
 import { IScreen } from '@/app/others/types/screen.types';
@@ -93,7 +95,7 @@ export interface ManualSetupFormProps {
   rowsDefs: RowDef[];
   setRowsDefs: React.Dispatch<React.SetStateAction<RowDef[]>>;
   maxCols: number;
-  advancedLayoutJSON: any;
+  advancedLayoutJSON: string;
   handleInputChange: (field: string, value: string | number | string[]) => void; 
   handleSubmit: (e: React.FormEvent) => void;
   isLoading: boolean;

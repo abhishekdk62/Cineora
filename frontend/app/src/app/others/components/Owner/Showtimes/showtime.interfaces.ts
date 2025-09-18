@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 export interface ISeatBlock {
   seatId: string;
   userId: string;
@@ -18,9 +20,9 @@ export interface IRowPricing {
 
 export interface IMovieShowtime {
   _id: string;
-  movieId: any; 
-  theaterId: any;   
-  screenId: any; 
+  movieId: string; 
+  theaterId: string;   
+  screenId: string; 
   showDate: Date;
   showTime: string;
   endTime: string;

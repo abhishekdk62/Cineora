@@ -1,7 +1,8 @@
 import Ticket from "../models/ticket.model";
 import { ITicketRepository } from "../interfaces/ticket.repository.interface";
 import { ITicket } from "../interfaces/ticket.model.interface";
-import mongoose, { PipelineStage } from "mongoose";
+import mongoose, { FilterQuery, PipelineStage } from "mongoose";
+import { TicketMatchCondition } from "../../user/dtos/dto";
 
 export class TicketRepository implements ITicketRepository {
   async createTicket(ticketData: Partial<ITicket>): Promise<ITicket | null> {
@@ -19,6 +20,8 @@ export class TicketRepository implements ITicketRepository {
 
   async createBulkTickets(ticketsData: Partial<ITicket>[]): Promise<ITicket[]> {
     try {
+     
+      
       const result = await Ticket.insertMany(ticketsData);
       return result as ITicket[];
     } catch (error) {
@@ -46,8 +49,6 @@ export class TicketRepository implements ITicketRepository {
       );
     }
   }
-// Add this method to your existing TicketRepository class
-
 async findTicketsByIds(ticketIds: string[]): Promise<ITicket[]> {
   try {
     return await Ticket.find({ 
@@ -57,7 +58,7 @@ async findTicketsByIds(ticketIds: string[]): Promise<ITicket[]> {
     .populate("movieId") 
     .populate("theaterId")
     .populate("screenId")
-    .populate("showtimeId");
+    .populate("showtimeId")
   } catch (error) {
     throw new Error(
       `Failed to find tickets by IDs: ${
@@ -182,6 +183,7 @@ async findTicketsForCancellation(ticketIds: string[]): Promise<ITicket[]> {
   }> {
     try {
       const now = new Date();
+console.log(types);
 
       const skipCount = (page - 1) * limit;
       const sampleTickets = await Ticket.find({
@@ -243,6 +245,16 @@ async findTicketsForCancellation(ticketIds: string[]): Promise<ITicket[]> {
             preserveNullAndEmptyArrays: true,
           },
         },
+          {
+    $lookup: {
+      from: "coupons", 
+      localField: "couponId",
+      foreignField: "_id",
+      as: "coupon",
+    },
+  },
+  { $unwind: { path: "$coupon", preserveNullAndEmptyArrays: true } },
+
         {
           $lookup: {
             from: "screens",
@@ -260,7 +272,7 @@ async findTicketsForCancellation(ticketIds: string[]): Promise<ITicket[]> {
       ];
 
       if (!types.includes("all")) {
-        const filterConditions: any[] = [];
+        const filterConditions: TicketMatchCondition[] = [];
 
         if (types.includes("cancelled")) {
           filterConditions.push({ status: "cancelled" });
@@ -268,20 +280,19 @@ async findTicketsForCancellation(ticketIds: string[]): Promise<ITicket[]> {
 
         if (types.includes("past")) {
           filterConditions.push(
-            { status: { $in: ["used", "expired"] } },
+            { status: { $in: ["used", "expired",'cancelled'] } },
             {
               $and: [{ status: "confirmed" }, { showDate: { $lt: now } }],
             }
           );
         }
 
-        if (types.includes("upcoming")) {
-          const todayUTC = new Date();
-          todayUTC.setUTCHours(0, 0, 0, 0);
-          filterConditions.push({
-            $and: [{ status: "confirmed" }, { showDate: { $gte: todayUTC } }],
-          });
-        }
+       if (types.includes("upcoming")) {
+  filterConditions.push({
+    $and: [{ status: "confirmed" }, { showDate: { $gte: now } }],
+  });
+}
+
 
         if (filterConditions.length > 0) {
           pipeline.push({

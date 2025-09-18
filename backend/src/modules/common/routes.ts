@@ -4,7 +4,7 @@ import { MoviesController } from "../movies/controllers/movies.controllers";
 import { ShowtimeController } from "../showtimes/controllers/showtimes.controller";
 import { TicketController } from "../tickets/controllers/ticket.controller";
 import { ReviewController } from "../reviews/controllers/review.controller";
-import { WalletController } from "../wallet/controllers/wallet.controller";
+import { WalletController } from "../wallet/dtos/controllers/wallet.controller";
 import { WalletTransactionController } from "../walletTransaction/controllers/walletTransaction.controller";
 
 export class CommonRoutes {

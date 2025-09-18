@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Lexend } from "next/font/google";
-import { UnifiedBookingEntity } from "@/app/book/[id]/page";
+import { RowPricing, UnifiedBookingEntity } from "@/app/others/types";
 
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
 const lexendMedium = Lexend({ weight: "400", subsets: ["latin"] });
@@ -20,7 +20,7 @@ export default function TheatersListBook({
   movie,
   onShowtimeSelect,
 }: TheatersListBookProps) {
-  const getLowestPrice = (rowPricing?: any[]): number => {
+  const getLowestPrice = (rowPricing?: RowPricing[]): number => {
     if (!rowPricing || rowPricing.length === 0) return 0;
     return Math.min(...rowPricing.map(row => row.showtimePrice ?? row.basePrice ?? 0));
   };
@@ -31,7 +31,7 @@ export default function TheatersListBook({
     return `${lat.toFixed(3)}, ${lng.toFixed(3)}`;
   };
 
-  const getTotalAvailableSeats = (rowPricing?: any[]): number => {
+  const getTotalAvailableSeats = (rowPricing?: RowPricing[]): number => {
     if (!rowPricing) return 0;
     return rowPricing.reduce((total, row) => total + (row.availableSeats ?? 0), 0);
   };

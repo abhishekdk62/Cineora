@@ -36,7 +36,11 @@ export interface ShowtimeFilters {
   sortBy?: string;
   sortOrder?: "asc" | "desc";
 }
-
+export interface ParamsType{
+  page:number;
+  currentFilters:ShowtimeFilters;
+  limit:number
+}
 interface ShowtimePagination {
   currentPage: number;
   totalPages: number;
@@ -101,7 +105,7 @@ const ShowtimesModal: React.FC<ShowtimesModalProps> = ({ screen, onClose }) => {
     fetchShowtimes(1, filters);
   }, [screen._id]);
 
-  const handleFilterChange = (field: keyof ShowtimeFilters, value: any) => {
+  const handleFilterChange = (field: keyof ShowtimeFilters, value: ShowtimeFilters) => {
     const updatedFilters = { ...filters, [field]: value };
     setFilters(updatedFilters);
     setPagination(prev => ({ ...prev, currentPage: 1 }));

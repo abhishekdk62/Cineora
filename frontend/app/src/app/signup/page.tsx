@@ -24,6 +24,7 @@ import RouteGuard from "../others/components/Auth/common/RouteGuard";
 import { useDispatch } from "react-redux";
 import { verifyOtp } from "../others/redux/slices/authSlice";
 import { useAppDispatch } from "../others/redux/hooks/redux";
+import { GoogleCredentialResponse, SignupFormData } from "../others/types";
 
 const lexend = Lexend({
   weight: "500",
@@ -45,7 +46,7 @@ export default function SignUp() {
 
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: SignupFormData) => {
     setLoading(true);
     setError("");
     try {
@@ -72,12 +73,15 @@ export default function SignUp() {
         setEmail(data.email);
         setStep("otp");
         console.log("Signup successful, moving to OTP step");
-      } 
-    } catch (err: any) {
-      setError(
-        err.response?.data?.message
-      );
-      console.error("Signup error:", err);
+      }
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+
+          setError(
+            err?.message
+          );
+          console.error("Signup error:", err);
+        }
     } finally {
       setLoading(false);
     }
@@ -98,9 +102,12 @@ export default function SignUp() {
       } else {
         setError(resultAction.payload as string);
       }
-    } catch (err: any) {
-      setError(err.message || "OTP verification failed. Please try again.");
-      console.error("OTP verification error:", err);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+
+        setError(err.message || "OTP verification failed. Please try again.");
+        console.error("OTP verification error:", err);
+      }
     } finally {
       setOtpLoading(false);
     }
@@ -120,15 +127,18 @@ export default function SignUp() {
       } else {
         setError(result.message);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+
       setError(err.message || "Failed to resend OTP. Please try again.");
+        }
       console.error("Resend OTP error:", err);
     } finally {
       setResendLoading(false);
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse: any) => {
+  const handleGoogleSuccess = async (credentialResponse: GoogleCredentialResponse) => {
     dispatch(clearError());
 
     try {

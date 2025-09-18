@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { Bell } from "lucide-react";
+import { lexendSmall } from "../../Utils/fonts";
 
 interface NotificationBellProps {
   notifications: BackendNotification[];
@@ -10,7 +11,6 @@ interface NotificationBellProps {
   onMarkAllRead: () => void;
   onNotificationClick: (notification: BackendNotification) => void;
   onViewAll: () => void;
-  lexendSmall: any;
   isMobile?: boolean;
 }
 
@@ -45,7 +45,6 @@ export default function NotificationBell({
   onMarkAllRead,
   onNotificationClick,
   onViewAll,
-  lexendSmall,
   isMobile
 }: NotificationBellProps) {
 
@@ -118,9 +117,9 @@ export default function NotificationBell({
                 </div>
               </div>
             ) : (
-              notifications.map((notification) => (
+              notifications.map((notification,indx) => (
                 <div 
-                  key={notification._id}
+                  key={indx}
                   className={`p-4 border-b border-gray-600/20 hover:bg-gradient-to-r hover:from-gray-700/30 hover:to-gray-800/30 cursor-pointer transition-all duration-200 ${
                     !notification.isRead ? ' border-l-4 border-l-[#FF5A3C]' : ''
                   }`}

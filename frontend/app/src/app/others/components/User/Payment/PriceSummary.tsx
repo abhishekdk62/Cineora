@@ -1,6 +1,7 @@
 import React from "react";
 import { Lexend } from "next/font/google";
 import { Info, Tag } from "lucide-react";
+import { CouponData } from "@/app/others/types";
 
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
 const lexendMedium = Lexend({ weight: "400", subsets: ["latin"] });
@@ -14,7 +15,7 @@ interface PriceSummaryProps {
     discount?: number;
     total: number;
     savings?: number;
-    selectedCoupon?: any;
+    selectedCoupon?: CouponData;
   };
 }
 

@@ -1,22 +1,21 @@
 "use client";
 import React from "react";
 import { CheckCircle } from "lucide-react";
+import { lexendSmall } from "@/app/others/Utils/fonts";
 
 export default function SuccessStep({
   onComplete,
-  lexend,
-  lexendSmall,
+
 }: {
   onComplete: () => void;
-  lexend: any;
-  lexendSmall: any;
+
 }) {
   return (
     <div className="text-center">
       <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
         <CheckCircle size={32} className="text-green-400" />
       </div>
-      <h2 className={`${lexend.className} text-2xl text-white mb-2`}>
+      <h2 className={`${lexendSmall.className} text-2xl text-white mb-2`}>
         Password Reset Successful!
       </h2>
       <p className={`${lexendSmall.className} text-gray-300 mb-6`}>

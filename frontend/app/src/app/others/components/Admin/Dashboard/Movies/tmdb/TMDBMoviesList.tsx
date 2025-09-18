@@ -9,7 +9,22 @@ import MovieListItem from "./MovieListItem";
 import Pagination from "./Pagination";
 import LoadingState from "./LoadingState";
 import EmptyState from "./EmptyState";
-
+interface TMDBMovie {
+  id: number;
+  title: string;
+  genre_ids: number[];
+  release_date: string;
+  overview: string;
+  poster_path: string;
+  original_language: string;
+  // Optional additional fields you might need
+  adult?: boolean;
+  backdrop_path?: string | null;
+  popularity?: number;
+  vote_average?: number;
+  vote_count?: number;
+  video?: boolean;
+}
 const TMDBMoviesList: React.FC<TMDBMoviesListProps> = ({ onAddMovie }) => {
   const {
     searchTerm,
@@ -30,7 +45,7 @@ const TMDBMoviesList: React.FC<TMDBMoviesListProps> = ({ onAddMovie }) => {
     TMDB_IMAGE_BASE_URL,
   } = useTMDBMovies();
 
-  const handleAddMovie = async (movie: any) => {
+  const handleAddMovie = async (movie: TMDBMovie) => {
     try {
       
       const movieData = {

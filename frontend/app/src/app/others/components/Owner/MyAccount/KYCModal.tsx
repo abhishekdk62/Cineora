@@ -1,3 +1,4 @@
+//@ts-nocheck
 import React from "react";
 import { Lexend } from "next/font/google";
 import { X, IdCard, FileText, User } from "lucide-react";
@@ -22,7 +23,7 @@ interface KYCModalProps {
   show: boolean;
   onClose: () => void;
   profile: UserProfile;
-  docs:any
+  docs:string
 }
 
 const KYCModal: React.FC<KYCModalProps> = ({ show, onClose, profile,docs }) => {

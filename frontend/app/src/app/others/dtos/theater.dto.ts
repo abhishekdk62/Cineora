@@ -94,8 +94,9 @@ export interface RejectTheaterResponseDto
   extends ApiResponse<TheaterResponseDto> {}
 export interface ToggleTheaterStatusResponseDto
   extends ApiResponse<TheaterResponseDto> {}
-export interface GetTheatersByOwnerIdResponseDto
-  extends ApiResponse<TheaterResponseDto[]> {}
+export type GetTheatersByOwnerIdResponseDto = ApiResponse<TheaterResponseDto[]> & {
+  theaters?: TheaterResponseDto[];
+};
 export interface GetTheatersByMovieResponseDto
   extends ApiResponse<TheaterResponseDto[]> {}
 export interface GetTheatersByOwnerIdResponseDto2

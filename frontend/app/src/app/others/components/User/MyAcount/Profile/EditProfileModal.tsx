@@ -263,7 +263,7 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
       if (onDataUpdate) await onDataUpdate(); 
       onClose();
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err.response?.statusText?.includes('Payload Too Large')) {
         toast.error('Image size too large');
         return;

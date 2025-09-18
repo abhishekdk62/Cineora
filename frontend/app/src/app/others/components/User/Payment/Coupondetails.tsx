@@ -4,6 +4,8 @@ import { Info, X, Tag, ChevronDown, ChevronUp, Ticket } from "lucide-react";
 import { checkCoupon } from "@/app/others/services/userServices/couponServices";
 import { useSelector } from "react-redux";
 import toast from 'react-hot-toast';
+import { CouponData } from "@/app/others/types";
+import { AxiosError } from "axios";
 
 
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
@@ -11,9 +13,9 @@ const lexendMedium = Lexend({ weight: "400", subsets: ["latin"] });
 const lexendBold = Lexend({ weight: "700", subsets: ["latin"] });
 
 interface CouponDetailsProps {
-  selectedCoupon?: any;
-  availableCoupons?: any[];
-  onSelectCoupon?: (coupon: any) => void;
+  selectedCoupon?: CouponData;
+  availableCoupons?: CouponData[];
+  onSelectCoupon?: (coupon: CouponData) => void;
   onRemoveCoupon?: () => void;
   onShowCouponsModal?: () => void;
   discount?: number;
@@ -50,12 +52,14 @@ const applyCouponByCode = async (code: string) => {
       toast.error("Coupon doesn't exist or expired", { id: loadingToast });
       return { success: false, message: "Coupon doesn't exist or expired" };
     }
-  } catch (error: any) {
-    console.log(error);
-    
-    const errorMessage = error?.response?.data?.message || "Coupon doesn't exist or expired";
-    toast.error(errorMessage, { id: loadingToast });
-    return { success: false, message: errorMessage };
+  } catch (error: unknown) {
+    if(error instanceof AxiosError)
+    {
+      const errorMessage = error?.response?.data?.message || "Coupon doesn't exist or expired";
+      toast.error(errorMessage, { id: loadingToast });
+      return { success: false, message: errorMessage };
+
+    }
   }
 };
 

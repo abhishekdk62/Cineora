@@ -5,7 +5,7 @@ import { MoviesController } from "../../movies/controllers/movies.controllers";
 import { TheaterController } from "../../theaters/controllers/theaters.controller";
 import { OwnerController } from "../controllers/owner.controller";
 import { BookingController } from "../../bookings/controllers/bookings.controller";
-import { WalletController } from "../../wallet/controllers/wallet.controller";
+import { WalletController } from "../../wallet/dtos/controllers/wallet.controller";
 import { WalletTransactionController } from "../../walletTransaction/controllers/walletTransaction.controller";
 import { CouponController } from "../../coupons/controllers/coupons.controller";
 import { PaymentController } from "../../payment/controllers/payment.controller";
@@ -48,8 +48,11 @@ export class OwnerRoute {
     this._router.put("/coupon/:couponId", (req, res) =>
       this._couponController.updateCoupon(req, res)
     );
+    this._router.patch("/coupon/:couponId", (req, res) =>
+      this._couponController.toggleStatusCoupon(req, res)
+    );
     this._router.delete("/coupon/:couponId", (req, res) =>
-      this._couponController.updateCoupon(req, res)
+      this._couponController.deleteCoupon(req, res)
     );
     this._router.get("/transaction", (req, res) =>
       this._walletTransactionController.getUserWalletTransactions(req, res)
@@ -147,9 +150,13 @@ export class OwnerRoute {
     this._router.post("/screens/check-exists", (req, res) =>
       this._screenController.checkScreenExists(req, res)
     );
+      this._router.get("/bookings/by-owner", (req, res) =>
+      this._bookingsController.getAllBookingsByOwnerIdForPanel(req, res)
+    );
     this._router.get("/bookings/:showtimeId", (req, res) =>
       this._bookingsController.getBookingsByShowtimeId(req, res)
     );
+  
     this._router.get("/showtimes/:theaterId/:screenId", (req, res) =>
       this._showtimeController.getShowtimesByFilters(req, res)
     );

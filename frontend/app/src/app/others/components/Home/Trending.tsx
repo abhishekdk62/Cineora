@@ -6,6 +6,7 @@ import { getMoviesWithFilters } from "../../services/userServices/movieServices"
 import { useEffect, useState } from "react";
 import { Movie } from "../Admin/Dashboard/Movies/MoviesList";
 import { useRouter } from "next/navigation";
+import { MovieResponseDto } from "../../dtos";
 
 const lexendSmall = Lexend({
   weight: "200",
@@ -18,7 +19,7 @@ const lexendBold = Lexend({
 });
 
 export default function Trending() {
-  const [trendingMovies, setTrendingMovies] = useState<Movie[]>([]);
+  const [trendingMovies, setTrendingMovies] = useState<MovieResponseDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { X, Calendar, Clock, Star, Play, Users, User } from "lucide-react";
+import { lexendMedium, lexendSmall } from "@/app/others/Utils/fonts";
 
 interface Movie {
   _id: string;
@@ -24,16 +25,13 @@ interface MovieDetailsModalProps {
   movie: Movie;
   onSelect: (movie: Movie) => void;
   onClose: () => void;
-  lexendMedium: any;
-  lexendSmall: any;
+
 }
 
 const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
   movie,
   onSelect,
   onClose,
-  lexendMedium,
-  lexendSmall,
 }) => {
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);

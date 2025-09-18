@@ -1,15 +1,14 @@
-// components/TheaterAnalytics.tsx
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Lexend } from "next/font/google";
-import { 
-  DollarSign, 
-  Users, 
-  Ticket, 
-  TrendingUp, 
-  Calendar, 
-  Clock, 
-  Loader2, 
+import {
+  DollarSign,
+  Users,
+  Ticket,
+  TrendingUp,
+  Calendar,
+  Clock,
+  Loader2,
   CalendarIcon,
   Filter,
   Building,
@@ -17,9 +16,68 @@ import {
   BarChart3,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import BookingsList from './BookingsList';
 import RevenueCards from './RevenueCards';
 import { getTheaterWiseRevenueApi } from '@/app/others/services/commonServices/analyticServices';
+import { getBookingsForAdmin } from '@/app/others/services/adminServices/bookingServices';
+import BookingsListForAdmins from './BookingsListForAdmin';
+// Add this interface before TheaterBookingsData
+interface TheaterBooking {
+  _id: string;
+  bookingId: string;
+  userId: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+  };
+  movieId: {
+    _id: string;
+    title: string;
+    genre: string;
+    duration: number;
+    language: string;
+  };
+  screenId: {
+    _id: string;
+    name: string;
+    screenType: string;
+    totalSeats: number;
+  };
+  showtimeId: {
+    _id: string;
+    showDate: string;
+    showTime: string;
+  };
+  selectedSeats: string[];
+  priceDetails: {
+    subtotal: number;
+    convenienceFee: number;
+    taxes: number;
+    discount: number;
+    total: number;
+  };
+  paymentStatus: 'pending' | 'completed' | 'failed' | 'refunded';
+  paymentMethod: string;
+  bookingStatus: 'confirmed' | 'cancelled' | 'expired';
+  bookedAt: string;
+  showDate: string;
+  showTime: string;
+  contactInfo: {
+    email: string;
+  };
+}
+
+interface TheaterBookingsData {
+  bookings: TheaterBooking[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalBookings: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
 
 const lexend = Lexend({
   weight: "500",
@@ -32,11 +90,13 @@ const lexendSmall = Lexend({
 });
 
 interface Owner {
+  id?: string;
   _id: string;
   name: string;
 }
 
 interface Theater {
+  id?: string;
   _id: string;
   name: string;
   city: string;
@@ -59,6 +119,13 @@ interface CustomDateRange {
   startDate: string;
   endDate: string;
 }
+interface TheaterAnalyticsData {
+  theaterId: string;
+  totalRevenue: number;
+  totalBookings: number;
+  avgTicketPrice: number;
+  marketShare: number;
+}
 
 const TheaterAnalytics: React.FC<TheaterAnalyticsProps> = ({ selectedTheater, selectedOwner }) => {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
@@ -69,18 +136,47 @@ const TheaterAnalytics: React.FC<TheaterAnalyticsProps> = ({ selectedTheater, se
     startDate: '',
     endDate: ''
   });
+  const [bookingsData, setBookingsData] = useState<TheaterBookingsData | null>(null);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [bookingsPage, setBookingsPage] = useState(1);
+  const bookingsLimit = 10;
+  const fetchTheaterBookings = async (page: number = 1) => {
+    try {
+      setBookingsLoading(true);
+      const { startDate, endDate } = getDateRange();
+      const response = await getBookingsForAdmin(
+        selectedTheater._id,
+        startDate,
+        endDate,
+        page,
+        bookingsLimit
+      );
+      
+      setBookingsData(response.data);
+    } catch (error) {
+      console.error("Error fetching theater bookings:", error);
+      toast.error("Failed to fetch bookings");
+      setBookingsData(null);
+    } finally {
+      setBookingsLoading(false);
+    }
+  };
+  const handleBookingsPageChange = (newPage: number) => {
+    setBookingsPage(newPage);
+    fetchTheaterBookings(newPage);
+  };
 
   const getDateRange = () => {
     const endDate = new Date().toISOString().split('T')[0];
     let startDate = new Date();
-    
+
     if (dateFilter === 'custom') {
       return {
         startDate: customDateRange.startDate,
         endDate: customDateRange.endDate
       };
     }
-    
+
     switch (dateFilter) {
       case 'week':
         startDate.setDate(startDate.getDate() - 7);
@@ -107,10 +203,10 @@ const TheaterAnalytics: React.FC<TheaterAnalyticsProps> = ({ selectedTheater, se
   const fetchAnalytics = async () => {
     try {
       setIsLoading(true);
-      
+      await fetchTheaterBookings(1);
+
       const { startDate, endDate } = getDateRange();
 
-      // Validate custom date range
       if (dateFilter === 'custom') {
         if (!startDate || !endDate) {
           toast.error("Please select both start and end dates");
@@ -132,9 +228,9 @@ const TheaterAnalytics: React.FC<TheaterAnalyticsProps> = ({ selectedTheater, se
       });
 
       console.log('the response for the getTheaterWiseRevenueApi', response.data);
-      
-      const theaterData = response.data?.find((theater: any) => theater.theaterId === selectedTheater._id);
-      
+
+      const theaterData = response.data?.find((theater: TheaterAnalyticsData) => theater.theaterId === selectedTheater._id);
+
       if (theaterData) {
         setAnalyticsData({
           totalRevenue: theaterData.totalRevenue,
@@ -149,15 +245,15 @@ const TheaterAnalytics: React.FC<TheaterAnalyticsProps> = ({ selectedTheater, se
           avgTicketPrice: 0,
           marketShare: 0
         });
-        
+
         if (response.data?.length === 0) {
-          toast.info("No data available for the selected date range");
+          toast.error("No data available for the selected date range");
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error fetching analytics:", error);
       toast.error("No data available for these time ranges");
-      
+
       setAnalyticsData({
         totalRevenue: 0,
         totalBookings: 0,
@@ -178,7 +274,7 @@ const TheaterAnalytics: React.FC<TheaterAnalyticsProps> = ({ selectedTheater, se
       toast.error("Start date cannot be later than end date");
       return;
     }
-    
+
     setDateFilter('custom');
     setShowCustomDatePicker(false);
     fetchAnalytics();
@@ -248,30 +344,28 @@ const TheaterAnalytics: React.FC<TheaterAnalyticsProps> = ({ selectedTheater, se
               </div>
             </div>
           </div>
-          
+
           {/* Date Filter Buttons */}
           <div className="flex gap-2 flex-wrap">
             {['week', 'month', 'quarter', 'year'].map((period) => (
               <button
                 key={period}
                 onClick={() => handlePresetFilterChange(period)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  dateFilter === period
-                    ? 'bg-yellow-500 hover:bg-yellow-400 text-black'
-                    : 'bg-gray-800/50 text-gray-300 border border-yellow-500/30 hover:bg-gray-700/50 hover:border-yellow-500/50'
-                }`}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${dateFilter === period
+                  ? 'bg-yellow-500 hover:bg-yellow-400 text-black'
+                  : 'bg-gray-800/50 text-gray-300 border border-yellow-500/30 hover:bg-gray-700/50 hover:border-yellow-500/50'
+                  }`}
               >
                 {period.charAt(0).toUpperCase() + period.slice(1)}
               </button>
             ))}
-            
+
             <button
               onClick={() => setShowCustomDatePicker(!showCustomDatePicker)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
-                dateFilter === 'custom'
-                  ? 'bg-yellow-500 hover:bg-yellow-400 text-black'
-                  : 'bg-gray-800/50 text-gray-300 border border-yellow-500/30 hover:bg-gray-700/50 hover:border-yellow-500/50'
-              }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${dateFilter === 'custom'
+                ? 'bg-yellow-500 hover:bg-yellow-400 text-black'
+                : 'bg-gray-800/50 text-gray-300 border border-yellow-500/30 hover:bg-gray-700/50 hover:border-yellow-500/50'
+                }`}
             >
               <CalendarIcon className="w-4 h-4" />
               {dateFilter === 'custom' ? getFilterDisplayText() : 'Custom'}
@@ -288,7 +382,7 @@ const TheaterAnalytics: React.FC<TheaterAnalyticsProps> = ({ selectedTheater, se
                 Custom Date Range
               </h3>
             </div>
-            
+
             <div className="flex flex-col lg:flex-row gap-4 items-end">
               <div className="flex-1">
                 <label className={`${lexendSmall.className} block text-sm font-medium text-gray-300 mb-2`}>
@@ -302,7 +396,7 @@ const TheaterAnalytics: React.FC<TheaterAnalyticsProps> = ({ selectedTheater, se
                   max={new Date().toISOString().split('T')[0]}
                 />
               </div>
-              
+
               <div className="flex-1">
                 <label className={`${lexendSmall.className} block text-sm font-medium text-gray-300 mb-2`}>
                   To Date
@@ -316,7 +410,7 @@ const TheaterAnalytics: React.FC<TheaterAnalyticsProps> = ({ selectedTheater, se
                   max={new Date().toISOString().split('T')[0]}
                 />
               </div>
-              
+
               <div className="flex gap-2">
                 <button
                   onClick={handleCustomDateRangeApply}
@@ -332,7 +426,7 @@ const TheaterAnalytics: React.FC<TheaterAnalyticsProps> = ({ selectedTheater, se
                 </button>
               </div>
             </div>
-            
+
             <div className="mt-4 p-3 bg-gray-700/30 rounded-lg">
               <div className="flex flex-wrap gap-2 items-center">
                 <span className={`${lexendSmall.className} text-sm text-gray-400 mr-2`}>Quick select:</span>
@@ -347,7 +441,7 @@ const TheaterAnalytics: React.FC<TheaterAnalyticsProps> = ({ selectedTheater, se
                       const endDate = new Date();
                       const startDate = new Date();
                       startDate.setDate(endDate.getDate() - preset.days);
-                      
+
                       setCustomDateRange({
                         startDate: startDate.toISOString().split('T')[0],
                         endDate: endDate.toISOString().split('T')[0]
@@ -372,8 +466,17 @@ const TheaterAnalytics: React.FC<TheaterAnalyticsProps> = ({ selectedTheater, se
             Revenue Analytics
           </h3>
         </div>
-        
+
         <RevenueCards analyticsData={analyticsData} />
+        <BookingsListForAdmins
+          bookings={bookingsData?.bookings || []}
+          totalBookings={bookingsData?.pagination.totalBookings || 0}
+          currentPage={bookingsData?.pagination.currentPage || 1}
+          totalPages={bookingsData?.pagination.totalPages || 1}
+          onPageChange={handleBookingsPageChange}
+          isLoading={bookingsLoading}
+        />
+
       </div>
     </div>
   );

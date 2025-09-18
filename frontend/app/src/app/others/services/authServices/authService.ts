@@ -1,4 +1,5 @@
 import AUTH_ROUTES from "../../constants/authConstants/authConstants";
+import { GoogleCredentialResponse } from "../../types";
 import apiClient from "../../Utils/apiClient";
 
 export const login = async (email: string, password: string) => {
@@ -21,7 +22,7 @@ export const resetPassword = async (email: string, otp: string, newPassword: str
   return response.data;
 };
 
-export const googleAuth = async (credentialResponse: any) => {
+export const googleAuth = async (credentialResponse: GoogleCredentialResponse) => {
   const result = await apiClient.post(AUTH_ROUTES.GOOGLE_AUTH, { credential: credentialResponse.credential });
   return result.data;
 };

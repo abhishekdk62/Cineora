@@ -4,7 +4,7 @@ import { Lexend } from 'next/font/google';
 
 const lexend = Lexend({ subsets: ['latin'] });
 
-interface AdminTransaction {
+export interface AdminTransaction {
   _id: string;
   type: 'credit' | 'debit';
   amount: number;

@@ -52,6 +52,15 @@ interface MoviesListProps {
   totalItems: number;
   onPageChange: (page: number) => void;
 }
+export type MovieFilterValue = 
+  | string 
+  | number 
+  | boolean 
+  | undefined
+  | "asc" 
+  | "desc"
+  | null;
+
 
 const MoviesListComponent: React.FC<MoviesListProps> = ({
   movies,
@@ -87,7 +96,7 @@ const MoviesListComponent: React.FC<MoviesListProps> = ({
     };
   }, [localFilters, onFiltersChange]);
 
-  const handleFilterChange = (key: keyof MovieFilters, value: any) => {
+  const handleFilterChange = (key: keyof MovieFilters, value: MovieFilterValue) => {
     setLocalFilters((prev) => ({
       ...prev,
       [key]: value === "" ? undefined : value,

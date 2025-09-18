@@ -78,7 +78,7 @@ export default function OwnerKYCForm() {
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) {
-    const { name, value, type, checked } = e.target as any;
+    const { name, value, type, checked } = e.target as string;
     if (type === "checkbox") {
       setFormData((prev) => ({ ...prev, [name]: checked }));
     } else {
@@ -172,7 +172,7 @@ export default function OwnerKYCForm() {
       } else {
         setError(result.message || "Failed to send OTP");
       }
-    } catch (error: any) {
+    } catch (error: string) {
       setError(error.response?.data?.message || "Failed to send OTP");
     } finally {
       setOtpLoading(false);
@@ -198,7 +198,7 @@ export default function OwnerKYCForm() {
       } else {
         setError(result.message || "Invalid OTP");
       }
-    } catch (error: any) {
+    } catch (error: string) {
       setError(error.response?.data?.message || "Invalid OTP");
     } finally {
       setOtpLoading(false);
@@ -312,7 +312,7 @@ export default function OwnerKYCForm() {
       } else {
         throw new Error(result.message || "Submission failed");
       }
-    } catch (error:any) {
+    } catch (error:string) {
       console.error("Submission error:", error);
       let errorMessage = "Submission failed. Please try again.";
 
@@ -323,7 +323,7 @@ export default function OwnerKYCForm() {
         error !== null &&
         "response" in error
       ) {
-        const axiosError = error as any;
+        const axiosError = error as string;
         errorMessage =
           axiosError.response?.data?.message ||
           axiosError.message ||

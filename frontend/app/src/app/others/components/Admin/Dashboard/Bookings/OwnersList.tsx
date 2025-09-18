@@ -2,10 +2,10 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Lexend } from "next/font/google";
-import { 
-  Search, 
-  Users, 
-  Loader2, 
+import {
+  Search,
+  Users,
+  Loader2,
   Filter,
   Building,
   CheckCircle,
@@ -15,6 +15,8 @@ import {
 import { getOwners } from '@/app/others/services/adminServices/ownerServices';
 import { useDebounce } from '@/app/others/Utils/debounce';
 import toast from 'react-hot-toast';
+import { AxiosError } from 'axios';
+import { OwnerFilters } from '../Owners/OwnerManager';
 
 const lexend = Lexend({
   weight: "500",
@@ -55,11 +57,11 @@ const OwnersList: React.FC<OwnersListProps> = ({ onOwnerSelect }) => {
   );
 
   const handleOwnerFiltersChange = async (
-    filters: any,
+    filters: OwnerFilters,
     resetPage: boolean = true
   ) => {
     const isSearchChange = filters.search !== undefined && filters.search !== searchTerm;
-    
+
     if (isSearchChange) {
       setSearchTerm(filters.search || "");
       debouncedOwnerSearch(filters, resetPage);
@@ -80,8 +82,10 @@ const OwnersList: React.FC<OwnersListProps> = ({ onOwnerSelect }) => {
         status: "active",
       };
       const response = await getOwners(ownerFiltersWithStatus);
-
-      setOwners(response.data?.owners || response.owners || []);
+      setOwners((response.data?.owners || response.owners || []).map(owner => ({
+        ...owner,
+        name: owner.ownerName
+      })));
 
       if (response.data?.meta?.pagination) {
         setTotalPages(response.data.meta.pagination.totalPages);
@@ -92,12 +96,15 @@ const OwnersList: React.FC<OwnersListProps> = ({ onOwnerSelect }) => {
         setTotalItems(response.meta.pagination.total);
         setCurrentPage(response.meta.pagination.currentPage);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Filter error:", error);
-      toast.error(error.response?.data?.message || "Failed to load owners");
-      setOwners([]);
-      setTotalPages(1);
-      setTotalItems(0);
+      if (error instanceof AxiosError) {
+
+        toast.error(error.response?.data?.message || "Failed to load owners");
+        setOwners([]);
+        setTotalPages(1);
+        setTotalItems(0);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -117,7 +124,7 @@ const OwnersList: React.FC<OwnersListProps> = ({ onOwnerSelect }) => {
             Search & Filter
           </h3>
         </div>
-        
+
         <div className="flex flex-col lg:flex-row gap-4 items-center">
           <div className="relative flex-1 w-full max-w-md">
             <Search
@@ -198,16 +205,15 @@ const OwnersList: React.FC<OwnersListProps> = ({ onOwnerSelect }) => {
                   <div className="bg-yellow-500/20 p-3 rounded-lg group-hover:bg-yellow-500/30 transition-all duration-200">
                     <Users className="w-6 h-6 text-yellow-400" />
                   </div>
-                  <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${
-                    owner.isActive 
-                      ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
-                      : 'bg-red-500/20 text-red-400 border border-red-500/30'
-                  }`}>
+                  <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${owner.isActive
+                    ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                    : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                    }`}>
                     {owner.isActive ? <CheckCircle size={12} /> : <XCircle size={12} />}
                     {owner.isActive ? 'Active' : 'Inactive'}
                   </div>
                 </div>
-                
+
                 <div className="space-y-3 mb-4">
                   <h3 className={`${lexend.className} text-lg font-medium text-white group-hover:text-yellow-400 transition-colors line-clamp-1`}>
                     {owner.name}
@@ -230,7 +236,7 @@ const OwnersList: React.FC<OwnersListProps> = ({ onOwnerSelect }) => {
                       No theaters
                     </span>
                   )}
-                  
+
                   <div className="flex items-center gap-1 text-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <Eye size={14} />
                     <span className="text-xs font-medium">View</span>

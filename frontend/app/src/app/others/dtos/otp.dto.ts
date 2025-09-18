@@ -17,7 +17,6 @@ export interface OTPEntity {
   expiresAt: Date;
   isUsed: boolean;
   refreshToken: string;
-  userData?: any;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,7 +24,6 @@ export interface OTPEntity {
 export interface SendOTPRequestDto {
   email: string;
   type: OTPType;
-  userData?: any;
 }
 
 export interface VerifyOTPRequestDto {
@@ -53,6 +51,5 @@ export interface SendOTPResponseDto extends ApiResponse<OTPResponseDto> {}
 export interface VerifyOTPResponseDto extends ApiResponse<{
   verified: boolean;
   refreshToken?: string;
-  userData?: any;
 }> {}
 export interface ResendOTPResponseDto extends ApiResponse<OTPResponseDto> {}

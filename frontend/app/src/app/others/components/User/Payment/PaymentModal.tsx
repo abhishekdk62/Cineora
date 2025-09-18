@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import { setBookingData } from "@/app/others/redux/slices/bookingSlice";
 import { useDispatch } from "react-redux";
 import { getWallet } from "@/app/others/services/userServices/walletServices";
+import { BookingState } from "@/app/others/types";
 
 interface PaymentModalProps {
   totalAmount: number;
@@ -18,7 +19,7 @@ interface PaymentModalProps {
 
 declare global {
   interface Window {
-    Razorpay: any;
+    Razorpay: PaymentModalProps;
   }
 }
 
@@ -30,7 +31,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRazorpayLoaded, setIsRazorpayLoaded] = useState(false);
   const [walletBalance, setWalletBalance] = useState(null)
-  const bookingDatasRedux = useSelector((state: any) => state.booking.bookingData);
+  const bookingDatasRedux = useSelector((state: BookingState) => state.booking.bookingData);
   const dispatch = useDispatch()
   useEffect(() => {
     const loadRazorpayScript = () => {
@@ -92,7 +93,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose
         name: 'Movie Tickets',
         description: 'Movie Ticket Booking',
         order_id: orderId,
-        handler: async (response: any) => {
+        handler: async (response: PaymentModalProps) => {
           try {
             isPaymentProcessing = true;
             console.log('Payment successful:', response);
@@ -140,7 +141,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose
       };
 
       const razorpayInstance = new window.Razorpay(options);
-      razorpayInstance.on('payment.failed', function (response: any) {
+      razorpayInstance.on('payment.failed', function (response: PaymentModalProps) {
         isPaymentProcessing = true;
         console.error('Payment failed:', response.error);
 
@@ -180,7 +181,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose
 
       console.log(res.data);
       router.push('/booking/success');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.log(error);
       
       if (error.response.data.message == 'Insufficient balance') {

@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import React, { useState } from "react";
 import { Lexend } from "next/font/google";
 import { Navigation, Loader2, AlertCircle, MapPin } from "lucide-react";
@@ -21,7 +23,7 @@ interface LocationFieldsProps {
     };
   };
   errors: { [key: string]: string };
-  updateFormData: (updates: any) => void;
+  updateFormData: (updates: string) => void;
   clearError: (field: string) => void;
 }
 

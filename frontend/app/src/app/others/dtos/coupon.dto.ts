@@ -1,3 +1,4 @@
+import { TheaterData } from '../components/User/MyAcount/Coupon/TheaterModal';
 import { ApiResponse, PaginationQuery } from './common.dto';
 
 export interface GetCouponsQueryDto extends PaginationQuery {
@@ -8,11 +9,7 @@ export interface CouponResponseDto {
   _id: string;
   name: string;
   uniqueId: string;
-  theaterIds: {
-    _id: string;
-    name: string;
-    location: string;
-  }[];
+  theaterIds:TheaterData[];
   discountPercentage: number;
   description: string;
   expiryDate: Date;
@@ -42,6 +39,7 @@ export interface CreateCouponRequestDto {
   expiryDate: string;
   maxUsageCount?: number;
   theaterNames?: string[];
+  minAmount?:number
 }
 
 export interface UpdateCouponRequestDto {
@@ -53,6 +51,7 @@ export interface UpdateCouponRequestDto {
   expiryDate?: string;
   maxUsageCount?: number;
   isActive?: boolean;
+  minAmount:Number;
 }
 
 export interface CreateCouponResponseDto extends ApiResponse<CouponResponseDto> {}

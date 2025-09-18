@@ -10,13 +10,13 @@ import SeatLayoutVisualizer from "./SeatLayoutVisualizer";
 import { getBookingDetails } from "@/app/others/services/ownerServices/bookingServices";
 
 interface ShowDetailsPageProps {
-  showtime: any;
-  theater: any;
-  screen: any;
+  showtime: string;
+  theater: string;
+  screen: string;
   date: string;
   onBack: () => void;
-  lexendMedium: any;
-  lexendSmall: any;
+  lexendMedium: string;
+  lexendSmall: string;
 }
 
 const ShowDetailsPage: React.FC<ShowDetailsPageProps> = ({

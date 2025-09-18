@@ -1,4 +1,5 @@
 "use client";
+import { lexendSmall } from "@/app/others/Utils/fonts";
 import React from "react";
 
 export default function EmailStep({
@@ -7,16 +8,14 @@ export default function EmailStep({
   loading,
   error,
   onSubmit,
-  lexend,
-  lexendSmall,
+ 
 }: {
   email: string;
   setEmail: React.Dispatch<React.SetStateAction<string>>;
   loading: boolean;
   error: string;
   onSubmit: (e: React.FormEvent) => void;
-  lexend: any;
-  lexendSmall: any;
+
 }) {
   return (
     <div>

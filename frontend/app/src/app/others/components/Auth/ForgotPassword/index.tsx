@@ -6,6 +6,7 @@ import EmailStep from "./EmailStep";
 import OTPStep from "../common/OTPStep";
 import PasswordStep from "./PasswordStep";
 import SuccessStep from "./SuccessStep";
+import { AxiosError } from "axios";
 
 const lexend = Lexend({ weight: "500", subsets: ["latin"] });
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
@@ -69,14 +70,15 @@ export default function ForgotPassword({
             try {
               await onSubmitEmail(email);
               next("otp");
-            } catch (err: any) {
-              setError(err.response.data.message || "Failed to send reset code. Please try again.");
+            } catch (err: unknown) {
+              if(err instanceof AxiosError)
+              {
+                setError("Failed to send reset code. Please try again.");
+              }
             } finally {
               setLoading(false);
             }
           }}
-          lexend={lexend}
-          lexendSmall={lexendSmall}
         />
       )}
 
@@ -94,8 +96,12 @@ export default function ForgotPassword({
             try {
               await onSubmitOTP(otp);
               next("password");
-            } catch (err: any) {
-              setError(err.response.data.message || "Invalid verification code. Please try again.");
+            } catch (err: unknown) {
+              if(err instanceof AxiosError)
+              {
+
+                setError( "Invalid verification code. Please try again.");
+              }
             } finally {
               setLoading(false);
             }
@@ -106,14 +112,16 @@ export default function ForgotPassword({
               setError("");
               setOtp(""); 
               await onSubmitEmail(email); 
-            } catch (err: any) {
-              setError(err.response.data.message || "Failed to resend code. Please try again.");
+            } catch (err: unknown) {
+              if(err instanceof AxiosError)
+              {
+
+                setError( "Failed to resend code. Please try again.");
+              }
             } finally {
               setLoading(false);
             }
           }}
-          lexend={lexend}
-          lexendSmall={lexendSmall}
         />
       )}
 
@@ -145,18 +153,21 @@ export default function ForgotPassword({
               await onSubmitNewPassword(password, confirmPassword);
               next("success");
               setTimeout(onComplete, 2000);
-            } catch (err: any) {
-              setError(err?.message || "Failed to reset password. Please try again.");
+            } catch (err: unknown) {
+              if(err instanceof AxiosError)
+              {
+
+                setError( "Failed to reset password. Please try again.");
+              }
             } finally {
               setLoading(false);
             }
           }}
-          lexendSmall={lexendSmall}
         />
       )}
 
       {currentStep === "success" && (
-        <SuccessStep onComplete={onComplete} lexend={lexend} lexendSmall={lexendSmall} />
+        <SuccessStep onComplete={onComplete}  />
       )}
     </div>
   );

@@ -5,10 +5,11 @@ import {
   ToggleShowtimeResponseDto,
   ToggleShowtimeRequestDto
 } from '../../dtos/showtime.dto';
+import { ParamsType } from "../../components/Admin/Dashboard/Showtimes/ShowtimesModal";
 
 export const getShowTimeByScreenIdAdmin = async (
   screenId: string,
-  params: any
+  params: ParamsType
 ): Promise<GetShowtimesByScreenIdResponseDto> => {
   const result = await apiClient.get(ADMIN_SHOWTIMES.BY_SCREEN_ID(screenId), {
     params,

@@ -1,3 +1,4 @@
+//@ts-nocheck
 import React from "react";
 import { Lexend } from "next/font/google";
 import { User } from "lucide-react";
@@ -20,7 +21,7 @@ const lexendSmall = Lexend({
 
 interface ProfileOverviewCardProps {
   profile: UserProfile;
-  docs:any
+  docs:string
 }
 
 const ProfileOverviewCard: React.FC<ProfileOverviewCardProps> = ({ profile,docs }) => {

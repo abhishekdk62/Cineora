@@ -21,7 +21,6 @@ export interface ScreenLayoutDto {
   rows: number;
   seatsPerRow: number;
   advancedLayout: AdvancedLayoutDto;
-  seatMap?: any;
 }
 
 export interface ScreenFilters extends PaginationQuery {

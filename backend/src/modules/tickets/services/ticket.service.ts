@@ -1,13 +1,13 @@
 import { ITicketService } from "../interfaces/ticket.service.interface";
 import { ITicketRepository } from "../interfaces/ticket.repository.interface";
-import { 
+import {
   CreateTicketFromRowsDto,
   CreateTicketFromBookingDto,
   CancelTicketDto,
   GetUserTicketsDto,
   ValidateTicketDto,
   RefundCalculationDto,
-  CancelSingleTicketDto
+  CancelSingleTicketDto,
 } from "../dtos/dto";
 import { ApiResponse, createResponse } from "../../../utils/createResponse";
 import { ITicket } from "../interfaces/ticket.model.interface";
@@ -22,240 +22,270 @@ export class TicketService implements ITicketService {
     private readonly emailService: IEmailService
   ) {}
 
-
-
-
-  
-  async createTicketsFromRows(data: CreateTicketFromRowsDto): Promise<ApiResponse<ITicket[]>> {
+  async createTicketsFromRows(
+    data: CreateTicketFromRowsDto
+  ): Promise<ApiResponse<ITicket[]>> {
     try {
       this._validateCreateTicketsFromRowsData(data);
 
       const tickets = this._prepareTicketsFromRows(data);
-      const createdTickets = await this.ticketRepository.createBulkTickets(tickets);
 
-      await this._sendTicketEmail(data.bookingInfo.email, createdTickets, data.bookingInfo);
+      const createdTickets = await this.ticketRepository.createBulkTickets(
+        tickets
+      );
+
+      await this._sendTicketEmail(
+        data.bookingInfo.email,
+        createdTickets,
+        data.bookingInfo
+      );
 
       return createResponse({
         success: true,
         message: "Tickets created from rows successfully",
-        data: createdTickets
+        data: createdTickets,
       });
     } catch (error: unknown) {
-      return this._handleServiceError(error, "Failed to create tickets from rows");
+      return this._handleServiceError(
+        error,
+        "Failed to create tickets from rows"
+      );
     }
   }
 
-
-
-
-
-
-
-async cancelSingleTicket(data: CancelSingleTicketDto): Promise<ApiResponse<RefundCalculationDto>> {
-  try {
-    this._validateCancelSingleTicketData(data);
-
-    // Get all tickets to be cancelled
-    const tickets = await this._getTicketsForCancellation(data.ticketIds);
-    
-    if (tickets.length === 0) {
-      return createResponse({
-        success: false,
-        message: "No valid tickets found for cancellation"
-      });
-    }
-
-    // Validate ownership and eligibility
-    const validationError = this._validateSingleTicketCancellationEligibility(tickets, data.userId);
-    if (validationError) {
-      return createResponse({
-        success: false,
-        message: validationError
-      });
-    }
-
-    // Calculate refund based on the first ticket's show time
-    const firstTicket = tickets[0];
-    const showDateTime = this._parseShowDateTime(firstTicket.showDate, firstTicket.showTime);
-    const refundPercentage = this._calculateRefundPercentage(showDateTime);
-
-    // Cancel selected tickets
-    const updatedTickets = await this._cancelSelectedTickets(tickets);
-
-    // REMOVED: The booking update is now handled in the controller
-    // await this._updateBookingStatusAfterCancellation(firstTicket.bookingId.toString());
-
-    const refundData: RefundCalculationDto = {
-      cancelledTickets: updatedTickets,
-      refundPercentage,
-      originalAmount: data.totalAmount,
-      refundAmount: Math.round(data.totalAmount * refundPercentage / 100),
-      showDate: firstTicket.showDate,
-      showTime: firstTicket.showTime,
-      totalAmount: data.totalAmount // Add this line to match what the controller expects
-    };
-
-    return createResponse({
-      success: true,
-      message: "Selected tickets cancelled successfully",
-      data: refundData
-    });
-  } catch (error: unknown) {
-    return this._handleServiceError(error, "Failed to cancel selected tickets");
-  }
-}
-
-// Validation for single ticket cancellation data
-private _validateCancelSingleTicketData(data: CancelSingleTicketDto): void {
-  if (!data.ticketIds || !Array.isArray(data.ticketIds) || data.ticketIds.length === 0) {
-    throw new Error("At least one ticket ID is required");
-  }
-
-  if (!data.userId || data.totalAmount <= 0) {
-    throw new Error("Missing required fields for ticket cancellation");
-  }
-
-  if (!this._isValidObjectId(data.userId)) {
-    throw new Error("Invalid user ID format");
-  }
-
-  // Validate all ticket IDs
-  for (const ticketId of data.ticketIds) {
-    if (!this._isValidObjectId(ticketId)) {
-      throw new Error(`Invalid ticket ID format: ${ticketId}`);
-    }
-  }
-}
-
-// Get tickets for cancellation
-private async _getTicketsForCancellation(ticketIds: string[]): Promise<ITicket[]> {
-  const tickets: ITicket[] = [];
-  
-  for (const ticketId of ticketIds) {
-    const ticket = await this.ticketRepository.findTicketById(ticketId);
-    if (ticket) {
-      tickets.push(ticket);
-    }
-  }
-  
-  return tickets;
-}
-
-// Validate eligibility for single ticket cancellation
-private _validateSingleTicketCancellationEligibility(tickets: ITicket[], userId: string): string | null {
-  // Check if all tickets belong to the same user
-  for (const ticket of tickets) {
-    if (ticket.userId._id.toString() !== userId) {
-      return "Unauthorized: You can only cancel your own tickets";
-    }
-
-    if (ticket.status === 'cancelled') {
-      return `Ticket ${ticket.ticketId} is already cancelled`;
-    }
-
-    if (ticket.status === 'used') {
-      return `Cannot cancel used ticket ${ticket.ticketId}`;
-    }
-  }
-
-  // Check if cancellation is within allowed time
-  const firstTicket = tickets[0];
-  const showDateTime = this._parseShowDateTime(firstTicket.showDate, firstTicket.showTime);
-  if (showDateTime <= new Date()) {
-    return "Cannot cancel tickets for past shows";
-  }
-
-  // Validate all tickets are from the same booking and showtime
-  const firstBookingId = tickets[0].bookingId.toString();
-  const firstShowtimeId = tickets[0].showtimeId.toString();
-  
-  for (const ticket of tickets) {
-    if (ticket.bookingId.toString() !== firstBookingId) {
-      return "All tickets must be from the same booking";
-    }
-    
-    if (ticket.showtimeId.toString() !== firstShowtimeId) {
-      return "All tickets must be from the same showtime";
-    }
-  }
-
-  return null;
-}
-
-// Cancel selected tickets
-private async _cancelSelectedTickets(tickets: ITicket[]): Promise<ITicket[]> {
-  const updatePromises = tickets.map(ticket => 
-    this.ticketRepository.updateTicketById(
-      (ticket as any)._id.toString(),
-      { 
-        status: 'cancelled',
-        updatedAt: new Date()
-      }
-    )
-  );
-
-  return await Promise.all(updatePromises);
-}
-
-
-
-  async createTicketsFromBooking(data: CreateTicketFromBookingDto): Promise<ApiResponse<ITicket[]>> {
+  async cancelSingleTicket(
+    data: CancelSingleTicketDto
+  ): Promise<ApiResponse<RefundCalculationDto>> {
     try {
-      this._validateCreateTicketsFromBookingData(data);
+      this._validateCancelSingleTicketData(data);
 
-      const tickets = this._prepareTicketsFromBooking(data);
-      const createdTickets = await this.ticketRepository.createBulkTickets(tickets);
+      // Get all tickets to be cancelled
+      const tickets = await this._getTicketsForCancellation(data.ticketIds);
+
+      if (tickets.length === 0) {
+        return createResponse({
+          success: false,
+          message: "No valid tickets found for cancellation",
+        });
+      }
+
+      // Validate ownership and eligibility
+      const validationError = this._validateSingleTicketCancellationEligibility(
+        tickets,
+        data.userId
+      );
+      if (validationError) {
+        return createResponse({
+          success: false,
+          message: validationError,
+        });
+      }
+
+      // Calculate refund based on the first ticket's show time
+      const firstTicket = tickets[0];
+      const showDateTime = this._parseShowDateTime(
+        firstTicket.showDate,
+        firstTicket.showTime
+      );
+      const refundPercentage = this._calculateRefundPercentage(showDateTime);
+
+     
+      const updatedTickets = await this._cancelSelectedTickets(tickets);
+
+     
+      const refundData: RefundCalculationDto = {
+        cancelledTickets: updatedTickets,
+        refundPercentage,
+        originalAmount: data.totalAmount,
+        refundAmount: Math.round((data.totalAmount * refundPercentage) / 100),
+        showDate: firstTicket.showDate,
+        showTime: firstTicket.showTime,
+        totalAmount: data.totalAmount,
+      };
 
       return createResponse({
         success: true,
+        message: "Selected tickets cancelled successfully",
+        data: refundData,
+      });
+    } catch (error: unknown) {
+      return this._handleServiceError(
+        error,
+        "Failed to cancel selected tickets"
+      );
+    }
+  }
+
+  private _validateCancelSingleTicketData(data: CancelSingleTicketDto): void {
+    if (
+      !data.ticketIds ||
+      !Array.isArray(data.ticketIds) ||
+      data.ticketIds.length === 0
+    ) {
+      throw new Error("At least one ticket ID is required");
+    }
+
+    if (!data.userId || data.totalAmount <= 0) {
+      throw new Error("Missing required fields for ticket cancellation");
+    }
+
+    if (!this._isValidObjectId(data.userId)) {
+      throw new Error("Invalid user ID format");
+    }
+
+    // Validate all ticket IDs
+    for (const ticketId of data.ticketIds) {
+      if (!this._isValidObjectId(ticketId)) {
+        throw new Error(`Invalid ticket ID format: ${ticketId}`);
+      }
+    }
+  }
+
+  private async _getTicketsForCancellation(
+    ticketIds: string[]
+  ): Promise<ITicket[]> {
+    const tickets: ITicket[] = [];
+
+    for (const ticketId of ticketIds) {
+      const ticket = await this.ticketRepository.findTicketById(ticketId);
+      if (ticket) {
+        tickets.push(ticket);
+      }
+    }
+
+    return tickets;
+  }
+
+  private _validateSingleTicketCancellationEligibility(
+    tickets: ITicket[],
+    userId: string
+  ): string | null {
+    // Check if all tickets belong to the same user
+    for (const ticket of tickets) {
+      if (ticket.userId._id.toString() !== userId) {
+        return "Unauthorized: You can only cancel your own tickets";
+      }
+
+      if (ticket.status === "cancelled") {
+        return `Ticket ${ticket.ticketId} is already cancelled`;
+      }
+
+      if (ticket.status === "used") {
+        return `Cannot cancel used ticket ${ticket.ticketId}`;
+      }
+    }
+
+    // Check if cancellation is within allowed time
+    const firstTicket = tickets[0];
+    const showDateTime = this._parseShowDateTime(
+      firstTicket.showDate,
+      firstTicket.showTime
+    );
+    if (showDateTime <= new Date()) {
+      return "Cannot cancel tickets for past shows";
+    }
+
+    const firstBookingId = tickets[0].bookingId.toString();
+    const firstShowtimeId = tickets[0].showtimeId.toString();
+
+    for (const ticket of tickets) {
+      if (ticket.bookingId.toString() !== firstBookingId) {
+        return "All tickets must be from the same booking";
+      }
+
+      if (ticket.showtimeId.toString() !== firstShowtimeId) {
+        return "All tickets must be from the same showtime";
+      }
+    }
+
+    return null;
+  }
+
+  private async _cancelSelectedTickets(tickets: ITicket[]): Promise<ITicket[]> {
+    const updatePromises = tickets.map((ticket) =>
+      this.ticketRepository.updateTicketById((ticket as any)._id.toString(), {
+        status: "cancelled",
+        updatedAt: new Date(),
+      })
+    );
+
+    return await Promise.all(updatePromises);
+  }
+
+  async createTicketsFromBooking(
+    data: CreateTicketFromBookingDto
+  ): Promise<ApiResponse<ITicket[]>> {
+    try {
+      this._validateCreateTicketsFromBookingData(data);
+      console.log("c id coups", data.bookingData.couponId);
+
+      const tickets = this._prepareTicketsFromBooking(data);
+      console.log("c id", tickets.couponId);
+
+      const createdTickets = await this.ticketRepository.createBulkTickets(
+        tickets
+      );
+      return createResponse({
+        success: true,
         message: "Tickets created successfully",
-        data: createdTickets
+        data: createdTickets,
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Failed to create tickets");
     }
   }
 
-  async cancelTicket(data: CancelTicketDto): Promise<ApiResponse<RefundCalculationDto>> {
+  async cancelTicket(
+    data: CancelTicketDto
+  ): Promise<ApiResponse<RefundCalculationDto>> {
     try {
       this._validateCancelTicketData(data);
 
-      const tickets = await this.ticketRepository.findTicketsByBookingId(data.bookingId);
-      
+      const tickets = await this.ticketRepository.findTicketsByBookingId(
+        data.bookingId
+      );
+
       if (!tickets || tickets.length === 0) {
         return createResponse({
           success: false,
-          message: "Tickets not found"
+          message: "Tickets not found",
         });
       }
 
-      const validationError = this._validateCancellationEligibility(tickets, data.userId);
+      const validationError = this._validateCancellationEligibility(
+        tickets,
+        data.userId
+      );
       if (validationError) {
         return createResponse({
           success: false,
-          message: validationError
+          message: validationError,
         });
       }
 
       const firstTicket = tickets[0];
-      const showDateTime = this._parseShowDateTime(firstTicket.showDate, firstTicket.showTime);
+      const showDateTime = this._parseShowDateTime(
+        firstTicket.showDate,
+        firstTicket.showTime
+      );
       const refundPercentage = this._calculateRefundPercentage(showDateTime);
 
       const updatedTickets = await this._cancelAllTicketsInBooking(tickets);
+      console.log("neymar", refundPercentage);
 
       const refundData: RefundCalculationDto = {
         cancelledTickets: updatedTickets,
         refundPercentage,
         originalAmount: data.amount,
-        refundAmount: Math.round(data.amount * refundPercentage / 100),
+        refundAmount: Math.round((data.amount * refundPercentage) / 100),
         showDate: firstTicket.showDate,
-        showTime: firstTicket.showTime
+        showTime: firstTicket.showTime,
       };
 
       return createResponse({
         success: true,
         message: "Booking cancelled successfully",
-        data: refundData
+        data: refundData,
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Failed to cancel booking");
@@ -265,19 +295,21 @@ private async _cancelSelectedTickets(tickets: ITicket[]): Promise<ITicket[]> {
   async verifyTicket(encryptedData: string): Promise<ApiResponse<any>> {
     try {
       const decryptedData = this._decryptQRData(encryptedData);
-      const ticket = await this.ticketRepository.findTicketByTicketId(decryptedData.tid);
+      const ticket = await this.ticketRepository.findTicketByTicketId(
+        decryptedData.tid
+      );
 
       if (!ticket || ticket.status === "cancelled") {
         return createResponse({
           success: false,
-          message: "Ticket not found or cancelled"
+          message: "Ticket not found or cancelled",
         });
       }
 
       if (ticket.isUsed) {
         return createResponse({
           success: false,
-          message: "Ticket already used"
+          message: "Ticket already used",
         });
       }
 
@@ -285,7 +317,7 @@ private async _cancelSelectedTickets(tickets: ITicket[]): Promise<ITicket[]> {
       if (!isShowActive) {
         return createResponse({
           success: false,
-          message: "Show has ended"
+          message: "Show has ended",
         });
       }
 
@@ -294,8 +326,8 @@ private async _cancelSelectedTickets(tickets: ITicket[]): Promise<ITicket[]> {
         message: "Ticket is valid",
         data: {
           ticketData: decryptedData,
-          databaseTicket: ticket
-        }
+          databaseTicket: ticket,
+        },
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Invalid QR code");
@@ -311,41 +343,40 @@ private async _cancelSelectedTickets(tickets: ITicket[]): Promise<ITicket[]> {
       if (!ticket) {
         return createResponse({
           success: false,
-          message: "Ticket not found"
+          message: "Ticket not found",
         });
       }
 
       return createResponse({
         success: true,
         message: "Ticket found",
-        data: ticket
+        data: ticket,
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Failed to get ticket");
     }
   }
 
-async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
-  try {
-    this._validateGetUserTicketsData(data);
+  async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
+    try {
+      this._validateGetUserTicketsData(data);
 
-    const result = await this.ticketRepository.findTicketsByUserIdPaginated(
-      data.userId,
-      data.page || 1,
-      data.limit || 10,
-      data.types || ["all"]
-    );
+      const result = await this.ticketRepository.findTicketsByUserIdPaginated(
+        data.userId,
+        data.page || 1,
+        data.limit || 10,
+        data.types || ["all"]
+      );
 
-    return createResponse({
-      success: true,
-      message: "User tickets retrieved successfully",
-      data: result,
-    });
-  } catch (error: unknown) {
-    return this._handleServiceError(error, "Failed to get user tickets");
+      return createResponse({
+        success: true,
+        message: "User tickets retrieved successfully",
+        data: result,
+      });
+    } catch (error: unknown) {
+      return this._handleServiceError(error, "Failed to get user tickets");
+    }
   }
-}
-
 
   async markTicketAsUsed(ticketId: string): Promise<ApiResponse<any>> {
     try {
@@ -356,14 +387,14 @@ async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
       if (!ticket) {
         return createResponse({
           success: false,
-          message: "Ticket not found"
+          message: "Ticket not found",
         });
       }
 
       return createResponse({
         success: true,
         message: "Ticket marked as used",
-        data: ticket
+        data: ticket,
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Failed to mark ticket as used");
@@ -374,35 +405,42 @@ async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
     try {
       this._validateTicketValidationData(data);
 
-      const ticket = await this.ticketRepository.validateTicket(data.ticketId, data.qrCode);
+      const ticket = await this.ticketRepository.validateTicket(
+        data.ticketId,
+        data.qrCode
+      );
 
       if (!ticket) {
         return createResponse({
           success: false,
-          message: "Invalid ticket or already used"
+          message: "Invalid ticket or already used",
         });
       }
 
       return createResponse({
         success: true,
         message: "Ticket is valid",
-        data: ticket
+        data: ticket,
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Failed to validate ticket");
     }
   }
 
-  async getTicketsByBookingId(bookingId: string): Promise<ApiResponse<ITicket[]>> {
+  async getTicketsByBookingId(
+    bookingId: string
+  ): Promise<ApiResponse<ITicket[]>> {
     try {
       this._validateBookingId(bookingId);
 
-      const tickets = await this.ticketRepository.findTicketsByBookingId(bookingId);
+      const tickets = await this.ticketRepository.findTicketsByBookingId(
+        bookingId
+      );
 
       return createResponse({
         success: true,
         message: "Tickets retrieved successfully",
-        data: tickets
+        data: tickets,
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Failed to get tickets");
@@ -418,14 +456,16 @@ async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
       return createResponse({
         success: true,
         message: "Ticket history retrieved successfully",
-        data: tickets
+        data: tickets,
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Failed to get ticket history");
     }
   }
 
-  async generateQRCode(ticketId: string): Promise<ApiResponse<{ qrCode: string }>> {
+  async generateQRCode(
+    ticketId: string
+  ): Promise<ApiResponse<{ qrCode: string }>> {
     try {
       this._validateTicketId(ticketId);
 
@@ -434,7 +474,7 @@ async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
       return createResponse({
         success: true,
         message: "QR code generated",
-        data: { qrCode }
+        data: { qrCode },
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Failed to generate QR code");
@@ -450,7 +490,7 @@ async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
       return createResponse({
         success: deleted,
         message: deleted ? "Ticket deleted successfully" : "Ticket not found",
-        data: deleted
+        data: deleted,
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Failed to delete ticket");
@@ -479,7 +519,11 @@ async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
     const iv = Buffer.from(ivHex, "hex");
 
     const algorithm = "aes-256-cbc";
-    const key = crypto.scryptSync(process.env.QR_VERIFICATION_SECRET!, "salt", 32);
+    const key = crypto.scryptSync(
+      process.env.QR_VERIFICATION_SECRET!,
+      "salt",
+      32
+    );
 
     const decipher = crypto.createDecipheriv(algorithm, key, iv);
     let decrypted = decipher.update(encrypted, "hex", "utf8");
@@ -489,10 +533,15 @@ async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
   }
 
   private _generateTicketId(): string {
-    return `TK${Date.now()}${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
+    return `TK${Date.now()}${Math.random()
+      .toString(36)
+      .substr(2, 4)
+      .toUpperCase()}`;
   }
 
-  private _prepareTicketsFromRows(data: CreateTicketFromRowsDto): Partial<ITicket>[] {
+  private _prepareTicketsFromRows(
+    data: CreateTicketFromRowsDto
+  ): Partial<ITicket>[] {
     const tickets: Partial<ITicket>[] = [];
 
     for (const row of data.selectedRows) {
@@ -517,6 +566,9 @@ async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
           qrCode: encryptedQRData,
           status: "confirmed",
           isUsed: false,
+          ...(data.bookingInfo.couponId && {
+            couponId: data.bookingInfo.couponId,
+          }),
         });
       }
     }
@@ -524,7 +576,9 @@ async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
     return tickets;
   }
 
-  private _prepareTicketsFromBooking(data: CreateTicketFromBookingDto): Partial<ITicket>[] {
+  private _prepareTicketsFromBooking(
+    data: CreateTicketFromBookingDto
+  ): Partial<ITicket>[] {
     return data.bookingData.selectedSeats.map((seat: any, index: number) => {
       const seatRow = seat.charAt(0);
       const seatNumber = seat.slice(1);
@@ -548,25 +602,30 @@ async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
         qrCode: encryptedQRData,
         status: "confirmed",
         isUsed: false,
+        couponId: data.bookingData.couponId,
       };
     });
   }
 
-  private _validateCancellationEligibility(tickets: ITicket[], userId: string): string | null {
+  private _validateCancellationEligibility(
+    tickets: ITicket[],
+    userId: string
+  ): string | null {
     const firstTicket = tickets[0];
 
     if (firstTicket.userId._id.toString() !== userId) {
       return "Unauthorized: You can only cancel your own tickets";
     }
 
-    
-
-    const usedTickets = tickets.filter(ticket => ticket.status === 'used');
+    const usedTickets = tickets.filter((ticket) => ticket.status === "used");
     if (usedTickets.length > 0) {
       return "Cannot cancel booking with used tickets";
     }
 
-    const showDateTime = this._parseShowDateTime(firstTicket.showDate, firstTicket.showTime);
+    const showDateTime = this._parseShowDateTime(
+      firstTicket.showDate,
+      firstTicket.showTime
+    );
     if (showDateTime <= new Date()) {
       return "Cannot cancel booking for past shows";
     }
@@ -576,30 +635,31 @@ async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
 
   private _parseShowDateTime(showDate: Date, showTime: string): Date {
     const showDateTime = new Date(showDate);
-    const [hours, minutes] = showTime.split(':');
+    const [hours, minutes] = showTime.split(":");
     showDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
     return showDateTime;
   }
-
+//!refund calculaation 
   private _calculateRefundPercentage(showDateTime: Date): number {
     const now = new Date();
-    const hoursUntilShow = Math.ceil((showDateTime.getTime() - now.getTime()) / (1000 * 60 * 60));
-    
+    const hoursUntilShow = Math.ceil(
+      (showDateTime.getTime() - now.getTime()) / (1000 * 60 * 60)
+    );
+
     if (hoursUntilShow >= 4) return 75;
     if (hoursUntilShow >= 2) return 50;
     if (hoursUntilShow >= 0.5) return 25;
     return 0;
   }
 
-  private async _cancelAllTicketsInBooking(tickets: ITicket[]): Promise<ITicket[]> {
-    const updatePromises = tickets.map(ticket => 
-      this.ticketRepository.updateTicketById(
-        (ticket as any)._id.toString(),
-        { 
-          status: 'cancelled',
-          updatedAt: new Date()
-        }
-      )
+  private async _cancelAllTicketsInBooking(
+    tickets: ITicket[]
+  ): Promise<ITicket[]> {
+    const updatePromises = tickets.map((ticket) =>
+      this.ticketRepository.updateTicketById((ticket as any)._id.toString(), {
+        status: "cancelled",
+        updatedAt: new Date(),
+      })
     );
 
     return await Promise.all(updatePromises);
@@ -611,7 +671,11 @@ async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
     return new Date() <= showEndTime;
   }
 
-  private async _sendTicketEmail(email: string, tickets: ITicket[], bookingInfo: any): Promise<void> {
+  private async _sendTicketEmail(
+    email: string,
+    tickets: ITicket[],
+    bookingInfo: any
+  ): Promise<void> {
     try {
       await this.emailService.sendTicketsEmail(email, tickets, bookingInfo);
     } catch (emailError) {
@@ -619,7 +683,9 @@ async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
     }
   }
 
-  private _validateCreateTicketsFromRowsData(data: CreateTicketFromRowsDto): void {
+  private _validateCreateTicketsFromRowsData(
+    data: CreateTicketFromRowsDto
+  ): void {
     if (!data.bookingId || !data.selectedRows || !data.bookingInfo) {
       throw new Error("Missing required fields for ticket creation");
     }
@@ -633,7 +699,9 @@ async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
     }
   }
 
-  private _validateCreateTicketsFromBookingData(data: CreateTicketFromBookingDto): void {
+  private _validateCreateTicketsFromBookingData(
+    data: CreateTicketFromBookingDto
+  ): void {
     if (!data.bookingId || !data.bookingData) {
       throw new Error("Missing required fields for ticket creation");
     }
@@ -642,7 +710,10 @@ async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
       throw new Error("Invalid booking ID format");
     }
 
-    if (!data.bookingData.selectedSeats || !data.bookingData.selectedSeats.length) {
+    if (
+      !data.bookingData.selectedSeats ||
+      !data.bookingData.selectedSeats.length
+    ) {
       throw new Error("No seats selected for ticket creation");
     }
   }
@@ -652,7 +723,10 @@ async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
       throw new Error("Missing required fields for ticket cancellation");
     }
 
-    if (!this._isValidObjectId(data.bookingId) || !this._isValidObjectId(data.userId)) {
+    if (
+      !this._isValidObjectId(data.bookingId) ||
+      !this._isValidObjectId(data.userId)
+    ) {
       throw new Error("Invalid booking ID or user ID format");
     }
   }
@@ -682,7 +756,11 @@ async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
   }
 
   private _validateTicketId(ticketId: string): void {
-    if (!ticketId || typeof ticketId !== 'string' || ticketId.trim().length === 0) {
+    if (
+      !ticketId ||
+      typeof ticketId !== "string" ||
+      ticketId.trim().length === 0
+    ) {
       throw new Error("Valid ticket ID is required");
     }
   }
@@ -711,12 +789,16 @@ async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
     return mongoose.Types.ObjectId.isValid(id);
   }
 
-  private _handleServiceError(error: unknown, defaultMessage: string): ApiResponse<any> {
-    const errorMessage = error instanceof Error ? error.message : defaultMessage;
-    
+  private _handleServiceError(
+    error: unknown,
+    defaultMessage: string
+  ): ApiResponse<any> {
+    const errorMessage =
+      error instanceof Error ? error.message : defaultMessage;
+
     return createResponse({
       success: false,
-      message: errorMessage
+      message: errorMessage,
     });
   }
 }

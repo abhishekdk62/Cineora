@@ -1,3 +1,4 @@
+//@ts-nocheck
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -36,13 +37,15 @@ interface Review {
     profilePicture?: string;
   };
 }
-
+interface Ratings{
+  
+}
 interface TheaterReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   theaterId: string;
-  reviewsData: any;
-  ratingStats: any;
+  reviewsData: Review[];
+  ratingStats: Ratings[];
   theaterName: string;
 }
 

@@ -7,7 +7,9 @@ import Pagination from "../../others/components/utils/Pagination";
 import { getMoviesWithFilters } from "@/app/others/services/userServices/movieServices";
 import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
 import { useDebounce } from "@/app/others/Utils/debounce";
-import { MovieResponseDto } from "@/app/others/dtos";
+import { GetMoviesWithFiltersQueryDto, MovieResponseDto } from "@/app/others/dtos";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/others/redux/store";
 
 const Page = () => {
   const [movies, setMovies] = useState<MovieResponseDto[]>([]);
@@ -17,7 +19,7 @@ const Page = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [currentFilters, setCurrentFilters] = useState({});
 
-  const fetchMovies = useCallback(async (filters: any) => {
+  const fetchMovies = useCallback(async (filters: GetMoviesWithFiltersQueryDto) => {
     setLoading(true);
     try {
       const response = await getMoviesWithFilters({
@@ -58,7 +60,7 @@ const Page = () => {
     debouncedSearch(searchTerm);
   }, [debouncedSearch]);
 
-  const handleFiltersChange = useCallback((filters: any) => {
+  const handleFiltersChange = useCallback((filters: GetMoviesWithFiltersQueryDto) => {
     setCurrentFilters(filters);
     fetchMovies(filters);
   }, [fetchMovies]);
@@ -68,7 +70,7 @@ const Page = () => {
   }, [currentPage]);
 
   return (
-    <RouteGuard excludedRoles={['owner', 'admin']}>
+    <RouteGuard allowUnauthenticated={true} excludedRoles={['owner', 'admin']}>
       <div className="relative min-h-screen bg-black overflow-hidden">
         <div className="fixed inset-0 z-0 pointer-events-none">
           <Orb

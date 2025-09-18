@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ChevronDown, MapPin, Navigation } from "lucide-react";
+import { ChevronDown, LucideIcon, MapPin, Navigation } from "lucide-react";
 import { Lexend } from "next/font/google";
 
 const lexendSmall = Lexend({
@@ -14,7 +14,7 @@ export type LocationOption={
   value:"current" | "mumbai" | "delhi" | "bangalore" | "chennai" | "hyderabad" | "pune" | "kolkata" | "ahmedabad" | "kochi" | "jaipur"
   label:string;
   coordinates?:[number,number]
-  icon:any;
+  icon:LucideIcon;
 
 }
 interface LocationDropdownProps {

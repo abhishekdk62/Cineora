@@ -19,6 +19,7 @@ import { OwnerService } from "../../owner/services/owner.service";
 import { ITheaterService } from "../../theaters/interfaces/theater.service.interface";
 import { CreateWalletDto, CreditWalletDto } from "../../wallet/dtos/dto";
 import { ICouponService } from "../../coupons/interfaces/coupons.service.interface";
+import mongoose from "mongoose";
 
 export class BookingController {
   constructor(
@@ -30,8 +31,7 @@ export class BookingController {
     private readonly notificationService: INotificationService,
     private readonly notificationScheduler: NotificationScheduler,
     private readonly theaterService: ITheaterService,
-    private readonly couponService: ICouponService,
-    
+    private readonly couponService: ICouponService
   ) {}
 
   async createBooking(
@@ -42,8 +42,6 @@ export class BookingController {
       const bookingDto: CreateBookingDto = this._mapBodyToCreateBookingDto(
         req.body
       );
-
-      
       const userId = this._extractAuthenticatedUserId(req);
 
       if (!userId) {
@@ -82,19 +80,23 @@ export class BookingController {
         bookingDto,
         bookingResult.data
       );
-      console.log('create books');
-      
-          if (bookingDto.appliedCoupon && bookingDto.appliedCoupon._id) {
-      try {
-      console.log('create books 2');
-        
-        await this.couponService.incrementCouponUsage(bookingDto.appliedCoupon._id);
-        console.log(`Coupon usage incremented for: ${bookingDto.appliedCoupon.uniqueId}`);
-      } catch (error) {
-        console.error('Failed to increment coupon usage:', error);
+      console.log("create books");
+
+      if (bookingDto.appliedCoupon && bookingDto.appliedCoupon._id) {
+        try {
+          console.log("create books 2");
+
+          await this.couponService.incrementCouponUsage(
+            bookingDto.appliedCoupon._id
+          );
+          console.log(
+            `Coupon usage incremented for: ${bookingDto.appliedCoupon.uniqueId}`
+          );
+        } catch (error) {
+          console.error("Failed to increment coupon usage:", error);
+        }
       }
-    }
-         await this._distributePayment(bookingDto);
+      await this._distributePayment(bookingDto);
       return this._sendSuccessResponse(res, StatusCodes.CREATED, {
         message: BOOKING_MESSAGES.BOOKING_TICKET_SUCCESS,
         data: {
@@ -106,7 +108,6 @@ export class BookingController {
           ),
         },
       });
-
     } catch (error: any) {
       return this._sendErrorResponse(
         res,
@@ -115,6 +116,118 @@ export class BookingController {
       );
     }
   }
+async getAllBookingsByOwnerIdForPanel(
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<Response> {
+  try {
+    
+    const ownerId = req.owner.ownerId
+    
+    if (!ownerId) {
+      return this._sendErrorResponse(
+        res,
+        StatusCodes.UNAUTHORIZED,
+        "Owner authentication required"
+      );
+    }
+
+
+    const result = await this.bookingService.getAllBookingsByOwnerId(ownerId);
+    
+    if (!result.success) {
+      return this._sendErrorResponse(
+        res,
+        StatusCodes.BAD_REQUEST,
+        result.message
+      );
+    }
+
+    return this._sendSuccessResponse(res, StatusCodes.OK, {
+      message: "Bookings fetched successfully",
+      data: result.data
+    });
+  } catch (error: any) {
+    return this._sendErrorResponse(
+      res,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message || "Internal server error"
+    );
+  }
+}
+
+// Update your existing controller method
+async getTheaterBookings(
+  req: Request, 
+  res: Response
+): Promise<Response> {
+  try {
+    const { theaterId } = req.params;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const { startDate, endDate } = req.query as {
+      startDate?: string;
+      endDate?: string;
+    };
+
+    // Validate required parameters
+    if (!theaterId) {
+      return this._sendErrorResponse(
+        res,
+        StatusCodes.BAD_REQUEST,
+        "Theater ID is required"
+      );
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(theaterId)) {
+      return this._sendErrorResponse(
+        res,
+        StatusCodes.BAD_REQUEST,
+        "Invalid theater ID format"
+      );
+    }
+
+    if (page < 1 || limit < 1 || limit > 100) {
+      return this._sendErrorResponse(
+        res,
+        StatusCodes.BAD_REQUEST,
+        "Invalid pagination parameters (page >= 1, limit between 1-100)"
+      );
+    }
+
+    const result = await this.bookingService.getBookingsByTheaterId(
+      theaterId, 
+      page, 
+      limit,
+      startDate,
+      endDate
+    );
+
+    if (!result.success) {
+      return this._sendErrorResponse(
+        res,
+        StatusCodes.BAD_REQUEST,
+        result.message
+      );
+    }
+
+    return this._sendSuccessResponse(
+      res,
+      StatusCodes.OK,
+      {
+        message: BOOKING_MESSAGES.BOOKINGS_RETRIEVED_SUCCESS,
+        data: result.data
+      }
+    );
+  } catch (error: any) {
+    return this._sendErrorResponse(
+      res,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message || BOOKING_MESSAGES.INTERNAL_SERVER_ERROR
+    );
+  }
+}
+
 
   async getBookingById(req: Request, res: Response): Promise<Response> {
     try {
@@ -453,6 +566,10 @@ export class BookingController {
         showDate: new Date(bookingDto.showDate),
         showTime: bookingDto.showTime,
         email: user.data.email,
+        ...(bookingDto.appliedCoupon &&
+          bookingDto.appliedCoupon._id && {
+            couponId: bookingDto.appliedCoupon._id,
+          }),
       },
     });
 
@@ -516,162 +633,186 @@ export class BookingController {
       })
     );
   }
-private async _distributePayment(bookingDto: CreateBookingDto): Promise<void> {
-  try {
-    const theaterResult = await this.theaterService.getTheaterById(bookingDto.theaterId);
-    if (!theaterResult.success) {
-      console.error("Theater not found for payment distribution");
-      return;
+  private async _distributePayment(
+    bookingDto: CreateBookingDto
+  ): Promise<void> {
+    try {
+      
+      const theaterResult = await this.theaterService.getTheaterById(
+        bookingDto.theaterId
+      );
+      if (!theaterResult.success) {
+        console.error("Theater not found for payment distribution");
+        return;
+      }
+      const ownerId = theaterResult.data.ownerId;
+      const baseAmount = bookingDto.totalAmount;
+
+      const adminCommission = Math.round(baseAmount * 0.15);
+      const ownerShare = baseAmount - adminCommission;
+console.log('pogbaa',baseAmount);
+console.log('pogbaaa',ownerShare,adminCommission);
+
+
+      await this._creditOwnerWallet(ownerId, ownerShare, bookingDto);
+
+      await this._creditAdminWallet(adminCommission, bookingDto);
+
+      console.log(
+        `💰 Payment distributed - Owner: ₹${ownerShare}, Admin: ₹${adminCommission}`
+      );
+    } catch (error) {
+      console.error("Payment distribution error:", error);
     }
-    const ownerId = theaterResult.data.ownerId; 
-    const baseAmount = bookingDto.amount; 
-    
-    const adminCommission = Math.round(baseAmount * 0.15); 
-    const ownerShare = baseAmount - adminCommission;
-
-    await this._creditOwnerWallet(ownerId, ownerShare, bookingDto);
-    
-    await this._creditAdminWallet(adminCommission, bookingDto);
-
-    console.log(`💰 Payment distributed - Owner: ₹${ownerShare}, Admin: ₹${adminCommission}`);
-    
-  } catch (error) {
-    console.error("Payment distribution error:", error);
   }
-}
-private async _creditOwnerWallet(ownerId: string, amount: number, bookingDto: CreateBookingDto): Promise<void> {
-  try {
-    const creditData: CreditWalletDto = {
-      userId: ownerId,
-      userModel: 'Owner', 
-      amount: amount,
-    };
-
-    const result = await this.walletService.creditWallet(creditData);
-    
-    if (!result.success && result.message === "Wallet not found") {
-      console.log(`Creating wallet for owner: ${ownerId}`);
-      
-      const createWalletData: CreateWalletDto = {
+  private async _creditOwnerWallet(
+    ownerId: string,
+    amount: number,
+    bookingDto: CreateBookingDto
+  ): Promise<void> {
+    try {
+      const creditData: CreditWalletDto = {
         userId: ownerId,
-        userModel: 'Owner',
-        balance: amount,
-        status: 'active'
+        userModel: "Owner",
+        amount: amount,
       };
-      
-      const createResult = await this.walletService.createWallet(createWalletData);
-      
-      if (!createResult.success) {
-        console.error("Failed to create owner wallet:", createResult.message);
+
+      const result = await this.walletService.creditWallet(creditData);
+
+      if (!result.success && result.message === "Wallet not found") {
+        console.log(`Creating wallet for owner: ${ownerId}`);
+
+        const createWalletData: CreateWalletDto = {
+          userId: ownerId,
+          userModel: "Owner",
+          balance: amount,
+          status: "active",
+        };
+
+        const createResult = await this.walletService.createWallet(
+          createWalletData
+        );
+
+        if (!createResult.success) {
+          console.error("Failed to create owner wallet:", createResult.message);
+        } else {
+          console.log(`✅ Owner wallet created and credited with ₹${amount}`);
+
+          await this.walletTransactionService.createWalletTransaction({
+            userId: ownerId,
+            userModel: "Owner",
+            walletId: createResult.data._id,
+            type: "credit",
+            amount: amount,
+            category: "revenue",
+            description: `Initial revenue from ticket booking - ${
+              bookingDto.movieTitle || "Movie Ticket"
+            }`,
+            referenceId: bookingDto.showtimeId,
+            movieId: bookingDto.movieId,
+            theaterId: bookingDto.theaterId,
+          });
+        }
+      } else if (!result.success) {
+        console.error("Failed to credit owner wallet:", result.message);
       } else {
-        console.log(`✅ Owner wallet created and credited with ₹${amount}`);
-        
+        console.log(`✅ Owner wallet credited with ₹${amount}`);
+
         await this.walletTransactionService.createWalletTransaction({
           userId: ownerId,
           userModel: "Owner",
-          walletId: createResult.data._id,
+          walletId: result.data._id,
           type: "credit",
           amount: amount,
           category: "revenue",
-          description: `Initial revenue from ticket booking - ${bookingDto.movieTitle || "Movie Ticket"}`,
+          description: `Ticket booking revenue - ${
+            bookingDto.movieTitle || "Movie Ticket"
+          }`,
           referenceId: bookingDto.showtimeId,
           movieId: bookingDto.movieId,
           theaterId: bookingDto.theaterId,
         });
       }
-    } else if (!result.success) {
-      console.error("Failed to credit owner wallet:", result.message);
-    } else {
-      console.log(`✅ Owner wallet credited with ₹${amount}`);
-      
-      await this.walletTransactionService.createWalletTransaction({
-        userId: ownerId,
-        userModel: "Owner",
-        walletId: result.data._id,
-        type: "credit",
-        amount: amount,
-        category: "revenue",
-        description: `Ticket booking revenue - ${bookingDto.movieTitle || "Movie Ticket"}`,
-        referenceId: bookingDto.showtimeId,
-        movieId: bookingDto.movieId,
-        theaterId: bookingDto.theaterId,
-      });
+    } catch (error) {
+      console.error("Owner wallet credit error:", error);
     }
-    
-  } catch (error) {
-    console.error("Owner wallet credit error:", error);
   }
-}
 
+  private async _creditAdminWallet(
+    amount: number,
+    bookingDto: CreateBookingDto
+  ): Promise<void> {
+    try {
+      const ADMIN_USER_ID =
+        process.env.ADMIN_USER_ID || "your-default-admin-id";
 
-private async _creditAdminWallet(amount: number, bookingDto: CreateBookingDto): Promise<void> {
-  try {
-    const ADMIN_USER_ID = process.env.ADMIN_USER_ID || "your-default-admin-id";
-    
-    const creditData: CreditWalletDto = {
-      userId: ADMIN_USER_ID,
-      userModel: 'Admin', 
-      amount: amount,
-    };
-
-    const result = await this.walletService.creditWallet(creditData);
-    
-    if (!result.success && result.message === "Wallet not found") {
-      // Create wallet if it doesn't exist
-      console.log(`Creating wallet for admin: ${ADMIN_USER_ID}`);
-      
-      const createWalletData: CreateWalletDto = {
+      const creditData: CreditWalletDto = {
         userId: ADMIN_USER_ID,
-        userModel: 'Admin',
-        balance: amount,
-        status: 'active'
+        userModel: "Admin",
+        amount: amount,
       };
-      
-      const createResult = await this.walletService.createWallet(createWalletData);
-      
-      if (!createResult.success) {
-        console.error("Failed to create admin wallet:", createResult.message);
+
+      const result = await this.walletService.creditWallet(creditData);
+
+      if (!result.success && result.message === "Wallet not found") {
+        // Create wallet if it doesn't exist
+        console.log(`Creating wallet for admin: ${ADMIN_USER_ID}`);
+
+        const createWalletData: CreateWalletDto = {
+          userId: ADMIN_USER_ID,
+          userModel: "Admin",
+          balance: amount,
+          status: "active",
+        };
+
+        const createResult = await this.walletService.createWallet(
+          createWalletData
+        );
+
+        if (!createResult.success) {
+          console.error("Failed to create admin wallet:", createResult.message);
+        } else {
+          console.log(`✅ Admin wallet created and credited with ₹${amount}`);
+
+          await this.walletTransactionService.createWalletTransaction({
+            userId: ADMIN_USER_ID,
+            userModel: "Admin",
+            walletId: createResult.data._id,
+            type: "credit",
+            amount: amount,
+            category: "revenue",
+            description: `Initial platform commission - ${
+              bookingDto.movieTitle || "Movie Ticket"
+            }`,
+            referenceId: bookingDto.showtimeId,
+            movieId: bookingDto.movieId,
+            theaterId: bookingDto.theaterId,
+          });
+        }
+      } else if (!result.success) {
+        console.error("Failed to credit admin wallet:", result.message);
       } else {
-        console.log(`✅ Admin wallet created and credited with ₹${amount}`);
-        
+        console.log(`✅ Admin wallet credited with ₹${amount}`);
+
         await this.walletTransactionService.createWalletTransaction({
           userId: ADMIN_USER_ID,
           userModel: "Admin",
-          walletId: createResult.data._id,
+          walletId: result.data._id,
           type: "credit",
           amount: amount,
           category: "revenue",
-          description: `Initial platform commission - ${bookingDto.movieTitle || "Movie Ticket"}`,
+          description: `Platform commission - ${
+            bookingDto.movieTitle || "Movie Ticket"
+          }`,
           referenceId: bookingDto.showtimeId,
           movieId: bookingDto.movieId,
           theaterId: bookingDto.theaterId,
         });
       }
-    } else if (!result.success) {
-      console.error("Failed to credit admin wallet:", result.message);
-    } else {
-      console.log(`✅ Admin wallet credited with ₹${amount}`);
-      
-      await this.walletTransactionService.createWalletTransaction({
-        userId: ADMIN_USER_ID,
-        userModel: "Admin",
-        walletId: result.data._id,
-        type: "credit",
-        amount: amount,
-        category: "revenue",
-        description: `Platform commission - ${bookingDto.movieTitle || "Movie Ticket"}`,
-        referenceId: bookingDto.showtimeId,
-        movieId: bookingDto.movieId,
-        theaterId: bookingDto.theaterId,
-      });
+    } catch (error) {
+      console.error("Admin wallet credit error:", error);
     }
-    
-  } catch (error) {
-    console.error("Admin wallet credit error:", error);
   }
-}
-
-
 
   private _sendErrorResponse(
     res: Response,

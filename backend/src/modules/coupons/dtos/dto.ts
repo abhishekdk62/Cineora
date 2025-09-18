@@ -10,6 +10,7 @@ export interface CreateCouponDto {
   maxUsageCount?: number;
   createdBy: Types.ObjectId;
   theaterNames?: string[]; // For auto-generating description
+  minAmount:number;
 }
 
 export interface UpdateCouponDto {
@@ -21,6 +22,12 @@ export interface UpdateCouponDto {
   expiryDate?: Date;
   maxUsageCount?: number;
   isActive?: boolean;
+  minAmount?:number;
+
+}
+export interface ToggleStatusDto {
+ 
+  isActive: boolean;
 }
 
 export interface ValidateCouponDto {

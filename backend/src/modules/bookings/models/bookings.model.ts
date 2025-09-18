@@ -62,7 +62,6 @@ const ContactInfoSchema = new Schema<IContactInfo>({
   },
 });
 
-// Optional coupon usage schema - all fields optional
 const CouponUsageSchema = new Schema<ICouponUsage>({
   couponId: {
     type: Schema.Types.ObjectId,

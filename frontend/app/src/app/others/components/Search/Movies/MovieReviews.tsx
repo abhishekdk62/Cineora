@@ -19,7 +19,7 @@ const lexendMedium = Lexend({
   subsets: ["latin"],
 });
 
-interface Review {
+export interface Review {
   _id: string;
   bookingId: string;
   createdAt: string;

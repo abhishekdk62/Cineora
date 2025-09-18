@@ -9,6 +9,7 @@ import {
   ToggleShowtimeRequestDto,
   BulkCreateShowtimeResponseDto
 } from '../../dtos/showtime.dto';
+import { ShowTimeData } from "../../types";
 
 export const getShowTimesOwner = async (params?: GetShowTimesOwnerParamsDto): Promise<GetShowTimesOwnerResponseDto> => {
   let url = OWNER_SHOWTIME.BASE;
@@ -23,12 +24,12 @@ export const getShowTimesOwner = async (params?: GetShowTimesOwnerParamsDto): Pr
   return result.data;
 };
 
-export const createShowtimeOwner = async (data: any): Promise<BulkCreateShowtimeResponseDto> => {
+export const createShowtimeOwner = async (data: ShowTimeData): Promise<BulkCreateShowtimeResponseDto> => {
   const result = await apiClient.post(OWNER_SHOWTIME.BASE, data);
   return result.data;
 };
 
-export const editShowtimeOwner = async (data: any): Promise<EditShowtimeOwnerResponseDto> => {
+export const editShowtimeOwner = async (data: ShowTimeData): Promise<EditShowtimeOwnerResponseDto> => {
   const result = await apiClient.put(OWNER_SHOWTIME.BASE, data);
   return result.data;
 };

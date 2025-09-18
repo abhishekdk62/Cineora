@@ -3,6 +3,7 @@ import { Lexend } from "next/font/google";
 import { paymentMethods } from "./paymentMethods";
 import { setBookingData } from "@/app/others/redux/slices/bookingSlice";
 import { paymentTypes } from "./PaymentModal";
+import { LucideIcon } from "lucide-react";
 
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
 const lexendMedium = Lexend({ weight: "400", subsets: ["latin"] });
@@ -13,6 +14,14 @@ interface PaymentMethodListProps {
   onMethodSelect: (method: paymentTypes) => void;
   walletBalance: null | number;
 }
+interface PaymentMethod {
+  id: string;
+  name: string;
+  description?: string;
+  popular: boolean;
+  offers?: string;
+  icon: LucideIcon; 
+}
 
 export const PaymentMethodList: React.FC<PaymentMethodListProps> = ({
   selectedMethod,
@@ -22,7 +31,7 @@ export const PaymentMethodList: React.FC<PaymentMethodListProps> = ({
 }) => {
   return (
     <div className="space-y-3 mb-6">
-      {paymentMethods.map((method: any) => {
+      {paymentMethods.map((method: PaymentMethod) => {
         const isWallet = method.id === 'wallet';
         const hasInsufficientBalance = isWallet && walletBalance !== null && walletBalance < totalAmount;
         const canSelectWallet = isWallet ? walletBalance !== null && walletBalance >= totalAmount : true;

@@ -133,7 +133,6 @@ export class CouponService implements ICouponService {
         });
       }
 
-      // Check if unique ID is being updated and already exists
       if (data.uniqueId && data.uniqueId !== existingCoupon.uniqueId) {
         const duplicateCoupon =
           await this.couponRepository.findCouponByUniqueId(data.uniqueId);
@@ -251,6 +250,7 @@ export class CouponService implements ICouponService {
       return this._handleServiceError(error, "Failed to get all coupons");
     }
   }
+ 
 
   async getCouponsByTheaterId(
     theaterId: Types.ObjectId
@@ -449,6 +449,7 @@ async incrementCouponUsage(couponId: string): Promise<ApiResponse<void>> {
       isActive: true,
       isUsed: false,
       currentUsageCount: 0,
+      minAmount:data.minAmount
     };
   }
 

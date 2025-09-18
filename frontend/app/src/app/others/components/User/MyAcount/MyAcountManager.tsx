@@ -15,6 +15,7 @@ import {
   Settings,
   Shield,
   TicketCheck,
+  LucideIcon,
 } from "lucide-react";
 import MyAccountContent, { IUser } from "./Profile/MyAccountContent";
 import { getUserProfile } from "@/app/others/services/userServices/authServices";
@@ -149,7 +150,6 @@ const AccountPage = () => {
         return <FavoritesList />;
       case "coupons":
         return <CouponManager />;
-
       case "help":
         return <ComingSoonContent title="Help & Support" icon={HelpCircle} />;
       default:
@@ -164,17 +164,12 @@ const AccountPage = () => {
   return (
     <div className="min-h-screen bg-transparent text-white">
       <div className="flex">
-        {/* Desktop Sidebar - Collapsible on Hover */}
         <div className="hidden lg:block relative">
-          {/* Hover Trigger Area - Always Visible */}
           <div className="fixed left-0 top-0 w-2 h-full z-40 hover:w-80 group transition-all duration-300 ease-in-out">
-            {/* Collapsed Sidebar Icon Strip */}
             <div className="absolute left-0 top-0 w-16 h-full bg-black/20 backdrop-blur-md border-r border-white/10 flex flex-col items-center justify-start pt-20 group-hover:bg-transparent transition-all duration-300">
               <div className="p-3 rounded-lg bg-white/10 mb-4 group-hover:opacity-0 transition-opacity duration-200">
                 <Menu className="w-5 h-5 text-white" />
               </div>
-
-              {/* Mini Icons for Navigation Items */}
               <div className="flex flex-col space-y-3 group-hover:opacity-0 transition-opacity duration-200">
                 {sidebarItems.slice(0, 4).map((item) => {
                   const Icon = item.icon;
@@ -380,7 +375,7 @@ const ComingSoonContent = ({
   icon: Icon,
 }: {
   title: string;
-  icon: any;
+  icon: LucideIcon;
 }) => {
   return (
     <div className="max-w-4xl mx-auto">

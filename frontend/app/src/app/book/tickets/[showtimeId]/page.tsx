@@ -1,3 +1,4 @@
+
 // @ts-nocheck
 
 "use client";
@@ -16,6 +17,7 @@ import Loader from "@/app/others/components/utils/Loader";
 import { useDispatch, useSelector } from "react-redux";
 import { setBookingData } from "@/app/others/redux/slices/bookingSlice";
 import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
+import { ShowtimeResponseDto } from "@/app/others/dtos";
 
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
 const lexendMedium = Lexend({ weight: "400", subsets: ["latin"] });
@@ -144,28 +146,28 @@ export default function SeatSelectionPage() {
   const router = useRouter();
   const dispatch = useDispatch();
 
-  const user = useSelector((state: any) => state.auth.user);
-  const bookingDatasRedux = useSelector((state: any) => state.booking.bookingData);
+  const user = useSelector((state: string) => state.auth.user);
+  const bookingDatasRedux = useSelector((state: string) => state.booking.bookingData);
 
   const showtimeId = params?.showtimeId as string;
-  const [showtimeData, setShowtimeData] = useState<ShowtimeData | null>(null);
+  const [showtimeData, setShowtimeData] = useState<ShowtimeResponseDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [seatStatuses, setSeatStatuses] = useState<Record<string, SeatStatus>>({});
 
-// This should match exactly how the owner side calculates it
-const getMaxCols = (rows: Row[], aisles?: any) => {
-  if (!rows || rows.length === 0) return 0;
-  
-  // Base calculation - same as owner side
-  const baseMaxCols = Math.max(...rows.map((row: Row) => 
-    (row.offset || 0) + (row.seats?.length || 0)
-  ));
-  
-  // DON'T add aisle width here - the owner side doesn't do this
-  return baseMaxCols; // This should be 16 for your data
-};
+  // This should match exactly how the owner side calculates it
+  const getMaxCols = (rows: Row[], aisles?: string) => {
+    if (!rows || rows.length === 0) return 0;
+
+    // Base calculation - same as owner side
+    const baseMaxCols = Math.max(...rows.map((row: Row) =>
+      (row.offset || 0) + (row.seats?.length || 0)
+    ));
+
+    // DON'T add aisle width here - the owner side doesn't do this
+    return baseMaxCols; // This should be 16 for your data
+  };
 
 
   const getSeatPrice = (seatId: string): number => {
@@ -182,9 +184,15 @@ const getMaxCols = (rows: Row[], aisles?: any) => {
   const getSeatType = (seatId: string): string => {
     if (!showtimeData) return 'General';
     const rowLabel = seatId.charAt(0);
-    const row = showtimeData.screenId.layout.advancedLayout.rows.find(r => r.rowLabel === rowLabel);
-    const seat = row?.seats.find(s => s.id === seatId);
-    return seat?.type || 'General';
+    if(typeof showtimeData.screenId=='object')
+    {
+
+      const row = showtimeData.screenId.layout.advancedLayout.rows.find((r:{rowLabel:string}) => r.rowLabel === rowLabel);
+      const seat = row?.seats.find((s :{id:string})=> s.id === seatId);
+      if(seat?.type)return seat?.type ||  'General';
+    }
+    return 'General';
+
   };
 
   useEffect(() => {
@@ -197,20 +205,28 @@ const getMaxCols = (rows: Row[], aisles?: any) => {
         const data = response.data;
 
         console.log('Showtime data:', data);
-        setShowtimeData(data);
+        if (data) {
+
+          setShowtimeData(data);
+        }
 
         const statuses: Record<string, SeatStatus> = {};
-        data.screenId.layout.advancedLayout.rows.forEach((row: Row) => {
-          row.seats.forEach(seat => {
-            if (data.bookedSeats.includes(seat.id)) {
-              statuses[seat.id] = 'booked';
-            } else if (data.blockedSeats.includes(seat.id)) {
-              statuses[seat.id] = 'blocked';
-            } else {
-              statuses[seat.id] = 'available';
-            }
-          });
-        });
+        if (data) {
+          if (typeof data.screenId === 'object') {
+
+            data.screenId.layout.advancedLayout.rows.forEach((row) => {
+              row.seats.forEach(seat => {
+                if (data.bookedSeats && data?.bookedSeats.includes(seat.id)) {
+                  statuses[seat.id] = 'booked';
+                } else if (typeof data.blockedSeats == 'string' && data.blockedSeats.includes(seat.id)) {
+                  statuses[seat.id] = 'blocked';
+                } else {
+                  statuses[seat.id] = 'available';
+                }
+              });
+            });
+          }
+        }
         setSeatStatuses(statuses);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
@@ -306,120 +322,122 @@ const getMaxCols = (rows: Row[], aisles?: any) => {
       }
 
       return acc;
-    }, [] as any[]);
+    }, [] as string[]);
 
     const totalAmount = calculateTotalAmount();
     const convenienceFee = Math.round(totalAmount * 0.05);
     const taxes = Math.round(totalAmount * 0.18);
     const finalTotal = totalAmount + convenienceFee + taxes;
 
-    dispatch(setBookingData({
-      showtimeId: showtimeData._id,
-      movieId: showtimeData.movieId._id,
-      theaterId: showtimeData.theaterId._id,
-      screenId: showtimeData.screenId._id,
+dispatch(setBookingData({
+  showtimeId: showtimeData._id,
+  movieId: (showtimeData.movieId as { _id: string })._id,
+  theaterId: (showtimeData.theaterId as { _id: string })._id,
+  screenId: (showtimeData.screenId as { _id: string })._id,
 
-      userId: user?.id || user?.userId || user?._id,
+  userId: user?.id || user?.userId || user?._id,
 
-      movieTitle: showtimeData.movieId.title,
-      movieDetails: {
-        title: showtimeData.movieId.title,
-        poster: showtimeData.movieId.poster,
-        director: showtimeData.movieId.director,
-        cast: showtimeData.movieId.cast,
-        genre: showtimeData.movieId.genre,
-        duration: showtimeData.movieId.duration,
-        rating: showtimeData.movieId.rating,
-        language: showtimeData.movieId.language,
-        description: showtimeData.movieId.description,
-        releaseDate: showtimeData.movieId.releaseDate,
-        tmdbId: showtimeData.movieId.tmdbId,
-        trailer: showtimeData.movieId.trailer,
-      },
+  movieTitle: (showtimeData.movieId as { title: string }).title,
+  movieDetails: {
+    title: (showtimeData.movieId as { title: string }).title,
+    poster: (showtimeData.movieId as { poster: string }).poster,
+    director: (showtimeData.movieId as { director: string }).director,
+    cast: (showtimeData.movieId as { cast: string }).cast,
+    genre: (showtimeData.movieId as { genre: string }).genre,
+    duration: (showtimeData.movieId as { duration: string }).duration,
+    rating: (showtimeData.movieId as { rating: string }).rating,
+    language: (showtimeData.movieId as { language: string }).language,
+    description: (showtimeData.movieId as { description: string }).description,
+    releaseDate: (showtimeData.movieId as { releaseDate: string }).releaseDate,
+    tmdbId: (showtimeData.movieId as { tmdbId: string }).tmdbId,
+    trailer: (showtimeData.movieId as { trailer: string }).trailer,
+  },
 
-      theaterName: showtimeData.theaterId.name,
-      theaterDetails: {
-        name: showtimeData.theaterId.name,
-        address: showtimeData.theaterId.address,
-        city: showtimeData.theaterId.city,
-        state: showtimeData.theaterId.state,
-        pincode: showtimeData.theaterId.pincode,
-        phone: showtimeData.theaterId.phone,
-        screens: showtimeData.theaterId.screens,
-        facilities: showtimeData.theaterId.facilities,
-        location: showtimeData.theaterId.location,
-        isVerified: showtimeData.theaterId.isVerified,
-      },
+  theaterName: (showtimeData.theaterId as { name: string }).name,
+  theaterDetails: {
+    name: (showtimeData.theaterId as { name: string }).name,
+    address: (showtimeData.theaterId as { address: string }).address,
+    city: (showtimeData.theaterId as { city: string }).city,
+    state: (showtimeData.theaterId as { state: string }).state,
+    pincode: (showtimeData.theaterId as { pincode: string }).pincode,
+    phone: (showtimeData.theaterId as { phone: string }).phone,
+    screens: (showtimeData.theaterId as { screens: number }).screens,
+    facilities: (showtimeData.theaterId as { facilities: string[] }).facilities,
+    location: (showtimeData.theaterId as { location: object }).location,
+    isVerified: (showtimeData.theaterId as { isVerified: boolean }).isVerified,
+  },
 
-      screenName: showtimeData.screenId.name,
-      screenDetails: {
-        name: showtimeData.screenId.name,
-        totalSeats: showtimeData.screenId.totalSeats,
-        layout: showtimeData.screenId.layout,
-        features: showtimeData.screenId.features,
-        theaterId: showtimeData.screenId.theaterId,
-      },
+  screenName: (showtimeData.screenId as { name: string }).name,
+  screenDetails: {
+    name: (showtimeData.screenId as { name: string }).name,
+    totalSeats: (showtimeData.screenId as { totalSeats: number }).totalSeats,
+    layout: (showtimeData.screenId as { layout: object }).layout,
+    features: (showtimeData.screenId as { features: string[] }).features,
+    theaterId: (showtimeData.screenId as { theaterId: string }).theaterId,
+  },
 
-      showDate: showtimeData.showDate,
-      showTime: showtimeData.showTime,
-      showDetails: {
-        endTime: showtimeData.endTime,
-        format: showtimeData.format,
-        language: showtimeData.language,
-        availableSeats: showtimeData.availableSeats,
-        totalSeats: showtimeData.totalSeats,
-        bookedSeats: showtimeData.bookedSeats,
-        blockedSeats: showtimeData.blockedSeats,
-        isActive: showtimeData.isActive,
-        ageRestriction: showtimeData.ageRestriction,
-        ownerId: showtimeData.ownerId,
-      },
+  showDate: showtimeData.showDate as string,
+  showTime: showtimeData.showTime,
+  showDetails: {
+    endTime: showtimeData.endTime,
+    format: showtimeData.format,
+    language: showtimeData.language,
+    availableSeats: showtimeData.availableSeats,
+    totalSeats: showtimeData.totalSeats,
+    bookedSeats: showtimeData.bookedSeats,
+    blockedSeats: showtimeData.blockedSeats,
+    isActive: showtimeData.isActive,
+    ageRestriction: showtimeData.ageRestriction,
+    ownerId: showtimeData.ownerId,
+  },
 
-      allRowPricing: showtimeData.rowPricing,
+  allRowPricing: showtimeData.rowPricing,
 
-      contactInfo: {
-        email: user?.email || "",
-        phone: user?.phone || ""
-      },
+  contactInfo: {
+    email: user?.email || "",
+    phone: user?.phone || ""
+  },
 
-      selectedRows: selectedRowsGrouped,
-      selectedSeats: selectedSeats,
+  selectedRows: selectedRowsGrouped,
+  selectedSeats: selectedSeats,
 
-      seatPricing: selectedRowsData.map(seat => ({
-        rowId: seat.rowId,
-        rowLabel: seat.rowLabel,
-        seatType: seat.seatType as "VIP" | "Premium" | "Normal",
-        basePrice: seat.basePrice,
-        finalPrice: seat.finalPrice,
-        seatsSelected: [seat.seatNumber],
-        seatCount: 1,
-      })),
+  seatPricing: selectedRowsData.map(seat => ({
+    rowId: seat.rowId,
+    rowLabel: seat.rowLabel,
+    seatType: seat.seatType as "VIP" | "Premium" | "Normal",
+    basePrice: seat.basePrice,
+    finalPrice: seat.finalPrice,
+    seatsSelected: [seat.seatNumber],
+    seatCount: 1,
+  })),
 
-      priceDetails: {
-        subtotal: totalAmount,
-        convenienceFee: convenienceFee,
-        taxes: taxes,
-        discount: 0,
-        total: finalTotal,
-      },
+  priceDetails: {
+    subtotal: totalAmount,
+    convenienceFee: convenienceFee,
+    taxes: taxes,
+    discount: 0,
+    total: finalTotal,
+  },
 
-      amount: totalAmount,
-      tax: taxes,
-      totalAmount: finalTotal,
+  amount: totalAmount,
+  tax: taxes,
+  totalAmount: finalTotal,
 
-      paymentMethod: "",
-      paymentGateway: "",
-      bookingStatus: "pending",
-      paymentStatus: "pending",
-    }));
-    const backupBookingData = {
-      showtimeId: showtimeData._id,
-      selectedSeats,
-      selectedRows: selectedRowsGrouped,
-      totalAmount: finalTotal,
-      movieTitle: showtimeData.movieId.title,
-      theaterName: showtimeData.theaterId.name,
-    };
+  paymentMethod: "",
+  paymentGateway: "",
+  bookingStatus: "pending",
+  paymentStatus: "pending",
+}));
+
+const backupBookingData = {
+  showtimeId: showtimeData._id,
+  selectedSeats,
+  selectedRows: selectedRowsGrouped,
+  totalAmount: finalTotal,
+  movieTitle: (showtimeData.movieId as { title: string }).title,
+  theaterName: (showtimeData.theaterId as { name: string }).name,
+};
+
     sessionStorage.setItem("bookingData", JSON.stringify(backupBookingData));
     router.push(`/book/payment/${showtimeId}`);
   };
@@ -487,32 +505,57 @@ const getMaxCols = (rows: Row[], aisles?: any) => {
 
                 <CurvedScreen />
 
-                <SeatLayout
-                  rows={showtimeData.screenId.layout.advancedLayout.rows}
-                  seatStatuses={seatStatuses}
-                  onSeatClick={handleSeatClick}
-                  getSeatButtonStyle={getSeatButtonStyle}
-                  getSeatPrice={getSeatPrice}
-                  lexendMediumClassName={lexendMedium.className}
-                  maxCols={getMaxCols(showtimeData.screenId.layout.advancedLayout.rows)}
-                  aisles={showtimeData.screenId.layout.advancedLayout.aisles}
+             {typeof showtimeData.screenId === 'object' && (
+  <>
+    <SeatLayout
+      rows={(showtimeData.screenId as {
+        _id: string;
+        name: string;
+        layout: { advancedLayout: { rows: Row[]; aisles?: string } };
+        totalSeats: number;
+        features: string[];
+        theaterId: string;
+      }).layout.advancedLayout.rows}
+      seatStatuses={seatStatuses}
+      onSeatClick={handleSeatClick}
+      getSeatButtonStyle={getSeatButtonStyle}
+      getSeatPrice={getSeatPrice}
+      lexendMediumClassName={lexendMedium.className}
+      maxCols={getMaxCols((showtimeData.screenId as {
+        _id: string;
+        name: string;
+        layout: { advancedLayout: { rows: Row[] } };
+        totalSeats: number;
+        features: string[];
+        theaterId: string;
+      }).layout.advancedLayout.rows)}
+      aisles={(showtimeData.screenId as {
+        _id: string;
+        name: string;
+        layout: { advancedLayout: { rows: Row[]; aisles?: string } };
+        totalSeats: number;
+        features: string[];
+        theaterId: string;
+      }).layout.advancedLayout.aisles}
+    />
 
-                />
+    <Legend lexendSmallClassName={lexendSmall.className} />
 
-                <Legend lexendSmallClassName={lexendSmall.className} />
+    {selectedSeats.length > 0 && (
+      <SelectionSummary
+        selectedSeats={selectedSeats}
+        totalAmount={calculateTotalAmount()}
+        lexendMediumClassName={lexendMedium.className}
+        lexendSmallClassName={lexendSmall.className}
+        lexendBoldClassName={lexendBold.className}
+        onProceed={handleProceedToPayment}
+        getSeatPrice={getSeatPrice}
+        getSeatType={getSeatType}
+      />
+    )}
+  </>
+)}
 
-                {selectedSeats.length > 0 && (
-                  <SelectionSummary
-                    selectedSeats={selectedSeats}
-                    totalAmount={calculateTotalAmount()}
-                    lexendMediumClassName={lexendMedium.className}
-                    lexendSmallClassName={lexendSmall.className}
-                    lexendBoldClassName={lexendBold.className}
-                    onProceed={handleProceedToPayment}
-                    getSeatPrice={getSeatPrice}
-                    getSeatType={getSeatType}
-                  />
-                )}
               </div>
             </div>
           )}

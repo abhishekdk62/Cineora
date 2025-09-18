@@ -79,7 +79,7 @@ const ScreensList: React.FC<ScreensListProps> = ({
 
       fetchScreens();
       toast.success(message);
-    } catch (error: any) {
+    } catch (error: string) {
       if (error.response.data.includes("Please enable the theater first")) {
         toast.error(error.response.data);
         return;
@@ -103,7 +103,7 @@ const ScreensList: React.FC<ScreensListProps> = ({
 
       toast.success("Screen deleted successfully");
       fetchScreens();
-    } catch (error: any) {
+    } catch (error: string) {
       console.error("Error deleting screen:", error);
       toast.error(error.response?.data?.message || "Failed to delete screen");
     }

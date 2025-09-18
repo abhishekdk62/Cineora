@@ -1,15 +1,15 @@
 "use client";
 import React from "react";
 import { useRouter } from "next/navigation";
+import { lexendSmall } from "../../Utils/fonts";
 
 interface NavLinksProps {
-  lexendSmall: any;
   onAccountClick: () => void;
   isMobile?: boolean;
   onMobileClose?: () => void;
 }
 
-export default function NavLinks({ lexendSmall, onAccountClick, isMobile, onMobileClose }: NavLinksProps) {
+export default function NavLinks({  onAccountClick, isMobile, onMobileClose }: NavLinksProps) {
   const router = useRouter();
 
   const handleClick = (path?: string) => {

@@ -1,18 +1,18 @@
-import { 
-  CreateBookingDto, 
-  UpdateBookingDto, 
-  BookingRepositoryFindResult 
+import mongoose from "mongoose";
+import {
+  CreateBookingDto,
+  UpdateBookingDto,
+  BookingRepositoryFindResult,
 } from "../dtos/dto";
 import { IBooking } from "../interfaces/bookings.model.interface";
-import { 
-  IBookingReadRepository, 
-  IBookingWriteRepository, 
-  IBookingRepository 
+import {
+  IBookingReadRepository,
+  IBookingWriteRepository,
+  IBookingRepository,
 } from "../interfaces/bookings.repository.interface";
 import Booking from "../models/bookings.model";
 
 export class BookingRepository implements IBookingRepository {
-  
   async findBookingById(bookingId: string): Promise<IBooking | null> {
     try {
       return await Booking.findById(bookingId)
@@ -23,6 +23,85 @@ export class BookingRepository implements IBookingRepository {
         .exec();
     } catch (error) {
       throw new Error(`Failed to find booking by id: ${error.message}`);
+    }
+  }
+  async getBookingsByTheaterId(
+    theaterId: string,
+    page: number = 1,
+    limit: number = 10,
+    startDate?: string,
+    endDate?: string
+  ): Promise<{ bookings: IBooking[]; totalBookings: number }> {
+    try {
+      const skip = (page - 1) * limit;
+
+      const dateFilter: any = {};
+      if (startDate && endDate) {
+        dateFilter.bookedAt = {
+          $gte: new Date(startDate + "T00:00:00.000Z"), // Start of day
+          $lte: new Date(endDate + "T23:59:59.999Z"), // End of day
+        };
+      } else if (startDate) {
+        dateFilter.bookedAt = {
+          $gte: new Date(startDate + "T00:00:00.000Z"),
+        };
+      } else if (endDate) {
+        dateFilter.bookedAt = {
+          $lte: new Date(endDate + "T23:59:59.999Z"),
+        };
+      }
+
+      const filter = { theaterId, ...dateFilter };
+
+      const [bookings, totalBookings] = await Promise.all([
+        Booking.find(filter)
+          .populate("movieId", "title genre duration language poster")
+          .populate("userId", "firstName lastName email phone")
+          .populate("screenId", "name screenType totalSeats")
+          .populate("showtimeId", "showDate showTime")
+          .sort({ bookedAt: -1 }) // Most recent bookings first
+          .skip(skip)
+          .limit(limit)
+          .exec(),
+        Booking.countDocuments(filter),
+      ]);
+
+      return { bookings, totalBookings };
+    } catch (error) {
+      throw new Error(
+        `Failed to fetch bookings by theater id: ${error.message}`
+      );
+    }
+  }
+// BookingRepository - Add this method
+async findAllBookingsByOwnerId(ownerId: string): Promise<IBooking[]> {
+  try {
+    return await Booking.find({
+      paymentStatus: "completed",
+      bookingStatus: "confirmed"
+    })
+    .populate({
+      path: "theaterId",
+      match: { ownerId: new mongoose.Types.ObjectId(ownerId) },
+      select: "name ownerId"
+    })
+    .populate("screenId", "name")
+    .populate("movieId", "title")
+    .populate("userId", "firstName lastName email")
+    .exec()
+    .then(bookings => bookings.filter(booking => booking.theaterId !== null));
+  } catch (error) {
+    throw new Error(`Failed to find bookings by owner id: ${error.message}`);
+  }
+}
+
+  async getBookingsCountByTheaterId(theaterId: string): Promise<number> {
+    try {
+      return await Booking.countDocuments({ theaterId });
+    } catch (error) {
+      throw new Error(
+        `Failed to count bookings by theater id: ${error.message}`
+      );
     }
   }
 
@@ -68,7 +147,7 @@ export class BookingRepository implements IBookingRepository {
           .skip(skip)
           .limit(limit)
           .exec(),
-        Booking.countDocuments({ userId }).exec()
+        Booking.countDocuments({ userId }).exec(),
       ]);
 
       return {
@@ -88,7 +167,9 @@ export class BookingRepository implements IBookingRepository {
         .populate("userId", "firstName lastName email phone")
         .exec();
     } catch (error) {
-      throw new Error(`Failed to find bookings by showtime id: ${error.message}`);
+      throw new Error(
+        `Failed to find bookings by showtime id: ${error.message}`
+      );
     }
   }
 
@@ -144,55 +225,59 @@ export class BookingRepository implements IBookingRepository {
       throw new Error(`Failed to find booking by payment id: ${error.message}`);
     }
   }
-async createBooking(bookingData: any): Promise<IBooking | null> {
-  try {
-    console.log("Raw booking data:", bookingData);
-    
-    let transformedBookingData: any = {
-      bookingId: bookingData.bookingId,
-      userId: bookingData.userId,
-      movieId: bookingData.movieId,
-      theaterId: bookingData.theaterId,
-      screenId: bookingData.screenId,
-      showtimeId: bookingData.showtimeId,
-      selectedSeats: bookingData.selectedSeats,
-      selectedSeatIds: bookingData.selectedSeatIds,
-      seatPricing: bookingData.seatPricing,
-      priceDetails: bookingData.priceDetails,
-      paymentStatus: bookingData.paymentStatus,
-      paymentMethod: bookingData.paymentMethod,
-      bookingStatus: bookingData.bookingStatus,
-      showDate: bookingData.showDate,
-      showTime: bookingData.showTime,
-      contactInfo: bookingData.contactInfo,
-    };
-    
-    if (bookingData.appliedCoupon) {
-      transformedBookingData.couponUsed = {
-        couponId: bookingData.appliedCoupon._id,
-        couponCode: bookingData.appliedCoupon.uniqueId,
-        couponName: bookingData.appliedCoupon.name,
-        discountPercentage: bookingData.appliedCoupon.discountPercentage,
-        discountAmount: bookingData.discountApplied,
-        appliedAt: new Date()
+  async createBooking(bookingData: any): Promise<IBooking | null> {
+    try {
+      console.log("Raw booking data:", bookingData);
+
+      let transformedBookingData: any = {
+        bookingId: bookingData.bookingId,
+        userId: bookingData.userId,
+        movieId: bookingData.movieId,
+        theaterId: bookingData.theaterId,
+        screenId: bookingData.screenId,
+        showtimeId: bookingData.showtimeId,
+        selectedSeats: bookingData.selectedSeats,
+        selectedSeatIds: bookingData.selectedSeatIds,
+        seatPricing: bookingData.seatPricing,
+        priceDetails: bookingData.priceDetails,
+        paymentStatus: bookingData.paymentStatus,
+        paymentMethod: bookingData.paymentMethod,
+        bookingStatus: bookingData.bookingStatus,
+        showDate: bookingData.showDate,
+        showTime: bookingData.showTime,
+        contactInfo: bookingData.contactInfo,
       };
+
+      if (bookingData.appliedCoupon) {
+        transformedBookingData.couponUsed = {
+          couponId: bookingData.appliedCoupon._id,
+          couponCode: bookingData.appliedCoupon.uniqueId,
+          couponName: bookingData.appliedCoupon.name,
+          discountPercentage: bookingData.appliedCoupon.discountPercentage,
+          discountAmount: bookingData.discountApplied,
+          appliedAt: new Date(),
+        };
+      }
+
+      const booking = new Booking(transformedBookingData);
+      return await booking.save();
+    } catch (error) {
+      throw new Error(
+        `Failed to create booking: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     }
-    
-    const booking = new Booking(transformedBookingData);
-    return await booking.save();
-  } catch (error) {
-    throw new Error(`Failed to create booking: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
-}
-
-
 
   async updateBookingById(
     bookingId: string,
     updateData: UpdateBookingDto
   ): Promise<IBooking | null> {
     try {
-      return await Booking.findByIdAndUpdate(bookingId, updateData, { new: true }).exec();
+      return await Booking.findByIdAndUpdate(bookingId, updateData, {
+        new: true,
+      }).exec();
     } catch (error) {
       throw new Error(`Failed to update booking by id: ${error.message}`);
     }
@@ -203,9 +288,13 @@ async createBooking(bookingData: any): Promise<IBooking | null> {
     updateData: UpdateBookingDto
   ): Promise<IBooking | null> {
     try {
-      return await Booking.findOneAndUpdate({ bookingId }, updateData, { new: true }).exec();
+      return await Booking.findOneAndUpdate({ bookingId }, updateData, {
+        new: true,
+      }).exec();
     } catch (error) {
-      throw new Error(`Failed to update booking by booking id: ${error.message}`);
+      throw new Error(
+        `Failed to update booking by booking id: ${error.message}`
+      );
     }
   }
 
@@ -234,7 +323,9 @@ async createBooking(bookingData: any): Promise<IBooking | null> {
       if (paymentId) {
         updateData.paymentId = paymentId;
       }
-      return await Booking.findOneAndUpdate({ _id: bookingId }, updateData, { new: true }).exec();
+      return await Booking.findOneAndUpdate({ _id: bookingId }, updateData, {
+        new: true,
+      }).exec();
     } catch (error) {
       throw new Error(`Failed to update payment status: ${error.message}`);
     }

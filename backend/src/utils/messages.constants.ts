@@ -18,6 +18,10 @@ export const AUTH_MESSAGES = {
   EMAIL_OTP_PASSWORD_REQUIRED: "Email,otp and newpassword required",
 };
 export const BOOKING_MESSAGES = {
+    BOOKINGS_RETRIEVED_SUCCESS: "Theater bookings retrieved successfully",
+  THEATER_ID_REQUIRED: "Theater ID is required",
+  INVALID_THEATER_ID: "Invalid theater ID format"
+,
   AUTH_REQUIRED: "Authentication required",
   WALLET_NOT_FOUND: "Wallet not found",
   INSUFFICIENT_BALANCE: "Insufficient wallet balance",

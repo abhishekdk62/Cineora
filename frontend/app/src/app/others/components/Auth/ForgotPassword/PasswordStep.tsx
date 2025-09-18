@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { Eye, EyeClosed } from "lucide-react";
+import { lexendSmall } from "@/app/others/Utils/fonts";
 
 export default function PasswordStep({
   password,
@@ -14,7 +15,6 @@ export default function PasswordStep({
   loading,
   error,
   onSubmit,
-  lexendSmall,
 }: {
   password: string;
   setPassword: React.Dispatch<React.SetStateAction<string>>;
@@ -27,7 +27,6 @@ export default function PasswordStep({
   loading: boolean;
   error: string;
   onSubmit: (e: React.FormEvent) => void;
-  lexendSmall: any;
 }) {
   return (
     <div>

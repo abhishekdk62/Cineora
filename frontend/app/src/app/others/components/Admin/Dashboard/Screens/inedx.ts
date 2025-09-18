@@ -1,3 +1,4 @@
+
 export interface IScreen {
   _id: string;
   theaterId:
@@ -25,7 +26,7 @@ export interface IScreen {
         offset?: number;    
       }>;
     };
-    seatMap?: any;          
+    seatMap?: string;          
   };
   screenType?: string;
   features: string[];

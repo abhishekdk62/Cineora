@@ -2,8 +2,8 @@ import USER_COUPON from "../../constants/userConstants/couponConstants";
 import apiClient from "../../Utils/apiClient";
 import {
   GetCouponsByTheaterResponseDto,
-  GetCouponsResponseDto,
-  GetCouponsQueryDto
+  GetCouponsQueryDto,
+  CouponResponseDto
 } from '../../dtos/coupon.dto';
 
 export const getCouponsByTheaterId = async (theaterId: string): Promise<GetCouponsByTheaterResponseDto> => {
@@ -14,6 +14,18 @@ export const checkCoupon = async (theaterId:string,couponCode:string): Promise<G
   const data = await apiClient.post(`${USER_COUPON.CHECK}`,{couponCode,theaterId});
   return data.data;
 };
+export interface GetCouponsResponseDto {
+  data: {
+    data: CouponResponseDto[];        // Your actual coupon array
+    totalCount: number;
+    totalPages: number;
+    currentPage: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+  success: boolean;
+  message?: string;
+}
 
 export const getAllCoupons = async (query?: GetCouponsQueryDto): Promise<GetCouponsResponseDto> => {
   const params = new URLSearchParams();

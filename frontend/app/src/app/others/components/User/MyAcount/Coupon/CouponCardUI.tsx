@@ -8,7 +8,7 @@ interface CouponCardUIProps {
   description?: string;
   discountPercentage: number;
   uniqueId: string;
-  expiryDate?: string;
+  expiryDate?: string|Date;
   maxUsageCount: number;
   currentUsageCount?: number; // Add this prop
   isActive: boolean;

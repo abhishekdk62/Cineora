@@ -13,13 +13,13 @@ import ScreenAndShowManager from "@/app/others/components/Admin/Dashboard/Screen
 import BookingsManager from "@/app/others/components/Admin/Dashboard/Bookings/BookingsManager";
 import AnalyticsManager from "@/app/others/components/Admin/Dashboard/Analytics/AnalyticsManager";
 import AdminWalletManager from "@/app/others/components/Admin/Dashboard/Wallet/AdminWalletManager";
+import CouponManagement from "@/app/others/components/Admin/Dashboard/Coupon/CouponManagement";
 
 const lexend = Lexend({
   weight: "500",
   subsets: ["latin"],
 });
 
-// Font variables for styling
 const lexendMedium = { fontFamily: 'Lexend', fontWeight: '500' };
 const lexendSmall = { fontFamily: 'Lexend', fontWeight: '400' };
 
@@ -43,6 +43,8 @@ const AdminDashboard = () => {
         return <AdminWalletManager />
       case 'analytics':
         return <AnalyticsManager />
+      case 'coupon':
+        return <CouponManagement lexend={lexend}  />
       default:
         return (
           <div className="flex items-center justify-center h-96">

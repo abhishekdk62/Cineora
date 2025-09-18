@@ -16,6 +16,7 @@ import {
   Calendar,
   Users,
 } from "lucide-react"
+import { MovieResponseDto } from "../../dtos"
 
 const lexend = Lexend({
   weight: "500",
@@ -47,10 +48,10 @@ interface Movie {
 }
 
 interface MoviesListProps {
-  movies: Movie[]
-  onEdit: (movie: Movie) => void
-  onDelete: (movieId: string) => void
-  onToggleStatus: (movieId: string) => void
+  movies: MovieResponseDto[]
+  onEdit: (movie: MovieResponseDto) => void
+  onDelete: (movie: MovieResponseDto) => void
+  onToggleStatus: (movie: MovieResponseDto) => void
   title: string
   emptyMessage: string
 }
@@ -70,8 +71,7 @@ const MoviesList: React.FC<MoviesListProps> = ({
 
   const genres = ["all", ...Array.from(new Set(movies?.flatMap(movie => movie.genre)))]
 
-  const filteredMovies = movies?
-    .filter((movie) => {
+  const filteredMovies = movies?.filter((movie) => {
       const matchesSearch =
         movie.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         movie.genre.some(g => g.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -123,7 +123,7 @@ const MoviesList: React.FC<MoviesListProps> = ({
     return colors[genre as keyof typeof colors] || "bg-gray-500/20 text-gray-200 border-gray-400/50"
   }
 
-  const renderMovieCard = (movie: Movie) => (
+  const renderMovieCard = (movie: MovieResponseDto) => (
     <div
       key={movie._id}
       className="group bg-[#1a1a1a] border border-gray-600 rounded-lg hover:border-[#e78f03] transition-all duration-300 hover:shadow-2xl hover:shadow-[#e78f03]/20 backdrop-blur-sm"
@@ -144,7 +144,7 @@ const MoviesList: React.FC<MoviesListProps> = ({
           <div className="flex gap-1">
             <button
               className="h-8 w-8 p-0 bg-blue-500 hover:bg-blue-600 text-white rounded-md flex items-center justify-center transition-colors"
-              onClick={() => onToggleStatus(movie._id)}
+              onClick={() => onToggleStatus(movie)}
               title={movie.isActive ? "Deactivate" : "Activate"}
             >
               {movie.isActive ? <Pause size={14} /> : <Play size={14} />}
@@ -157,7 +157,7 @@ const MoviesList: React.FC<MoviesListProps> = ({
             </button>
             <button
               className="h-8 w-8 p-0 bg-red-500 hover:bg-red-600 text-white rounded-md flex items-center justify-center transition-colors"
-              onClick={() => onDelete(movie._id)}
+              onClick={() => onDelete(movie)}
             >
               <Trash2 size={14} />
             </button>
@@ -198,7 +198,7 @@ const MoviesList: React.FC<MoviesListProps> = ({
     </div>
   )
 
-  const renderMovieList = (movie: Movie) => (
+  const renderMovieList = (movie: MovieResponseDto) => (
     <div
       key={movie._id}
       className="bg-[#1a1a1a] border border-gray-600 rounded-lg hover:border-[#e78f03] transition-all duration-300"
@@ -245,7 +245,7 @@ const MoviesList: React.FC<MoviesListProps> = ({
           <div className="flex gap-2">
             <button
               className="px-3 py-2 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors"
-              onClick={() => onToggleStatus(movie._id)}
+              onClick={() => onToggleStatus(movie)}
               title={movie.isActive ? "Deactivate" : "Activate"}
             >
               {movie.isActive ? <Pause size={14} /> : <Play size={14} />}
@@ -258,7 +258,7 @@ const MoviesList: React.FC<MoviesListProps> = ({
             </button>
             <button
               className="px-3 py-2 text-sm bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors"
-              onClick={() => onDelete(movie._id)}
+              onClick={() => onDelete(movie)}
             >
               <Trash2 size={14} />
             </button>

@@ -9,6 +9,7 @@ export interface SeatBlockDto {
 }
 
 export interface RowPricingDto {
+  _id?: string;
   rowLabel: string;
   seatType: "VIP" | "Premium" | "Normal";
   basePrice: number;
@@ -66,14 +67,68 @@ export interface GetShowTimesOwnerParamsDto {
   page?: number;
   limit?: number;
 }
+interface Seat {
+  id: string;
+  type: string;
+  col: number;
+  price?: number;
+}
 
 export interface ShowtimeResponseDto {
   _id: string;
   ownerId: string;
-  movieId: string;
-  theaterId: string;
-  screenId: string;
-  showDate: Date;
+  movieId:
+    | string
+    | {
+        title: string;
+        poster: string;
+        rating: string;
+
+        name: string;
+        _id: string;
+        trailer: string;
+        tmdbId: string;
+        releaseDate: string;
+        description: string;
+        language: string;
+        duration: string;
+        genre: string;
+        cast: string;
+        director: string;
+      };
+
+  theaterId:
+    | string
+    | {
+        name: string;
+        _id: string;
+        address:string;
+        city:string;
+        state:string;
+        pincode:string;
+        phone:string;
+        screens:number;
+        facilities:string[];
+        location:object;
+        isVerified:boolean;
+        totalSeats:number;
+        features:string[];
+        theaterId:string;
+    
+      };
+  screenId:
+    | string
+    | {
+        _id: string;
+        name: string;
+        layout: { advancedLayout: { rows: Row[] } };
+                totalSeats: number;
+        features: string[];
+        theaterId: string;
+
+      };
+
+  showDate: Date|string;
   showTime: string;
   endTime: string;
   format: "2D" | "3D" | "IMAX" | "4DX" | "Dolby Atmos";
@@ -83,11 +138,17 @@ export interface ShowtimeResponseDto {
   ageRestriction: number | null;
   availableSeats: number;
   bookedSeats?: string[];
-  blockedSeats: SeatBlockDto[];
+  blockedSeats: SeatBlockDto[] | string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
+interface Row {
+  rowLabel: string;
+  seats: Seat[];
+  offset?: number;
+}
+
 export interface BulkCreateShowtimeResponseDto
   extends ApiResponse<{
     created: number;

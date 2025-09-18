@@ -13,23 +13,35 @@ import { addReview } from '@/app/others/services/userServices/reviewServices';
 
 const lexendBold = { className: "font-bold" };
 
-interface TicketData {
+export interface TicketData {
     _id: string;
     ticketId: string;
     bookingId: string;
     userId: string;
-    movieId: {
+    movieId: string;
+    movie: {
         _id: string;
         title: string;
-        poster: string;
+        poster?: string;
+        tmdbId?: string;
+        genre?: string[];
+        releaseDate?: string;
     };
-    theaterId: {
+    theaterId: string;
+    theater: {
         _id: string;
         name: string;
+        address?: string;
+        city?: string;
+        ownerId?: string;
     };
-    screenId: {
+    screenId: string;
+    screen: {
         _id: string;
+        theaterId: string;
         name: string;
+        totalSeats: number;
+        layout?: any;
     };
     seatNumber: string;
     seatRow: string;
@@ -37,33 +49,44 @@ interface TicketData {
     price: number;
     showDate: string;
     showTime: string;
-    showtimeId: {
-        showTime: string;
-        endTime: string;
-        _id: string;
-    };
+    showtimeId: string;
     status: 'confirmed' | 'cancelled' | 'used' | 'expired';
     qrCode: string;
     isUsed: boolean;
+    coupon?: {
+        _id: string;
+        name: string;
+        uniqueId: string;
+        theaterIds: string[];
+        discountPercentage: number;
+    };
+    couponId?: string;
     createdAt: string;
     updatedAt: string;
+    __v: number;
 }
 
-interface TicketsResponse {
+interface ApiResponse {
     success: boolean;
     message: string;
-    data: {
-        tickets: TicketData[];
-        total: number;
-        page: number;
-        totalPages: number;
+    data: TicketData[];
+    meta: {
+        pagination: {
+            currentPage: number;
+            totalPages: number;
+            total: number;
+            limit: number;
+            hasNextPage: boolean;
+            hasPrevPage: boolean;
+        };
     };
+    timestamp: string;
 }
 
 type TabType = 'upcoming' | 'history';
 
 const TicketsList: React.FC = () => {
-    const [ticketsData, setTicketsData] = useState<TicketsResponse | null>(null);
+    const [allTickets, setAllTickets] = useState<TicketData[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -72,14 +95,14 @@ const TicketsList: React.FC = () => {
     const [activeTab, setActiveTab] = useState<TabType>('upcoming');
     const [showReviewModal, setShowReviewModal] = useState(false);
     const [rating, setRating] = useState(0);
-    const [selectedBookingForReview, setSelectedBookingForReview] = useState('');
+    const [selectedBookingForReview, setSelectedBookingForReview] = useState<any>(null);
     const [reviewText, setReviewText] = useState('');
     const [submittingReview, setSubmittingReview] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [reviewType, setReviewType] = useState<'movie' | 'theater' | 'experience'>('movie');
     const [limit] = useState(10);
     const [hasMore, setHasMore] = useState(true);
-    const [allTickets, setAllTickets] = useState<TicketData[]>([]);
+    const [totalCount, setTotalCount] = useState(0);
 
     const getTickets = async (pageNumber: number = 1, filterType?: string, append: boolean = false) => {
         try {
@@ -96,7 +119,7 @@ const TicketsList: React.FC = () => {
                 typeParam = activeTab === 'upcoming' ? 'upcoming' : 'past';
             }
 
-            const response = await getTicketsApi(pageNumber, limit, typeParam);
+            const response: ApiResponse = await getTicketsApi(pageNumber, limit, typeParam);
             console.log(response);
 
             if (response.success) {
@@ -106,9 +129,8 @@ const TicketsList: React.FC = () => {
                     setAllTickets(response.data);
                 }
 
-                setTicketsData(response);
-                setHasMore(pageNumber < response.meta
-                    .totalPages);
+                setTotalCount(response.meta.pagination.total);
+                setHasMore(response.meta.pagination.hasNextPage);
                 setError(null);
             } else {
                 setError(response.message || 'Failed to load tickets');
@@ -135,14 +157,11 @@ const TicketsList: React.FC = () => {
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
             const windowHeight = window.innerHeight;
             const documentHeight = document.documentElement.scrollHeight;
-
             if (scrollTop + windowHeight >= documentHeight - 300) {
                 loadMoreTickets();
             }
         };
-
         window.addEventListener('scroll', handleScroll, { passive: true });
-
         return () => {
             window.removeEventListener('scroll', handleScroll);
         };
@@ -187,12 +206,12 @@ const TicketsList: React.FC = () => {
 
     const getTabCounts = () => {
         return {
-            upcoming: activeTab === 'upcoming' ? ticketsData?.data?.total || 0 : 0,
-            history: activeTab === 'history' ? ticketsData?.data?.total || 0 : 0
+            upcoming: activeTab === 'upcoming' ? totalCount : 0,
+            history: activeTab === 'history' ? totalCount : 0
         };
     };
 
-    const handleViewDetails = (ticket: any) => {
+    const handleViewDetails = (ticket: TicketData) => {
         setSelectedTicket(ticket);
         setShowModal(true);
     };
@@ -213,10 +232,10 @@ const TicketsList: React.FC = () => {
             return;
         }
 
-        const movieId = selectedBookingForReview.movie?._id || selectedBookingForReview.movieId?._id || selectedBookingForReview.movieId;
-        const theaterId = selectedBookingForReview.theater?._id || selectedBookingForReview.theaterId?._id || selectedBookingForReview.theaterId;
+        const movieId = selectedBookingForReview.movie?._id || selectedBookingForReview.movieId;
+        const theaterId = selectedBookingForReview.theater?._id || selectedBookingForReview.theaterId;
 
-        let reviewData = {
+        const reviewData = {
             movieId: movieId,
             theaterId: theaterId,
             bookingId: selectedBookingForReview.bookingId,
@@ -224,6 +243,7 @@ const TicketsList: React.FC = () => {
             reviewText: reviewText,
             reviewType: reviewType,
         };
+
         try {
             setSubmittingReview(true);
             const data = await addReview(reviewData);
@@ -234,19 +254,16 @@ const TicketsList: React.FC = () => {
             setCurrentPage(1);
             setAllTickets([]);
             getTickets(1);
-        } catch (error) {
-            if (error.response.data.message.includes('already reviewed')) {
-                toast('You have already reviewed this show!',
-                    {
-                        style: {
-                            borderRadius: '10px',
-                            background: '#333',
-                            color: '#fff',
-                        },
-                    }
-                );
-
-                return
+        } catch (error: any) {
+            if (error?.response?.data?.message?.includes('already reviewed')) {
+                toast('You have already reviewed this show!', {
+                    style: {
+                        borderRadius: '10px',
+                        background: '#333',
+                        color: '#fff',
+                    },
+                });
+                return;
             }
             console.error('Failed to submit review:', error);
             toast.error('Failed to submit review. Please try again.');
@@ -336,9 +353,9 @@ const TicketsList: React.FC = () => {
                     <EmptyState activeTab={activeTab} />
                 )}
 
-                {ticketsData?.data && filteredBookings.length > 0 && (
+                {totalCount > 0 && filteredBookings.length > 0 && (
                     <div className="text-center text-gray-400 text-sm">
-                        Showing {filteredBookings.length} of {ticketsData.data.total} bookings
+                        Showing {filteredBookings.length} of {totalCount} bookings
                     </div>
                 )}
 

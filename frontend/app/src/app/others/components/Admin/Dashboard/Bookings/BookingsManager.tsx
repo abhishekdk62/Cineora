@@ -26,6 +26,7 @@ const lexendSmall = Lexend({
 });
 
 interface Owner {
+  id?:string;
   _id: string;
   name: string;
   email: string;
@@ -34,6 +35,7 @@ interface Owner {
 }
 
 interface Theater {
+  id?:string;
   _id: string;
   name: string;
   city: string;

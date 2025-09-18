@@ -25,7 +25,7 @@ const WalletBalance: React.FC<WalletBalanceProps> = ({ balance, onRefresh, onSho
 
   const handlePayoutSuccess = () => {
     setShowPayoutModal(false);
-    onRefresh(); // Refresh wallet data after successful payout
+    onRefresh(); 
   };
 
   return (

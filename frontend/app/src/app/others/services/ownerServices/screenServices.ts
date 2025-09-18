@@ -10,7 +10,7 @@ import {
   GetScreenResponseDto
 } from '../../dtos/screen.dto';
 
-export const createScreen = async (data: FormData & any): Promise<CreateScreenResponseDto> => {
+export const createScreen = async (data: FormData ): Promise<CreateScreenResponseDto> => {
   const result = await apiClient.post(OWNER_SCREENS.BASE, data);
   return result.data;
 };
@@ -35,7 +35,7 @@ export const deleteScreenOwner = async (id: string): Promise<DeleteScreenRespons
   return result.data;
 };
 
-export const editScreenOwner = async (id: string, data: any): Promise<GetScreenResponseDto> => {
+export const editScreenOwner = async (id: string, data: FormData): Promise<GetScreenResponseDto> => {
   const result = await apiClient.put(OWNER_SCREENS.BY_ID(id), data);
   return result.data;
 };

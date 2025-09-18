@@ -27,6 +27,7 @@ import { ITheater, TheaterFilters } from "@/app/others/types";
 import { getTheatersByOwnerIdAdmin } from "@/app/others/services/adminServices/theaterServices";
 import TheaterDetailsModal from "./TheaterModal";
 import { useDebounce } from "@/app/others/Utils/debounce";
+import { AxiosError } from "axios";
 
 const lexend = Lexend({
   weight: "500",
@@ -154,12 +155,16 @@ const Theaters: React.FC<TheatersProps> = ({
         setTotalPages(1);
         setTotalItems(theaters.length);
       }
-    } catch (error: any) {
-      console.error("Error fetching theaters:", error);
-      toast.error(error.response?.data?.message || "Failed to load theaters");
-      setTheaters([]);
-      setTotalPages(1);
-      setTotalItems(0);
+    } catch (error: unknown) {
+      if(error instanceof AxiosError)
+      {
+
+        console.error("Error fetching theaters:", error);
+        toast.error(error.response?.data?.message || "Failed to load theaters");
+        setTheaters([]);
+        setTotalPages(1);
+        setTotalItems(0);
+      }
     } finally {
       setIsLoading(false);
     }

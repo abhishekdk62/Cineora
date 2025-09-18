@@ -2,26 +2,47 @@
 import React from 'react';
 import { ChevronDown, ChevronUp, MoreVertical } from 'lucide-react';
 
-interface TableColumn {
-  key: string;
+type RowData = Record<string, unknown>;
+
+interface TableColumn<T extends RowData> {
+  key: keyof T;
   label: string;
   sortable?: boolean;
-  render?: (value: any, row: any) => React.ReactNode;
+  render?: (value: unknown, row: T) => React.ReactNode; // Changed from T[keyof T] to unknown
   align?: 'left' | 'center' | 'right';
 }
 
-interface AnalyticsTableProps {
+interface AnalyticsTableProps<T extends RowData> {
   title: string;
-  columns: TableColumn[];
-  data: any[];
+  columns: TableColumn<T>[];
+  data: T[];
   loading?: boolean;
-  sortBy?: string;
+  sortBy?: keyof T;
   sortOrder?: 'asc' | 'desc';
-  onSort?: (column: string) => void;
+  onSort?: (column: keyof T) => void;
   className?: string;
 }
 
-export const AnalyticsTable: React.FC<AnalyticsTableProps> = ({
+// Helper function to safely render unknown values
+const renderCellValue = (value: unknown): React.ReactNode => {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  }
+  if (React.isValidElement(value)) {
+    return value;
+  }
+  // For objects, arrays, etc., convert to JSON string
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+};
+
+export const AnalyticsTable = <T extends RowData>({
   title,
   columns,
   data,
@@ -30,7 +51,7 @@ export const AnalyticsTable: React.FC<AnalyticsTableProps> = ({
   sortOrder,
   onSort,
   className = ""
-}) => {
+}: AnalyticsTableProps<T>) => {
   if (loading) {
     return (
       <div className={`bg-gray-900/90 border border-yellow-500/20 rounded-lg overflow-hidden ${className}`}>
@@ -50,7 +71,7 @@ export const AnalyticsTable: React.FC<AnalyticsTableProps> = ({
     );
   }
 
-  const handleSort = (column: TableColumn) => {
+  const handleSort = (column: TableColumn<T>) => {
     if (column.sortable && onSort) {
       onSort(column.key);
     }
@@ -68,7 +89,7 @@ export const AnalyticsTable: React.FC<AnalyticsTableProps> = ({
             <tr>
               {columns.map((column) => (
                 <th
-                  key={column.key}
+                  key={column.key as string}
                   className={`text-yellow-400 px-4 py-3 text-sm font-medium ${
                     column.align === 'right' ? 'text-right' : 
                     column.align === 'center' ? 'text-center' : 'text-left'
@@ -92,7 +113,7 @@ export const AnalyticsTable: React.FC<AnalyticsTableProps> = ({
               <tr key={index} className="hover:bg-yellow-500/5 border-b border-gray-700/50 transition-all duration-200">
                 {columns.map((column) => (
                   <td
-                    key={column.key}
+                    key={column.key as string}
                     className={`px-4 py-3 text-sm text-white ${
                       column.align === 'right' ? 'text-right' : 
                       column.align === 'center' ? 'text-center' : 'text-left'
@@ -100,7 +121,7 @@ export const AnalyticsTable: React.FC<AnalyticsTableProps> = ({
                   >
                     {column.render ? 
                       column.render(row[column.key], row) : 
-                      row[column.key]
+                      renderCellValue(row[column.key])
                     }
                   </td>
                 ))}

@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Filter, DollarSign, Wallet } from 'lucide-react';
 import { Lexend } from 'next/font/google';
 import AdminWalletBalance from './AdminWalletBalance';
-import AdminTransactionHistory from './AdminTransactionHistory';
+import AdminTransactionHistory, { AdminTransaction } from './AdminTransactionHistory';
 import { getTransactionDetailsAdmin, getWalletAdmin } from '@/app/others/services/adminServices/walletServices';
 
 const lexend = Lexend({ subsets: ['latin'] });
 
 interface AdminWalletData {
   balance: number;
-  transactions: any[];
+  transactions: AdminTransaction[];
 }
 
 const AdminWalletManager: React.FC = () => {

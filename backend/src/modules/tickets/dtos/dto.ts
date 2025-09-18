@@ -1,5 +1,4 @@
-import { ITicket } from '../interfaces/ticket.model.interface';
-
+import { ITicket } from "../interfaces/ticket.model.interface";
 
 export interface CreateTicketDto {
   ticketId: string;
@@ -11,11 +10,11 @@ export interface CreateTicketDto {
   showtimeId: string;
   seatNumber: string;
   seatRow: string;
-  seatType: 'VIP' | 'Premium' | 'Normal';
+  seatType: "VIP" | "Premium" | "Normal";
   price: number;
   showDate: Date;
   showTime: string;
-  status?: 'confirmed' | 'cancelled' | 'used' | 'expired';
+  status?: "confirmed" | "cancelled" | "used" | "expired";
   qrCode?: string;
 }
 export interface CancelSingleTicketDto {
@@ -65,18 +64,17 @@ export interface RefundCalculationDto {
   showTime: string;
   movieId?: string;
   theaterId?: string;
-  totalAmount?: number; 
+  totalAmount?: number;
 }
-
 
 export interface UpdateTicketDto {
   seatNumber?: string;
   seatRow?: string;
-  seatType?: 'VIP' | 'Premium' | 'Normal';
+  seatType?: "VIP" | "Premium" | "Normal";
   price?: number;
   showDate?: Date;
   showTime?: string;
-  status?: 'confirmed' | 'cancelled' | 'used' | 'expired';
+  status?: "confirmed" | "cancelled" | "used" | "expired";
   qrCode?: string;
 }
 
@@ -101,11 +99,11 @@ export interface TicketFilterDto {
   movieId?: string;
   theaterId?: string;
   screenId?: string;
-  status?: 'confirmed' | 'cancelled' | 'used' | 'expired';
+  status?: "confirmed" | "cancelled" | "used" | "expired";
   isUsed?: boolean;
   startDate?: Date;
   endDate?: Date;
-  seatType?: 'VIP' | 'Premium' | 'Normal';
+  seatType?: "VIP" | "Premium" | "Normal";
   page?: number;
   limit?: number;
 }
@@ -146,13 +144,12 @@ export interface TicketValidationResponseDto {
   message: string;
 }
 
-
 export interface CreateTicketFromRowsDto {
   bookingId: string;
   selectedRows: {
     rowLabel: string;
     seatsSelected: number[];
-    seatType: 'VIP' | 'Premium' | 'Normal';
+    seatType: "VIP" | "Premium" | "Normal";
     pricePerSeat: number;
   }[];
   bookingInfo: {
@@ -164,7 +161,37 @@ export interface CreateTicketFromRowsDto {
     showDate: Date;
     showTime: string;
     email: string;
+    couponId?:string
   };
+}
+// Add these interface definitions at the top or in your types file
+export interface DecryptedQRData {
+  tid: string;
+  dt?: string;
+  tm?: string;
+}
+
+export interface TicketVerificationData {
+  ticketData: DecryptedQRData;
+  databaseTicket: ITicket;
+}
+
+export interface UserTicketsResult {
+  tickets: ITicket[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export interface bookingInfo {
+  userId: string;
+  movieId: string;
+  theaterId: string;
+  screenId: string;
+  showtimeId: string;
+  showDate: Date;
+  showTime: string;
+  email: string;
 }
 
 export interface CreateTicketFromBookingDto {
@@ -177,11 +204,12 @@ export interface CreateTicketFromBookingDto {
     showtimeId: string;
     selectedSeats: string[];
     seatBreakdown: {
-      type: 'VIP' | 'Premium' | 'Normal';
+      type: "VIP" | "Premium" | "Normal";
       price: number;
     }[];
     showDate: Date;
     showTime: string;
+    couponId:string;
   };
 }
 
@@ -191,21 +219,18 @@ export interface CancelTicketDto {
   amount: number;
 }
 
-
-
-
 export interface GetUserTicketsDto {
   userId: string;
-  page?: number;  
-  limit?: number; 
-  types?:("upcoming" | "past" | "cancelled" | "all" ) []
+  page?: number;
+  limit?: number;
+  types?: ("upcoming" | "past" | "cancelled" | "all")[];
 }
 
 export interface GetUserTicketsFilterDto {
   userId: string;
   page?: number;
   limit?: number;
-  status?: 'confirmed' | 'cancelled' | 'used' | 'expired';
+  status?: "confirmed" | "cancelled" | "used" | "expired";
   isUsed?: boolean;
   startDate?: Date;
   endDate?: Date;

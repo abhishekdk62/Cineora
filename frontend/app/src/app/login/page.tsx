@@ -13,6 +13,7 @@ import {
 } from "../others/redux/slices/authSlice";
 import { googleAuth } from "../others/services/authServices/authService";
 import RouteGuard from "../others/components/Auth/common/RouteGuard";
+import { GoogleCredentialResponse } from "../others/types";
 
 const lexend = Lexend({
   weight: "500",
@@ -49,11 +50,11 @@ export default function LoginPage() {
         redirectBasedOnRole(userData.role);
         console.log(`${userData.role} login successful`);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Login error:", err);
     }
   };
-  const handleGoogleSuccess = async (credentialResponse: any) => {
+  const handleGoogleSuccess = async (credentialResponse: GoogleCredentialResponse) => {
     dispatch(clearError());
 
     try {

@@ -21,25 +21,23 @@ export interface IScreen {
           price: number;
         }[];
       }[];
-      // ADD THIS: Aisle configuration
       aisles?: {
         vertical: {
           id: string;
-          position: number; // Column position where aisle starts
-          width: number; // Width in grid units (1-2)
+          position: number; 
+          width: number; 
           type: 'main' | 'side' | 'emergency';
-          label?: string; // Optional label for the aisle
+          label?: string; 
         }[];
         horizontal: {
           id: string;
-          afterRow: number; // Row index after which aisle appears
-          width: number; // Height in grid units (1-2)
+          afterRow: number; 
+          width: number; 
           type: 'cross' | 'emergency';
-          label?: string; // Optional label for the aisle
+          label?: string; 
         }[];
       };
     };
-    seatMap?: any;
   };
   isActive: boolean;
   createdAt: Date;
@@ -82,7 +80,7 @@ export interface IScreenFormData {
 export interface IScreenResponse {
   success: boolean;
   message: string;
-  data?: any;
+  data?: IScreen;
 }
 
 export interface IScreenFilters {

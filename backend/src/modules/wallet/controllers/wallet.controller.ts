@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
+import { IWalletTransactionService } from "../../../walletTransaction/interfaces/walletTransaction.service.interface";
+import { CreateWalletDto, CreditWalletDto, DebitWalletDto } from "../dto";
+import { StatusCodes } from "../../../../utils/statuscodes";
+import { WALLET_MESSAGES } from "../../../../utils/messages.constants";
+import { createResponse } from "../../../../utils/createResponse";
+import { IWallet } from "../../interfaces/wallet.model.interface";
 import { IWalletService } from "../interfaces/wallet.service.interface";
-import { IWalletTransactionService } from "../../walletTransaction/interfaces/walletTransaction.service.interface";
-import { CreateWalletDto, CreditWalletDto, DebitWalletDto } from "../dtos/dto";
-import { StatusCodes } from "../../../utils/statuscodes";
-import { WALLET_MESSAGES } from "../../../utils/messages.constants";
-import { createResponse } from "../../../utils/createResponse";
 
 interface AuthenticatedRequest extends Request {
   user?: { id: string; role?: string };
@@ -252,7 +253,7 @@ export class WalletController {
   private async _createWalletTransactionRecord(
     userId: string,
     userModel: "User" | "Owner",
-    walletData: any,
+    walletData: IWallet,
     type: string,
     amount: number,
     description?: string

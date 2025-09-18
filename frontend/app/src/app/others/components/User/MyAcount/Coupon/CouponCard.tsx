@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { CouponResponseDto } from "@/app/others/dtos/coupon.dto";
 import CouponCardUI from "./CouponCardUI";
-import TheaterModal from "./TheaterModal";
+import TheaterModal, { TheaterData } from "./TheaterModal";
 
 interface CouponCardProps {
   coupon: CouponResponseDto;
@@ -10,16 +10,7 @@ interface CouponCardProps {
   isExpired?: boolean; // Add this prop from CouponManager
 }
 
-interface TheaterData {
-  _id: string;
-  name: string;
-  city: string;
-  state: string;
-  location?: {
-    type: string;
-    coordinates: number[];
-  };
-}
+
 
 const CouponCard: React.FC<CouponCardProps> = ({ 
   coupon, 

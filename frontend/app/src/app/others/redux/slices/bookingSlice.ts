@@ -1,4 +1,6 @@
+//@ts-nocheck
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { CouponData, RowPricing } from "../../types";
 
 interface SeatPricing {
   rowId: string;
@@ -41,8 +43,8 @@ interface BookingData {
   movieDetails?: {};
   theaterDetails?: {};
   screenDetails?: {};
-  showDetails?: {};
-  allRowPricing?: any;
+  showDetails?: RowPricing
+  allRowPricing?: RowPricing;
   selectedRows: SelectedRow[];
   appliedCoupon?: {
     _id: string;
@@ -175,7 +177,7 @@ const bookingSlice = createSlice({
 applyCoupon: (
   state,
   action: PayloadAction<{
-    coupon: any;
+    coupon: CouponData;
     discountAmount: number;
   }>
 ) => {

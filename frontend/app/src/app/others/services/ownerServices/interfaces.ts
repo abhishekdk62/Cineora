@@ -8,7 +8,7 @@ export interface OwnerRequestResponse {
   success: boolean;
   message: string;
   requestId?: string;
-  data?: any;
+  data?: OwnerRequestData;
 }
 
 export interface OwnerRequestData {

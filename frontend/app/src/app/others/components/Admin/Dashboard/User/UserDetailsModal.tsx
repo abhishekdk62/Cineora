@@ -18,6 +18,7 @@ import {
   Award,
   ExternalLink
 } from "lucide-react";
+import { IUser } from "./UserManager";
 
 const lexend = Lexend({
   weight: "500",
@@ -30,7 +31,7 @@ const lexendSmall = Lexend({
 });
 
 interface UserDetailsModalProps {
-  user: any | null;
+  user: IUser | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -152,7 +153,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
                   </div>
                   <div className="bg-blue-500/20 text-blue-400 border border-blue-500/30 px-3 py-1 rounded-full flex items-center gap-2">
                     <Globe size={14} />
-                    <span className="text-sm font-medium">{getLanguageDisplay(user.language)}</span>
+                    <span className="text-sm font-medium">{getLanguageDisplay(user?.language)}</span>
                   </div>
                 </div>
 
