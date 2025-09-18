@@ -9,6 +9,8 @@ import CastManager from "./CastManager";
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { movieSchema } from "@/app/others/Utils/zodSchemas";
+import z from "zod";
+import { MovieResponseDto } from "@/app/others/dtos";
 
 
 const lexend = Lexend({
@@ -16,29 +18,15 @@ const lexend = Lexend({
   subsets: ["latin"],
 });
 
-interface Movie {
-  _id?: string;
-  tmdbId: number;
-  title: string;
-  genre: string[];
-  releaseDate: string;
-  duration: number;
-  rating: string;
-  description: string;
-  poster: string;
-  trailer: string;
-  cast: string[];
-  director: string;
-  language: string;
-  isActive?: boolean;
-}
+export type Movie = z.infer<typeof movieSchema>;
+
 
 interface AddMovieModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (movieData: any) => void;
-  tmdbMovie?: any;
-  editingMovie?: any;
+  onSubmit: (movieData: Movie) => void;
+  tmdbMovie?: Movie;
+  editingMovie?: MovieResponseDto| null;
 }
 
 const AddMovieModal: React.FC<AddMovieModalProps> = ({
@@ -81,7 +69,7 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({
 
   const watchedValues = watch();
 
-  const handleFormSubmit = async (data: any) => {
+  const handleFormSubmit = async (data: Movie) => {
     setLoading(true);
     try {
       onSubmit(data); 
@@ -93,28 +81,46 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({
     }
   };
 
-  useEffect(() => {
-    if (tmdbMovie) {
-      reset({
-        tmdbId: tmdbMovie.tmdbId || 0,
-        title: tmdbMovie.title || "",
-        genre: Array.isArray(tmdbMovie.genre) ? tmdbMovie.genre : [],
-        releaseDate: tmdbMovie.releaseDate || "",
-        duration: tmdbMovie.duration || 120,
-        rating: tmdbMovie.rating || "PG-13",
-        description: tmdbMovie.description || "",
-        poster: tmdbMovie.poster || "",
-        trailer: tmdbMovie.trailer || "",
-        cast: Array.isArray(tmdbMovie.cast) ? tmdbMovie.cast : [],
-        director: tmdbMovie.director || "",
-        language: tmdbMovie.language || "en",
-        isActive: true,
-      });
-    } else if (editingMovie) {
-      reset(editingMovie);
-    }
-  }, [tmdbMovie, editingMovie, reset]);
+useEffect(() => {
+  if (tmdbMovie) {
+    reset({
+      tmdbId: tmdbMovie.tmdbId || 0,
+      title: tmdbMovie.title || "",
+      genre: Array.isArray(tmdbMovie.genre) ? tmdbMovie.genre : [],
+      releaseDate: tmdbMovie.releaseDate || "",
+      duration: tmdbMovie.duration || 120,
+      rating: tmdbMovie.rating || "PG-13",
+      description: tmdbMovie.description || "",
+      poster: tmdbMovie.poster || "",
+      trailer: tmdbMovie.trailer || "",
+      cast: Array.isArray(tmdbMovie.cast) ? tmdbMovie.cast : [],
+      director: tmdbMovie.director || "",
+      language: tmdbMovie.language || "en",
+      isActive: true,
+    });
+  } else if (editingMovie) {
+    reset({
+     tmdbId: typeof editingMovie.tmdbId === 'string' 
+  ? parseInt(editingMovie.tmdbId) || 0 
+  : editingMovie.tmdbId || 0,
 
+      title: editingMovie.title || "",
+      genre: Array.isArray(editingMovie.genre) ? editingMovie.genre : [],
+      releaseDate: editingMovie.releaseDate instanceof Date 
+        ? editingMovie.releaseDate.toISOString().split('T')[0] 
+        : editingMovie.releaseDate || "",
+      duration: editingMovie.duration || 120,
+      rating: editingMovie.rating || "PG-13",
+      description: editingMovie.description || "",
+      poster: editingMovie.poster || "",
+      trailer: editingMovie.trailer || "",
+      cast: Array.isArray(editingMovie.cast) ? editingMovie.cast : [],
+      director: editingMovie.director || "",
+      language: editingMovie.language || "en",
+      isActive: editingMovie.isActive ?? true,
+    });
+  }
+}, [tmdbMovie, editingMovie, reset]);
 
 
   if (!isOpen) return null;

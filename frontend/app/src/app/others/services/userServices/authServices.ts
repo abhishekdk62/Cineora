@@ -1,7 +1,8 @@
+import { UserProfile } from "../../components/Owner/MyAccount/MyAccount";
 import USER_AUTH_ROUTES from "../../constants/userConstants/authConstants";
 import apiClient from "../../Utils/apiClient";
 
-export const signup = async (userData: any) => {
+export const signup = async (userData: {email:string;password:string;confirmpassword:string}) => {
   const response = await apiClient.post(USER_AUTH_ROUTES.SIGNUP, userData);
   return response.data;
 };
@@ -32,7 +33,7 @@ export const getUserProfile = async () => {
   return response.data;
 };
 
-export const updateProfile = async (updateData: any) => {
+export const updateProfile = async (updateData: UserProfile) => {
   const response = await apiClient.put(USER_AUTH_ROUTES.PROFILE, updateData);
   return response.data;
 };

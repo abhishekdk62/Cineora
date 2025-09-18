@@ -62,15 +62,17 @@ export class TicketController {
     }
   }
 
-  // Add all these methods to your existing TicketController class
 
-  // Main controller method for single ticket cancellation
+
+
+
+
   async cancelSingleTicket(
     req: AuthenticatedRequest,
     res: Response
   ): Promise<void> {
     try {
-      const { ticketIds, totalAmount } = req.body; // Array of ticket IDs and total amount
+      const { ticketIds, totalAmount } = req.body; 
       const userId = req.user?.id;
 
       if (!userId) {
@@ -102,6 +104,7 @@ export class TicketController {
         userId,
         totalAmount: Number(totalAmount),
       };
+console.log('klopps cancelldto',cancelDto);
 
       const result = await this.ticketService.cancelSingleTicket(cancelDto);
 
@@ -112,21 +115,20 @@ export class TicketController {
 
       await this._handleSeatRelease(result.data.cancelledTickets, userId);
 
-      // Update booking data - remove cancelled seats and update pricing
       await this._handleBookingUpdateAfterCancellation(
         result.data.cancelledTickets,
         Number(totalAmount)
       );
 
-      // Handle payment reversal for each cancelled ticket
       for (const ticket of result.data.cancelledTickets) {
         await this._handleSingleTicketPaymentReversal(
+          totalAmount,
           ticket,
           result.data.refundPercentage
         );
       }
 
-      // Handle wallet refund for user
+     console.log('jurgen klop',result.data.refundAmount);
       const walletProcessed = await this._handleSingleTicketWalletRefund(
         userId,
         result.data.cancelledTickets,
@@ -167,7 +169,9 @@ export class TicketController {
     }
   }
 
-  // Validation method
+
+
+
   private validateCancelSingleTicketParams(
     ticketIds: string[],
     totalAmount: any
@@ -199,7 +203,10 @@ export class TicketController {
     return null;
   }
 
-  // Handle seat release
+ 
+
+
+
   private async _handleSeatRelease(
     cancelledTickets: any[],
     userId: string
@@ -239,7 +246,6 @@ export class TicketController {
         ? firstTicket.bookingId._id.toString()
         : firstTicket.bookingId.toString();
 
-      console.log("Booking ID for update:", bookingId); // Debug log
 
       const bookingResult = await this.bookingService.getBookingById(bookingId);
       if (!bookingResult.success) {
@@ -254,17 +260,14 @@ export class TicketController {
       const cancelledSeatIds = cancelledTickets.map(
         (ticket) => `${ticket.seatRow}${ticket.seatNumber}`
       );
-      console.log("cancelled ticks :", cancelledTickets);
 
       const updatedSelectedSeats = booking.selectedSeats.filter(
         (seat) => !cancelledSeatIds.includes(seat)
       );
-      console.log("updated sel tick", updatedSelectedSeats);
 
       const updatedSelectedSeatIds = booking.selectedSeatIds.filter(
         (seatId) => !cancelledSeatIds.includes(seatId)
       );
-      console.log("updated sel seet ids tick", updatedSelectedSeatIds);
 
       // Better seat pricing filter logic - keep pricing but remove specific seats
       const updatedSeatPricing = booking.seatPricing.filter((pricing) => {
@@ -277,7 +280,6 @@ export class TicketController {
         );
         return remainingRowSeats.length > 0; // Keep pricing if this row still has active seats
       });
-      console.log("updated sel updatedSeatPricing", updatedSeatPricing);
 
       // FIX: Better price calculation with safety checks
       const originalSubtotal = booking.priceDetails.subtotal || 0;
@@ -327,21 +329,17 @@ export class TicketController {
         ...(newBookingStatus === "cancelled" && { cancelledAt: new Date() }),
       };
 
-      console.log("updateData", updateData);
 
-      // Use the string booking ID
       await this.bookingService.updateBookingById(bookingId, updateData);
 
-      console.log(
-        `✅ Booking ${bookingId} updated: ${updatedSelectedSeats.length} seats remaining, new total: ₹${newTotal}`
-      );
+     
     } catch (error) {
       console.error("Failed to update booking after cancellation:", error);
     }
   }
 
-  // Handle payment reversal for single tickets
   private async _handleSingleTicketPaymentReversal(
+    totalAmount:number,
     cancelledTicket: any,
     refundPercentage: number
   ): Promise<void> {
@@ -356,18 +354,17 @@ export class TicketController {
       }
 
       const ownerId = theaterResult.data.ownerId;
-      const ticketPrice = cancelledTicket.price;
-
-      // Calculate original shares for this single ticket
+      const ticketPrice = totalAmount;
+   
       const originalAdminCommission = Math.round(ticketPrice * 0.15);
       const originalOwnerShare = ticketPrice - originalAdminCommission;
 
-      // Calculate debit amounts based on refund percentage
       const refundRatio = refundPercentage / 100;
       const ownerDebit = Math.round(originalOwnerShare * refundRatio);
       const adminDebit = Math.round(originalAdminCommission * refundRatio);
 
-      // Debit wallets
+      console.log('canceled neymar owner debt and admin edbt ',ownerDebit,adminDebit);
+      
       await this._debitOwnerWalletForCancellation(
         ownerId,
         ownerDebit,
@@ -375,9 +372,7 @@ export class TicketController {
       );
       await this._debitAdminWalletForCancellation(adminDebit, cancelledTicket);
 
-      console.log(
-        `💸 Single ticket payment reversed - Owner debited: ₹${ownerDebit}, Admin debited: ₹${adminDebit}`
-      );
+  
     } catch (error) {
       console.error("Single ticket payment reversal error:", error);
     }
@@ -398,6 +393,7 @@ export class TicketController {
 
       const ticketCount = cancelledTickets.length;
       const refundDescription = `${ticketCount} ticket(s) cancelled - ${refundPercentage}% refund (₹${refundAmount})`;
+console.log('mbape refund wallet uer',refundAmount);
 
       const creditResult = await this.walletService.creditWallet({
         userId,
@@ -442,7 +438,9 @@ export class TicketController {
     }
   }
 
-  // Handle notifications
+
+
+
   private async _handleSingleTicketCancellationNotifications(
     userId: string,
     cancelledTickets: any[],
@@ -463,7 +461,6 @@ export class TicketController {
       );
     }
   }
-
   private _formatSingleTicketCancellationResponse(
     cancellationData: any,
     originalAmount: number
@@ -500,7 +497,12 @@ export class TicketController {
     });
   }
 
+
+
+
+
   private async _handlePaymentReversal(
+    amount:number,
     cancelledTicket: any,
     refundPercentage: number
   ): Promise<void> {
@@ -515,12 +517,17 @@ export class TicketController {
       }
 
       const ownerId = theaterResult.data.ownerId;
-      const originalBaseAmount = cancelledTicket.amount || 300; // Base ticket price
+      const originalBaseAmount = amount || 300; 
+      console.log('penaldo',originalBaseAmount);
+      
       const originalAdminCommission = Math.round(originalBaseAmount * 0.15);
       const originalOwnerShare = originalBaseAmount - originalAdminCommission;
+
       const refundRatio = refundPercentage / 100;
       const ownerDebit = Math.round(originalOwnerShare * refundRatio);
       const adminDebit = Math.round(originalAdminCommission * refundRatio);
+      console.log('pessi adminDebitand adminDebit',ownerDebit,adminDebit);
+
       await this._debitOwnerWalletForCancellation(
         ownerId,
         ownerDebit,
@@ -536,6 +543,8 @@ export class TicketController {
     try {
       const { bookingId, amount } = req.query;
       const userId = req.user?.id;
+
+      
 
       if (!userId) {
         res.status(StatusCodes.UNAUTHORIZED).json(
@@ -582,11 +591,16 @@ export class TicketController {
 
       const { refundAmount, refundPercentage } = result.data;
 
-      // **ADD THIS: Handle payment reversal**
+      console.log('grizman refundAmount',refundAmount);
+      console.log('grizman result.data.cancelledTickets[0]',result.data.cancelledTickets[0]);
+      
       await this._handlePaymentReversal(
+        amountNumber,
+
         result.data.cancelledTickets[0],
         refundPercentage
       );
+
 
       const walletProcessed = await this._handleWalletRefund(
         userId,
@@ -629,6 +643,9 @@ export class TicketController {
     }
   }
 
+
+  
+
   private validateCancelTicketParams(
     bookingId: string,
     amount: any
@@ -658,6 +675,9 @@ export class TicketController {
     }
     return null;
   }
+
+
+
 
   private parseAmount(amount: any): number {
     return Array.isArray(amount) ? Number(amount[0]) : Number(amount);
@@ -695,6 +715,7 @@ export class TicketController {
         amount: refundAmount,
         description: refundDescription,
       });
+console.log('pessi user refund',refundAmount);
 
       if (!creditResult.success) {
         console.error("Failed to credit wallet:", creditResult.message);
@@ -729,6 +750,99 @@ export class TicketController {
       return false;
     }
   }
+
+
+
+
+
+
+
+
+  private async _debitOwnerWalletForCancellation(
+    ownerId: string,
+    amount: number,
+    cancelledTicket: any
+  ): Promise<void> {
+    try {
+      if (amount <= 0) return;
+
+      const debitResult = await this.walletService.debitWalletAllowNegative({
+        userId: ownerId,
+        userModel: "Owner",
+        amount: amount,
+      });
+
+      if (debitResult.success) {
+        await this.walletTransactionService.createWalletTransaction({
+          userId: ownerId,
+          userModel: "Owner",
+          walletId: debitResult.data._id,
+          type: "debit",
+          amount: amount,
+          category: "refund",
+          description: `Revenue reversal for cancellation - ${
+            cancelledTicket.movieTitle || "Movie Ticket"
+          }`,
+          referenceId: cancelledTicket.bookingId,
+          movieId: cancelledTicket.movieId,
+          theaterId: cancelledTicket.theaterId,
+        });
+      }
+    } catch (error) {
+      console.error("Owner wallet debit error:", error);
+    }
+  }
+
+  private async _debitAdminWalletForCancellation(
+    amount: number,
+    cancelledTicket: any
+  ): Promise<void> {
+    try {
+      if (amount <= 0) return;
+
+      const ADMIN_USER_ID =
+        process.env.ADMIN_USER_ID || "your-default-admin-id";
+
+      const debitResult = await this.walletService.debitWalletAllowNegative({
+        userId: ADMIN_USER_ID,
+        userModel: "Admin",
+        amount: amount,
+      });
+
+      if (debitResult.success) {
+
+        await this.walletTransactionService.createWalletTransaction({
+          userId: ADMIN_USER_ID,
+          userModel: "Admin",
+          walletId: debitResult.data._id,
+          type: "debit",
+          amount: amount,
+          category: "refund",
+          description: `Commission reversal for cancellation - ${
+            cancelledTicket.movieTitle || "Movie Ticket"
+          }`,
+          referenceId: cancelledTicket.bookingId,
+          movieId: cancelledTicket.movieId,
+          theaterId: cancelledTicket.theaterId,
+        });
+      }
+    } catch (error) {
+      console.error("Admin wallet debit error:", error);
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   private async _handleCancellationNotifications(
     userId: string,
@@ -978,77 +1092,12 @@ export class TicketController {
     }
   }
 
-  private async _debitOwnerWalletForCancellation(
-    ownerId: string,
-    amount: number,
-    cancelledTicket: any
-  ): Promise<void> {
-    try {
-      if (amount <= 0) return;
 
-      const debitResult = await this.walletService.debitWalletAllowNegative({
-        userId: ownerId,
-        userModel: "Owner",
-        amount: amount,
-      });
 
-      if (debitResult.success) {
-        await this.walletTransactionService.createWalletTransaction({
-          userId: ownerId,
-          userModel: "Owner",
-          walletId: debitResult.data._id,
-          type: "debit",
-          amount: amount,
-          category: "refund",
-          description: `Revenue reversal for cancellation - ${
-            cancelledTicket.movieTitle || "Movie Ticket"
-          }`,
-          referenceId: cancelledTicket.bookingId,
-          movieId: cancelledTicket.movieId,
-          theaterId: cancelledTicket.theaterId,
-        });
-      }
-    } catch (error) {
-      console.error("Owner wallet debit error:", error);
-    }
-  }
 
-  private async _debitAdminWalletForCancellation(
-    amount: number,
-    cancelledTicket: any
-  ): Promise<void> {
-    try {
-      if (amount <= 0) return;
 
-      const ADMIN_USER_ID =
-        process.env.ADMIN_USER_ID || "your-default-admin-id";
 
-      const debitResult = await this.walletService.debitWalletAllowNegative({
-        userId: ADMIN_USER_ID,
-        userModel: "Admin",
-        amount: amount,
-      });
 
-      if (debitResult.success) {
-        console.log(`✅ Admin wallet debited ₹${amount}`);
 
-        await this.walletTransactionService.createWalletTransaction({
-          userId: ADMIN_USER_ID,
-          userModel: "Admin",
-          walletId: debitResult.data._id,
-          type: "debit",
-          amount: amount,
-          category: "refund",
-          description: `Commission reversal for cancellation - ${
-            cancelledTicket.movieTitle || "Movie Ticket"
-          }`,
-          referenceId: cancelledTicket.bookingId,
-          movieId: cancelledTicket.movieId,
-          theaterId: cancelledTicket.theaterId,
-        });
-      }
-    } catch (error) {
-      console.error("Admin wallet debit error:", error);
-    }
-  }
+
 }

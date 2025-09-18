@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 export interface ITicket extends Document {
+  _id?:string;
   ticketId: string;
   bookingId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
@@ -20,4 +21,5 @@ export interface ITicket extends Document {
   usedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+  couponId:string;
 }

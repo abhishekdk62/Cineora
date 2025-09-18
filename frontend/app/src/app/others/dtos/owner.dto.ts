@@ -185,7 +185,11 @@ export interface OwnerCountsResponseDto {
   rejectedRequests: number;
 }
 
-export interface GetOwnersResponseDto extends ApiResponse<OwnerResponseDto[]> {}
+export type GetOwnersResponseDto = ApiResponse<OwnerResponseDto[]> & {
+  owners?: OwnerResponseDto[];
+};
+
+
 export interface GetOwnerRequestsResponseDto extends ApiResponse<OwnerRequestResponseDto[]> {}
 export interface GetOwnerCountsResponseDto extends ApiResponse<OwnerCountsResponseDto> {}
 export interface AcceptOwnerRequestResponseDto extends ApiResponse<OwnerRequestResponseDto> {}

@@ -7,6 +7,8 @@ import { confirmAction } from "@/app/others/components/utils/ConfirmDialog";
 import { toggleScreen } from "@/app/others/services/adminServices/screenServices";
 import { isatty } from "tty";
 import toast from "react-hot-toast";
+import { Screen } from "../../../Owner/Showtimes/ScreenSelectionModal";
+
 
 interface ScreenFilters {
   search?: string;
@@ -16,13 +18,13 @@ interface ScreenFilters {
 }
 
 interface ScreenListProps {
-  screens: IScreen[];
+  screens: Screen[];
   totalItems: number;
   currentPage: number;
   totalPages: number;
   isLoading: boolean;
-  onViewDetails: (screen: IScreen) => void;
-  onViewShowtimes: (screen: IScreen) => void;
+  onViewDetails: (screen: Screen) => void;
+  onViewShowtimes: (screen: Screen) => void;
   onPageChange: (page: number) => void;
   onFiltersChange: (filters: ScreenFilters) => void;
   fetchScreens:(page: number, currentFilters: ScreenFilters)=>void
@@ -86,7 +88,7 @@ const ScreenList: React.FC<ScreenListProps> = ({
     if (!acc[theater]) acc[theater] = [];
     acc[theater].push(screen);
     return acc;
-  }, {} as Record<string, IScreen[]>);
+  }, {} as Record<string, Screen[]>);
 
   return (
     <div className="space-y-6">

@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { createRazorpayPayout, confirmPayout } from '@/app/others/services/ownerServices/payoutServices';
 import ConfirmationModal from './ConfirmationModal';
 import LoadingModal from './LoadingModal';
+import { AxiosError } from 'axios';
 
 interface PayoutModalProps {
   walletBalance: number;
@@ -13,11 +14,7 @@ interface PayoutModalProps {
   onShowResult: (type: 'success' | 'failure', message: string, amount?: number, mode?: string) => void;
 }
 
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
+
 
 const lexendMediumStyle = { fontFamily: 'Lexend, sans-serif', fontWeight: 500 };
 const lexendSmallStyle = { fontFamily: 'Lexend, sans-serif', fontWeight: 400 };
@@ -32,37 +29,31 @@ const PayoutModal: React.FC<PayoutModalProps> = ({
   const [transferMode, setTransferMode] = useState<'IMPS' | 'NEFT' | 'RTGS'>('IMPS');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRazorpayLoaded, setIsRazorpayLoaded] = useState(false);
-  
-  // Modal States
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showLoading, setShowLoading] = useState(false);
 
-  // 🔥 Razorpay Script Loading (Commented for Direct Payout)
-  // useEffect(() => {
-  //   const loadRazorpayScript = () => {
-  //     return new Promise((resolve) => {
-  //       const script = document.createElement('script');
-  //       script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-  //       script.onload = () => {
-  //         setIsRazorpayLoaded(true);
-  //         resolve(true);
-  //       };
-  //       script.onerror = () => resolve(false);
-  //       document.body.appendChild(script);
-  //     });
-  //   };
-
-  //   if (!window.Razorpay) {
-  //     loadRazorpayScript();
-  //   } else {
-  //     setIsRazorpayLoaded(true);
-  //   }
-  // }, []);
-
-  // For Direct Payout - Set loaded as true
   useEffect(() => {
-    setIsRazorpayLoaded(true);
+    const loadRazorpayScript = () => {
+      return new Promise((resolve) => {
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.onload = () => {
+          setIsRazorpayLoaded(true);
+          resolve(true);
+        };
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+      });
+    };
+
+    if (!window.Razorpay) {
+      loadRazorpayScript();
+    } else {
+      setIsRazorpayLoaded(true);
+    }
   }, []);
+
+  
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -78,142 +69,109 @@ const PayoutModal: React.FC<PayoutModalProps> = ({
     setShowConfirmation(true);
   };
 
-  // Step 2: Process After Confirmation
-  const handleConfirmPayout = async () => {
-    console.log('yee');
+const handleConfirmPayout = async () => {
+  console.log('Opening Razorpay for payout confirmation');
+  setShowConfirmation(false);
+  
+  try {
+    setIsProcessing(true);
     
-    setShowConfirmation(false);
-    setShowLoading(true); 
-    
-    
+    const orderResponse = await createRazorpayPayout({
+      amount: payoutAmount,
+      mode: transferMode,
+      purpose: 'vendor_payment'
+    });
+
+    if (!orderResponse.success) {
+      throw new Error(orderResponse.message);
+    }
+
+     const options = {
+  key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+  amount: payoutAmount * 100,
+  currency: 'INR',
+  name: 'Theater Earnings Payout',
+  description: `Transfer ₹${payoutAmount} to your bank account`,
+  image: '/logo.png',
+  
+  handler: async (response: any) => {
     try {
+      console.log('✅ User confirmed payout in Razorpay UI:', response);
+      
+      // 🔥 Show loading modal AFTER Razorpay success
+      setShowLoading(true);
       setIsProcessing(true);
       
-      const orderResponse = await createRazorpayPayout({
+      const confirmResponse = await confirmPayout({
+        razorpay_payment_id: response.razorpay_payment_id,
         amount: payoutAmount,
         mode: transferMode,
-        purpose: 'vendor_payment'
+        order_id: orderResponse.data.order_id
       });
 
-      if (!orderResponse.success) {
-        throw new Error(orderResponse.message);
-      }
-
-      // 🔥 Razorpay Popup Configuration (Commented)
-      // const options = {
-      //   key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-      //   amount: payoutAmount * 100,
-      //   currency: 'INR',
-      //   name: 'Theater Earnings Payout',
-      //   description: `Transfer ₹${payoutAmount} to your bank account`,
-      //   image: '/logo.png',
-      //   
-      //   handler: async (response: any) => {
-      //     try {
-      //       console.log('✅ User confirmed payout in Razorpay UI:', response);
-      //       
-      //       const confirmResponse = await confirmPayout({
-      //         razorpay_payment_id: response.razorpay_payment_id,
-      //         amount: payoutAmount,
-      //         mode: transferMode,
-      //         order_id: orderResponse.data.order_id
-      //       });
-      //
-      //       if (confirmResponse.success) {
-      //         setShowLoading(false);
-      //         onShowResult(
-      //           'success',
-      //           `Your ₹${payoutAmount} earnings have been successfully transferred to your bank account via ${transferMode}!`,
-      //           payoutAmount,
-      //           transferMode
-      //         );
-      //         onSuccess();
-      //         onClose();
-      //       } else {
-      //         throw new Error(confirmResponse.message);
-      //       }
-      //     } catch (error: any) {
-      //       console.error('❌ Payout confirmation failed:', error);
-      //       setShowLoading(false);
-      //       onShowResult(
-      //         'failure',
-      //         error.message || 'Transfer confirmation failed.'
-      //       );
-      //       onClose();
-      //     }
-      //   },
-      //
-      //   modal: {
-      //     ondismiss: () => {
-      //       console.log('User cancelled payout');
-      //       setShowLoading(false);
-      //       setIsProcessing(false);
-      //     },
-      //   },
-      //   
-      //   theme: {
-      //     color: '#10b981', // Green for receiving money
-      //   },
-      //   
-      //   prefill: {
-      //     name: 'Theater Owner',
-      //     email: 'owner@theater.com',
-      //   },
-      // };
-
-      // 🔥 Razorpay Popup Opening (Commented)
-      // const razorpay = new window.Razorpay(options);
-      // razorpay.open();
-
-      // Direct Payout Logic (No Razorpay Popup)
-      // Wait for loading animation to complete (7.5 seconds)
-      setTimeout(async () => {
-        try {
-          console.log('✅ Processing direct payout after loading animation');
-          
-          const confirmResponse = await confirmPayout({
-            razorpay_payment_id: `direct_payout_${Date.now()}`,
-            amount: payoutAmount,
-            mode: transferMode,
-            order_id: orderResponse.data.order_id
-          });
-
-          setShowLoading(false); // Hide loading modal
-
-          if (confirmResponse.success) {
-            onShowResult(
-              'success',
-              `Your ₹${payoutAmount} earnings have been successfully transferred to your bank account via ${transferMode}!`,
-              payoutAmount,
-              transferMode
-            );
-            onSuccess();
-            onClose();
-          } else {
-            throw new Error(confirmResponse.message);
-          }
-        } catch (error: any) {
-          console.error('❌ Payout confirmation failed:', error);
-          setShowLoading(false);
-          onShowResult(
-            'failure',
-            error.message || 'Transfer confirmation failed. Please contact support if money was deducted from your wallet.'
-          );
-          onClose();
-        }
-      }, 7500); // Wait for loading animation
-
-    } catch (error: any) {
-      console.error('Payout initiation error:', error);
+      // Hide loading modal
       setShowLoading(false);
+      setIsProcessing(false);
+
+      if (confirmResponse.success) {
+        onShowResult(
+          'success',
+          `Your ₹${payoutAmount} earnings have been successfully transferred to your bank account via ${transferMode}!`,
+          payoutAmount,
+          transferMode
+        );
+        onSuccess();
+        onClose();
+      } else {
+        throw new Error(confirmResponse.message);
+      }
+    } catch (error: unknown) {
+      console.error('❌ Payout confirmation failed:', error);
+      setShowLoading(false);
+      setIsProcessing(false);
+      onShowResult(
+        'failure',
+        error instanceof Error ? error.message : 'Transfer confirmation failed.'
+      );
+      onClose();
+    }
+  },
+
+  modal: {
+    ondismiss: () => {
+      console.log('User cancelled payout');
+      setIsProcessing(false);
+      // Don't show loading modal if user cancels
+    },
+  },
+  
+  theme: {
+    color: '#10b981',
+  },
+  
+  prefill: {
+    name: 'Theater Owner',
+    email: 'owner@theater.com',
+  },
+};
+
+
+    const razorpay = new window.Razorpay(options);
+    razorpay.open();
+    
+  } catch (error: unknown) {
+    console.error('Payout initiation error:', error);
+    setIsProcessing(false);
+    if (error instanceof AxiosError) {
       onShowResult(
         'failure',
         error.message || 'Failed to initiate transfer. Please check your internet connection and try again.'
       );
-      setIsProcessing(false);
-      onClose();
     }
-  };
+    onClose();
+  }
+};
+
 
   // Step 3: Handle Confirmation Cancel
   const handleConfirmationCancel = () => {
@@ -358,13 +316,12 @@ const PayoutModal: React.FC<PayoutModalProps> = ({
                   return (
                     <div
                       key={modeConfig.mode}
-                      className={`relative border rounded-xl p-4 cursor-pointer transition-all ${
-                        isSelected
+                      className={`relative border rounded-xl p-4 cursor-pointer transition-all ${isSelected
                           ? 'border-blue-500 bg-gray-900'
                           : isDisabled
-                          ? 'border-gray-700 bg-gray-900 cursor-not-allowed opacity-50'
-                          : 'border-gray-600 hover:border-gray-500 bg-gray-900'
-                      }`}
+                            ? 'border-gray-700 bg-gray-900 cursor-not-allowed opacity-50'
+                            : 'border-gray-600 hover:border-gray-500 bg-gray-900'
+                        }`}
                       onClick={() => !isDisabled && setTransferMode(modeConfig.mode)}
                     >
                       <div className="text-center">

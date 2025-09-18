@@ -14,6 +14,23 @@ export interface CreateUserDto {
   locationState?: string;
   coordinates?: [number, number];
 }
+interface GetUsersFilters {
+  search?: string;
+  status?: 'active' | 'inactive';
+  isVerified?: boolean;
+  sortBy?: keyof IUser;
+  sortOrder?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
+}
+export type TicketMatchCondition = {
+  status?: string | { $in: string[] };
+  showDate?: { $lt: Date } | { $gte: Date };
+  $and?: Array<{
+    status?: string;
+    showDate?: { $lt: Date } | { $gte: Date };
+  }>;
+};
 
 export interface UpdateUserProfileDto {
   username?: string;
@@ -26,6 +43,11 @@ export interface UpdateUserProfileDto {
   profilePicture?: string;
   locationCity?: string;
   locationState?: string;
+    location?: {
+    type: "Point";
+    coordinates: [number, number];
+  };
+
   coordinates?: [number, number];
 }
 
@@ -84,6 +106,7 @@ export interface UpdateProfileDto {
   locationCity?: string;
   locationState?: string;
   coordinates?: [number, number];
+  
 }
 
 export interface UserResponseDto {
@@ -147,6 +170,42 @@ export interface GetUsersResponseDto {
 export interface ChangePasswordDto {
   oldPassword: string;
   newPassword: string;
+}
+export interface IUserPlain {
+  _id: string;
+  username: string;
+  email: string;
+  googleId?: string;
+  authProvider: "email" | "google";
+  avatar?: string;
+  password?: string;
+  firstName?: string;
+  lastName?: string;
+  dateOfBirth?: Date;
+  language?: string;
+  gender?: "male" | "female" | "other";
+  phone?: string;
+  refreshToken?: string;
+  profilePicture?: string;
+  locationCity?: string;
+  locationState?: string;
+  location?: {
+    type: "Point";
+    coordinates: [number, number];
+  };
+  isVerified: boolean;
+  xpPoints: number;
+  joinedAt: Date;
+  lastActive: Date;
+  updatedAt: Date;
+  isActive: boolean;
+  createdAt: Date;
+}
+export interface LocationData {
+  location: {
+    type: "Point";
+    coordinates: [number, number];
+  };
 }
 
 export interface GetUsersFilterDto {

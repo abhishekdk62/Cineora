@@ -23,13 +23,13 @@ export interface DebitWalletDto {
 
 export interface UpdateWalletBalanceDto {
   userId: string;
-  userModel: 'User' | 'Owner';
+  userModel: 'User' | 'Owner'|'Admin';
   amount: number;
 }
 
 export interface GetWalletByUserDto {
   userId: string;
-  userModel: 'User' | 'Owner';
+  userModel: 'User' | 'Owner'|'Admin';
 }
 
 export interface WalletResponseDto {

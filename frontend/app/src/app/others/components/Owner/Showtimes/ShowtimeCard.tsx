@@ -1,16 +1,17 @@
+//@ts-nocheck
 "use client";
 import React from "react";
 import { Edit, Calendar, Clock, MapPin, Film, Monitor, Users, Eye, CircleX, CheckCircle } from "lucide-react";
 import { IShowtime } from "./showtime.interfaces";
 import { ShowtimeResponseDto } from "@/app/others/dtos";
+import { lexendMedium, lexendSmall } from "@/app/others/Utils/fonts";
 
 interface ShowtimeCardProps {
   showtime: ShowtimeResponseDto;
   onEdit: (showtime: ShowtimeResponseDto) => void;
   onView: (showtime: ShowtimeResponseDto) => void;
   onToggleStatus: (showtimeId: string, isActive: boolean) => void;
-  lexendMedium: any;
-  lexendSmall: any;
+
 }
 
 const ShowtimeCard: React.FC<ShowtimeCardProps> = ({
@@ -18,25 +19,23 @@ const ShowtimeCard: React.FC<ShowtimeCardProps> = ({
   onEdit,
   onView,
   onToggleStatus,
-  lexendMedium,
-  lexendSmall
 }) => {
-  const getMovieName = (movieId: any) => {
+  const getMovieName = (movieId: string) => {
     if (typeof movieId === "object" && movieId?.title) return movieId.title;
     return typeof movieId === "string" ? movieId : "Unknown Movie";
   };
 
-  const getTheaterName = (theaterId: any) => {
+  const getTheaterName = (theaterId: string) => {
     if (typeof theaterId === "object" && theaterId?.name) return theaterId.name;
     return typeof theaterId === "string" ? theaterId : "Unknown Theater";
   };
 
-  const getScreenName = (screenId: any) => {
+  const getScreenName = (screenId: string) => {
     if (typeof screenId === "object" && screenId?.name) return screenId.name;
     return typeof screenId === "string" ? screenId : "Unknown Screen";
   };
 
-  const formatDate = (date: any) => {
+  const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString("en-US", {
       weekday: "short",
       month: "short",

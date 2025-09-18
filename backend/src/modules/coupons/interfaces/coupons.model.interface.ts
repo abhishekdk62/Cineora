@@ -10,6 +10,7 @@ export interface ICoupon extends Document {
   expiryDate: Date;
   isActive: boolean;
   isUsed: boolean;
+  minAmount:Number;
   maxUsageCount: number;
   currentUsageCount: number;
   createdBy: Types.ObjectId; // Owner ID who created the coupon

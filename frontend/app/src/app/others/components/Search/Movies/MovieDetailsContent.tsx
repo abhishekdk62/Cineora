@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import MovieInfo from "./MovieInfo";
 import MoviePoster from "./MoviePoster";
 import { RatingStats } from "./MovieHeader";
+import { MovieResponseDto } from "@/app/others/dtos";
 
 const lexendSmall = Lexend({
   weight: "200",
@@ -36,9 +37,7 @@ interface Movie {
 }
 
 interface MovieDetailsContentProps {
-  movie: Movie;
-  isFav: boolean;
-  onFavoriteToggle: (isAdd: boolean) => void;
+  movie: MovieResponseDto;
   onBookTicket: () => void;
   onWatchTrailer: () => void;
   onGoBack: () => void;
@@ -47,8 +46,6 @@ interface MovieDetailsContentProps {
 
 export default function MovieDetailsContent({
   movie,
-  isFav,
-  onFavoriteToggle,
   onBookTicket,
   onWatchTrailer,
   onGoBack
@@ -71,15 +68,7 @@ export default function MovieDetailsContent({
     "ko": "Korean"
   };
 
-  const handleFavoriteClick = () => {
-    if (isFav) {
-      onFavoriteToggle(false);
-      toast.success('Removed from Favorites');
-    } else {
-      onFavoriteToggle(true);
-      toast.success('Added to Favorites');
-    }
-  };
+ 
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
@@ -103,8 +92,7 @@ export default function MovieDetailsContent({
             <MoviePoster movie={movie} />
             <MovieInfo
               movie={movie}
-              isFav={isFav}
-              onFavoriteClick={handleFavoriteClick}
+          
               onBookTicket={onBookTicket}
               onWatchTrailer={onWatchTrailer}
               formatDuration={formatDuration}

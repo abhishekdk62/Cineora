@@ -3,12 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import VariableProximity from "../ReactBits/VariableProximity";
 import { getMoviesWithFilters } from "../../services/userServices/movieServices";
-import { Movie } from "../Admin/Dashboard/Movies/MoviesList";
 import { useRouter } from "next/navigation";
+import { MovieResponseDto } from "../../dtos";
 
 export default function Upcoming() {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [latestMovies, setLatestMovies] = useState<Movie[]>([]);
+  const [latestMovies, setLatestMovies] = useState<MovieResponseDto[]>([]);
 
   const getLatestMovies = async () => {
     try {
@@ -93,8 +93,13 @@ export default function Upcoming() {
                         {movie.title}
                       </h3>
                       <p className="text-gray-400 text-sm mb-4">
-                        Releasing on {movie.releaseDate.split("T")[0]}
+                        Releasing on {typeof movie.releaseDate === 'string'
+                          ? (movie.releaseDate as string).split("T")[0]
+                          : new Date(movie.releaseDate).toISOString().split("T")[0]
+                        }
                       </p>
+
+
                       <div className="text-center flex justify-center">
                         <button
                           type="button"

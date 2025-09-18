@@ -10,6 +10,7 @@ export interface IBookingService {
     limit?: number
   ): Promise<ServiceResponse>;
   cancelBooking(bookingId: string, userId: string): Promise<ServiceResponse>;
+  getAllBookingsByOwnerId(ownerId: string): Promise<ServiceResponse> 
   getUpcomingBookings(userId: string): Promise<ServiceResponse>;
   updatePaymentStatus(
     bookingId: string,
@@ -17,6 +18,13 @@ export interface IBookingService {
     paymentId?: string
   ): Promise<ServiceResponse>;
   getBookingById(bookingId: string): Promise<ServiceResponse>;
+  getBookingsByTheaterId(
+    theaterId: string,
+    page: number,
+    limit: number,
+    startDate?: string,
+    endDate?: string
+  ): Promise<ServiceResponse>;
   updateBookingById(
     bookingId: string,
     updateData: any

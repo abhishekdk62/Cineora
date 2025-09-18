@@ -4,7 +4,7 @@ import { TheaterController } from "../../theaters/controllers/theaters.controlle
 import { ShowtimeController } from "../../showtimes/controllers/showtimes.controller";
 import { BookingController } from "../../bookings/controllers/bookings.controller";
 import { TicketController } from "../../tickets/controllers/ticket.controller";
-import { WalletController } from "../../wallet/controllers/wallet.controller";
+import { WalletController } from "../../wallet/dtos/controllers/wallet.controller";
 import { PaymentController } from "../../payment/controllers/payment.controller";
 import { WalletTransactionController } from "../../walletTransaction/controllers/walletTransaction.controller";
 import { NotificationController } from "../../notification/controllers/notification.controller";
@@ -91,10 +91,14 @@ export class UserRoutes {
     this._router.post("/wallet/transactions", (req, res) =>
       this._walletController.handleWalletTransaction(req, res)
     );
-
+//!cancel all 
     this._router.delete("/cancel/ticket", (req, res) =>
       this._ticketController.cancelTicket(req, res)
     );
+//!cancel single
+//?single
+//!cancel single  
+
     this._router.post("/cancel/single/ticket", (req, res) =>
       this._ticketController.cancelSingleTicket(req, res)
     );

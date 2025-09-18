@@ -1,5 +1,5 @@
+//@ts-nocheck
 "use client";
-
 import React from "react";
 import { useState, useEffect } from "react";
 import { Lexend } from "next/font/google";
@@ -60,12 +60,8 @@ export default function NavBar() {
       const data = await getAllUserNotifications()
 
       setUnreadNotifications(data.data.notifications)
-      console.log('getUnreadNotifications',data);
       console.log('getUnreadNotifications',data.data.notifications);
-
       setUnreadCount(data.data.unreadCount)
-
-
     } catch (error) {
       console.log(error);
 
@@ -74,7 +70,6 @@ export default function NavBar() {
   }
   const getAllNotifications = async () => {
     try {
-
       const data = await getFullUserNotifications()
       setNotifications(data.data.notifications)
       setUnreadCount(data.data.unreadCount)
@@ -105,7 +100,7 @@ getUnreadNotifications()
     }
   };
 
-  const handleNotificationClick = async (notification: any) => {
+  const handleNotificationClick = async (notification: {notificationId:string}) => {
     try {
       
       const data = await markNotificationAsSeen(notification.notificationId)
@@ -162,12 +157,11 @@ getUnreadNotifications()
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
-              <NavLogo lexendBold={lexendBold} />
+              <NavLogo />
             </div>
 
             <div className="hidden md:flex items-center space-x-8">
               <NavLinks
-                lexendSmall={lexendSmall}
                 onAccountClick={handleClickAcc}
               />
 
@@ -180,7 +174,6 @@ getUnreadNotifications()
                   onMarkAllRead={markAllAsRead}
                   onNotificationClick={handleNotificationClick}
                   onViewAll={handleViewAllNotifications} 
-                  lexendSmall={lexendSmall}
                 />
               )}
 
@@ -201,7 +194,6 @@ getUnreadNotifications()
                   onMarkAllRead={markAllAsRead}
                   onNotificationClick={handleNotificationClick}
                   onViewAll={handleViewAllNotifications} 
-                  lexendSmall={lexendSmall}
                   isMobile={true}
                 />
               )}
@@ -219,7 +211,6 @@ getUnreadNotifications()
             <div className="md:hidden border-t border-gray-800/50 py-4">
               <div className="flex flex-col space-y-4">
                 <NavLinks
-                  lexendSmall={lexendSmall}
                   onAccountClick={handleClickAcc}
                   isMobile={true}
                   onMobileClose={() => setIsMenuOpen(false)}
@@ -245,8 +236,7 @@ getUnreadNotifications()
         onClose={() => setShowNotificationModal(false)}
         notifications={notifications}
         onMarkAllRead={markAllAsRead}
-        lexendSmall={lexendSmall}
-        lexendBold={lexendBold}
+   
       />
     </>
   );

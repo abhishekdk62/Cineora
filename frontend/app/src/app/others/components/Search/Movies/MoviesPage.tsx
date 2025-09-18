@@ -22,6 +22,17 @@ interface Movie {
   language: string;
   isActive: boolean;
 }
+interface MovieFilters {
+  genre?: string;
+  rating?: string;
+  language?: string;
+  releaseYearStart?: number;
+  releaseYearEnd?: number;
+  minDuration?: number;
+  maxDuration?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
 
 interface MoviesPageProps {
   movies: MovieResponseDto[];
@@ -31,7 +42,7 @@ interface MoviesPageProps {
   currentPage: number;
   onPageChange: (page: number) => void;
   onSearchChange: (search: string) => void; 
-  onFiltersChange: (filters: any) => void;
+  onFiltersChange: (filters: MovieFilters) => void;
 }
 
 export default function MoviesPage({
@@ -65,6 +76,7 @@ export default function MoviesPage({
     { value: "rating", label: "Rating" },
   ];
 
+
   const languageMap: { [key: string]: string } = {
     "en": "English",
     "es": "Spanish",
@@ -93,7 +105,7 @@ export default function MoviesPage({
   };
 
   useEffect(() => {
-    const filters: any = {};
+    const filters: MovieFilters = {};
 
     if (selectedGenre !== "all") filters.genre = selectedGenre;
     if (selectedRating !== "all") filters.rating = selectedRating;

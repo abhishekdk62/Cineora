@@ -1,6 +1,7 @@
 import React from "react";
 import { Lexend } from "next/font/google";
 import { UseFormRegister, FieldErrors } from 'react-hook-form';
+import { Movie } from "./AddMovieModal";
 
 const lexendSmall = Lexend({
   weight: "300",
@@ -8,9 +9,9 @@ const lexendSmall = Lexend({
 });
 
 interface MovieFormFieldsProps {
-  register: UseFormRegister<any>;
-  errors: FieldErrors<any>;
-  watchedValues: any;
+  register: UseFormRegister<Movie>;
+  errors: FieldErrors<Movie>;
+  watchedValues: Movie;
 }
 
 const MovieFormFields: React.FC<MovieFormFieldsProps> = ({

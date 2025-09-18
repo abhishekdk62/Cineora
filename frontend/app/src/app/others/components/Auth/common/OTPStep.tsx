@@ -1,4 +1,5 @@
 "use client";
+import { lexendSmall } from "@/app/others/Utils/fonts";
 import React, { useRef, useState, useEffect } from "react";
 
 export default function OTPStep({
@@ -9,8 +10,7 @@ export default function OTPStep({
   error,
   onSubmit,
   onResend,
-  lexend,
-  lexendSmall,
+  
   resendLoading = false, 
 }: {
   email: string;
@@ -20,8 +20,7 @@ export default function OTPStep({
   error: string;
   onSubmit: (e: React.FormEvent) => void;
   onResend: () => void;
-  lexend: any;
-  lexendSmall: any;
+
   resendLoading?: boolean; 
 }) {
   const inputs = useRef<HTMLInputElement[]>([]);
@@ -84,7 +83,7 @@ export default function OTPStep({
   return (
     <div>
       <div className="text-center mb-6">
-        <h2 className={`${lexend.className} text-2xl text-white mb-2`}>
+        <h2 className={`${lexendSmall.className} text-2xl text-white mb-2`}>
           Verify Your Email
         </h2>
         <p className={`${lexendSmall.className} text-gray-300`}>

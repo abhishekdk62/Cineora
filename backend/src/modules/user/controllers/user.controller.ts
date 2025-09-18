@@ -1,15 +1,18 @@
+
 import { Request, Response, NextFunction } from "express";
 import { createResponse } from "../../../utils/createResponse";
 import {
   ChangePasswordDto,
   GetUsersFilterDto,
   GetUsersResponseDto,
+  LocationData,
   ResendOTPDto,
   SendEmailChangeOTPDto,
   SendEmailChangeOTPResponseDto,
   SignupDto,
   SignupResponseDto,
   UpdateProfileDto,
+  UpdateUserProfileDto,
   UserCountsResponseDto,
   UserResponseDto,
   VerifyEmailChangeOTPDto,
@@ -23,6 +26,7 @@ import { IAuthService } from "../../auth/interfaces/auth.service.interface";
 import { IWalletService } from "../../wallet/interfaces/wallet.service.interface";
 import { StatusCodes } from "../../../utils/statuscodes";
 import { USER_MESSAGES } from "../../../utils/messages.constants";
+import { IUser } from "../interfaces/user.model.interface";
 
 interface AuthenticatedRequest extends Request {
   user?: { id: string; _id?: string };
@@ -539,7 +543,7 @@ export class UserController {
     return null;
   }
 
-  private _prepareLocationData(longitude: number, latitude: number): any {
+  private _prepareLocationData(longitude: number, latitude: number): Partial<UpdateUserProfileDto> {
     return {
       location: {
         type: "Point",
@@ -565,7 +569,7 @@ export class UserController {
     }
   }
 
-  private async _handleTokenGeneration(res: Response, user: any, resultData: any): Promise<void> {
+  private async _handleTokenGeneration(res: Response, user: IUser, resultData: any): Promise<void> {
     try {
       const { accessToken, refreshToken } = this.authService.generateTokenPair(user, "user");
       await this.authService.storeRefreshToken(String(user._id), refreshToken, "user");

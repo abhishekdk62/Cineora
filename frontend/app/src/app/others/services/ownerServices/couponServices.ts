@@ -37,3 +37,8 @@ export const deleteCoupon = async (couponId: string): Promise<DeleteCouponRespon
   const data = await apiClient.delete(`${OWNER_COUPON.DELETE}/${couponId}`);
   return data.data;
 };
+export const toggleStatusCoupon=async(couponId:String,params: UpdateCouponRequestDto):Promise<CreateCouponResponseDto>=>{
+
+  return (await apiClient.patch(`${OWNER_COUPON.TOGGLE_STATUS}/${couponId}`,params)).data
+
+}

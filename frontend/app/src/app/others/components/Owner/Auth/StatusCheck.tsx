@@ -16,7 +16,7 @@ const lexendSmall = Lexend({
 export default function KYCStatusCheck() {
   const [requestId, setRequestId] = useState("");
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<any>(null);
+  const [status, setStatus] = useState<string>(null);
   const [error, setError] = useState("");
 
   const handleCheckStatus = async (e: React.FormEvent) => {
@@ -33,7 +33,7 @@ export default function KYCStatusCheck() {
       } else {
         setError(result.message);
       }
-    } catch (error: any) {
+    } catch (error: string) {
       setError(error.response?.data?.message || "Failed to check status");
     } finally {
       setLoading(false);

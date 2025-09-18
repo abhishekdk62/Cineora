@@ -52,7 +52,7 @@ import { BookingService } from "./modules/bookings/services/bookings.service";
 import { TicketController } from "./modules/tickets/controllers/ticket.controller";
 import { WalletService } from "./modules/wallet/services/wallet.service";
 import { WalletRepository } from "./modules/wallet/repositories/wallet.repository";
-import { WalletController } from "./modules/wallet/controllers/wallet.controller";
+import { WalletController } from "./modules/wallet/dtos/controllers/wallet.controller";
 import { PaymentController } from "./modules/payment/controllers/payment.controller";
 import { PaymentService } from "./modules/payment/services/payment.service";
 import { PaymentRepository } from "./modules/payment/repositories/payment.repository";
@@ -241,6 +241,7 @@ export class App {
     const walletTransactionController = new WalletTransactionController(
       walletTransactionService
     );
+
     const analyticsController = new AnalyticsController(analyticsService);
     const adminAnalyticsController = new AdminAnalyticsController(
       adminAnalyticsService
@@ -266,7 +267,9 @@ export class App {
       showtimeController,
       theaterController,
       walletController,
-      walletTransactionController
+      walletTransactionController,
+      couponController,
+      bookingController
     );
 
     const userRoutes = new UserRoutes(

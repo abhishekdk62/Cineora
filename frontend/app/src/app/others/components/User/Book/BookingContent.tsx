@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import { UnifiedBookingEntity } from "@/app/book/[id]/page";
 import MoviesListBook from "@/app/others/components/User/Book/MoviesListBook";
 import TheatersListBook from "@/app/others/components/User/Book/TheatersListBook";
 import EmptyState from "./EmptyState";
+import { UnifiedBookingEntity } from "@/app/others/types";
 
 interface BookingContentProps {
   bookingFlow: 'movie-first' | 'theater-first' | null;

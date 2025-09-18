@@ -2,6 +2,7 @@ import * as bcrypt from "bcryptjs";
 import { IEmailService } from "../../../services/email.service";
 import { config } from "../../../config";
 import {
+  GetUsersFilterDto,
   GetUsersResponseDto,
   SendEmailChangeOTPResponseDto,
   SignupDto,
@@ -25,6 +26,7 @@ import {
   uploadToCloudinary,
 } from "../../../utils/cloudinaryUtil";
 import { UserDto, UserMapper } from "../../../mappers/user.mapper";
+import { IUser } from "../interfaces/user.model.interface";
 
 export class UserService implements IUserService {
   constructor(
@@ -582,7 +584,7 @@ let users=nearbyUsers.map((user)=>UserMapper.toDto(user))
     }
   }
 
-  async getUsers(filters: any): Promise<ApiResponse<GetUsersResponseDto>> {
+  async getUsers(filters: GetUsersFilterDto): Promise<ApiResponse<GetUsersResponseDto>> {
     try {
       const {
         search,
@@ -614,7 +616,7 @@ let users=nearbyUsers.map((user)=>UserMapper.toDto(user))
 
       if (isVerified !== undefined) {
         result.users = result.users.filter(
-          (user: any) => user.isVerified === isVerified
+          (user: IUser) => user.isVerified === isVerified
         );
       }
 
@@ -623,7 +625,7 @@ let users=nearbyUsers.map((user)=>UserMapper.toDto(user))
       }
 
       result.users = this._processUserProfilePictures(result.users);
-const userDtos = result.users.map((user: any) => UserMapper.toDto(user));
+const userDtos = result.users.map((user: IUser) => UserMapper.toDto(user));
 
       return createResponse({
         success: true,
@@ -793,9 +795,9 @@ const userDtos = result.users.map((user: any) => UserMapper.toDto(user));
     return null;
   }
 
-  private _filterUsersBySearch(users: any[], search: string): any[] {
+  private _filterUsersBySearch(users: IUser[], search: string): IUser[] {
     return users.filter(
-      (user: any) =>
+      (user: IUser) =>
         user.username.toLowerCase().includes(search.toLowerCase()) ||
         user.email.toLowerCase().includes(search.toLowerCase()) ||
         (user.firstName &&
@@ -805,8 +807,8 @@ const userDtos = result.users.map((user: any) => UserMapper.toDto(user));
     );
   }
 
-  private _sortUsers(users: any[], sortBy: string, sortOrder: string): any[] {
-    return users.sort((a: any, b: any) => {
+  private _sortUsers(users: IUser[], sortBy: string, sortOrder: string): IUser[] {
+    return users.sort((a: IUser, b: IUser) => {
       let aValue = a[sortBy];
       let bValue = b[sortBy];
 
@@ -826,8 +828,8 @@ const userDtos = result.users.map((user: any) => UserMapper.toDto(user));
     });
   }
 
-  private _processUserProfilePictures(users: any[]): any[] {
-    return users.map((user) => {
+  private _processUserProfilePictures(users: IUser[]): any[] {
+    return users.map((user:IUser) => {
       return {
         ...user,
         profilePicture: user.profilePicture

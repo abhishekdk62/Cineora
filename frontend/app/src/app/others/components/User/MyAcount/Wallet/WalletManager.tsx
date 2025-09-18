@@ -133,7 +133,7 @@ const WalletPage: React.FC = () => {
         name: 'Wallet Top-up',
         description: 'Add money to wallet',
         order_id: orderId,
-        handler: async (response: any) => {
+        handler: async (response: {razorpay_payment_id:string;razorpay_order_id:string;razorpay_signature:string}) => {
           try {
             isPaymentProcessing = true;
             console.log('Payment successful:', response);
@@ -206,7 +206,7 @@ const WalletPage: React.FC = () => {
 
       const razorpayInstance = new window.Razorpay(options);
 
-      razorpayInstance.on('payment.failed', function (response: any) {
+      razorpayInstance.on('payment.failed', function (response: {error:unknown;}) {
         isPaymentProcessing = true;
         console.error('Payment failed:', response.error);
         razorpayInstance.close();

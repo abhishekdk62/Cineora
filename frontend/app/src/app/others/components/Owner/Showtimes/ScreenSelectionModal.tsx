@@ -17,7 +17,7 @@ interface Theater {
 interface Layout {
   rows: number;
   seatsPerRow: number;
-  advancedLayout: any;
+  advancedLayout: string;
 }
 
 export interface Screen {
@@ -36,8 +36,8 @@ interface ScreenSelectionModalProps {
   theaterId: string;
   onSelect: (screen: Screen) => void;
   onClose: () => void;
-  lexendMedium: any;
-  lexendSmall: any;
+  lexendMedium: string;
+  lexendSmall: string;
 }
 
 const ScreenSelectionModal: React.FC<ScreenSelectionModalProps> = ({

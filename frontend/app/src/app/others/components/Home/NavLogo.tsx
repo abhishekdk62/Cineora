@@ -2,12 +2,10 @@
 import React from "react";
 import { Ticket } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { lexendBold } from "../../Utils/fonts";
 
-interface NavLogoProps {
-  lexendBold: any;
-}
 
-export default function NavLogo({ lexendBold }: NavLogoProps) {
+export default function NavLogo() {
   const router = useRouter();
 
   return (

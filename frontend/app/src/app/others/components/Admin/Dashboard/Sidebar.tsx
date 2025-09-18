@@ -52,7 +52,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: "analytics", label: "Analytics", icon: BarChart3 },
     { id: "wallet", label: "Wallet", icon: Wallet },
     { id: "bookings", label: "Bookings", icon: Calendar, count: 89 },
-    { id: "coupons", label: "Coupons", icon: Ticket, count: 5 },
+    { id: "coupon", label: "Coupons", icon: Ticket, count: 5 },
   ];
 
   const dispatch = useDispatch<AppDispatch>();

@@ -4,15 +4,17 @@ import {
   GetMoviesWithFiltersQueryDto,
   GetMoviesResponseDto,
   GetMoviesWithFiltersResponseDto,
-  GetMoviesByTheaterResponseDto
+  GetMoviesByTheaterResponseDto,
+  GetMovieResponseDto,
+  MovieResponseDto
 } from '../../dtos/movie.dto';
 
-export const getMovieById = async (id: string): Promise<GetMoviesResponseDto> => {
+export const getMovieById = async (id: string): Promise<GetMovieResponseDto> => {
   const response = await apiClient.get(COMMON_MOVIES.BY_ID(id));
   return response.data;
 };
 
-export const getMoviesWithFilters = async (filters: GetMoviesWithFiltersQueryDto): Promise<GetMoviesWithFiltersResponseDto> => {
+export const getMoviesWithFilters = async (filters: GetMoviesWithFiltersQueryDto): Promise<{data:MovieResponseDto[]}> => {
   const params = new URLSearchParams();
 
   Object.entries(filters).forEach(([key, value]) => {

@@ -9,7 +9,7 @@ import {
   AcceptOwnerRequestResponseDto,
   RejectOwnerRequestResponseDto,
   RejectOwnerRequestDto,
-  ToggleOwnerStatusResponseDto
+  ToggleOwnerStatusResponseDto,
 } from '../../dtos/owner.dto';
 
 const buildQuery = (params: Record<string, any>): string => {

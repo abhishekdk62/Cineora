@@ -4,6 +4,7 @@ import {
   verifyOTP,
 } from "../../services/userServices/authServices";
 import { googleAuth, logout } from "../../services/authServices/authService";
+import { AxiosError } from "axios";
 
 interface User {
   user: string;
@@ -50,18 +51,21 @@ export const verifyOtp = createAsyncThunk(
       } else {
         return rejectWithValue(result.message);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       let errorMessage = "OTP verification failed";
+if(error instanceof AxiosError)
+{
 
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.response?.status === 401) {
-        errorMessage = "Invalid OTP";
-      } else if (error.response?.status >= 500) {
-        errorMessage = "Server error. Please try again later.";
-      } else if (error.request) {
-        errorMessage = "Network error. Please check your connection.";
-      }
+  if (error.response?.data?.message) {
+    errorMessage = error.response.data.message;
+  } else if (error.response?.status === 401) {
+    errorMessage = "Invalid OTP";
+  } else if (error.response?.status&&error.response?.status >= 500) {
+    errorMessage = "Server error. Please try again later.";
+  } else if (error.request) {
+    errorMessage = "Network error. Please check your connection.";
+  }
+}
 
       return rejectWithValue(errorMessage);
     }
@@ -86,19 +90,20 @@ export const loginUser = createAsyncThunk(
       } else {
         return rejectWithValue(result.message);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       let errorMessage = "Login failed";
-
+if(error instanceof AxiosError)
+{
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.status === 401) {
         errorMessage = "Invalid email or password";
-      } else if (error.response?.status >= 500) {
+      } else if (error.response?.status&&error.response?.status >= 500) {
         errorMessage = "Server error. Please try again later.";
       } else if (error.request) {
         errorMessage = "Network error. Please check your connection.";
       }
-
+    }
       return rejectWithValue(errorMessage);
     }
   }
@@ -122,16 +127,19 @@ export const googleLogin = createAsyncThunk(
           result.message || "Google authentication failed"
         );
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      if(error instanceof AxiosError)
+{
       let errorMessage = "Google Sign-In failed";
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
-      } else if (error.response?.status >= 500) {
+      } else if (error.response?.status&&error.response?.status >= 500) {
         errorMessage = "Server error. Please try again later.";
       } else if (error.request) {
         errorMessage = "Network error. Please check your connection.";
       }
       return rejectWithValue(errorMessage);
+    }
     }
   }
 );
@@ -186,6 +194,8 @@ const authSlice = createSlice({
       state.error = null;
     },
     clearUser: (state) => {
+        state.loading = false;
+
       state.user = null;
       state.role = null;
       state.isAuthenticated = false;
@@ -230,8 +240,8 @@ const authSlice = createSlice({
       })
       .addCase(googleLogin.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload.user;
-        state.role = action.payload.role;
+        state.user = action.payload&&action.payload.user;
+        state.role = action.payload&&action.payload.role;
         state.isAuthenticated = true;
         state.error = null;
       })
@@ -258,6 +268,8 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(logoutUser.fulfilled, (state) => {
+        state.loading = false;
+
         state.user = null;
         state.role = null;
         state.isAuthenticated = false;

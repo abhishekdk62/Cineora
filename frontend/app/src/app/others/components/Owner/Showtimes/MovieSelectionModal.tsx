@@ -6,6 +6,7 @@ import React, { useState, useEffect } from "react";
 import { X, Search, Film, Calendar, Clock, ChevronRight } from "lucide-react";
 import { getMoviesForShowtime } from "@/app/others/services/ownerServices/movieservices";
 import MovieDetailsModal from "./MovieDetailsModal"; 
+import { lexendMedium, lexendSmall } from "@/app/others/Utils/fonts";
 
 interface Movie {
   _id: string;
@@ -27,15 +28,11 @@ interface Movie {
 interface MovieSelectionModalProps {
   onSelect: (movie: Movie) => void;
   onClose: () => void;
-  lexendMedium: any;
-  lexendSmall: any;
 }
 
 const MovieSelectionModal: React.FC<MovieSelectionModalProps> = ({
   onSelect,
   onClose,
-  lexendMedium,
-  lexendSmall,
 }) => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [searchTerm, setSearchTerm] = useState("");

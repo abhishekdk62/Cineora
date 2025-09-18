@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { cancelSingleTicket } from '@/app/others/services/userServices/ticketServices';
 import toast from 'react-hot-toast';
+import { TicketData } from './TicketsList';
 
 const lexendMedium = { className: "font-medium" };
 const lexendSmall = { className: "font-normal text-sm" };
@@ -31,7 +32,7 @@ const SingleTicketCancellationModal: React.FC<SingleTicketCancellationModalProps
   // Calculate pricing for selected tickets
   const calculateSelectedAmount = () => {
     return selectedTickets.reduce((total, ticketId) => {
-      const ticket = allTickets.find((t: any) => t._id === ticketId);
+      const ticket = allTickets.find((t: TicketData) => t._id === ticketId);
       if (ticket) {
         const basePrice = ticket.price;
         const tax = basePrice * 0.18;
@@ -54,7 +55,7 @@ const SingleTicketCancellationModal: React.FC<SingleTicketCancellationModalProps
     if (selectedTickets.length === allTickets.length) {
       setSelectedTickets([]);
     } else {
-      setSelectedTickets(allTickets.map((t: any) => t._id));
+      setSelectedTickets(allTickets.map((t: TicketData) => t._id));
     }
   };
 
@@ -76,9 +77,9 @@ const SingleTicketCancellationModal: React.FC<SingleTicketCancellationModalProps
       toast.success(`${selectedTickets.length} ticket(s) cancelled successfully`);
       onSuccess();
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Cancellation failed:', error);
-      toast.error(error.message || 'Failed to cancel tickets');
+      toast.error( 'Failed to cancel tickets');
     } finally {
       setCancelling(false);
     }
@@ -119,7 +120,7 @@ const SingleTicketCancellationModal: React.FC<SingleTicketCancellationModalProps
 
             {/* Individual Tickets */}
             <div className="space-y-3">
-              {allTickets.map((ticket: any) => {
+              {allTickets.map((ticket: TicketData) => {
                 const basePrice = ticket.price;
                 const tax = basePrice * 0.18;
                 const convenience = basePrice * 0.05;

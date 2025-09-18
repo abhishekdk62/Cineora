@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { Request, Response } from "express";
 import { IAdminAnalyticsService } from "../interfaces/adminAnalytics.service.interface";
 import { ANALYTICS_MESSAGES } from "../../../utils/messages.constants";

@@ -14,6 +14,9 @@ import { getShowTimeUser } from "@/app/others/services/userServices/showTimeServ
 import { applyCoupon, calculateTotalAmount, removeCoupon, setBookingData } from "@/app/others/redux/slices/bookingSlice";
 import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
 import { getCouponsByTheaterId } from "@/app/others/services/userServices/couponServices";
+import { BookingState, CouponData, RowPricing, SeatBreakdownItem, ShowTimeData } from "@/app/others/types";
+import { RowPricingDto, ShowtimeResponseDto } from "@/app/others/dtos";
+import { CouponResponseDto } from "@/app/others/dtos/coupon.dto";
 
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
 
@@ -22,13 +25,13 @@ export default function PaymentPage() {
   const router = useRouter();
   const dispatch = useDispatch();
   const showtimeId = params?.showtimeId as string;
-  const bookingDatasRedux = useSelector((state: any) => state.booking.bookingData);
-  const [showTimeData, setShowTimeData] = useState<any>(null);
+  const bookingDatasRedux = useSelector((state: { booking: BookingState }) => state.booking.bookingData);
+  const [showTimeData, setShowTimeData] = useState<ShowtimeResponseDto|null>(null);
   const [loading, setLoading] = useState(true);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [seatIdsUpdated, setSeatIdsUpdated] = useState(false);
-  const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
-  const [selectedCoupon, setSelectedCoupon] = useState<any>(null);
+  const [availableCoupons, setAvailableCoupons] = useState<CouponResponseDto[]>([]);
+  const [selectedCoupon, setSelectedCoupon] = useState<CouponResponseDto|null>(null);
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [showCouponsModal, setShowCouponsModal] = useState(false);
 
@@ -38,7 +41,10 @@ export default function PaymentPage() {
 
       try {
         const result = await getShowTimeUser(bookingDatasRedux.showtimeId);
-        setShowTimeData(result.data);
+        if(result.data)
+        {
+          setShowTimeData(result.data);
+        }
         setLoading(false);
       } catch (error) {
         console.log(error);
@@ -61,7 +67,7 @@ export default function PaymentPage() {
     }
 
     const rowLabel = seatId.charAt(0);
-    const rowPricing = showTimeData.rowPricing.find((rp: any) => rp.rowLabel === rowLabel);
+    const rowPricing = showTimeData.rowPricing.find((rp: RowPricingDto) => rp.rowLabel === rowLabel);
 
     if (rowPricing) {
       return {
@@ -73,12 +79,12 @@ export default function PaymentPage() {
     }
   }, [showTimeData?.rowPricing]);
 
-  const getSeatIds = useCallback((seatId: string): { id: string } => {
+  const getSeatIds = useCallback((seatId: string): { id: string|undefined } => {
     if (!showTimeData?.rowPricing) {
       return { id: 'unknown' };
     }
     const rowLabel = seatId.charAt(0);
-    const rowPricing = showTimeData.rowPricing.find((rp: any) => rp.rowLabel === rowLabel);
+    const rowPricing = showTimeData.rowPricing.find((rp: RowPricingDto) => rp.rowLabel === rowLabel);
     return rowPricing ? { id: rowPricing._id } : { id: 'unknown' };
   }, [showTimeData?.rowPricing]);
 
@@ -87,7 +93,7 @@ export default function PaymentPage() {
       return { breakdown: [], selectedRowIds: [] };
     }
 
-    const breakdown: any[] = [];
+    const breakdown: SeatBreakdownItem[] = [];
     const selectedRowIds: string[] = [];
 
     bookingDatasRedux.selectedSeats.forEach((seatId: string) => {
@@ -103,8 +109,11 @@ export default function PaymentPage() {
         seats: [seatId],
         seatId: seatId,
       });
+if(seatIdObj.id)
+{
 
-      selectedRowIds.push(seatIdObj.id);
+  selectedRowIds.push(seatIdObj.id);
+}
     });
 
     return { breakdown, selectedRowIds };
@@ -154,49 +163,84 @@ const paymentData = useMemo(() => {
     }));
   }
 
-  // Use Redux calculated values instead of local calculations
-  return {
-    movieTitle: showTimeData.movieId?.title || "Movie Title",
-    moviePoster: showTimeData.movieId?.poster,
-    movieRating: showTimeData.movieId?.rating || 0,
-    theaterName: showTimeData.theaterId?.name || "Theater Name",
-    screenName: `Screen ${showTimeData.screenId?.name || showTimeData.screenId || 1}`,
-    showDate: new Date(showTimeData.showDate).toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
-    }),
-    showTime: showTimeData.showTime || "Show Time",
-    format: showTimeData.format || "2D",
-    language: showTimeData.language || "English",
-    selectedSeats: bookingDatasRedux.selectedSeats,
-    seatBreakdown: finalSeatBreakdown,
-    
-    // Use Redux state values (these include coupon discounts)
-    subtotal: bookingDatasRedux.priceDetails?.subtotal || 0,
-    convenienceFee: bookingDatasRedux.priceDetails?.convenienceFee || 0,
-    taxes: bookingDatasRedux.priceDetails?.taxes || 0,
-    discount: bookingDatasRedux.priceDetails?.discount || 0, // This will have coupon discount
-    total: bookingDatasRedux.priceDetails?.total || 0, // This will be reduced by coupon
-    savings: bookingDatasRedux.priceDetails?.discount || 0,
-    
-    selectedCoupon: bookingDatasRedux.appliedCoupon || selectedCoupon,
-    availableCoupons: availableCoupons
-  };
+return {
+  // ✅ FIX: Handle movieId union type (string | object)
+  movieTitle: (typeof showTimeData.movieId === 'object' && showTimeData.movieId?.title) 
+    ? showTimeData.movieId.title 
+    : "Movie Title",
+  
+  moviePoster: (typeof showTimeData.movieId === 'object' && showTimeData.movieId?.poster) 
+    ? showTimeData.movieId.poster 
+    : undefined,
+  
+  movieRating: (typeof showTimeData.movieId === 'object' && showTimeData.movieId?.rating) 
+    ? showTimeData.movieId.rating 
+    : "0", 
+  
+  theaterName: (typeof showTimeData.theaterId === 'object' && showTimeData.theaterId?.name) 
+    ? showTimeData.theaterId.name 
+    : "Theater Name",
+  
+  // ✅ FIX: Handle screenId union type (string | object)
+  screenName: (() => {
+    if (typeof showTimeData.screenId === 'object' && showTimeData.screenId?.name) {
+      return `Screen ${showTimeData.screenId.name}`;
+    } else if (typeof showTimeData.screenId === 'string') {
+      return `Screen ${showTimeData.screenId}`;
+    } else {
+      return `Screen 1`;
+    }
+  })(),
+  
+  // ✅ FIX: Handle showDate which might be undefined
+  showDate: showTimeData.showDate 
+    ? new Date(showTimeData.showDate).toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+      })
+    : new Date().toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+      }),
+  
+  showTime: showTimeData.showTime || "Show Time",
+  format: showTimeData.format || "2D",
+  language: showTimeData.language || "English",
+  selectedSeats: bookingDatasRedux.selectedSeats,
+  seatBreakdown: finalSeatBreakdown,
+  
+  // Use Redux state values (these include coupon discounts)
+  subtotal: bookingDatasRedux.priceDetails?.subtotal || 0,
+  convenienceFee: bookingDatasRedux.priceDetails?.convenienceFee || 0,
+  taxes: bookingDatasRedux.priceDetails?.taxes || 0,
+  discount: bookingDatasRedux.priceDetails?.discount || 0,
+  total: bookingDatasRedux.priceDetails?.total || 0,
+  savings: bookingDatasRedux.priceDetails?.discount || 0,
+  
+  selectedCoupon: bookingDatasRedux.appliedCoupon || selectedCoupon,
+  availableCoupons: availableCoupons
+};
+
 }, [bookingDatasRedux, showTimeData, seatBreakdown.breakdown, selectedCoupon, availableCoupons]);
 
   const handleBack = useCallback(() => {
     router.back();
   }, [router]);
-  const handleSelectCoupon = useCallback((coupon: any) => {
+  const handleSelectCoupon = useCallback((coupon: CouponResponseDto) => {
     setSelectedCoupon(coupon);
-  const discount = Math.round(paymentData.subtotal * (coupon.discountPercentage / 100));
-    setCouponDiscount(discount);
-      dispatch(applyCoupon({
-    coupon: coupon,
-    discountAmount: discount
-  }));
-  
+    if(paymentData)
+    {
+      
+      const discount = Math.round(paymentData.subtotal * (coupon.discountPercentage / 100));
+        setCouponDiscount(discount);
+          dispatch(applyCoupon({
+        coupon: coupon,
+        discountAmount: discount
+      }));
+      
+    }
 
     setShowCouponsModal(false);
   }, [paymentData?.subtotal,dispatch]);

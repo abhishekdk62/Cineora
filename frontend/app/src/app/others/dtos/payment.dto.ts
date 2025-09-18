@@ -2,7 +2,6 @@ import { ApiResponse, PaginationQuery } from './common.dto';
 
 export interface TransactionDetailsDto {
   gatewayTransactionId?: string;
-  gatewayResponse?: any;
   failureReason?: string;
   processingTime?: number;
 }

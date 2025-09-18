@@ -2,7 +2,9 @@
 
 import React from "react";
 import { Lexend } from "next/font/google";
-import { UnifiedBookingEntity } from "@/app/book/[id]/page";
+import { UnifiedBookingEntity } from "@/app/others/types";
+import { Theater } from "@/app/others/services/userServices/interfaces";
+import { TheaterResponse } from "@/app/others/dtos";
 
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
 const lexendBold = Lexend({ weight: "700", subsets: ["latin"] });
@@ -26,7 +28,7 @@ export default function BookingHeader({
     return `${hours}h ${mins}m`;
   };
 
-  const formatLocation = (theaterData: any): string => {
+  const formatLocation = (theaterData: Theater): string => {
     if (theaterData?.theaterLocation?.coordinates) {
       const [lng, lat] = theaterData.theaterLocation.coordinates;
       return `${lat.toFixed(3)}, ${lng.toFixed(3)}`;

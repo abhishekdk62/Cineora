@@ -45,6 +45,7 @@ export interface CreateBookingDto {
     discount?: number;
     total: number;
   };
+  totalAmount:number;
   showDate: string;
   showTime: string;
   amount: number;

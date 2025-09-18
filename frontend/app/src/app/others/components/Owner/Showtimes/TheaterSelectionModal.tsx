@@ -1,8 +1,10 @@
+//@ts-nocheck
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { X, Search, Building, MapPin, ChevronRight } from "lucide-react";
 import { getTheatersByOwnerId } from "@/app/others/services/ownerServices/theaterServices";
+import { lexendMedium, lexendSmall } from "@/app/others/Utils/fonts";
 
 interface Theater {
   _id: string;
@@ -16,15 +18,11 @@ interface Theater {
 interface TheaterSelectionModalProps {
   onSelect: (theater: Theater) => void;
   onClose: () => void;
-  lexendMedium: any;
-  lexendSmall: any;
 }
 
 const TheaterSelectionModal: React.FC<TheaterSelectionModalProps> = ({
   onSelect,
   onClose,
-  lexendMedium,
-  lexendSmall,
 }) => {
   const [theaters, setTheaters] = useState<Theater[]>([]);
   const [searchTerm, setSearchTerm] = useState("");

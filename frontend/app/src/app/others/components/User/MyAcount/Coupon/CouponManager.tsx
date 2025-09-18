@@ -19,7 +19,7 @@ const CouponManager: React.FC = () => {
     setError(null);
     const query: GetCouponsQueryDto = { page: pageNumber, limit };
     try {
-      const response: GetCouponsResponseDto = await getAllCoupons(query);
+      const response = await getAllCoupons(query);
       console.log(response);
       
       setCoupons(response.data.data);

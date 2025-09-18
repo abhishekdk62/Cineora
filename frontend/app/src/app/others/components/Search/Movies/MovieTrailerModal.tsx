@@ -1,10 +1,12 @@
+import { MovieResponseDto } from "@/app/others/dtos";
+
 interface Movie {
   title: string;
   trailer: string;
 }
 
 interface MovieTrailerModalProps {
-  movie: Movie;
+  movie: MovieResponseDto;
   showTrailer: boolean;
   onClose: () => void;
 }

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Lexend } from "next/font/google";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { MovieFilters } from "./MoviesManager";
-import { Movie } from "./MoviesList";
+import { Movie, MovieFilterValue } from "./MoviesList";
 import { MovieResponseDto } from "@/app/others/dtos";
 
 const lexendSmall = Lexend({
@@ -17,7 +17,7 @@ const lexendSmallStyle = { fontFamily: 'Lexend', fontWeight: '400' };
 interface MoviesSearchFilterProps {
   localFilters: MovieFilters;
   allMovies: MovieResponseDto[];
-  onFilterChange: (key: keyof MovieFilters, value: any) => void;
+  onFilterChange: (key: keyof MovieFilters, value: MovieFilterValue) => void;
   onClearAllFilters: () => void;
   activeFilterCount: number;
 }

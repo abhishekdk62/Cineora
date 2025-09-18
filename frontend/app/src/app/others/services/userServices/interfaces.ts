@@ -7,6 +7,10 @@ export interface Theater {
   location: {
     coordinates: [number, number];
   };
+  theaterLocation?: {
+    coordinates: [number, number];
+  };
+  address?:string;
   rating: number;
   facilities: string[];
   distance?: string;
@@ -41,7 +45,7 @@ export interface PaymentVerificationData {
   razorpay_payment_id: string;
   razorpay_order_id: string;
   razorpay_signature: string;
-  bookingData?: any;
+  bookingData?: CreateOrderResponse;
 }
 
 export interface CreateOrderResponse {

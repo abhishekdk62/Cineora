@@ -4,6 +4,7 @@ import { Calendar, ChevronDown, ChevronUp } from "lucide-react";
 import { IShowtime } from "./showtime.interfaces";
 import ShowtimeCard from "./ShowtimeCard";
 import { ShowtimeResponseDto } from "@/app/others/dtos";
+import { lexendMedium, lexendSmall } from "@/app/others/Utils/fonts";
 
 interface ShowtimeGridProps {
   groupedShowtimes: Record<string, ShowtimeResponseDto[]>;
@@ -13,8 +14,7 @@ interface ShowtimeGridProps {
   onEdit: (showtime: ShowtimeResponseDto) => void;
   onView: (showtime: ShowtimeResponseDto) => void;
   onToggleStatus: (showtimeId: string, isActive: boolean) => void;
-  lexendMedium: any;
-  lexendSmall: any;
+
 }
 
 const ShowtimeGrid: React.FC<ShowtimeGridProps> = ({
@@ -25,8 +25,7 @@ const ShowtimeGrid: React.FC<ShowtimeGridProps> = ({
   onEdit,
   onView,
   onToggleStatus,
-  lexendMedium,
-  lexendSmall
+
 }) => {
   if (Object.keys(groupedShowtimes).length === 0) {
     return (
@@ -77,8 +76,6 @@ const ShowtimeGrid: React.FC<ShowtimeGridProps> = ({
                     onEdit={onEdit}
                     onView={onView}
                     onToggleStatus={onToggleStatus}
-                    lexendMedium={lexendMedium}
-                    lexendSmall={lexendSmall}
                   />
                 ))}
               </div>

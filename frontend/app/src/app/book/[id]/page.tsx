@@ -1,4 +1,3 @@
-// @ts-nocheck
 
 "use client";
 
@@ -14,97 +13,8 @@ import EmptyState from "@/app/others/components/User/Book/EmptyState";
 import BookingHeader from "@/app/others/components/User/Book/BookingHeader";
 import DateSelector from "@/app/others/components/User/Book/DateSelector";
 import BookingContent from "@/app/others/components/User/Book/BookingContent";
-export interface UnifiedBookingEntity {
-  _id: string;
-  title?: string;
-  poster?: string;
-  duration?: number;
-  rating?: string;
-  genre?: string[];
-  name?: string;
-  language?: string;
-  format?: string;
-  showTime?: string;
-  theaterName?: string;
-  location?: {
-    coordinates: [string, string]
-  }
-  theaterLocation?: { coordinates: [number, number]; type: string };
-  distance?: string;
-  amenities?: string[];
-  city?: string;
-  state?: string;
-  screens?: number;
-  movieId?: {
-    _id: string;
-    title: string;
-    poster: string;
-    duration: number;
-    rating: string;
-    genre: string[];
-    language: string;
-    description?: string;
-    director?: string;
-    cast?: string[];
-    releaseDate?: string;
-    tmdbId?: string;
-    trailer?: string;
-  };
-  screenId?: {
-    _id: string;
-    name: string;
-    screenType?: string;
-    totalSeats: number;
-    theaterId: string;
-    features?: string[];
-    layout?: any;
-  };
-  rowPricing?: {
-    rowLabel: string;
-    seatType: string;
-    basePrice: number;
-    showtimePrice: number;
-    totalSeats: number;
-    availableSeats: number;
-    bookedSeats: any[];
-    _id: string;
-  }[];
-  availableSeats?: number;
-  totalSeats?: number;
-  blockedSeats?: any[];
-  bookedSeats?: any[];
-  theaterId?: string;
-  ownerId?: string;
-  showDate?: string;
-  endTime?: string;
-  isActive?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-  showtimes?: {
-    _id?: string;
-    showtimeId?: string;
-    time?: string;
-    showTime?: string;
-    endTime?: string;
-    format?: string;
-    language?: string;
-    screenName?: string;
-    screenType?: string;
-    availableSeats?: number;
-    totalSeats?: number;
-    price?: number;
-    rowPricing?: {
-      rowLabel: string;
-      seatType: string;
-      basePrice: number;
-      showtimePrice: number;
-      totalSeats: number;
-      availableSeats: number;
-      bookedSeats: any[];
-      _id: string;
-    }[];
-  }[];
-}
+import { UnifiedBookingEntity } from "@/app/others/types";
+
 export default function BookTicketsPage() {
   const params = useParams();
   const router = useRouter();

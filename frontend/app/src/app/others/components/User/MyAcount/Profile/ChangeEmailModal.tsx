@@ -7,6 +7,7 @@ import {
   verifyEmailChangeOtp,
 } from "@/app/others/services/userServices/authServices";
 import toast from "react-hot-toast";
+import { AxiosError } from "axios";
 
 const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
@@ -128,10 +129,10 @@ const ChangeEmailModal = ({ currentEmail, onClose }: ChangeEmailModalProps) => {
           result.message || "Failed to send OTP. Please try again."
         );
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Send OTP error:", error);
       setEmailError(
-        error.response.data.message || "Failed to send OTP. Please try again."
+         "Failed to send OTP. Please try again."
       );
     } finally {
       setEmailLoading(false);
@@ -161,10 +162,10 @@ const ChangeEmailModal = ({ currentEmail, onClose }: ChangeEmailModalProps) => {
           result.message || "Failed to resend OTP. Please try again."
         );
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Resend OTP error:", error);
       setEmailError(
-        error?.message || "Failed to resend OTP. Please try again."
+        "Failed to resend OTP. Please try again."
       );
     } finally {
       setResendLoading(false);
@@ -200,16 +201,21 @@ const ChangeEmailModal = ({ currentEmail, onClose }: ChangeEmailModalProps) => {
         }));
         inputs.current[0]?.focus();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      if(error instanceof AxiosError)
+      {
+
       console.error("Verify OTP error:", error);
       setEmailError(
-        error?.response.data.message || "Invalid OTP. Please try again."
+          "Invalid OTP. Please try again."
       );
       setEmailData((prev) => ({
         ...prev,
         otp: [],
       }));
       inputs.current[0]?.focus();
+      }
+
     } finally {
       setEmailLoading(false);
     }

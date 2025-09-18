@@ -6,9 +6,10 @@ import { ScreenController } from "../../screens/controllers/screens.controller";
 import { ShowtimeController } from "../../showtimes/controllers/showtimes.controller";
 import { TheaterController } from "../../theaters/controllers/theaters.controller";
 import { UserController } from "../../user/controllers/user.controller";
-import { WalletController } from "../../wallet/controllers/wallet.controller";
+import { WalletController } from "../../wallet/dtos/controllers/wallet.controller";
 import { WalletTransactionController } from "../../walletTransaction/controllers/walletTransaction.controller";
-
+import { CouponController } from "../../coupons/controllers/coupons.controller";
+import { BookingController } from "../../bookings/controllers/bookings.controller";
 
 export class AdminRoutes {
   constructor(
@@ -22,20 +23,31 @@ export class AdminRoutes {
     private _theaterController: TheaterController,
     private _walletController: WalletController,
     private _walletTransactionController: WalletTransactionController,
+    private _couponController: CouponController,
+    private _bookingsController: BookingController
   ) {
     this._setRoutes();
   }
   private _setRoutes() {
-
     this._router.get("/wallet", (req, res) =>
       this._walletController.getWalletBalance(req, res)
     );
     this._router.get("/transaction", (req, res) =>
       this._walletTransactionController.getUserWalletTransactions(req, res)
     );
+    this._router.get("/coupons", (req, res) =>
+      this._couponController.getAllCoupons(req, res)
+    );
+    this._router.patch("/coupons/:couponId", (req, res) =>
+      this._couponController.toggleStatusCoupon(req, res)
+    );
 
     this._router.get("/users", (req, res) =>
       this._userController.getUsers(req, res)
+    );
+
+    this._router.get("/theater/bookings/:theaterId", (req, res) =>
+      this._bookingsController.getTheaterBookings(req, res)
     );
 
     this._router.get("/users/counts", (req, res) =>

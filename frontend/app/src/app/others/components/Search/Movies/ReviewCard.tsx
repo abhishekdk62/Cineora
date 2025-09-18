@@ -72,7 +72,6 @@ export default function ReviewCard({ review, onEdit, onDelete }: ReviewCardProps
     return user.username || user.email.split('@');
   };
 
-  // Check if current user is the owner of this review
   const isOwner = isAuthenticated === review.userId._id;
 
   return (
@@ -100,7 +99,6 @@ export default function ReviewCard({ review, onEdit, onDelete }: ReviewCardProps
           </div>
         </div>
         
-        {/* Edit and Delete buttons - only show for review owner */}
         {isOwner && (
           <div className="flex items-center gap-2">
             <button

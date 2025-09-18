@@ -1240,8 +1240,8 @@ export class AnalyticsService implements IAnalyticsService {
         avgOccupancy: occupancy?.occupancyPercentage || 0,
         topPerformingTheater: topTheater,
         topPerformingMovie: topMovie,
-        revenueGrowth: 0, // Would need historical data for calculation
-        customerSatisfaction: 0, // Would need review data
+        revenueGrowth: 0, 
+        customerSatisfaction: 0, 
         keyInsights: [
           `Total revenue generated: ₹${totalRevenue.toLocaleString()}`,
           `Top performing theater: ${topTheater}`,

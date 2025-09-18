@@ -9,6 +9,8 @@ import {
 import { CouponResponseDto, CreateCouponRequestDto, UpdateCouponRequestDto } from "@/app/others/dtos/coupon.dto";
 import { Ticket } from "lucide-react";
 import { getTheatersByOwnerId } from "@/app/others/services/ownerServices/theaterServices";
+import toast from "react-hot-toast";
+import { da } from "zod/v4/locales";
 
 
 
@@ -21,11 +23,18 @@ const CouponsManager: React.FC = () => {
   const onCreate = async (data: CreateCouponRequestDto) => {
     setSaving(true);
     try {
-      await createCoupon(data);
+      console.log(data);
+      
+      console.log(await createCoupon(data));
+
+
       setEditingCoupon(null);
       setRefreshFlag(prev => !prev);
-    } catch {
-      alert("Failed to create coupon!");
+    } catch(error) {
+      alert();
+      toast.error('Failed to create coupon!')
+      console.log(error);
+      
     } finally {
       setSaving(false);
     }
@@ -105,10 +114,8 @@ const CouponsManager: React.FC = () => {
           )}
         </div>
 
-        {/* Content */}
         {editingCoupon ? (
           <CouponForm
-        
             initialData={{
               name: editingCoupon.name,
               uniqueId: editingCoupon.uniqueId,
@@ -119,6 +126,7 @@ const CouponsManager: React.FC = () => {
                 ? editingCoupon.expiryDate.toISOString().split('T')[0]
                 : new Date(editingCoupon.expiryDate).toISOString().split('T')[0],
               maxUsageCount: editingCoupon.maxUsageCount,
+              minAmount:editingCoupon.minAmount
             }}
             theaterOptions={theaters}
             onSubmit={editingCoupon._id ? onUpdate : onCreate}

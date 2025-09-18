@@ -86,30 +86,31 @@ export interface IDailyRevenueDTO {
 
 export interface ITheaterRevenueDTO {
   theaterId: string;
-  theaterName: string;
+  theaterName?: string;
   totalRevenue: number;
   totalBookings: number;
-  avgTicketPrice: number;
+  avgTicketPrice?: number;
   marketShare: number;
 }
 
 export interface IScreenRevenueDTO {
   screenId: string;
   theaterId: string;
-  screenName: string;
+  screenName?: string;
   totalRevenue: number;
   totalBookings: number;
-  avgTicketPrice: number;
+  avgTicketPrice?: number;
   utilizationRate: number;
 }
 
+
 export interface IMovieRevenueDTO {
   movieId: string;
-  movieTitle: string;
+  movieTitle?: string;
   totalRevenue: number;
   totalBookings: number;
   totalTickets: number;
-  avgTicketPrice: number;
+  avgTicketPrice?: number;
   revenueShare: number;
 }
 

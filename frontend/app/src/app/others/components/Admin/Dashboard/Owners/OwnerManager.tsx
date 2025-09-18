@@ -164,7 +164,7 @@ const OwnersManager: React.FC = () => {
         console.error("Unexpected response format:", response);
         toast.error("Failed to load counts - invalid response format");
       }
-    } catch (error: any) {
+    } catch (error: string) {
       console.error("Error fetching counts:", error);
       toast.error(error.response?.data?.message || "Failed to load counts");
       setActiveCounts({
@@ -213,7 +213,7 @@ const OwnersManager: React.FC = () => {
           setTotalItems(response.meta.pagination.total);
           setCurrentPage(response.meta.pagination.currentPage);
         }
-      } catch (error: any) {
+      } catch (error: string) {
         console.error("Filter error:", error);
         toast.error(error.response?.data?.message || "Filter failed");
         setOwners([]);
@@ -257,7 +257,7 @@ const OwnersManager: React.FC = () => {
           setTotalItems(response.meta.pagination.total);
           setCurrentPage(response.meta.pagination.currentPage);
         }
-      } catch (error: any) {
+      } catch (error: string) {
         console.error("Filter error:", error);
         toast.error(error.response?.data?.message || "Filter failed");
         setOwnerRequests([]);
@@ -327,7 +327,7 @@ const OwnersManager: React.FC = () => {
           setTotalItems(response.meta.pagination.total);
           setCurrentPage(response.meta.pagination.currentPage);
         }
-      } catch (error: any) {
+      } catch (error: string) {
         console.error("Filter error:", error);
         toast.error(error.response?.data?.message || "Filter failed");
         setOwners([]);
@@ -379,7 +379,7 @@ const OwnersManager: React.FC = () => {
           setTotalItems(response.meta.pagination.total);
           setCurrentPage(response.meta.pagination.currentPage);
         }
-      } catch (error: any) {
+      } catch (error: string) {
         console.error("Filter error:", error);
         toast.error(error.response?.data?.message || "Filter failed");
         setOwnerRequests([]);
@@ -431,7 +431,7 @@ const OwnersManager: React.FC = () => {
       if (Object.keys(ownerFilters).length > 0) {
         handleOwnerFiltersChange(ownerFilters, false);
       }
-    } catch (error: any) {
+    } catch (error: string) {
       console.error("Error toggling owner status:", error);
       toast.error(
         error.response?.data?.message || "Failed to update owner status"
@@ -456,7 +456,7 @@ const OwnersManager: React.FC = () => {
       if (Object.keys(requestFilters).length > 0) {
         handleRequestFiltersChange(requestFilters, false);
       }
-    } catch (error: any) {
+    } catch (error: string) {
       console.error("Error accepting request:", error);
       toast.error(error.response?.data?.message || "Failed to accept request");
     }
@@ -474,7 +474,7 @@ const OwnersManager: React.FC = () => {
       if (Object.keys(requestFilters).length > 0) {
         handleRequestFiltersChange(requestFilters, false);
       }
-    } catch (error: any) {
+    } catch (error: string) {
       console.error("Error rejecting request:", error);
       toast.error(error.response?.data?.message || "Failed to reject request");
     }

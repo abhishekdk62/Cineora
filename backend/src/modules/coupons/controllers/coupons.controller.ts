@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { ICouponService } from "../interfaces/coupons.service.interface";
 import {
   CreateCouponDto,
+  ToggleStatusDto,
   UpdateCouponDto,
   ValidateCouponDto,
   ValidateCouponDtoNew,
@@ -43,6 +44,7 @@ export class CouponController {
         expiryDate,
         maxUsageCount,
         theaterNames,
+        minAmount
       } = req.body;
 
       const createDto: CreateCouponDto = {
@@ -55,6 +57,7 @@ export class CouponController {
         maxUsageCount: maxUsageCount || 1,
         createdBy: new Types.ObjectId(ownerId),
         theaterNames,
+        minAmount
       };
 
       const result = await this.couponService.createCoupon(createDto);
@@ -72,7 +75,8 @@ export class CouponController {
       );
     }
   }
-async validateCouponByCode(req: AuthenticatedRequest, res: Response): Promise<void> {
+
+  async validateCouponByCode(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     
     const userId = req.user?.id;
@@ -118,8 +122,7 @@ async validateCouponByCode(req: AuthenticatedRequest, res: Response): Promise<vo
       COUPON_MESSAGES.INTERNAL_SERVER_ERROR
     );
   }
-}
-
+  }
   async updateCoupon(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const ownerId = req.owner?.ownerId;
@@ -151,6 +154,48 @@ async validateCouponByCode(req: AuthenticatedRequest, res: Response): Promise<vo
       if (updateDto.expiryDate) {
         updateDto.expiryDate = new Date(updateDto.expiryDate);
       }
+      const result = await this.couponService.updateCoupon(
+        new Types.ObjectId(couponId),
+        updateDto
+      );
+      if (result.success) {
+        res.status(StatusCodes.OK).json(result);
+      } else {
+        res.status(StatusCodes.BAD_REQUEST).json(result);
+      }
+    } catch (error: unknown) {
+      this._handleControllerError(
+        res,
+        error,
+        COUPON_MESSAGES.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+  async toggleStatusCoupon(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const ownerId = req.owner?.ownerId||req.admin?.adminId;
+      const { couponId } = req.params;
+      if (!ownerId) {
+        res.status(StatusCodes.UNAUTHORIZED).json(
+          createResponse({
+            success: false,
+            message: COUPON_MESSAGES.OWNER_AUTH_REQUIRED,
+          })
+        );
+        return;
+      }
+      if (!Types.ObjectId.isValid(couponId)) {
+        res.status(StatusCodes.BAD_REQUEST).json(
+          createResponse({
+            success: false,
+            message: COUPON_MESSAGES.INVALID_COUPON_ID,
+          })
+        );
+        return;
+      }
+      const updateDto: ToggleStatusDto = { ...req.body };
+      console.log(updateDto);
+      
       const result = await this.couponService.updateCoupon(
         new Types.ObjectId(couponId),
         updateDto
@@ -249,12 +294,10 @@ async validateCouponByCode(req: AuthenticatedRequest, res: Response): Promise<vo
 
       let ownerId: Types.ObjectId | undefined;
 
-      // If owner is making request, show only their coupons
       if (req.owner?.ownerId) {
         ownerId = new Types.ObjectId(req.owner.ownerId);
       }
 
-      // Admin can see all coupons or filter by owner
       if (req.admin?.adminId && req.query.ownerId) {
         ownerId = new Types.ObjectId(req.query.ownerId as string);
       }
@@ -300,8 +343,8 @@ async validateCouponByCode(req: AuthenticatedRequest, res: Response): Promise<vo
   } catch (error: unknown) {
     this._handleControllerError(res, error, COUPON_MESSAGES.INTERNAL_SERVER_ERROR);
   }
-}
-async validateAndUseCoupon(
+  }
+ async validateAndUseCoupon(
   req: AuthenticatedRequest,
   res: Response
 ): Promise<void> {
@@ -351,8 +394,7 @@ async validateAndUseCoupon(
       COUPON_MESSAGES.INTERNAL_SERVER_ERROR
     );
   }
-}
-
+  }
   async getCouponsByOwner(
     req: AuthenticatedRequest,
     res: Response

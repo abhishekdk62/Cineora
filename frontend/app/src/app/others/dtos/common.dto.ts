@@ -1,6 +1,27 @@
+import { OwnerResponseDto } from "./owner.dto";
+import { TheaterResponseDto } from "./theater.dto";
+
 export interface ApiResponse<T = any> {
   success: boolean;
-  data?: T;
+  data?: T & {
+    meta?: {
+      pagination?: {
+        currentPage: number;
+        totalPages: number;
+        total: number;
+        limit: number;
+        hasNextPage: boolean;
+        hasPrevPage: boolean;
+      };
+      filters?: {
+        applied: number;
+      };
+      [key: string]: any;
+    };
+    owners?: OwnerResponseDto[];
+      theaters?: TheaterResponseDto[];
+
+  };
   message?: string;
   errors?: { field: string; message: string }[];
   meta?: {
@@ -19,6 +40,7 @@ export interface ApiResponse<T = any> {
   };
   timestamp: string;
 }
+
 
 export interface PaginationQuery {
   page?: number;

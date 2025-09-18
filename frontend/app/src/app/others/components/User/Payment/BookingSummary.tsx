@@ -7,14 +7,15 @@ import { PriceSummary } from "./PriceSummary";
 import { setBookingData } from "@/app/others/redux/slices/bookingSlice";
 import { useDispatch } from "react-redux";
 import { CouponDetails } from "./Coupondetails";
+import { CouponData } from "@/app/others/types";
 const lexendMedium = Lexend({ weight: "400", subsets: ["latin"] });
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
 interface BookingSummaryProps {
   data: any;
   onPayment: () => void;
-  selectedCoupon?: any;
-  availableCoupons?: any[];
-  onSelectCoupon?: (coupon: any) => void;
+  selectedCoupon?: CouponData;
+  availableCoupons?: CouponData[];
+  onSelectCoupon?: (coupon: CouponData) => void;
   onRemoveCoupon?: () => void;
   onShowCouponsModal?: () => void;
 

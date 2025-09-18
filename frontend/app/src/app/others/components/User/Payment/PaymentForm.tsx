@@ -59,7 +59,7 @@ const PaymentForm = ({
                 )}
 
                 <PaymentMethodList
-                totalAmount={totalAmount}
+                    totalAmount={totalAmount}
                     walletBalance={walletBalance}
                     selectedMethod={selectedPaymentMethod}
                     onMethodSelect={onSelectPaymentMethod}

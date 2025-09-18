@@ -39,14 +39,8 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
       <div className="bg-black border border-gray-600 rounded-2xl shadow-2xl p-6 w-full max-w-md text-center relative overflow-hidden">
-        
-        {/* Animated Background Gradient - REMOVE pointer-events */}
         <div className="absolute inset-0 pointer-events-none"></div>
-        
-        {/* All content with relative z-index */}
         <div className="relative z-10">
-          
-          {/* Close Button */}
           <button
             onClick={() => {
               console.log('Close clicked');

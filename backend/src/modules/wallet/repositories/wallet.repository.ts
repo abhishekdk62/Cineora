@@ -74,6 +74,7 @@ export class WalletRepository implements IWalletRepository {
   ): Promise<number> {
     try {
       const wallet = await Wallet.findOne({ userId, userModel });
+      
       return wallet ? wallet.balance : 0;
     } catch (error) {
       throw new Error(`Failed to get wallet balance: ${error instanceof Error ? error.message : 'Unknown error'}`);

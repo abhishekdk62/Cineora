@@ -16,13 +16,20 @@ import UserDetailsModal from "./UserDetailsModal";
 import { confirmAction } from "../../../utils/ConfirmDialog";
 import { useDebounce } from "@/app/others/Utils/debounce";
 
-export interface User {
+export interface IUser {
   _id: string;
   name: string;
   phone: string;
   email: string;
   profilePicture?: string;
+  
   dateOfBirth?: string;
+  username?: string;
+  language: string;
+  authProvider: string;
+  lastActive: string;
+  xpPoints?: string; 
+  location: {coordinates: [number, number]}; 
   gender?: "male" | "female" | "other";
   isActive: boolean;
   isVerified: boolean;
@@ -47,7 +54,7 @@ export interface UserFilters {
 
 export interface UserResponse {
   data: {
-    users: User[];
+    users: IUser[];
     meta: {
       pagination: {
         currentPage: number;
@@ -150,7 +157,7 @@ const UsersManager: React.FC = () => {
   const [activeView, setActiveView] = useState<
     "active" | "inactive" | "verified" | "unverified"
   >("active");
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<IUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentFilters, setCurrentFilters] = useState<UserFilters>({});
   const [countsLoading, setCountsLoading] = useState(true);
@@ -167,7 +174,7 @@ const UsersManager: React.FC = () => {
     verifiedUsers: 0,
     unverifiedUsers: 0,
   });
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchCounts = async () => {
@@ -175,7 +182,7 @@ const UsersManager: React.FC = () => {
       setCountsLoading(true);
       const counts = await getUserCounts();
       setActiveCounts(counts);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error fetching counts:", error);
       toast.error("Failed to load user counts");
       setActiveCounts({
@@ -230,7 +237,7 @@ const UsersManager: React.FC = () => {
       setTotalPages(response.data.meta.pagination.totalPages);
       setTotalItems(response.data.meta.pagination.total);
       setCurrentPage(response.data.meta.pagination.currentPage);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Filter error:", error);
       toast.error("Failed to load users");
       setUsers([]);
@@ -287,12 +294,12 @@ const handleSearchInputChange = useCallback((newSearchTerm: string) => {
     handleFiltersChange({}, true);
   }, [activeView]);
 
-  const handleViewDetails = (user: User) => {
+  const handleViewDetails = (user: IUser) => {
     setSelectedUser(user);
     setIsModalOpen(true);
   };
 
-  const handleToggleUserStatus = async (user: User) => {
+  const handleToggleUserStatus = async (user: IUser) => {
     try {
       const willDeactivate = user.isActive;
       const action = willDeactivate ? "Deactivate" : "Activate";
@@ -314,7 +321,7 @@ const handleSearchInputChange = useCallback((newSearchTerm: string) => {
       if (Object.keys(currentFilters).length > 0) {
         handleFiltersChange(currentFilters, false);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error toggling user status:", error);
       toast.error("Failed to update user status");
     }

@@ -235,7 +235,6 @@ export interface PerformanceMetricsDto {
   occupancy: OccupancyDto;
   avgTicketPrice: number;
   revenuePerScreen: ScreenRevenueDto[];
-  revenuePerShow: any[];
   timeSlotPerformance: TimeSlotDto[];
   weekdayWeekendComparison: WeekdayWeekendDto[];
 }
@@ -260,13 +259,11 @@ export interface FinancialKPIsDto {
   dynamicPricingImpact: DynamicPricingDto;
   discountImpact: DiscountImpactDto;
   peakHourRevenue: TimeSlotDto[];
-  seasonalPatterns: any[];
 }
 
 export interface OperationalAnalyticsDto {
   showUtilization: ShowUtilizationDto[];
   lowPerformingTimeSlots: TimeSlotDto[];
-  theaterEfficiency: any[];
   revenueGrowthRate: GrowthRateDto[];
 }
 

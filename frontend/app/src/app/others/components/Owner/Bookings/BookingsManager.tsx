@@ -11,8 +11,8 @@ import { getScreensByTheaterId } from "@/app/others/services/ownerServices/scree
 import { getShowTimesForBookings } from "@/app/others/services/ownerServices/bookingServices";
 
 interface BookingsManagerProps {
-    lexendMedium: any;
-    lexendSmall: any;
+    lexendMedium: string;
+    lexendSmall: string;
 }
 
 const BookingsManager: React.FC<BookingsManagerProps> = ({
@@ -28,19 +28,22 @@ const BookingsManager: React.FC<BookingsManagerProps> = ({
     const [isLoading, setIsLoading] = useState(false);
     const [selectedShowtime, setSelectedShowtime] = useState(null);
     const [showDetails, setShowDetails] = useState(false);
+const [isInitialLoad, setIsInitialLoad] = useState(true); // ✅ Add this state
 
     useEffect(() => {
         fetchOwnerTheaters();
     }, []);
 
-    useEffect(() => {
-        if (selectedTheater) {
-            fetchTheaterScreens(selectedTheater);
-        } else {
-            setScreens([]);
-            setSelectedScreen("");
-        }
-    }, [selectedTheater]);
+useEffect(() => {
+    if (selectedTheater) {
+        const shouldAutoSelect = theaters.length > 0 && selectedTheater === theaters[0]._id && !isInitialLoad;
+        fetchTheaterScreens(selectedTheater, shouldAutoSelect);  
+    } else {
+        setScreens([]);
+        setSelectedScreen("");
+    }
+}, [selectedTheater, theaters, isInitialLoad]);  
+
 
     useEffect(() => {
         if (selectedDate && selectedTheater && selectedScreen) {
@@ -50,42 +53,53 @@ const BookingsManager: React.FC<BookingsManagerProps> = ({
         }
     }, [selectedDate, selectedTheater, selectedScreen]);
 
-    const fetchOwnerTheaters = async () => {
-        try {
-
-            const result = await getTheatersByOwnerId()
-            setTheaters(result.data.theaters)
-        } catch (error) {
-            console.log(error);
-
-
+   const fetchOwnerTheaters = async () => {
+    try {
+        const result = await getTheatersByOwnerId();
+        const theatersData = result.data.theaters || [];  
+        setTheaters(theatersData);
+        
+        if (isInitialLoad && theatersData.length > 0) {  
+            setSelectedTheater(theatersData[0]._id);
+            // Don't call fetchTheaterScreens here, let useEffect handle it
+            setIsInitialLoad(false);  // ✅ Fix: Mark initial load as complete
         }
-
+    } catch (error) {
+        console.log(error);
     }
+}
 
-    const fetchTheaterScreens = async (theaterId: string) => {
-        try {
-
-            const result = await getScreensByTheaterId(theaterId)
-            setScreens(result.data)
-        } catch (error) {
-            console.log(error);
-
+const fetchTheaterScreens = async (theaterId, autoSelectFirst = false) => {  // ✅ Fix: Add parameter
+    try {
+        const result = await getScreensByTheaterId(theaterId);
+        const screensData = result.data || [];
+        setScreens(screensData);
+        
+        // Auto-select first screen if requested and available
+        if (autoSelectFirst && screensData.length > 0) {  // ✅ Fix: Now autoSelectFirst is defined
+            setSelectedScreen(screensData[0]._id);
         }
-    };
+    } catch (error) {
+        console.log(error);
+    }
+};
 
-    const fetchShowtimes = async () => {
-        try {
 
-            const data = await getShowTimesForBookings(selectedTheater, selectedScreen, selectedDate)
-            console.log('show suiii', data.data);
-            setShowtimes(data.data)
-        } catch (error) {
-            console.log(error);
-        }
-    };
+  const fetchShowtimes = async () => {
+    try {
+        setIsLoading(true);  
+        const data = await getShowTimesForBookings(selectedTheater, selectedScreen, selectedDate);
+        console.log('show suiii', data.data);
+        setShowtimes(data.data || []);
+    } catch (error) {
+        setShowtimes([]);
+        console.log(error);
+    } finally {
+        setIsLoading(false);  
+    }
+};
 
-    const handleShowtimeClick = (showtime: any) => {
+    const handleShowtimeClick = (showtime: string) => {
         setSelectedShowtime(showtime);
         setShowDetails(true);
     };
@@ -175,7 +189,7 @@ const BookingsManager: React.FC<BookingsManagerProps> = ({
                                 className={`${lexendMedium.className} w-full px-4 py-3 bg-white/10 border border-gray-500/30 rounded-xl text-white focus:outline-none focus:border-white/50 focus:bg-white/15 transition-all duration-300 appearance-none disabled:opacity-50 disabled:cursor-not-allowed`}
                             >
                                 <option value="" className="bg-gray-900">Select Screen</option>
-                                {screens.map((screen: any) => (
+                                {screens.map((screen: string) => (
                                     <option key={screen._id} value={screen._id} className="bg-gray-900">
                                         {screen.name} ({screen.totalSeats} seats)
                                     </option>

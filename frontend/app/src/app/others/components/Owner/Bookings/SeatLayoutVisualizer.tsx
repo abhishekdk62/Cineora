@@ -10,8 +10,8 @@ const lexendMedium = Lexend({ weight: "500", subsets: ["latin"] });
 interface SeatLayoutVisualizerProps {
   totalSeats: number;
   bookedSeats: string[];
-  lexendSmall: any;
-  showtime?: any; 
+  lexendSmall: string;
+  showtime?: string; 
 }
 
 const SeatLayoutVisualizer: React.FC<SeatLayoutVisualizerProps> = ({
@@ -24,15 +24,15 @@ const SeatLayoutVisualizer: React.FC<SeatLayoutVisualizerProps> = ({
     if (showtime?.screenId?.layout?.advancedLayout?.rows) {
       const layout = showtime.screenId.layout.advancedLayout;
       
-      const maxCols = Math.max(...layout.rows.map((row: any) => 
+      const maxCols = Math.max(...layout.rows.map((row: string) => 
         (row.offset || 0) + (row.seats?.length || 0) + 2 
       ));
       
       return {
-        rows: layout.rows.map((row: any) => ({
+        rows: layout.rows.map((row: string) => ({
           rowLabel: row.rowLabel,
           offset: row.offset || 0,
-          seats: row.seats.map((seat: any) => ({
+          seats: row.seats.map((seat: string) => ({
             id: seat.id,
             type: seat.type,
             price: seat.price,
@@ -100,7 +100,7 @@ const SeatLayoutVisualizer: React.FC<SeatLayoutVisualizerProps> = ({
 
   const seatLayout = getActualSeatLayout();
 
-  const getSeatBackgroundColor = (seat: any) => {
+  const getSeatBackgroundColor = (seat: string) => {
     if (seat.isBlocked) return '#dc2626'; 
     if (seat.isBooked) return '#dc2626';  
     
@@ -115,12 +115,12 @@ const SeatLayoutVisualizer: React.FC<SeatLayoutVisualizerProps> = ({
     }
   };
 
-  const getSeatTextColor = (seat: any) => {
+  const getSeatTextColor = (seat: string) => {
     if (seat.isBlocked || seat.isBooked) return '#ffffff';
     return seat.type === 'VIP' ? '#1f2937' : '#ffffff';
   };
 
-  const getSeatNumber = (seat: any) => {
+  const getSeatNumber = (seat: string) => {
     if (seat.col) return seat.col.toString();
     
     const match = seat.id.match(/\d+$/);
@@ -142,7 +142,7 @@ const SeatLayoutVisualizer: React.FC<SeatLayoutVisualizerProps> = ({
         
         {/* Seat Grid with Proper Row Alignment */}
         <div className="flex flex-col items-center space-y-1">
-          {seatLayout.rows.map((row: any) => (
+          {seatLayout.rows.map((row: string) => (
             <div
               key={row.rowLabel}
               className="grid"
@@ -157,7 +157,7 @@ const SeatLayoutVisualizer: React.FC<SeatLayoutVisualizerProps> = ({
               ))}
               
               {/* Seats */}
-              {row.seats.map((seat: any) => (
+              {row.seats.map((seat: string) => (
                 <div
                   key={seat.id}
                   style={{

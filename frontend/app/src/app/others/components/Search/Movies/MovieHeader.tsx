@@ -19,11 +19,9 @@ export interface RatingStats {
 
 interface MovieHeaderProps {
   title: string;
-  releaseDate: string;
+  releaseDate: string|Date;
   duration: number;
   language: string;
-  isFav: boolean;
-  onFavoriteClick: () => void;
   formatDuration: (minutes: number) => string;
   languageMap: { [key: string]: string };
   ratingStats: RatingStats | null; // Add this line
@@ -63,8 +61,6 @@ export default function MovieHeader({
   releaseDate,
   duration,
   language,
-  isFav,
-  onFavoriteClick,
   formatDuration,
   languageMap,
   ratingStats
@@ -82,16 +78,7 @@ export default function MovieHeader({
 
         </div>
         <div>
-          <button
-            onClick={onFavoriteClick}
-            className={`${isFav
-              ? "bg-red-500/20 text-red-500 hover:bg-red-500/30"
-              : "bg-white/10 text-white hover:bg-white/20"
-              } p-3 rounded-full transition-all duration-300`}
-            title={isFav ? "Remove from Favorites" : "Add to Favorites"}
-          >
-            <Heart className={`w-6 h-6 ${isFav ? "fill-red-500" : ""}`} />
-          </button>
+        
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-4 text-gray-300">

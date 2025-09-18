@@ -6,7 +6,7 @@ export interface IWalletService {
   createWallet(data: CreateWalletDto): Promise<ApiResponse<IWallet>>;
   creditWallet(data: CreditWalletDto): Promise<ApiResponse<IWallet>>;
   debitWallet(data: DebitWalletDto): Promise<ApiResponse<IWallet>>;
-  getWalletBalance(userId: string, userModel: "User" | "Owner"): Promise<ApiResponse<{ balance: number }>>;
-  getWalletDetails(userId: string, userModel: "User" | "Owner"): Promise<ApiResponse<IWallet>>;
+  getWalletBalance(userId: string, userModel: "User" | "Owner"|"Admin"): Promise<ApiResponse<{ balance: number }>>;
+  getWalletDetails(userId: string, userModel: "User" | "Owner"|"Admin"): Promise<ApiResponse<IWallet>>;
   debitWalletAllowNegative(data: DebitWalletDto): Promise<ApiResponse<IWallet>>
 }

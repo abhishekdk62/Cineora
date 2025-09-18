@@ -1,8 +1,11 @@
+//@ts-nocheck
 "use client";
 import React, { useEffect, useState } from "react";
 import { CouponResponseDto, GetCouponsQueryDto, GetCouponsResponseDto } from "@/app/others/dtos/coupon.dto";
-import { getOwnerCoupons, deleteCoupon } from "@/app/others/services/ownerServices/couponServices";
-import { Tag, Calendar, Percent, Info, Trash2, Edit, MapPin, Users, Clock } from "lucide-react";
+import { getOwnerCoupons, deleteCoupon, toggleStatusCoupon } from "@/app/others/services/ownerServices/couponServices";
+import { Tag, Calendar, Percent, Info, Trash2, Edit, MapPin, Users, Clock, CirclePower } from "lucide-react";
+import { confirmAction } from "../../utils/ConfirmDialog";
+import toast from "react-hot-toast";
 
 interface Props {
   onEdit: (coupon: CouponResponseDto) => void;
@@ -23,8 +26,8 @@ const CouponList: React.FC<Props> = ({ onEdit, refreshFlag }) => {
     try {
       const query: GetCouponsQueryDto = { page: pageNumber, limit };
       const response: GetCouponsResponseDto = await getOwnerCoupons(query);
-      console.log('the rspo cooupon',response);
-      
+      console.log('the rspo cooupon', response);
+
       setCoupons(response.data.data);
       setTotalPages(response.data.totalPages);
       setPage(response.data.currentPage);
@@ -40,12 +43,37 @@ const CouponList: React.FC<Props> = ({ onEdit, refreshFlag }) => {
   }, [page, refreshFlag]);
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this coupon?")) return;
+    const confirmed = await confirmAction({
+      title: "Delete Movie?",
+      message: `Are you sure you want to delete coupon"?`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+    });
+    if (!confirmed) return;
+
     try {
       await deleteCoupon(id);
       fetchCoupons(page);
     } catch {
-      alert("Failed to delete coupon");
+      toast.error("Failed to delete coupon");
+    }
+  };
+  const handleToggleStatus = async (id: string, isActive: boolean) => {
+    const confirmed = await confirmAction({
+      title: "Delete Movie?",
+      message: `Are you sure you want to ${isActive ? 'Disable' : 'Enable'} coupon"?`,
+      confirmText: 'Confirm',
+      cancelText: "Cancel",
+    });
+    if (!confirmed) return;
+    try {
+      let data = { isActive: !isActive }
+      let d = await toggleStatusCoupon(id, data);
+      console.log(d);
+
+      fetchCoupons(page);
+    } catch {
+      toast.error("Failed to delete coupon");
     }
   };
 
@@ -135,7 +163,7 @@ const CouponList: React.FC<Props> = ({ onEdit, refreshFlag }) => {
               </div>
             </div>
 
-            {/* Actions */}
+
             <div className="flex gap-3 pt-4 border-t border-white/10">
               <button
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 transition-all duration-300"
@@ -153,12 +181,20 @@ const CouponList: React.FC<Props> = ({ onEdit, refreshFlag }) => {
                 <Trash2 className="w-4 h-4" />
                 Delete
               </button>
+              <button
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl ${coupon.isActive?'bg-red-600/20 hover:bg-red-600/30 text-red-400 border-red-500/30':'bg-green-600/20 hover:bg-green-600/30 text-green-400 border-green-500/30'}  border  transition-all duration-300`}
+                onClick={() => handleToggleStatus(coupon._id, coupon.isActive)}
+                aria-label="toggle Coupon"
+              >
+                <CirclePower className={`w-4 h-4 ${coupon.isActive?'text-red-500':'text-green-400'}`} />
+                Toggle
+              </button>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Pagination */}
+
       <div className="flex justify-center items-center gap-6 mt-8 bg-black/40 backdrop-blur-lg rounded-2xl p-4 border border-white/10">
         <button
           className="px-6 py-2 border border-white/20 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/10 transition-all duration-300 text-white"

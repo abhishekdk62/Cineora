@@ -22,7 +22,7 @@ const TheatersPage: React.FC = () => {
   const [scrollLoading, setScrollLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [userLocation, setUserLocation] = useState<any>();
+  const [userLocation, setUserLocation] = useState<{latitude: string, longitude:string}>();
   const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
   const [currentFilters, setCurrentFilters] = useState({});
   const [selectedTheaterForReview, setSelectedTheaterForReview] = useState('')

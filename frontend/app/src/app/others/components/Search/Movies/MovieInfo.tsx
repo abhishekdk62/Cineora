@@ -5,6 +5,7 @@ import MovieGenres from "./MovieGenres";
 import MovieSynopsis from "./MovieSynopsis";
 import MovieCredits from "./MovieCredits";
 import MovieActionButtons from "./MovieActionButtons";
+import { MovieResponseDto } from "@/app/others/dtos";
 
 const lexendSmall = Lexend({
   weight: "200",
@@ -34,9 +35,7 @@ interface Movie {
 }
 
 interface MovieInfoProps {
-  movie: Movie;
-  isFav: boolean;
-  onFavoriteClick: () => void;
+  movie: MovieResponseDto;
   onBookTicket: () => void;
   onWatchTrailer: () => void;
   formatDuration: (minutes: number) => string;
@@ -46,8 +45,6 @@ interface MovieInfoProps {
 
 export default function MovieInfo({
   movie,
-  isFav,
-  onFavoriteClick,
   onBookTicket,
   onWatchTrailer,
   formatDuration,
@@ -62,8 +59,6 @@ export default function MovieInfo({
           releaseDate={movie.releaseDate}
           duration={movie.duration}
           language={movie.language}
-          isFav={isFav}
-          onFavoriteClick={onFavoriteClick}
           formatDuration={formatDuration}
           languageMap={languageMap}
           ratingStats={ratingStats}
