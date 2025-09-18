@@ -1,0 +1,20 @@
+{
+  "/icon.ico/route": "/icon.ico",
+  "/_not-found/page": "/_not-found",
+  "/book/[id]/page": "/book/[id]",
+  "/admin/dashboard/page": "/admin/dashboard",
+  "/book/payment/[showtimeId]/page": "/book/payment/[showtimeId]",
+  "/booking/success/page": "/booking/success",
+  "/login/page": "/login",
+  "/book/tickets/[showtimeId]/page": "/book/tickets/[showtimeId]",
+  "/booking/failed/page": "/booking/failed",
+  "/owner/dashboard/page": "/owner/dashboard",
+  "/search/movies/[id]/page": "/search/movies/[id]",
+  "/search/movies/page": "/search/movies",
+  "/forgot-password/page": "/forgot-password",
+  "/page": "/",
+  "/owner/page": "/owner",
+  "/signup/page": "/signup",
+  "/user/account/page": "/user/account",
+  "/search/theaters/page": "/search/theaters"
+}
