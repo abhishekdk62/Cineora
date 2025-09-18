@@ -534,54 +534,49 @@ async getTheaterBookings(
     return await this.bookingService.createBooking(bookingDataWithUser);
   }
 
-  private async _createTicketsForBooking(
-    userId: string,
-    bookingDto: CreateBookingDto,
-    bookingData: any
-  ) {
-    const user = await this.userService.getUserProfile(userId);
+ private async _createTicketsForBooking(
+  userId: string,
+  bookingDto: CreateBookingDto,
+  bookingData: any
+) {
+  const user = await this.userService.getUserProfile(userId);
 
-    const transformedSelectedRows =
-      bookingDto.selectedRows?.map((row) => ({
-        rowLabel: row.rowLabel,
-        seatsSelected: row.seatsSelected.map((seat) =>
-          typeof seat === "string" ? parseInt(seat, 10) : seat
-        ),
-        seatType: this._determineSeatType(row.rowLabel),
-        pricePerSeat: this._calculatePricePerSeat(
-          row.rowLabel,
-          bookingDto.seatPricing
-        ),
-      })) || [];
+  const transformedSelectedRows =
+    bookingDto.selectedRows?.map((row) => ({
+      rowLabel: row.rowLabel,
+      seatsSelected: row.seatsSelected.map((seat) =>
+        typeof seat === "string" ? parseInt(seat, 10) : seat
+      ),
+      seatType: row.seatType,       
+      pricePerSeat: row.pricePerSeat,
+    })) || [];
 
-    const ticketResult = await this.ticketService.createTicketsFromRows({
-      bookingId: bookingData._id.toString(),
-      selectedRows: transformedSelectedRows,
-      bookingInfo: {
-        userId,
-        movieId: bookingData.movieId,
-        theaterId: bookingData.theaterId,
-        screenId: bookingData.screenId,
-        showtimeId: bookingData.showtimeId,
-        showDate: new Date(bookingDto.showDate),
-        showTime: bookingDto.showTime,
-        email: user.data.email,
-        ...(bookingDto.appliedCoupon &&
-          bookingDto.appliedCoupon._id && {
-            couponId: bookingDto.appliedCoupon._id,
-          }),
-      },
-    });
+  console.log('Transformed selectedRows:', transformedSelectedRows);
 
-    return ticketResult.success ? ticketResult.data : [];
-  }
+  const ticketResult = await this.ticketService.createTicketsFromRows({
+    bookingId: bookingData._id.toString(),
+    selectedRows: transformedSelectedRows,
+    bookingInfo: {
+      userId,
+      movieId: bookingData.movieId,
+      theaterId: bookingData.theaterId,
+      screenId: bookingData.screenId,
+      showtimeId: bookingData.showtimeId,
+      showDate: new Date(bookingDto.showDate),
+      showTime: bookingDto.showTime,
+      email: user.data.email,
+      ...(bookingDto.appliedCoupon &&
+        bookingDto.appliedCoupon._id && {
+          couponId: bookingDto.appliedCoupon._id,
+        }),
+    },
+  });
 
-  private _determineSeatType(rowLabel: string): "VIP" | "Premium" | "Normal" {
-    const firstChar = rowLabel.charAt(0).toLowerCase();
-    if (["a", "b", "c"].includes(firstChar)) return "VIP";
-    if (["d", "e", "f"].includes(firstChar)) return "Premium";
-    return "Normal";
-  }
+  return ticketResult.success ? ticketResult.data : [];
+}
+
+
+ 
 
   private _calculatePricePerSeat(rowLabel: string, seatPricing: any[]): number {
     const pricing = seatPricing.find((p) => p.rowLabel === rowLabel);

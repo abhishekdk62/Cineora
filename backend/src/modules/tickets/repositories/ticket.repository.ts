@@ -20,8 +20,6 @@ export class TicketRepository implements ITicketRepository {
 
   async createBulkTickets(ticketsData: Partial<ITicket>[]): Promise<ITicket[]> {
     try {
-     
-      
       const result = await Ticket.insertMany(ticketsData);
       return result as ITicket[];
     } catch (error) {
@@ -49,46 +47,46 @@ export class TicketRepository implements ITicketRepository {
       );
     }
   }
-async findTicketsByIds(ticketIds: string[]): Promise<ITicket[]> {
-  try {
-    return await Ticket.find({ 
-      _id: { $in: ticketIds } 
-    })
-    .populate("userId")
-    .populate("movieId") 
-    .populate("theaterId")
-    .populate("screenId")
-    .populate("showtimeId")
-  } catch (error) {
-    throw new Error(
-      `Failed to find tickets by IDs: ${
-        error instanceof Error ? error.message : "Unknown error"
-      }`
-    );
+  async findTicketsByIds(ticketIds: string[]): Promise<ITicket[]> {
+    try {
+      return await Ticket.find({
+        _id: { $in: ticketIds },
+      })
+        .populate("userId")
+        .populate("movieId")
+        .populate("theaterId")
+        .populate("screenId")
+        .populate("showtimeId");
+    } catch (error) {
+      throw new Error(
+        `Failed to find tickets by IDs: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
   }
-}
 
-// Optional: Enhanced method to get tickets with more details for cancellation
-async findTicketsForCancellation(ticketIds: string[]): Promise<ITicket[]> {
-  try {
-    return await Ticket.find({ 
-      _id: { $in: ticketIds },
-      status: { $in: ['confirmed'] } // Only get confirmed tickets
-    })
-    .populate("userId", "firstName lastName email")
-    .populate("movieId", "title duration") 
-    .populate("theaterId", "name location")
-    .populate("screenId", "name")
-    .populate("showtimeId")
-    .populate("bookingId");
-  } catch (error) {
-    throw new Error(
-      `Failed to find tickets for cancellation: ${
-        error instanceof Error ? error.message : "Unknown error"
-      }`
-    );
+  // Optional: Enhanced method to get tickets with more details for cancellation
+  async findTicketsForCancellation(ticketIds: string[]): Promise<ITicket[]> {
+    try {
+      return await Ticket.find({
+        _id: { $in: ticketIds },
+        status: { $in: ["confirmed"] }, // Only get confirmed tickets
+      })
+        .populate("userId", "firstName lastName email")
+        .populate("movieId", "title duration")
+        .populate("theaterId", "name location")
+        .populate("screenId", "name")
+        .populate("showtimeId")
+        .populate("bookingId");
+    } catch (error) {
+      throw new Error(
+        `Failed to find tickets for cancellation: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
   }
-}
 
   async markTicketAsUsed(ticketId: string): Promise<ITicket | null> {
     try {
@@ -170,11 +168,11 @@ async findTicketsForCancellation(ticketIds: string[]): Promise<ITicket[]> {
       );
     }
   }
-  async findTicketsByUserIdPaginated(
+async findTicketsByUserIdPaginated(
     userId: string,
     page: number = 1,
     limit: number = 10,
-    types: ("upcoming" | "past" | "cancelled" | "all")[]
+    types: ("upcoming" | "past" | "all")[] // Remove "cancelled" since it goes to past
   ): Promise<{
     tickets: ITicket[];
     total: number;
@@ -183,7 +181,7 @@ async findTicketsForCancellation(ticketIds: string[]): Promise<ITicket[]> {
   }> {
     try {
       const now = new Date();
-console.log(types);
+      console.log(types);
 
       const skipCount = (page - 1) * limit;
       const sampleTickets = await Ticket.find({
@@ -245,16 +243,15 @@ console.log(types);
             preserveNullAndEmptyArrays: true,
           },
         },
-          {
-    $lookup: {
-      from: "coupons", 
-      localField: "couponId",
-      foreignField: "_id",
-      as: "coupon",
-    },
-  },
-  { $unwind: { path: "$coupon", preserveNullAndEmptyArrays: true } },
-
+        {
+          $lookup: {
+            from: "coupons",
+            localField: "couponId",
+            foreignField: "_id",
+            as: "coupon",
+          },
+        },
+        { $unwind: { path: "$coupon", preserveNullAndEmptyArrays: true } },
         {
           $lookup: {
             from: "screens",
@@ -272,42 +269,35 @@ console.log(types);
       ];
 
       if (!types.includes("all")) {
-        const filterConditions: TicketMatchCondition[] = [];
-
-        if (types.includes("cancelled")) {
-          filterConditions.push({ status: "cancelled" });
-        }
-
-        if (types.includes("past")) {
-          filterConditions.push(
-            { status: { $in: ["used", "expired",'cancelled'] } },
-            {
-              $and: [{ status: "confirmed" }, { showDate: { $lt: now } }],
-            }
-          );
-        }
-
-       if (types.includes("upcoming")) {
-  filterConditions.push({
-    $and: [{ status: "confirmed" }, { showDate: { $gte: now } }],
-  });
-}
-
-
-        if (filterConditions.length > 0) {
+        if (types.includes("upcoming")) {
+          // Only confirmed tickets with future show dates
           pipeline.push({
             $match: {
-              $or: filterConditions,
+              $and: [
+                { status: "confirmed" },
+                { showDate: { $gte: now } }
+              ]
+            },
+          });
+        } else if (types.includes("past")) {
+          // Everything else: cancelled, expired, used, past confirmed
+          pipeline.push({
+            $match: {
+              $or: [
+                { status: "cancelled" },           // All cancelled tickets
+                { status: "expired" },             // All expired tickets  
+                { status: "used" },                // All used tickets
+                {
+                  $and: [
+                    { status: "confirmed" },       // Confirmed tickets
+                    { showDate: { $lt: now } }     // But with past dates
+                  ]
+                }
+              ]
             },
           });
         }
       }
-      const debugPipeline = [...pipeline];
-      const debugResult = await Ticket.aggregate([
-        ...debugPipeline,
-        { $project: { showDate: 1, status: 1, "movie.title": 1 } },
-        { $limit: 3 },
-      ]);
 
       pipeline.push({
         $facet: {
@@ -339,6 +329,9 @@ console.log(types);
       );
     }
   }
+
+
+
 
   async findUpcomingTickets(userId: string): Promise<ITicket[]> {
     try {

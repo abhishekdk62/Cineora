@@ -271,7 +271,6 @@ export class TicketService implements ITicketService {
       const refundPercentage = this._calculateRefundPercentage(showDateTime);
 
       const updatedTickets = await this._cancelAllTicketsInBooking(tickets);
-      console.log("neymar", refundPercentage);
 
       const refundData: RefundCalculationDto = {
         cancelledTickets: updatedTickets,
