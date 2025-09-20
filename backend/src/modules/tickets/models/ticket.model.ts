@@ -8,6 +8,10 @@ const TicketSchema = new Schema<ITicket>(
       required: true,
       unique: true,
     },
+    isInvited: {
+      type: Boolean,
+      default: false,
+    },
     bookingId: {
       type: Schema.Types.ObjectId,
       ref: "Booking",
@@ -52,6 +56,13 @@ const TicketSchema = new Schema<ITicket>(
       enum: ["VIP", "Premium", "Normal"],
       required: true,
     },
+
+    inviteGroupId: {
+      type: Schema.Types.ObjectId,
+      ref: "InviteGroup",
+      default: null,
+    },
+
     price: {
       type: Number,
       required: true,

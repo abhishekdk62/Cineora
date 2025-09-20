@@ -66,7 +66,6 @@ const SingleTicketCancellationModal: React.FC<SingleTicketCancellationModalProps
   const handleCancel = async () => {
     const totalAmount = calculateSelectedAmount();
 
-    console.log('single cancel datas', selectedTickets, totalAmount);
     if (selectedTickets.length === 0) {
       toast.error('Please select at least one ticket to cancel');
       return;

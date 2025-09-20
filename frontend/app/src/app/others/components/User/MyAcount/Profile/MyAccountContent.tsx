@@ -337,8 +337,8 @@ const MyAccountContent = ({
               <MapLocationPicker
                 readOnly={true}
                 initialPosition={[
-                  userData.location.coordinates[1] || 28.7041,
-                  userData.location.coordinates[0] || 77.1025
+    userData?.location?.coordinates?.[1] ?? 28.7041,
+    userData?.location?.coordinates?.[0] ?? 77.1025
                 ]}
               />
             </div>

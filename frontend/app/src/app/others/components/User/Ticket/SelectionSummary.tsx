@@ -1,11 +1,13 @@
 import React, { useState } from "react";
-import { ChevronDown, ChevronUp, Eye } from "lucide-react";
+import { ChevronDown, ChevronUp, Eye, Users } from "lucide-react";
 
 interface SelectionSummaryProps {
   selectedSeats: string[];
   totalAmount: number;
   lexendMediumClassName: string;
   lexendSmallClassName: string;
+    onCreateGroupInvite?: () => void; 
+
   lexendBoldClassName: string;
   onProceed: () => void;
   getSeatPrice: (seatId: string) => number;
@@ -17,6 +19,7 @@ export default function SelectionSummary({
   totalAmount, 
   lexendMediumClassName, 
   lexendSmallClassName, 
+  onCreateGroupInvite,
   lexendBoldClassName, 
   onProceed,
   getSeatPrice,
@@ -134,13 +137,25 @@ export default function SelectionSummary({
           </div>
         </div>
       )}
+        <div className="flex gap-3">
+      {onCreateGroupInvite&&selectedSeats.length>1 && (
+        <button
+          onClick={onCreateGroupInvite}
+          className={`${lexendMediumClassName} flex-1 border border-purple-500 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20 hover:text-purple-200 font-medium py-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center gap-2`}
+        >
+          <Users className="w-5 h-5" />
+          Create Group Invite
+        </button>
+      )}
 
       <button
         onClick={onProceed}
-        className={`${lexendMediumClassName} w-full border bg-white text-black hover:bg-gradient-to-tr hover:from-violet-300 hover:to-yellow-100 font-medium py-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02]`}
+        className={`${lexendMediumClassName} ${onCreateGroupInvite ? 'flex-1' : 'w-full'} border bg-white text-black hover:bg-gradient-to-tr hover:from-violet-300 hover:to-yellow-100 font-medium py-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02]`}
       >
-        Proceed to Payment
+        Book Now
       </button>
+    </div>
+
     </div>
   );
 }

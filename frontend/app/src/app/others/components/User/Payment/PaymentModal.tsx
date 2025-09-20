@@ -172,9 +172,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose
 
   async function handleWalletPayment() {
     try {
+
+      console.log('booking data as redux',bookingDatasRedux);
+
       console.log(bookingDatasRedux);
       
       setIsProcessing(true);
+      console.log('ronaldos wallet',bookingDatasRedux.totalAmount);
       const data = await walletBook(bookingDatasRedux.totalAmount, 'User')
       console.log(data.data);
       const res = await bookTicket(bookingDatasRedux);

@@ -20,6 +20,7 @@ export class TicketRepository implements ITicketRepository {
 
   async createBulkTickets(ticketsData: Partial<ITicket>[]): Promise<ITicket[]> {
     try {
+      
       const result = await Ticket.insertMany(ticketsData);
       return result as ITicket[];
     } catch (error) {
@@ -168,169 +169,199 @@ export class TicketRepository implements ITicketRepository {
       );
     }
   }
-async findTicketsByUserIdPaginated(
-    userId: string,
-    page: number = 1,
-    limit: number = 10,
-    types: ("upcoming" | "past" | "all")[] // Remove "cancelled" since it goes to past
-  ): Promise<{
-    tickets: ITicket[];
-    total: number;
-    page: number;
-    totalPages: number;
-  }> {
-    try {
-      const now = new Date();
-      console.log(types);
+ async findTicketsByUserIdPaginated(
+  userId: string,
+  page: number = 1,
+  limit: number = 10,
+  types: ("upcoming" | "history" | "cancelled" | "all")[]
+): Promise<{
+  tickets: ITicket[];
+  total: number;
+  page: number;
+  totalPages: number;
+}> {
+  try {
+    const now = new Date();
+    const skipCount = (page - 1) * limit;
 
-      const skipCount = (page - 1) * limit;
-      const sampleTickets = await Ticket.find({
-        userId: new mongoose.Types.ObjectId(userId),
-      }).limit(5);
-      sampleTickets.forEach((ticket, index) => {
-        console.log(
-          `   ${index + 1}. showDate: ${ticket.showDate}, status: ${
-            ticket.status
-          }`
-        );
-      });
-
-      const pipeline: PipelineStage[] = [
-        {
-          $match: {
-            userId: new mongoose.Types.ObjectId(userId),
-          },
+    const pipeline: PipelineStage[] = [
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(userId),
         },
-        {
-          $lookup: {
-            from: "showtimes",
-            localField: "showtimeId",
-            foreignField: "_id",
-            as: "showtime",
-          },
+      },
+      {
+        $lookup: {
+          from: "showtimes",
+          localField: "showtimeId",
+          foreignField: "_id",
+          as: "showtime",
         },
-        {
-          $unwind: {
-            path: "$showtime",
-            preserveNullAndEmptyArrays: true,
-          },
+      },
+      {
+        $unwind: {
+          path: "$showtime",
+          preserveNullAndEmptyArrays: true,
         },
-        {
-          $lookup: {
-            from: "movies",
-            localField: "movieId",
-            foreignField: "_id",
-            as: "movie",
-          },
+      },
+      // Add lookup for movie, theater, screen, coupon as before...
+      {
+        $lookup: {
+          from: "movies",
+          localField: "movieId",
+          foreignField: "_id",
+          as: "movie",
         },
-        {
-          $unwind: {
-            path: "$movie",
-            preserveNullAndEmptyArrays: true,
-          },
+      },
+      {
+        $unwind: {
+          path: "$movie",
+          preserveNullAndEmptyArrays: true,
         },
-        {
-          $lookup: {
-            from: "theaters",
-            localField: "theaterId",
-            foreignField: "_id",
-            as: "theater",
-          },
+      },
+      {
+        $lookup: {
+          from: "theaters",
+          localField: "theaterId",
+          foreignField: "_id",
+          as: "theater",
         },
-        {
-          $unwind: {
-            path: "$theater",
-            preserveNullAndEmptyArrays: true,
-          },
+      },
+      {
+        $unwind: {
+          path: "$theater",
+          preserveNullAndEmptyArrays: true,
         },
-        {
-          $lookup: {
-            from: "coupons",
-            localField: "couponId",
-            foreignField: "_id",
-            as: "coupon",
-          },
+      },
+      {
+        $lookup: {
+          from: "screens",
+          localField: "screenId",
+          foreignField: "_id",
+          as: "screen",
         },
-        { $unwind: { path: "$coupon", preserveNullAndEmptyArrays: true } },
-        {
-          $lookup: {
-            from: "screens",
-            localField: "screenId",
-            foreignField: "_id",
-            as: "screen",
-          },
+      },
+      {
+        $unwind: {
+          path: "$screen",
+          preserveNullAndEmptyArrays: true,
         },
-        {
-          $unwind: {
-            path: "$screen",
-            preserveNullAndEmptyArrays: true,
-          },
+      },
+      {
+        $lookup: {
+          from: "coupons",
+          localField: "couponId",
+          foreignField: "_id",
+          as: "coupon",
         },
-      ];
-
-      if (!types.includes("all")) {
-        if (types.includes("upcoming")) {
-          // Only confirmed tickets with future show dates
-          pipeline.push({
-            $match: {
-              $and: [
-                { status: "confirmed" },
-                { showDate: { $gte: now } }
-              ]
-            },
-          });
-        } else if (types.includes("past")) {
-          // Everything else: cancelled, expired, used, past confirmed
-          pipeline.push({
-            $match: {
-              $or: [
-                { status: "cancelled" },           // All cancelled tickets
-                { status: "expired" },             // All expired tickets  
-                { status: "used" },                // All used tickets
-                {
-                  $and: [
-                    { status: "confirmed" },       // Confirmed tickets
-                    { showDate: { $lt: now } }     // But with past dates
-                  ]
+      },
+      { $unwind: { path: "$coupon", preserveNullAndEmptyArrays: true } },
+      // Add calculated field for show end time
+      {
+        $addFields: {
+          showEndTime: {
+            $dateAdd: {
+              startDate: {
+                $dateFromString: {
+                  dateString: {
+                    $concat: [
+                      { $dateToString: { format: "%Y-%m-%d", date: "$showDate" } },
+                      "T",
+                      "$showTime",
+                      ":00.000Z"
+                    ]
+                  }
                 }
-              ]
-            },
-          });
+              },
+              unit: "minute",
+              amount: { $ifNull: ["$movie.duration", 180] } // Default 3 hours if no duration
+            }
+          },
+          showStartTime: {
+            $dateFromString: {
+              dateString: {
+                $concat: [
+                  { $dateToString: { format: "%Y-%m-%d", date: "$showDate" } },
+                  "T",
+                  "$showTime",
+                  ":00.000Z"
+                ]
+              }
+            }
+          }
         }
+      }
+    ];
+
+    // Apply filtering based on type
+    if (!types.includes("all")) {
+      const matchConditions = [];
+
+      if (types.includes("upcoming")) {
+        // Confirmed tickets with future start time
+        matchConditions.push({
+          $and: [
+            { status: "confirmed" },
+            { showStartTime: { $gt: now } }
+          ]
+        });
+      }
+
+      if (types.includes("history")) {
+        // Confirmed/used tickets where show has ended (not cancelled)
+        matchConditions.push({
+          $and: [
+            { status: { $in: ["confirmed", "used", "expired"] } },
+            { showEndTime: { $lt: now } }
+          ]
+        });
+      }
+
+      if (types.includes("cancelled")) {
+        // All cancelled tickets regardless of show time
+        matchConditions.push({
+          status: "cancelled"
+        });
       }
 
       pipeline.push({
-        $facet: {
-          tickets: [
-            { $sort: { showDate: -1, createdAt: -1 } },
-            { $skip: skipCount },
-            { $limit: limit },
-          ],
-          totalCount: [{ $count: "count" }],
-        },
+        $match: {
+          $or: matchConditions
+        }
       });
-
-      const result = await Ticket.aggregate(pipeline);
-
-      const tickets = result[0]?.tickets || [];
-      const total = result[0]?.totalCount[0]?.count || 0;
-
-      return {
-        tickets,
-        total,
-        page,
-        totalPages: Math.ceil(total / limit),
-      };
-    } catch (error) {
-      throw new Error(
-        `Failed to find paginated tickets by user ID: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
     }
+
+    pipeline.push({
+      $facet: {
+        tickets: [
+          { $sort: { showDate: -1, createdAt: -1 } },
+          { $skip: skipCount },
+          { $limit: limit },
+        ],
+        totalCount: [{ $count: "count" }],
+      },
+    });
+
+    const result = await Ticket.aggregate(pipeline);
+
+    const tickets = result[0]?.tickets || [];
+    const total = result[0]?.totalCount[0]?.count || 0;
+
+    return {
+      tickets,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
+    
+  } catch (error) {
+    throw new Error(
+      `Failed to find paginated tickets by user ID: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
   }
-
-
+}
 
 
   async findUpcomingTickets(userId: string): Promise<ITicket[]> {

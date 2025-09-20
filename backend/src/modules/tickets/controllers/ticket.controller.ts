@@ -72,6 +72,8 @@ export class TicketController {
     res: Response
   ): Promise<void> {
     try {
+
+
       const { ticketIds, totalAmount } = req.body; 
       const userId = req.user?.id;
 
@@ -151,11 +153,13 @@ export class TicketController {
         result.data.cancelledTickets,
         result.data
       );
+      
 
       const response = this._formatSingleTicketCancellationResponse(
         result.data,
         Number(totalAmount)
       );
+
       res.status(StatusCodes.OK).json(response);
     } catch (error: unknown) {
       console.error("Cancel single ticket error:", error);
@@ -210,7 +214,6 @@ export class TicketController {
     userId: string
   ): Promise<void> {
     try {
-      // Group tickets by showtime for efficient seat release
       const showtimeGroups = cancelledTickets.reduce((groups, ticket) => {
         const showtimeId = ticket.showtimeId.toString();
         if (!groups[showtimeId]) groups[showtimeId] = [];
@@ -218,7 +221,6 @@ export class TicketController {
         return groups;
       }, {} as Record<string, string[]>);
 
-      // Release seats for each showtime
       for (const [showtimeId, seatIds] of Object.entries(showtimeGroups)) {
         await this.showtimeService.releaseShowtimeSeats(
           showtimeId,
@@ -514,7 +516,6 @@ export class TicketController {
 
       const ownerId = theaterResult.data.ownerId;
       const originalBaseAmount = amount || 300; 
-      console.log('penaldo',originalBaseAmount);
       
       const originalAdminCommission = Math.round(originalBaseAmount * 0.15);
       const originalOwnerShare = originalBaseAmount - originalAdminCommission;
@@ -522,7 +523,6 @@ export class TicketController {
       const refundRatio = refundPercentage / 100;
       const ownerDebit = Math.round(originalOwnerShare * refundRatio);
       const adminDebit = Math.round(originalAdminCommission * refundRatio);
-      console.log('pessi adminDebitand adminDebit',ownerDebit,adminDebit);
 
       await this._debitOwnerWalletForCancellation(
         ownerId,
@@ -539,8 +539,6 @@ export class TicketController {
     try {
       const { bookingId, amount } = req.query;
       const userId = req.user?.id;
-
-      
 
       if (!userId) {
         res.status(StatusCodes.UNAUTHORIZED).json(
@@ -587,9 +585,7 @@ export class TicketController {
 
       const { refundAmount, refundPercentage } = result.data;
 
-      console.log('grizman refundAmount',refundAmount);
-      console.log('grizman result.data.cancelledTickets[0]',result.data.cancelledTickets[0]);
-      
+  
       await this._handlePaymentReversal(
         amountNumber,
 
@@ -711,7 +707,6 @@ export class TicketController {
         amount: refundAmount,
         description: refundDescription,
       });
-console.log('pessi user refund',refundAmount);
 
       if (!creditResult.success) {
         console.error("Failed to credit wallet:", creditResult.message);

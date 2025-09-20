@@ -34,7 +34,7 @@ const SeatBox = ({
       case 'available':
         return '#F1F5F9'; 
       case 'blocked':
-        return '#374151'; 
+        return '#afff94'; 
       default:
         return '#64748B';
     }
@@ -53,7 +53,7 @@ const SeatBox = ({
         if (seatType === 'Premium') return '#7C3AED';
         return '#0891B2';  
       case 'blocked':
-        return '#1F2937';
+        return '#afff94';
       default:
         return '#475569';
     }

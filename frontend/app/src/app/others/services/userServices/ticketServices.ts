@@ -33,6 +33,8 @@ export const cancelSingleTicket = async (
   ticketIds: string[],
   totalAmount: number,
 ): Promise<CancelTicketResponseDto> => {
+  console.log('calledddd');
+  
   const result = await apiClient.post(USER_TICKETS.CANCEL_SINGLE, {
     ticketIds,
     totalAmount

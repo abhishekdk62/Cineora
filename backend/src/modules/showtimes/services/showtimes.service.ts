@@ -6,26 +6,30 @@ import {
   UpdateShowtimeDTO,
   ShowtimeFilters,
   PaginatedShowtimeResult,
-  SeatBookingDTO,
   SeatReleaseDTO,
-  BulkShowtimeCreateDTO,
-  TimeSlotCheckDTO
+  SeatHoldDTO,
 } from "../dtos/dto";
 import { ServiceResponse } from "../../../interfaces/interface";
 import { IMovieShowtime } from "../interfaces/showtimes.model.interfaces";
+import { SocketService } from "../../../services/socket.service";
 
 export class ShowtimeService implements IShowtimeService {
-  constructor(private readonly showtimeRepository: IShowtimeRepository) {}
+  constructor(
+    private readonly showtimeRepository: IShowtimeRepository,
+    private readonly socketService: SocketService
+  ) {}
 
   async createBulkShowtimes(
     showtimeList: CreateShowtimeDTO[],
     ownerId: string
-  ): Promise<ServiceResponse<{
-    created: number;
-    skipped: number;
-    showtimes: IMovieShowtime[];
-    errors?: string[];
-  }>> {
+  ): Promise<
+    ServiceResponse<{
+      created: number;
+      skipped: number;
+      showtimes: IMovieShowtime[];
+      errors?: string[];
+    }>
+  > {
     try {
       if (!showtimeList || showtimeList.length === 0) {
         return {
@@ -43,10 +47,8 @@ export class ShowtimeService implements IShowtimeService {
         };
       }
 
-      const { created, skipped, createdDocs, errors } = await this._processBulkShowtimeCreation(
-        showtimeList,
-        ownerId
-      );
+      const { created, skipped, createdDocs, errors } =
+        await this._processBulkShowtimeCreation(showtimeList, ownerId);
 
       return {
         success: created > 0,
@@ -63,6 +65,160 @@ export class ShowtimeService implements IShowtimeService {
     } catch (error: any) {
       console.error("Error creating bulk showtimes:", error);
       return this._handleServiceError(error, "Failed to create bulk showtimes");
+    }
+  }
+  async holdSeatsForGroup(
+    showtimeId: string,
+    holdData: SeatHoldDTO
+
+  ): Promise<ServiceResponse<{ heldSeats: string[]; failedSeats: string[] }>> {
+    try {
+      // Validate input
+      if (!showtimeId || !holdData.seatNumbers?.length) {
+        return {
+          success: false,
+          message: "Showtime ID and seat numbers are required",
+        };
+      }
+
+      // Default hold duration is 15 minutes
+      const holdDurationMs = (holdData.holdDurationMinutes || 15) * 60 * 1000;
+      const expiresAt = new Date(Date.now() + holdDurationMs);
+
+      // Hold seats in database
+      const holdResult = await this.showtimeRepository.holdSeats(
+        showtimeId,
+        holdData.seatNumbers,
+        holdData.userId,
+        holdData.sessionId,
+        holdData.inviteGroupId,
+        expiresAt
+      );
+
+      if (!holdResult.success) {
+        return {
+          success: false,
+          message: "Failed to hold seats",
+        };
+      }
+
+      // Emit socket events for held seats
+      if (holdResult.heldSeats.length > 0) {
+        this.socketService.emitSeatHold(
+          showtimeId,
+          holdResult.heldSeats,
+          holdData.inviteGroupId
+        );
+      }
+
+      // Schedule automatic release (you might want to use a job queue for this)
+      this._scheduleAutoRelease(showtimeId, holdData.inviteGroupId, expiresAt);
+console.log('hold seats',holdResult.heldSeats);
+console.log('failedSeats seats',holdResult.failedSeats);
+
+      return {
+        success: true,
+        message: `Successfully held ${holdResult.heldSeats.length} seats`,
+        data: {
+          heldSeats: holdResult.heldSeats,
+          failedSeats: holdResult.failedSeats,
+        },
+      };
+    } catch (error: any) {
+      console.error("Error holding seats:", error);
+      return {
+        success: false,
+        message: "Failed to hold seats",
+      };
+    }
+  }
+
+  async releaseHeldSeats(
+    showtimeId: string,
+    releaseData: SeatReleaseDTO
+  ): Promise<ServiceResponse<{ releasedSeats: string[] }>> {
+    try {
+      if (!showtimeId) {
+        return {
+          success: false,
+          message: "Showtime ID is required",
+        };
+      }
+
+      const releaseResult = await this.showtimeRepository.releaseHeldSeats(
+        showtimeId,
+        {
+          seatNumbers: releaseData.seatNumbers,
+          inviteGroupId: releaseData.inviteGroupId,
+          userId: releaseData.userId,
+        }
+      );
+
+      if (!releaseResult.success) {
+        return {
+          success: false,
+          message: "Failed to release held seats",
+        };
+      }
+
+      // Emit socket events for released seats
+      if (releaseResult.releasedSeats.length > 0) {
+        this.socketService.emitSeatRelease(
+          showtimeId,
+          releaseResult.releasedSeats
+        );
+      }
+
+      return {
+        success: true,
+        message: `Successfully released ${releaseResult.releasedSeats.length} seats`,
+        data: {
+          releasedSeats: releaseResult.releasedSeats,
+        },
+      };
+    } catch (error: any) {
+      console.error("Error releasing held seats:", error);
+      return {
+        success: false,
+        message: "Failed to release held seats",
+      };
+    }
+  }
+
+  async getHeldSeats(showtimeId: string): Promise<ServiceResponse<string[]>> {
+    try {
+      const heldSeats = await this.showtimeRepository.getHeldSeats(showtimeId);
+      
+      return {
+        success: true,
+        message: "Successfully retrieved held seats",
+        data: heldSeats,
+      };
+    } catch (error: any) {
+      console.error("Error getting held seats:", error);
+      return {
+        success: false,
+        message: "Failed to get held seats",
+      };
+    }
+  }
+
+  private _scheduleAutoRelease(
+    showtimeId: string,
+    inviteGroupId: string,
+    expiresAt: Date
+  ): void {
+    const timeoutMs = expiresAt.getTime() - Date.now();
+    
+    if (timeoutMs > 0) {
+      setTimeout(async () => {
+        try {
+          await this.releaseHeldSeats(showtimeId, { inviteGroupId });
+          console.log(`Auto-released seats for invite group: ${inviteGroupId}`);
+        } catch (error) {
+          console.error("Error in auto-release:", error);
+        }
+      }, timeoutMs);
     }
   }
 
@@ -88,7 +244,10 @@ export class ShowtimeService implements IShowtimeService {
       }
 
       const showtimeCreateData = this._prepareShowtimeCreateData(showtimeData);
-      const showtime = await this.showtimeRepository.createShowtime(ownerId, showtimeCreateData);
+      const showtime = await this.showtimeRepository.createShowtime(
+        ownerId,
+        showtimeCreateData
+      );
 
       return {
         success: true,
@@ -117,7 +276,10 @@ export class ShowtimeService implements IShowtimeService {
       const processedUpdateData = this._processUpdateData(updateData);
 
       if (this._requiresTimeSlotValidation(updateData)) {
-        const overlapValidation = await this._validateUpdateTimeSlotOverlap(id, updateData);
+        const overlapValidation = await this._validateUpdateTimeSlotOverlap(
+          id,
+          updateData
+        );
         if (!overlapValidation.isValid) {
           return {
             success: false,
@@ -126,7 +288,10 @@ export class ShowtimeService implements IShowtimeService {
         }
       }
 
-      const updatedShowtime = await this.showtimeRepository.updateShowtimeById(id, processedUpdateData);
+      const updatedShowtime = await this.showtimeRepository.updateShowtimeById(
+        id,
+        processedUpdateData
+      );
 
       if (!updatedShowtime) {
         return {
@@ -189,14 +354,18 @@ export class ShowtimeService implements IShowtimeService {
         };
       }
 
-      const { page: validPage, limit: validLimit } = this._validatePagination(page, limit);
-
-      const result = await this.showtimeRepository.getShowtimesByScreenPaginated(
-        screenId,
-        validPage,
-        validLimit,
-        filters
+      const { page: validPage, limit: validLimit } = this._validatePagination(
+        page,
+        limit
       );
+
+      const result =
+        await this.showtimeRepository.getShowtimesByScreenPaginated(
+          screenId,
+          validPage,
+          validLimit,
+          filters
+        );
 
       return {
         success: true,
@@ -215,7 +384,10 @@ export class ShowtimeService implements IShowtimeService {
     filters?: ShowtimeFilters
   ): Promise<ServiceResponse<PaginatedShowtimeResult>> {
     try {
-      const { page: validPage, limit: validLimit } = this._validatePagination(page, limit);
+      const { page: validPage, limit: validLimit } = this._validatePagination(
+        page,
+        limit
+      );
 
       const result = await this.showtimeRepository.getAllShowtimesPaginated(
         validPage,
@@ -246,7 +418,10 @@ export class ShowtimeService implements IShowtimeService {
         };
       }
 
-      const result = await this.showtimeRepository.updateShowtimeStatus(showtimeId, isActive);
+      const result = await this.showtimeRepository.updateShowtimeStatus(
+        showtimeId,
+        isActive
+      );
 
       if (!result) {
         return {
@@ -257,12 +432,17 @@ export class ShowtimeService implements IShowtimeService {
 
       return {
         success: true,
-        message: `Showtime ${isActive ? "activated" : "deactivated"} successfully`,
+        message: `Showtime ${
+          isActive ? "activated" : "deactivated"
+        } successfully`,
         data: result,
       };
     } catch (error: any) {
       console.error("Error updating showtime status:", error);
-      return this._handleServiceError(error, "Failed to update showtime status");
+      return this._handleServiceError(
+        error,
+        "Failed to update showtime status"
+      );
     }
   }
 
@@ -278,7 +458,11 @@ export class ShowtimeService implements IShowtimeService {
         };
       }
 
-      const showtimes = await this.showtimeRepository.getShowtimesByScreenAndDate(screenId, date);
+      const showtimes =
+        await this.showtimeRepository.getShowtimesByScreenAndDate(
+          screenId,
+          date
+        );
 
       return {
         success: true,
@@ -303,7 +487,8 @@ export class ShowtimeService implements IShowtimeService {
         };
       }
 
-      const showtimes = await this.showtimeRepository.getShowtimesByMovieAndDate(movieId, date);
+      const showtimes =
+        await this.showtimeRepository.getShowtimesByMovieAndDate(movieId, date);
 
       return {
         success: true,
@@ -328,7 +513,11 @@ export class ShowtimeService implements IShowtimeService {
         };
       }
 
-      const showtimes = await this.showtimeRepository.getShowtimesByTheaterAndDate(theaterId, date);
+      const showtimes =
+        await this.showtimeRepository.getShowtimesByTheaterAndDate(
+          theaterId,
+          date
+        );
 
       return {
         success: true,
@@ -354,12 +543,19 @@ export class ShowtimeService implements IShowtimeService {
         };
       }
 
-      const { page: validPage, limit: validLimit } = this._validatePagination(page, limit);
+      const { page: validPage, limit: validLimit } = this._validatePagination(
+        page,
+        limit
+      );
       const skip = (validPage - 1) * validLimit;
 
       const [showtimes, total] = await Promise.all([
-        this.showtimeRepository.getShowtimesByOwnerIdPaginated(ownerId, skip, validLimit),
-        this.showtimeRepository.countShowtimesByOwnerId(ownerId)
+        this.showtimeRepository.getShowtimesByOwnerIdPaginated(
+          ownerId,
+          skip,
+          validLimit
+        ),
+        this.showtimeRepository.countShowtimesByOwnerId(ownerId),
       ]);
 
       return {
@@ -369,11 +565,16 @@ export class ShowtimeService implements IShowtimeService {
       };
     } catch (error: any) {
       console.error("Error getting showtimes by owner id paginated:", error);
-      return this._handleServiceError(error, "Failed to retrieve paginated showtimes");
+      return this._handleServiceError(
+        error,
+        "Failed to retrieve paginated showtimes"
+      );
     }
   }
 
-  async getShowtimesByOwnerId(ownerId: string): Promise<ServiceResponse<IMovieShowtime[]>> {
+  async getShowtimesByOwnerId(
+    ownerId: string
+  ): Promise<ServiceResponse<IMovieShowtime[]>> {
     try {
       if (!ownerId) {
         return {
@@ -382,7 +583,9 @@ export class ShowtimeService implements IShowtimeService {
         };
       }
 
-      const showtimes = await this.showtimeRepository.getShowtimesByOwnerId(ownerId);
+      const showtimes = await this.showtimeRepository.getShowtimesByOwnerId(
+        ownerId
+      );
 
       return {
         success: true,
@@ -402,7 +605,12 @@ export class ShowtimeService implements IShowtimeService {
     endDate: Date
   ): Promise<ServiceResponse<IMovieShowtime[]>> {
     try {
-      const validationResult = this._validateFilterParameters(theaterId, screenId, startDate, endDate);
+      const validationResult = this._validateFilterParameters(
+        theaterId,
+        screenId,
+        startDate,
+        endDate
+      );
       if (!validationResult.isValid) {
         return {
           success: false,
@@ -414,7 +622,7 @@ export class ShowtimeService implements IShowtimeService {
         theaterId,
         screenId,
         startDate,
-        endDate
+        endDate,
       });
 
       return {
@@ -435,7 +643,12 @@ export class ShowtimeService implements IShowtimeService {
     sessionId: string
   ): Promise<ServiceResponse<void>> {
     try {
-      const validationResult = this._validateSeatBlockingData(showtimeId, seatIds, userId, sessionId);
+      const validationResult = this._validateSeatBlockingData(
+        showtimeId,
+        seatIds,
+        userId,
+        sessionId
+      );
       if (!validationResult.isValid) {
         return {
           success: false,
@@ -466,7 +679,7 @@ export class ShowtimeService implements IShowtimeService {
       return this._handleServiceError(error, "Failed to block seats");
     }
   }
-
+  //!soccket to be implemented here
   async releaseShowtimeSeats(
     showtimeId: string,
     seatIds: string[],
@@ -474,7 +687,12 @@ export class ShowtimeService implements IShowtimeService {
     reason: string
   ): Promise<ServiceResponse<void>> {
     try {
-      const validationResult = this._validateSeatReleaseData(showtimeId, seatIds, userId, reason);
+      const validationResult = this._validateSeatReleaseData(
+        showtimeId,
+        seatIds,
+        userId,
+        reason
+      );
       if (!validationResult.isValid) {
         return {
           success: false,
@@ -495,6 +713,10 @@ export class ShowtimeService implements IShowtimeService {
           message: "Failed to release seats",
         };
       }
+      console.log('function started for socket seat cancel');
+      
+      this.socketService.emitSeatCancellation(showtimeId, seatIds);
+      console.log('function ended for socket seat cancel');
 
       return {
         success: true,
@@ -505,13 +727,16 @@ export class ShowtimeService implements IShowtimeService {
       return this._handleServiceError(error, "Failed to release seats");
     }
   }
-
+  //!socket to be imple here
   async bookShowtimeSeats(
     showtimeId: string,
     seatIds: string[]
   ): Promise<ServiceResponse<void>> {
     try {
-      const validationResult = this._validateSeatBookingData(showtimeId, seatIds);
+      const validationResult = this._validateSeatBookingData(
+        showtimeId,
+        seatIds
+      );
       if (!validationResult.isValid) {
         return {
           success: false,
@@ -519,7 +744,10 @@ export class ShowtimeService implements IShowtimeService {
         };
       }
 
-      const result = await this.showtimeRepository.bookShowtimeSeats(showtimeId, seatIds);
+      const result = await this.showtimeRepository.bookShowtimeSeats(
+        showtimeId,
+        seatIds
+      );
 
       if (!result) {
         return {
@@ -528,6 +756,7 @@ export class ShowtimeService implements IShowtimeService {
         };
       }
 
+      this.socketService.emitSeatUpdate(showtimeId, seatIds);
       return {
         success: true,
         message: "Seats booked successfully",
@@ -570,19 +799,28 @@ export class ShowtimeService implements IShowtimeService {
     page: number = 1,
     limit: number = 10,
     filters: ShowtimeFilters = {}
-  ): Promise<ServiceResponse<{
-    showtimes: IMovieShowtime[];
-    pagination: {
-      current: number;
-      pages: number;
-      total: number;
-      limit: number;
-    };
-  }>> {
+  ): Promise<
+    ServiceResponse<{
+      showtimes: IMovieShowtime[];
+      pagination: {
+        current: number;
+        pages: number;
+        total: number;
+        limit: number;
+      };
+    }>
+  > {
     try {
-      const { page: validPage, limit: validLimit } = this._validatePagination(page, limit);
+      const { page: validPage, limit: validLimit } = this._validatePagination(
+        page,
+        limit
+      );
 
-      const showtimes = await this.showtimeRepository.getAllShowtimes(validPage, validLimit, filters);
+      const showtimes = await this.showtimeRepository.getAllShowtimes(
+        validPage,
+        validLimit,
+        filters
+      );
 
       return {
         success: true,
@@ -607,7 +845,11 @@ export class ShowtimeService implements IShowtimeService {
         };
       }
 
-      const theaters = await this.showtimeRepository.getTheatersByMovieWithShowtimes(movieId, date);
+      const theaters =
+        await this.showtimeRepository.getTheatersByMovieWithShowtimes(
+          movieId,
+          date
+        );
 
       return {
         success: true,
@@ -633,9 +875,12 @@ export class ShowtimeService implements IShowtimeService {
       }
 
       const newStatus = !currentStatus;
-      const updatedShowtime = await this.showtimeRepository.updateShowtimeById(id, {
-        isActive: newStatus,
-      });
+      const updatedShowtime = await this.showtimeRepository.updateShowtimeById(
+        id,
+        {
+          isActive: newStatus,
+        }
+      );
 
       if (!updatedShowtime) {
         return {
@@ -646,12 +891,17 @@ export class ShowtimeService implements IShowtimeService {
 
       return {
         success: true,
-        message: `Showtime ${newStatus ? "activated" : "deactivated"} successfully`,
+        message: `Showtime ${
+          newStatus ? "activated" : "deactivated"
+        } successfully`,
         data: updatedShowtime,
       };
     } catch (error: any) {
       console.error("Error toggling showtime status:", error);
-      return this._handleServiceError(error, "Failed to toggle showtime status");
+      return this._handleServiceError(
+        error,
+        "Failed to toggle showtime status"
+      );
     }
   }
 
@@ -659,25 +909,48 @@ export class ShowtimeService implements IShowtimeService {
     return mongoose.isValidObjectId(id);
   }
 
-  private _validatePagination(page: number, limit: number): { page: number; limit: number } {
+  private _validatePagination(
+    page: number,
+    limit: number
+  ): { page: number; limit: number } {
     const validPage = page < 1 ? 1 : page;
     const validLimit = limit < 1 || limit > 100 ? 10 : limit;
     return { page: validPage, limit: validLimit };
   }
 
-  private _validateShowtimeData(showtimeData: CreateShowtimeDTO): { isValid: boolean; message: string } {
-    if (!showtimeData.movieId || !showtimeData.theaterId || !showtimeData.screenId) {
-      return { isValid: false, message: "Movie ID, Theater ID, and Screen ID are required" };
+  private _validateShowtimeData(showtimeData: CreateShowtimeDTO): {
+    isValid: boolean;
+    message: string;
+  } {
+    if (
+      !showtimeData.movieId ||
+      !showtimeData.theaterId ||
+      !showtimeData.screenId
+    ) {
+      return {
+        isValid: false,
+        message: "Movie ID, Theater ID, and Screen ID are required",
+      };
     }
 
-    if (!showtimeData.showDate || !showtimeData.showTime || !showtimeData.endTime) {
-      return { isValid: false, message: "Show date, show time, and end time are required" };
+    if (
+      !showtimeData.showDate ||
+      !showtimeData.showTime ||
+      !showtimeData.endTime
+    ) {
+      return {
+        isValid: false,
+        message: "Show date, show time, and end time are required",
+      };
     }
 
     return { isValid: true, message: "" };
   }
 
-  private _validateBulkShowtimeTimeGaps(showtimeList: CreateShowtimeDTO[]): { isValid: boolean; message: string } {
+  private _validateBulkShowtimeTimeGaps(showtimeList: CreateShowtimeDTO[]): {
+    isValid: boolean;
+    message: string;
+  } {
     const groupedByScreenDate: { [key: string]: CreateShowtimeDTO[] } = {};
 
     for (const st of showtimeList) {
@@ -693,7 +966,10 @@ export class ShowtimeService implements IShowtimeService {
         const current = showtimes[i];
         const next = showtimes[i + 1];
 
-        const gap = this._calculateTimeGapInMinutes(current.endTime, next.showTime);
+        const gap = this._calculateTimeGapInMinutes(
+          current.endTime,
+          next.showTime
+        );
         if (gap < 30) {
           return {
             isValid: false,
@@ -734,17 +1010,26 @@ export class ShowtimeService implements IShowtimeService {
     return { created, skipped, createdDocs, errors };
   }
 
-  private async _checkShowtimeOverlap(showtimeData: CreateShowtimeDTO): Promise<{ hasOverlap: boolean; message: string }> {
+  private async _checkShowtimeOverlap(
+    showtimeData: CreateShowtimeDTO
+  ): Promise<{ hasOverlap: boolean; message: string }> {
     const bufferMinutes = 30;
-    const bufferedStartTime = this._subtractMinutesFromTime(showtimeData.showTime, bufferMinutes);
-    const bufferedEndTime = this._addMinutesToTime(showtimeData.endTime, bufferMinutes);
-
-    const hasOverlap = await this.showtimeRepository.checkShowtimeTimeSlotOverlap(
-      showtimeData.screenId.toString(),
-      new Date(showtimeData.showDate),
-      bufferedStartTime,
-      bufferedEndTime
+    const bufferedStartTime = this._subtractMinutesFromTime(
+      showtimeData.showTime,
+      bufferMinutes
     );
+    const bufferedEndTime = this._addMinutesToTime(
+      showtimeData.endTime,
+      bufferMinutes
+    );
+
+    const hasOverlap =
+      await this.showtimeRepository.checkShowtimeTimeSlotOverlap(
+        showtimeData.screenId.toString(),
+        new Date(showtimeData.showDate),
+        bufferedStartTime,
+        bufferedEndTime
+      );
 
     if (hasOverlap) {
       return {
@@ -756,7 +1041,9 @@ export class ShowtimeService implements IShowtimeService {
     return { hasOverlap: false, message: "" };
   }
 
-  private _prepareShowtimeCreateData(showtimeData: CreateShowtimeDTO): CreateShowtimeDTO {
+  private _prepareShowtimeCreateData(
+    showtimeData: CreateShowtimeDTO
+  ): CreateShowtimeDTO {
     return {
       ...showtimeData,
       movieId: showtimeData.movieId,
@@ -798,7 +1085,9 @@ export class ShowtimeService implements IShowtimeService {
     showtimeId: string,
     updateData: UpdateShowtimeDTO
   ): Promise<{ isValid: boolean; message: string }> {
-    const currentShowtime = await this.showtimeRepository.getShowtimeById(showtimeId);
+    const currentShowtime = await this.showtimeRepository.getShowtimeById(
+      showtimeId
+    );
     if (!currentShowtime) {
       return { isValid: false, message: "Showtime not found" };
     }
@@ -809,21 +1098,32 @@ export class ShowtimeService implements IShowtimeService {
 
     let finalScreenId = updateData.screenId || currentShowtime.screenId;
 
-    if (typeof finalScreenId === "object" && finalScreenId !== null && finalScreenId._id) {
-      finalScreenId = typeof finalScreenId._id === "string" ? finalScreenId._id : finalScreenId._id.toString();
+    if (
+      typeof finalScreenId === "object" &&
+      finalScreenId !== null &&
+      finalScreenId._id
+    ) {
+      finalScreenId =
+        typeof finalScreenId._id === "string"
+          ? finalScreenId._id
+          : finalScreenId._id.toString();
     }
 
     const bufferMinutes = 30;
-    const bufferedStartTime = this._subtractMinutesFromTime(finalShowTime, bufferMinutes);
+    const bufferedStartTime = this._subtractMinutesFromTime(
+      finalShowTime,
+      bufferMinutes
+    );
     const bufferedEndTime = this._addMinutesToTime(finalEndTime, bufferMinutes);
 
-    const hasOverlap = await this.showtimeRepository.checkShowtimeTimeSlotOverlap(
-      finalScreenId.toString(),
-      new Date(finalShowDate),
-      bufferedStartTime,
-      bufferedEndTime,
-      showtimeId
-    );
+    const hasOverlap =
+      await this.showtimeRepository.checkShowtimeTimeSlotOverlap(
+        finalScreenId.toString(),
+        new Date(finalShowDate),
+        bufferedStartTime,
+        bufferedEndTime,
+        showtimeId
+      );
 
     if (hasOverlap) {
       return {
@@ -848,7 +1148,10 @@ export class ShowtimeService implements IShowtimeService {
       return { isValid: false, message: "Invalid screen ID" };
     }
     if (!startDate || !endDate) {
-      return { isValid: false, message: "Start date and end date are required" };
+      return {
+        isValid: false,
+        message: "Start date and end date are required",
+      };
     }
     if (startDate > endDate) {
       return { isValid: false, message: "Start date must be before end date" };
@@ -924,7 +1227,9 @@ export class ShowtimeService implements IShowtimeService {
     const newHours = date.getHours();
     const newMins = date.getMinutes();
 
-    return `${newHours.toString().padStart(2, "0")}:${newMins.toString().padStart(2, "0")}`;
+    return `${newHours.toString().padStart(2, "0")}:${newMins
+      .toString()
+      .padStart(2, "0")}`;
   }
 
   private _subtractMinutesFromTime(time: string, minutes: number): string {
@@ -936,16 +1241,24 @@ export class ShowtimeService implements IShowtimeService {
     const newHours = Math.max(0, date.getHours());
     const newMins = Math.max(0, date.getMinutes());
 
-    return `${newHours.toString().padStart(2, "0")}:${newMins.toString().padStart(2, "0")}`;
+    return `${newHours.toString().padStart(2, "0")}:${newMins
+      .toString()
+      .padStart(2, "0")}`;
   }
 
-  private _calculateTimeGapInMinutes(endTime: string, startTime: string): number {
+  private _calculateTimeGapInMinutes(
+    endTime: string,
+    startTime: string
+  ): number {
     const [endH, endM] = endTime.split(":").map(Number);
     const [startH, startM] = startTime.split(":").map(Number);
     return startH * 60 + startM - (endH * 60 + endM);
   }
 
-  private _handleServiceError(error: any, defaultMessage: string): ServiceResponse<any> {
+  private _handleServiceError(
+    error: any,
+    defaultMessage: string
+  ): ServiceResponse<any> {
     return {
       success: false,
       message: error.message || defaultMessage,

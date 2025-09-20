@@ -15,6 +15,20 @@ export interface UpdateShowtimeDTO {
   isActive?: boolean;
   ageRestriction?: number;
 }
+export interface SeatHoldDTO {
+  seatNumbers: string[];
+  userId: string;
+  sessionId: string;
+  inviteGroupId: string;
+  holdDurationMinutes?: number; // Default 15 minutes
+}
+
+export interface SeatReleaseDTO {
+  seatNumbers?: string[];
+  inviteGroupId?: string;
+  userId?: string;
+}
+
 
 export interface IRowPricingDTO {
   rowLabel: string;
@@ -54,11 +68,6 @@ export interface SeatBookingDTO {
   sessionId: string;
 }
 
-export interface SeatReleaseDTO {
-  seatIds: string[];
-  userId: string;
-  reason: string;
-}
 
 export interface ShowtimePaginationDTO {
   current: number;
@@ -131,11 +140,7 @@ export interface PaginatedShowtimeResult {
 
 
 
-export interface SeatReleaseDTO {
-  seatIds: string[];
-  userId: string;
-  reason: string;
-}
+
 
 export interface ShowtimePaginationDTO {
   current: number;

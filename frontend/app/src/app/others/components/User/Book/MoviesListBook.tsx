@@ -89,9 +89,7 @@ export default function MoviesListBook({
                         src={movieData?.poster ?? "/api/placeholder/80/112"}
                         alt={movieData?.title ?? "Movie"}
                         className="w-16 h-20 rounded-lg object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = "/api/placeholder/80/112";
-                        }}
+                  
                       />
                       <div>
                         <h3 className={`${lexendMedium.className} text-white text-xl mb-2`}>

@@ -83,7 +83,10 @@ interface ApiResponse {
     timestamp: string;
 }
 
-type TabType = 'upcoming' | 'history';
+// Update the TabType
+type TabType = 'upcoming' | 'history' | 'cancelled';
+
+
 
 const TicketsList: React.FC = () => {
     const [allTickets, setAllTickets] = useState<TicketData[]>([]);
@@ -93,6 +96,12 @@ const TicketsList: React.FC = () => {
     const [selectedTicket, setSelectedTicket] = useState<TicketData | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [activeTab, setActiveTab] = useState<TabType>('upcoming');
+    const [tabCounts, setTabCounts] = useState({ 
+    upcoming: 0, 
+    history: 0, 
+    cancelled: 0 
+});
+
     const [showReviewModal, setShowReviewModal] = useState(false);
     const [rating, setRating] = useState(0);
     const [selectedBookingForReview, setSelectedBookingForReview] = useState<any>(null);
@@ -104,45 +113,67 @@ const TicketsList: React.FC = () => {
     const [hasMore, setHasMore] = useState(true);
     const [totalCount, setTotalCount] = useState(0);
 
-    const getTickets = async (pageNumber: number = 1, filterType?: string, append: boolean = false) => {
-        try {
-            if (pageNumber === 1) {
-                setLoading(true);
-            } else {
-                setLoadingMore(true);
-            }
-
-            let typeParam: string;
-            if (filterType) {
-                typeParam = filterType;
-            } else {
-                typeParam = activeTab === 'upcoming' ? 'upcoming' : 'past';
-            }
-
-            const response: ApiResponse = await getTicketsApi(pageNumber, limit, typeParam);
-            console.log(response);
-
-            if (response.success) {
-                if (append && pageNumber > 1) {
-                    setAllTickets(prev => [...prev, ...response.data]);
-                } else {
-                    setAllTickets(response.data);
-                }
-
-                setTotalCount(response.meta.pagination.total);
-                setHasMore(response.meta.pagination.hasNextPage);
-                setError(null);
-            } else {
-                setError(response.message || 'Failed to load tickets');
-            }
-        } catch (error) {
-            console.error('Error fetching tickets:', error);
-            setError('Failed to load tickets');
-        } finally {
-            setLoading(false);
-            setLoadingMore(false);
+ // Update the getTickets function
+const getTickets = async (pageNumber: number = 1, filterType?: string, append: boolean = false) => {
+    try {
+        if (pageNumber === 1) {
+            setLoading(true);
+        } else {
+            setLoadingMore(true);
         }
-    };
+
+        let typeParam: string;
+        if (filterType) {
+            typeParam = filterType;
+        } else {
+            // Map frontend tabs to backend types
+            switch (activeTab) {
+                case 'upcoming':
+                    typeParam = 'upcoming';
+                    break;
+                case 'history':
+                    typeParam = 'history';
+                    break;
+                case 'cancelled':
+                    typeParam = 'cancelled';
+                    break;
+                default:
+                    typeParam = 'upcoming';
+            }
+        }
+
+        const response: ApiResponse = await getTicketsApi(pageNumber, limit, typeParam);
+        console.log(response);
+
+        if (response.success) {
+            if (append && pageNumber > 1) {
+                setAllTickets(prev => [...prev, ...response.data]);
+            } else {
+                setAllTickets(response.data);
+            }
+
+            // Update the specific tab count
+            setTabCounts(prev => ({
+                ...prev,
+                [activeTab]: response.meta.pagination.total
+            }));
+            
+            setTotalCount(response.meta.pagination.total);
+            setHasMore(response.meta.pagination.hasNextPage);
+            setError(null);
+        } else {
+            setError(response.message || 'Failed to load tickets');
+        }
+    } catch (error) {
+        console.error('Error fetching tickets:', error);
+        setError('Failed to load tickets');
+    } finally {
+        setLoading(false);
+        setLoadingMore(false);
+    }
+};
+
+
 
     const loadMoreTickets = useCallback(() => {
         if (!loadingMore && hasMore && !loading) {
@@ -204,12 +235,6 @@ const TicketsList: React.FC = () => {
         return groupTicketsByBooking(allTickets);
     };
 
-    const getTabCounts = () => {
-        return {
-            upcoming: activeTab === 'upcoming' ? totalCount : 0,
-            history: activeTab === 'history' ? totalCount : 0
-        };
-    };
 
     const handleViewDetails = (ticket: TicketData) => {
         setSelectedTicket(ticket);
@@ -291,7 +316,6 @@ const TicketsList: React.FC = () => {
     }
 
     const filteredBookings = getFilteredBookings();
-    const tabCounts = getTabCounts();
 
     return (
         <div className="min-h-screen bg-transparent p-12">

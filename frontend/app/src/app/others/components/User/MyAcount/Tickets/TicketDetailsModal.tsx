@@ -205,9 +205,7 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
               src={movieData.poster || '/placeholder-movie.jpg'}
               alt={movieData.title || 'Movie'}
               className="w-32 h-48 rounded-lg object-cover"
-              onError={(e) => {
-                e.currentTarget.src = '/placeholder-movie.jpg';
-              }}
+             
             />
             <div className="flex-1">
               <h3 className={`${lexendBold.className} text-xl text-white mb-4`}>

@@ -82,9 +82,7 @@ const theaterData: Partial<{name: string}> = getTheaterData(selectedBooking);
             src={movieData.poster || '/placeholder-movie.jpg'}
             alt={movieData.title || 'Movie'}
             className="w-12 h-16 rounded object-cover"
-            onError={(e) => {
-              e.currentTarget.src = '/placeholder-movie.jpg';
-            }}
+         
           />
           <div>
             <h3 className="font-medium text-white">{movieData.title || 'Unknown Movie'}</h3>

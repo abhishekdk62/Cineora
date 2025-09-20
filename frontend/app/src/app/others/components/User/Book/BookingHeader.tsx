@@ -75,9 +75,7 @@ export default function BookingHeader({
                 src={movie.poster ?? "/api/placeholder/80/112"}
                 alt={movie.title ?? "Movie"}
                 className="w-20 h-28 rounded-lg object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/api/placeholder/80/112";
-                }}
+          
               />
               <div>
                 <h1 className={`${lexendBold.className} text-2xl md:text-3xl text-white mb-2`}>

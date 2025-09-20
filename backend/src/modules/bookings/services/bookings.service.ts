@@ -3,12 +3,14 @@ import { ServiceResponse } from "../../../interfaces/interface";
 import { CreateBookingDto } from "../dtos/dto";
 import { IBookingService } from "../interfaces/bookings.service.interface";
 import { IBookingRepository } from "../interfaces/bookings.repository.interface";
+import { IShowtimeService } from "../../showtimes/interfaces/showtimes.service.interface";
 import { IShowtimeRepository } from "../../showtimes/interfaces/showtimes.repository.interface";
 
 export class BookingService implements IBookingService {
   constructor(
     private readonly bookingRepository: IBookingRepository,
-    private readonly showtimeRepository: IShowtimeRepository
+    private readonly showtimeServices: IShowtimeService,
+    private readonly showtimeRepo: IShowtimeRepository
   ) {}
 
   async createBooking(bookingData: CreateBookingDto): Promise<ServiceResponse> {
@@ -27,11 +29,12 @@ export class BookingService implements IBookingService {
       const booking = await this.bookingRepository.createBooking(
         bookingPayload
       );
+      
       if (!booking) {
         throw new Error("Failed to create booking");
       }
 
-      await this.showtimeRepository.bookShowtimeSeats(
+      await this.showtimeServices.bookShowtimeSeats(
         bookingData.showtimeId,
         allSelectedSeats
       );
@@ -50,88 +53,95 @@ export class BookingService implements IBookingService {
       session.endSession();
     }
   }
-async getAllBookingsByOwnerId(ownerId: string): Promise<ServiceResponse> {
-  try {
-    const bookings = await this.bookingRepository.findAllBookingsByOwnerId(ownerId);
-    
-    return this._createSuccessResponse(
-      "Bookings fetched successfully",
-      { bookings }
-    );
-  } catch (error) {
-    return this._createErrorResponse(
-      error.message || "Failed to fetch bookings"
-    );
+  async getAllBookingsByOwnerId(ownerId: string): Promise<ServiceResponse> {
+    try {
+      const bookings = await this.bookingRepository.findAllBookingsByOwnerId(
+        ownerId
+      );
+
+      return this._createSuccessResponse("Bookings fetched successfully", {
+        bookings,
+      });
+    } catch (error) {
+      return this._createErrorResponse(
+        error.message || "Failed to fetch bookings"
+      );
+    }
   }
-}
 
-async getBookingsByTheaterId(
-  theaterId: string, 
-  page: number = 1, 
-  limit: number = 10,
-  startDate?: string,
-  endDate?: string
-): Promise<ServiceResponse> {
-  try {
-    // Validate theater ID
-    if (!mongoose.Types.ObjectId.isValid(theaterId)) {
-      return this._createErrorResponse("Invalid theater ID format");
-    }
-
-    // Validate dates if provided
-    if (startDate && !this._isValidDateFormat(startDate)) {
-      return this._createErrorResponse("Invalid start date format. Use YYYY-MM-DD");
-    }
-
-    if (endDate && !this._isValidDateFormat(endDate)) {
-      return this._createErrorResponse("Invalid end date format. Use YYYY-MM-DD");
-    }
-
-    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
-      return this._createErrorResponse("Start date cannot be later than end date");
-    }
-
-    const { bookings, totalBookings } = await this.bookingRepository.getBookingsByTheaterId(
-      theaterId, 
-      page, 
-      limit,
-      startDate,
-      endDate
-    );
-    
-    const totalPages = Math.ceil(totalBookings / limit);
-
-    const responseData = {
-      bookings,
-      pagination: {
-        currentPage: page,
-        totalPages,
-        totalBookings,
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1
+  async getBookingsByTheaterId(
+    theaterId: string,
+    page: number = 1,
+    limit: number = 10,
+    startDate?: string,
+    endDate?: string
+  ): Promise<ServiceResponse> {
+    try {
+      // Validate theater ID
+      if (!mongoose.Types.ObjectId.isValid(theaterId)) {
+        return this._createErrorResponse("Invalid theater ID format");
       }
-    };
 
-    return this._createSuccessResponse(
-      "Theater bookings retrieved successfully", 
-      responseData
-    );
-  } catch (error) {
-    return this._createErrorResponse(
-      error.message || "Failed to retrieve theater bookings"
-    );
+      // Validate dates if provided
+      if (startDate && !this._isValidDateFormat(startDate)) {
+        return this._createErrorResponse(
+          "Invalid start date format. Use YYYY-MM-DD"
+        );
+      }
+
+      if (endDate && !this._isValidDateFormat(endDate)) {
+        return this._createErrorResponse(
+          "Invalid end date format. Use YYYY-MM-DD"
+        );
+      }
+
+      if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+        return this._createErrorResponse(
+          "Start date cannot be later than end date"
+        );
+      }
+
+      const { bookings, totalBookings } =
+        await this.bookingRepository.getBookingsByTheaterId(
+          theaterId,
+          page,
+          limit,
+          startDate,
+          endDate
+        );
+
+      const totalPages = Math.ceil(totalBookings / limit);
+
+      const responseData = {
+        bookings,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalBookings,
+          hasNextPage: page < totalPages,
+          hasPrevPage: page > 1,
+        },
+      };
+
+      return this._createSuccessResponse(
+        "Theater bookings retrieved successfully",
+        responseData
+      );
+    } catch (error) {
+      return this._createErrorResponse(
+        error.message || "Failed to retrieve theater bookings"
+      );
+    }
   }
-}
 
-// Add this helper method
-private _isValidDateFormat(dateString: string): boolean {
-  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-  if (!dateRegex.test(dateString)) return false;
-  
-  const date = new Date(dateString);
-  return date instanceof Date && !isNaN(date.getTime());
-}
+  // Add this helper method
+  private _isValidDateFormat(dateString: string): boolean {
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(dateString)) return false;
 
+    const date = new Date(dateString);
+    return date instanceof Date && !isNaN(date.getTime());
+  }
 
   async getBookingByBookingId(bookingId: string): Promise<ServiceResponse> {
     try {
@@ -190,7 +200,7 @@ private _isValidDateFormat(dateString: string): boolean {
         bookingId
       );
 
-      await this.showtimeRepository.releaseShowtimeSeats(
+      await this.showtimeServices.releaseShowtimeSeats(
         booking.showtimeId.toString(),
         booking.selectedSeats,
         userId,
@@ -449,7 +459,7 @@ private _isValidDateFormat(dateString: string): boolean {
     showtimeId: string,
     selectedSeats: string[]
   ): Promise<void> {
-    const showtime = await this.showtimeRepository.getShowtimeById(showtimeId);
+    const showtime = await this.showtimeRepo.getShowtimeById(showtimeId);
     if (!showtime) {
       throw new Error("Showtime not found");
     }

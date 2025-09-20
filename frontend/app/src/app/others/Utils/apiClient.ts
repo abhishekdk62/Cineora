@@ -2,7 +2,7 @@ import axios from "axios";
 import AUTH_ROUTES from "../constants/authConstants/authConstants";
 
 const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL_PROD,
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },

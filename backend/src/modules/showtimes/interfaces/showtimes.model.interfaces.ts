@@ -5,6 +5,9 @@ export interface ISeatBlock {
   userId: string;
   sessionId: string;
   blockedAt: Date;
+  blockType: "individual" | "group_invite";
+  inviteGroupId?: string;
+
   expiresAt: Date;
 }
 

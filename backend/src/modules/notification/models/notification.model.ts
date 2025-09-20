@@ -1,6 +1,15 @@
 import mongoose, { Schema } from "mongoose";
 import { INotification } from "../interfaces/notification.model.interface";
-export type NotificationType = "booking" | "payment" | "reminder" | "cancellation" | "offer";
+export type NotificationType =
+  | "booking"
+  | "payment"
+  | "reminder"
+  | "cancellation"
+  | "offer"
+  | "group_invite"
+  | "invite_accepted"
+  | "invite_declined"
+  | "group_completed";
 
 const notificationSchema = new Schema<INotification>(
   {
@@ -24,9 +33,20 @@ const notificationSchema = new Schema<INotification>(
     },
     type: {
       type: String,
-      enum: ["booking", "payment", "reminder", "cancellation", "offer"],
+      enum: [
+        "booking",
+        "payment",
+        "reminder",
+        "cancellation",
+        "offer",
+        "group_invite",
+        "invite_accepted",
+        "invite_declined",
+        "group_completed",
+      ],
       required: true,
     },
+
     isRead: {
       type: Boolean,
       default: false,
@@ -37,8 +57,8 @@ const notificationSchema = new Schema<INotification>(
     data: {
       type: Schema.Types.Mixed,
     },
-    scheduledTime: { type: Date }, 
-    sent: { type: Boolean, default: false }, 
+    scheduledTime: { type: Date },
+    sent: { type: Boolean, default: false },
   },
   {
     timestamps: true,
@@ -48,6 +68,9 @@ const notificationSchema = new Schema<INotification>(
 notificationSchema.index({ userId: 1, createdAt: -1 });
 notificationSchema.index({ userId: 1, isRead: 1 });
 
-const Notification = mongoose.model<INotification>("Notification", notificationSchema);
+const Notification = mongoose.model<INotification>(
+  "Notification",
+  notificationSchema
+);
 
 export default Notification;

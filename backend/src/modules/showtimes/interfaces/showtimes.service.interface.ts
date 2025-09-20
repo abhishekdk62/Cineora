@@ -1,5 +1,5 @@
 import { ServiceResponse } from "../../../interfaces/interface";
-import { CreateShowtimeDTO, UpdateShowtimeDTO, ShowtimeFilters, PaginatedShowtimeResult } from "../dtos/dto";
+import { CreateShowtimeDTO, UpdateShowtimeDTO, ShowtimeFilters, PaginatedShowtimeResult, SeatHoldDTO, SeatReleaseDTO } from "../dtos/dto";
 import { IMovieShowtime } from "./showtimes.model.interfaces";
 
 export interface IShowtimeService {
@@ -17,6 +17,17 @@ export interface IShowtimeService {
     showtimeData: CreateShowtimeDTO,
     ownerId: string
   ): Promise<ServiceResponse<IMovieShowtime>>;
+  holdSeatsForGroup(
+    showtimeId: string,
+    holdData: SeatHoldDTO
+  ): Promise<ServiceResponse<{ heldSeats: string[]; failedSeats: string[] }>>;
+  
+  releaseHeldSeats(
+    showtimeId: string,
+    releaseData: SeatReleaseDTO
+  ): Promise<ServiceResponse<{ releasedSeats: string[] }>>;
+  
+  getHeldSeats(showtimeId: string): Promise<ServiceResponse<string[]>>;
 
   updateShowtime(
     id: string,

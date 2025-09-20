@@ -81,7 +81,6 @@ export class TicketService implements ITicketService {
         });
       }
 
-      // Calculate refund based on the first ticket's show time
       const firstTicket = tickets[0];
       const showDateTime = this._parseShowDateTime(
         firstTicket.showDate,
@@ -217,14 +216,13 @@ export class TicketService implements ITicketService {
   ): Promise<ApiResponse<ITicket[]>> {
     try {
       this._validateCreateTicketsFromBookingData(data);
-      console.log("c id coups", data.bookingData.couponId);
 
       const tickets = this._prepareTicketsFromBooking(data);
-      console.log("c id", tickets.couponId);
 
       const createdTickets = await this.ticketRepository.createBulkTickets(
         tickets
       );
+
       return createResponse({
         success: true,
         message: "Tickets created successfully",
@@ -364,8 +362,9 @@ export class TicketService implements ITicketService {
         data.userId,
         data.page || 1,
         data.limit || 10,
-        data.types || ["all"]
+        data.types || ["upcoming"]
       );
+      
 
       return createResponse({
         success: true,
@@ -550,6 +549,7 @@ export class TicketService implements ITicketService {
 
         tickets.push({
           ticketId,
+          isInvited:data.isInvited,
           bookingId: new mongoose.Types.ObjectId(data.bookingId),
           userId: new mongoose.Types.ObjectId(data.bookingInfo.userId),
           movieId: new mongoose.Types.ObjectId(data.bookingInfo.movieId),

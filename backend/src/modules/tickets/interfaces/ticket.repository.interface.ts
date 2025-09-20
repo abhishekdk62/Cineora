@@ -6,10 +6,10 @@ export interface IReadTicketRepository {
   findTicketsByBookingId(bookingId: string): Promise<ITicket[]>;
   findTicketsByUserId(userId: string): Promise<ITicket[]>;
   findTicketsByUserIdPaginated(
-    userId: string,
-    page: number,
-    limit: number,
-     types: ("upcoming" | "past" | "cancelled" | "all")[]
+  userId: string,
+  page: number ,
+  limit: number ,
+  types: ("upcoming" | "history" | "cancelled" | "all")[]
 
 
 

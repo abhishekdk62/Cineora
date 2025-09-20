@@ -227,7 +227,6 @@ async findAllBookingsByOwnerId(ownerId: string): Promise<IBooking[]> {
   }
   async createBooking(bookingData: any): Promise<IBooking | null> {
     try {
-      console.log("Raw booking data:", bookingData);
 
       let transformedBookingData: any = {
         bookingId: bookingData.bookingId,

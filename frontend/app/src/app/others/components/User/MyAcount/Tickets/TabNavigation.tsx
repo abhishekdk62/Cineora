@@ -2,9 +2,9 @@
 import React from 'react';
 
 interface TabNavigationProps {
-  activeTab: 'upcoming' | 'history';
-  onTabChange: (tab: 'upcoming' | 'history') => void;
-  tabCounts: { upcoming: number; history: number };
+  activeTab: 'upcoming' | 'history' | 'cancelled';
+  onTabChange: (tab: 'upcoming' | 'history' | 'cancelled') => void;
+  tabCounts: { upcoming: number; history: number; cancelled: number };
 }
 
 const TabNavigation: React.FC<TabNavigationProps> = ({ 
@@ -14,66 +14,64 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
 }) => {
   const lexendMedium = { className: "font-medium" };
 
-  return (
-    <div className="flex items-center justify-center gap-4 mb-8">
-      <button
-        onClick={() => onTabChange('upcoming')}
-        className={`${lexendMedium.className} border px-6 py-3 rounded-xl transition-all duration-200 flex items-center gap-2 ${
-          activeTab === 'upcoming'
-            ? 'bg-transparent border-white text-white'
-            : 'bg-white/10 text-gray-300 border-white/20 hover:bg-white/20 hover:text-white'
-        }`}
-      >
-        <p
-          className="tracking-[0.3em] text-sm font-extralight relative z-10"
-          style={{
-            textShadow: activeTab === 'upcoming'
-              ? '0 0 10px rgba(6, 182, 212, 0.3)'
-              : 'none',
-          }}
-        >
-          UPCOMING
-        </p>
-        {tabCounts.upcoming > 0 && (
-          <span className={`px-2 py-1 rounded-full text-xs ${
-            activeTab === 'upcoming'
-              ? 'bg-gray-500 text-white border border-white'
-              : 'bg-white/20 text-white'
-          }`}>
-            {tabCounts.upcoming}
-          </span>
-        )}
-      </button>
+  const tabs = [
+    { key: 'upcoming' as const, label: 'UPCOMING', count: tabCounts.upcoming },
+    { key: 'history' as const, label: 'HISTORY', count: tabCounts.history },
+    { key: 'cancelled' as const, label: 'CANCELLED', count: tabCounts.cancelled },
+  ];
 
-      <button
-        onClick={() => onTabChange('history')}
-        className={`${lexendMedium.className} border px-6 py-3 rounded-xl transition-all duration-200 flex items-center gap-2 ${
-          activeTab === 'history'
-            ? 'bg-transparent border-white text-white'
-            : 'bg-white/10 text-gray-300 border-white/20 hover:bg-white/20 hover:text-white'
-        }`}
-      >
+  return (
+ <div className="flex items-center justify-center gap-8 mb-8">
+  {tabs.map(({ key, label, count }) => (
+    <button
+      key={key}
+      onClick={() => onTabChange(key)}
+      className={`${lexendMedium.className} relative px-4 py-3 transition-all duration-300 group`}
+    >
+      {/* Blur effect background for active tab */}
+      {activeTab === key && (
+        <div className="absolute inset-0 blur-lg opacity-30">
+          <p className="tracking-[0.3em] text-cyan-400 text-sm font-extralight">
+            {label.toUpperCase()}
+          </p>
+        </div>
+      )}
+      
+      {/* Main text */}
+      <div className="relative z-10 flex items-center gap-2">
         <p
-          className="tracking-[0.3em] text-sm font-extralight relative z-10"
-          style={{
-            textShadow: activeTab === 'history'
-              ? '0 0 10px rgba(6, 182, 212, 0.3)'
-              : 'none',
-          }}
+          className={`tracking-[0.3em] text-sm font-extralight transition-colors duration-200 ${
+            activeTab === key 
+              ? 'text-white' 
+              : 'text-gray-400 group-hover:text-gray-300'
+          }`}
         >
-          HISTORY
+          {label}
         </p>
-        {tabCounts.history > 0 && (
-          <span className={`px-2 py-1 rounded-full text-xs ${
-            activeTab === 'history'
-              ? 'bg-gray-500 text-white border border-white'
-              : 'bg-white/20 text-white'
+        
+        {count > 0 && (
+          <span className={`px-2 py-1 rounded-full text-xs transition-colors duration-200 ${
+            activeTab === key
+              ? ' text-white  '
+              : ' text-gray-400'
           }`}>
-            {tabCounts.history}
+            {count}
           </span>
         )}
-      </button>
-    </div>
+      </div>
+      
+      {/* Underline for active tab */}
+      <div 
+        className={`absolute bottom-0 left-0 right-0 h-[2px] bg-gray-300 transition-all duration-300 ${
+          activeTab === key 
+            ? 'opacity-100 scale-x-100' 
+            : 'opacity-0 scale-x-0'
+        }`}
+      />
+    </button>
+  ))}
+</div>
+
   );
 };
 

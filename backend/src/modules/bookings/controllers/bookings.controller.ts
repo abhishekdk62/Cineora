@@ -52,21 +52,11 @@ export class BookingController {
         );
       }
 
-      if (bookingDto.paymentMethod === "wallet") {
-        const walletValidationResult = await this._validateWalletPayment(
-          userId,
-          bookingDto,
-          res
-        );
-        if (!walletValidationResult.isValid) {
-          return walletValidationResult.response!;
-        }
-      }
-
       const bookingResult = await this._processBookingCreation(
         userId,
         bookingDto
       );
+
       if (!bookingResult.success) {
         return this._sendErrorResponse(
           res,
@@ -80,17 +70,11 @@ export class BookingController {
         bookingDto,
         bookingResult.data
       );
-      console.log("create books");
 
       if (bookingDto.appliedCoupon && bookingDto.appliedCoupon._id) {
         try {
-          console.log("create books 2");
-
           await this.couponService.incrementCouponUsage(
             bookingDto.appliedCoupon._id
-          );
-          console.log(
-            `Coupon usage incremented for: ${bookingDto.appliedCoupon.uniqueId}`
           );
         } catch (error) {
           console.error("Failed to increment coupon usage:", error);
@@ -116,118 +100,107 @@ export class BookingController {
       );
     }
   }
-async getAllBookingsByOwnerIdForPanel(
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<Response> {
-  try {
-    
-    const ownerId = req.owner.ownerId
-    
-    if (!ownerId) {
-      return this._sendErrorResponse(
-        res,
-        StatusCodes.UNAUTHORIZED,
-        "Owner authentication required"
-      );
-    }
+  async getAllBookingsByOwnerIdForPanel(
+    req: AuthenticatedRequest,
+    res: Response
+  ): Promise<Response> {
+    try {
+      const ownerId = req.owner.ownerId;
 
-
-    const result = await this.bookingService.getAllBookingsByOwnerId(ownerId);
-    
-    if (!result.success) {
-      return this._sendErrorResponse(
-        res,
-        StatusCodes.BAD_REQUEST,
-        result.message
-      );
-    }
-
-    return this._sendSuccessResponse(res, StatusCodes.OK, {
-      message: "Bookings fetched successfully",
-      data: result.data
-    });
-  } catch (error: any) {
-    return this._sendErrorResponse(
-      res,
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      error.message || "Internal server error"
-    );
-  }
-}
-
-// Update your existing controller method
-async getTheaterBookings(
-  req: Request, 
-  res: Response
-): Promise<Response> {
-  try {
-    const { theaterId } = req.params;
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
-    const { startDate, endDate } = req.query as {
-      startDate?: string;
-      endDate?: string;
-    };
-
-    // Validate required parameters
-    if (!theaterId) {
-      return this._sendErrorResponse(
-        res,
-        StatusCodes.BAD_REQUEST,
-        "Theater ID is required"
-      );
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(theaterId)) {
-      return this._sendErrorResponse(
-        res,
-        StatusCodes.BAD_REQUEST,
-        "Invalid theater ID format"
-      );
-    }
-
-    if (page < 1 || limit < 1 || limit > 100) {
-      return this._sendErrorResponse(
-        res,
-        StatusCodes.BAD_REQUEST,
-        "Invalid pagination parameters (page >= 1, limit between 1-100)"
-      );
-    }
-
-    const result = await this.bookingService.getBookingsByTheaterId(
-      theaterId, 
-      page, 
-      limit,
-      startDate,
-      endDate
-    );
-
-    if (!result.success) {
-      return this._sendErrorResponse(
-        res,
-        StatusCodes.BAD_REQUEST,
-        result.message
-      );
-    }
-
-    return this._sendSuccessResponse(
-      res,
-      StatusCodes.OK,
-      {
-        message: BOOKING_MESSAGES.BOOKINGS_RETRIEVED_SUCCESS,
-        data: result.data
+      if (!ownerId) {
+        return this._sendErrorResponse(
+          res,
+          StatusCodes.UNAUTHORIZED,
+          "Owner authentication required"
+        );
       }
-    );
-  } catch (error: any) {
-    return this._sendErrorResponse(
-      res,
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      error.message || BOOKING_MESSAGES.INTERNAL_SERVER_ERROR
-    );
-  }
-}
 
+      const result = await this.bookingService.getAllBookingsByOwnerId(ownerId);
+
+      if (!result.success) {
+        return this._sendErrorResponse(
+          res,
+          StatusCodes.BAD_REQUEST,
+          result.message
+        );
+      }
+
+      return this._sendSuccessResponse(res, StatusCodes.OK, {
+        message: "Bookings fetched successfully",
+        data: result.data,
+      });
+    } catch (error: any) {
+      return this._sendErrorResponse(
+        res,
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        error.message || "Internal server error"
+      );
+    }
+  }
+
+  async getTheaterBookings(req: Request, res: Response): Promise<Response> {
+    try {
+      const { theaterId } = req.params;
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const { startDate, endDate } = req.query as {
+        startDate?: string;
+        endDate?: string;
+      };
+
+      // Validate required parameters
+      if (!theaterId) {
+        return this._sendErrorResponse(
+          res,
+          StatusCodes.BAD_REQUEST,
+          "Theater ID is required"
+        );
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(theaterId)) {
+        return this._sendErrorResponse(
+          res,
+          StatusCodes.BAD_REQUEST,
+          "Invalid theater ID format"
+        );
+      }
+
+      if (page < 1 || limit < 1 || limit > 100) {
+        return this._sendErrorResponse(
+          res,
+          StatusCodes.BAD_REQUEST,
+          "Invalid pagination parameters (page >= 1, limit between 1-100)"
+        );
+      }
+
+      const result = await this.bookingService.getBookingsByTheaterId(
+        theaterId,
+        page,
+        limit,
+        startDate,
+        endDate
+      );
+
+      if (!result.success) {
+        return this._sendErrorResponse(
+          res,
+          StatusCodes.BAD_REQUEST,
+          result.message
+        );
+      }
+
+      return this._sendSuccessResponse(res, StatusCodes.OK, {
+        message: BOOKING_MESSAGES.BOOKINGS_RETRIEVED_SUCCESS,
+        data: result.data,
+      });
+    } catch (error: any) {
+      return this._sendErrorResponse(
+        res,
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        error.message || BOOKING_MESSAGES.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
 
   async getBookingById(req: Request, res: Response): Promise<Response> {
     try {
@@ -476,52 +449,6 @@ async getTheaterBookings(
     return requestedUserId === authenticatedUserId;
   }
 
-  private async _validateWalletPayment(
-    userId: string,
-    bookingDto: CreateBookingDto,
-    res: Response
-  ): Promise<{ isValid: boolean; response?: Response }> {
-    const wallet = await this.walletService.getWalletDetails(userId, "User");
-
-    if (!wallet.success) {
-      return {
-        isValid: false,
-        response: this._sendErrorResponse(
-          res,
-          StatusCodes.NOT_FOUND,
-          BOOKING_MESSAGES.WALLET_NOT_FOUND
-        ),
-      };
-    }
-
-    if (wallet.data.balance < bookingDto.priceDetails.total) {
-      return {
-        isValid: false,
-        response: this._sendErrorResponse(
-          res,
-          StatusCodes.BAD_REQUEST,
-          BOOKING_MESSAGES.INSUFFICIENT_BALANCE
-        ),
-      };
-    }
-
-    await this.walletTransactionService.createWalletTransaction({
-      userId,
-      userModel: "User",
-      walletId: wallet.data._id,
-      type: "debit",
-      amount: bookingDto.priceDetails.total,
-      category: "booking",
-      description: `Movie ticket booking - ${
-        bookingDto.movieTitle || "Movie Ticket"
-      }`,
-      movieId: bookingDto.movieId,
-      theaterId: bookingDto.theaterId,
-    });
-
-    return { isValid: true };
-  }
-
   private async _processBookingCreation(
     userId: string,
     bookingDto: CreateBookingDto
@@ -533,54 +460,84 @@ async getTheaterBookings(
 
     return await this.bookingService.createBooking(bookingDataWithUser);
   }
+  private async _createTicketsForBooking(
+    userId: string,
+    bookingDto: CreateBookingDto,
+    bookingData: any
+  ) {
+    const user = await this.userService.getUserProfile(userId);
 
- private async _createTicketsForBooking(
-  userId: string,
-  bookingDto: CreateBookingDto,
-  bookingData: any
-) {
-  const user = await this.userService.getUserProfile(userId);
+    // ✅ IF selectedRows is empty, create tickets differently
+    if (!bookingDto.selectedRows || bookingDto.selectedRows.length === 0) {
+      const transformedSelectedRows =
+        bookingDto.selectedSeats?.map((seatNumber, index) => {
+          const seatPricing = bookingDto.seatPricing[index];
+          return {
+            rowLabel: seatPricing.rowLabel,
+            seatsSelected: [parseInt(seatNumber.replace(/[A-Z]/g, ""), 10)], // H9 -> [9]
+            seatType: seatPricing.seatType,
+            pricePerSeat: seatPricing.finalPrice,
+          };
+        }) || [];
 
-  const transformedSelectedRows =
-    bookingDto.selectedRows?.map((row) => ({
-      rowLabel: row.rowLabel,
-      seatsSelected: row.seatsSelected.map((seat) =>
-        typeof seat === "string" ? parseInt(seat, 10) : seat
-      ),
-      seatType: row.seatType,       
-      pricePerSeat: row.pricePerSeat,
-    })) || [];
-
-  console.log('Transformed selectedRows:', transformedSelectedRows);
-
-  const ticketResult = await this.ticketService.createTicketsFromRows({
-    bookingId: bookingData._id.toString(),
-    selectedRows: transformedSelectedRows,
-    bookingInfo: {
-      userId,
-      movieId: bookingData.movieId,
-      theaterId: bookingData.theaterId,
-      screenId: bookingData.screenId,
-      showtimeId: bookingData.showtimeId,
-      showDate: new Date(bookingDto.showDate),
-      showTime: bookingDto.showTime,
-      email: user.data.email,
-      ...(bookingDto.appliedCoupon &&
-        bookingDto.appliedCoupon._id && {
-          couponId: bookingDto.appliedCoupon._id,
+      const ticketResult = await this.ticketService.createTicketsFromRows({
+        bookingId: bookingData._id.toString(),
+        selectedRows: transformedSelectedRows,
+        ...(bookingDto.isInvited !== undefined && {
+          isInvited: bookingDto.isInvited,
         }),
-    },
-  });
+        bookingInfo: {
+          userId,
+          movieId: bookingData.movieId,
+          theaterId: bookingData.theaterId,
+          screenId: bookingData.screenId,
+          showtimeId: bookingData.showtimeId,
+          showDate: new Date(bookingDto.showDate),
+          showTime: bookingDto.showTime,
+          email: user.data.email,
+          ...(bookingDto.appliedCoupon &&
+            bookingDto.appliedCoupon._id && {
+              couponId: bookingDto.appliedCoupon._id,
+            }),
+        },
+      });
 
-  return ticketResult.success ? ticketResult.data : [];
-}
+      return ticketResult.success ? ticketResult.data : [];
+    }
 
+    const transformedSelectedRows =
+      bookingDto.selectedRows?.map((row) => ({
+        rowLabel: row.rowLabel,
+        seatsSelected: row.seatsSelected.map((seat) =>
+          typeof seat === "string" ? parseInt(seat, 10) : seat
+        ),
+        seatType: row.seatType,
+        pricePerSeat: row.pricePerSeat,
+      })) || [];
 
- 
+    const ticketResult = await this.ticketService.createTicketsFromRows({
+      bookingId: bookingData._id.toString(),
+      selectedRows: transformedSelectedRows,
+      ...(bookingDto.isInvited !== undefined && {
+        isInvited: bookingDto.isInvited,
+      }),
+      bookingInfo: {
+        userId,
+        movieId: bookingData.movieId,
+        theaterId: bookingData.theaterId,
+        screenId: bookingData.screenId,
+        showtimeId: bookingData.showtimeId,
+        showDate: new Date(bookingDto.showDate),
+        showTime: bookingDto.showTime,
+        email: user.data.email,
+        ...(bookingDto.appliedCoupon &&
+          bookingDto.appliedCoupon._id && {
+            couponId: bookingDto.appliedCoupon._id,
+          }),
+      },
+    });
 
-  private _calculatePricePerSeat(rowLabel: string, seatPricing: any[]): number {
-    const pricing = seatPricing.find((p) => p.rowLabel === rowLabel);
-    return pricing?.finalPrice || 0;
+    return ticketResult.success ? ticketResult.data : [];
   }
 
   private async _handlePostBookingOperations(
@@ -632,12 +589,10 @@ async getTheaterBookings(
     bookingDto: CreateBookingDto
   ): Promise<void> {
     try {
-      
       const theaterResult = await this.theaterService.getTheaterById(
         bookingDto.theaterId
       );
       if (!theaterResult.success) {
-        console.error("Theater not found for payment distribution");
         return;
       }
       const ownerId = theaterResult.data.ownerId;
@@ -645,17 +600,10 @@ async getTheaterBookings(
 
       const adminCommission = Math.round(baseAmount * 0.15);
       const ownerShare = baseAmount - adminCommission;
-console.log('pogbaa',baseAmount);
-console.log('pogbaaa',ownerShare,adminCommission);
-
 
       await this._creditOwnerWallet(ownerId, ownerShare, bookingDto);
 
       await this._creditAdminWallet(adminCommission, bookingDto);
-
-      console.log(
-        `💰 Payment distributed - Owner: ₹${ownerShare}, Admin: ₹${adminCommission}`
-      );
     } catch (error) {
       console.error("Payment distribution error:", error);
     }
@@ -675,8 +623,6 @@ console.log('pogbaaa',ownerShare,adminCommission);
       const result = await this.walletService.creditWallet(creditData);
 
       if (!result.success && result.message === "Wallet not found") {
-        console.log(`Creating wallet for owner: ${ownerId}`);
-
         const createWalletData: CreateWalletDto = {
           userId: ownerId,
           userModel: "Owner",
@@ -691,8 +637,6 @@ console.log('pogbaaa',ownerShare,adminCommission);
         if (!createResult.success) {
           console.error("Failed to create owner wallet:", createResult.message);
         } else {
-          console.log(`✅ Owner wallet created and credited with ₹${amount}`);
-
           await this.walletTransactionService.createWalletTransaction({
             userId: ownerId,
             userModel: "Owner",
@@ -711,8 +655,6 @@ console.log('pogbaaa',ownerShare,adminCommission);
       } else if (!result.success) {
         console.error("Failed to credit owner wallet:", result.message);
       } else {
-        console.log(`✅ Owner wallet credited with ₹${amount}`);
-
         await this.walletTransactionService.createWalletTransaction({
           userId: ownerId,
           userModel: "Owner",
@@ -751,7 +693,6 @@ console.log('pogbaaa',ownerShare,adminCommission);
 
       if (!result.success && result.message === "Wallet not found") {
         // Create wallet if it doesn't exist
-        console.log(`Creating wallet for admin: ${ADMIN_USER_ID}`);
 
         const createWalletData: CreateWalletDto = {
           userId: ADMIN_USER_ID,
@@ -767,8 +708,6 @@ console.log('pogbaaa',ownerShare,adminCommission);
         if (!createResult.success) {
           console.error("Failed to create admin wallet:", createResult.message);
         } else {
-          console.log(`✅ Admin wallet created and credited with ₹${amount}`);
-
           await this.walletTransactionService.createWalletTransaction({
             userId: ADMIN_USER_ID,
             userModel: "Admin",
@@ -787,8 +726,6 @@ console.log('pogbaaa',ownerShare,adminCommission);
       } else if (!result.success) {
         console.error("Failed to credit admin wallet:", result.message);
       } else {
-        console.log(`✅ Admin wallet credited with ₹${amount}`);
-
         await this.walletTransactionService.createWalletTransaction({
           userId: ADMIN_USER_ID,
           userModel: "Admin",

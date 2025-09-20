@@ -25,12 +25,12 @@ interface TicketCardProps {
   getTickets: (pageNumber: number) => void;
 }
 
-const TicketCard: React.FC<TicketCardProps> = ({ 
-  handleAddReview, 
-  booking, 
-  onViewDetails, 
-  activeTab, 
-  getTickets 
+const TicketCard: React.FC<TicketCardProps> = ({
+  handleAddReview,
+  booking,
+  onViewDetails,
+  activeTab,
+  getTickets
 }) => {
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [showCancellationModal, setShowCancellationModal] = useState(false);
@@ -94,28 +94,28 @@ const TicketCard: React.FC<TicketCardProps> = ({
       const totalSeats = groups.reduce((sum, group) => sum + group.count, 0);
       const allSeats = groups.flatMap(group => group.seats);
       const totalDiscount = groups.reduce((sum, group) => sum + group.discountAmount, 0);
-      
-      return { 
-        groups, 
-        totalAmount, 
-        totalSeats, 
-        allSeats, 
+
+      return {
+        groups,
+        totalAmount,
+        totalSeats,
+        allSeats,
         totalDiscount,
         totalBasePrice: groups.reduce((sum, group) => sum + group.basePrice, 0)
       };
     } else {
       const basePrice = booking.price;
-      
+
       // Apply coupon discount if available
       const discountPercentage = booking.coupon?.discountPercentage || 0;
       const discountAmount = (basePrice * discountPercentage) / 100;
       const discountedPrice = basePrice - discountAmount;
-      
+
       // Apply tax and convenience fee on the discounted amount
       const taxAmount = basePrice * 0.18;
       const convenienceAmount = basePrice * 0.05;
       const totalPrice = discountedPrice + taxAmount + convenienceAmount;
-      
+
       const groups = [{
         seatType: booking.seatType,
         seats: [`${booking.seatRow}${booking.seatNumber}`],
@@ -128,7 +128,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
         convenienceAmount: convenienceAmount,
         totalPrice: totalPrice
       }];
-      
+
       return {
         groups,
         totalAmount: totalPrice,
@@ -178,6 +178,19 @@ const TicketCard: React.FC<TicketCardProps> = ({
 
   // Handle single ticket cancellation (opens modal for selection)
   const handleSingleTicketCancel = () => {
+    if (booking.allTickets[0].isInvited) {
+
+      toast(
+        "This ticket seams to be bought from group invites.\n\Please cancell this from there.",
+        {
+          duration: 6000,
+        }
+      );
+
+      return
+    }
+
+
     setShowCancellationModal(true);
   };
 
@@ -193,11 +206,11 @@ const TicketCard: React.FC<TicketCardProps> = ({
         confirmText: 'Yes',
         cancelText: 'No'
       });
-      
+
       if (!confirm) {
         return;
       }
-      
+
       const data = await cancelTicket(booking.bookingId, Math.round(totalAmount));
       toast.success('Booking cancelled');
       getTickets(1);
@@ -220,9 +233,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
             src={movieData.poster || '/placeholder-movie.jpg'}
             alt={movieData.title || 'Movie'}
             className="w-full h-full object-cover"
-            onError={(e) => {
-              e.currentTarget.src = '/placeholder-movie.jpg';
-            }}
+
           />
         </div>
 
@@ -275,12 +286,12 @@ const TicketCard: React.FC<TicketCardProps> = ({
               {booking.seatType}
             </span>
             <span className={`${lexendSmall.className} bg-white/10 text-white px-3 py-1.5 rounded-lg font-medium border border-white/20`}>
-              {hasMultipleTickets ? 
-                `${booking.allTickets.length} Seats` : 
+              {hasMultipleTickets ?
+                `${booking.allTickets.length} Seats` :
                 `Seat: ${booking.seatRow}${booking.seatNumber}`
               }
             </span>
-            
+
             {/* Price display with discount information */}
             <div className="flex items-center gap-2">
               {totalDiscount > 0 ? (
@@ -328,7 +339,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
                 >
                   {hasMultipleTickets ? 'Select & Cancel' : 'Cancel Ticket'}
                 </button>
-                
+
                 {/* Full Booking Cancellation (only show if multiple tickets) */}
                 {hasMultipleTickets && (
                   <button
@@ -357,7 +368,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
         onClose={() => setShowCancellationModal(false)}
         booking={booking}
         onSuccess={() => {
-          getTickets(1); 
+          getTickets(1);
         }}
       />
     </>

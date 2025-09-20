@@ -16,6 +16,7 @@ import {
   Shield,
   TicketCheck,
   LucideIcon,
+  Users,
 } from "lucide-react";
 import MyAccountContent, { IUser } from "./Profile/MyAccountContent";
 import { getUserProfile } from "@/app/others/services/userServices/authServices";
@@ -23,6 +24,7 @@ import MobileTicket from "./Tickets/TicketsList";
 import WalletPage from "./Wallet/WalletManager";
 import FavoritesList from "./Favorites/FavoritesList";
 import CouponManager from "./Coupon/CouponManager";
+import GroupInvitesManager from "./Groupinvites/GroupInvitesManager";
 const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
 const lexendSmall = { className: "font-normal text-sm" };
@@ -36,6 +38,7 @@ type SidebarItem =
   | "payment"
   | "help"
   | "coupons";
+
 
 const AccountPage = () => {
   interface Booking {
@@ -123,6 +126,8 @@ const AccountPage = () => {
       icon: Heart,
       description: "Saved movies and theaters",
     },
+
+
     {
       id: "coupons" as SidebarItem,
       label: "My Coupons",
@@ -150,6 +155,7 @@ const AccountPage = () => {
         return <FavoritesList />;
       case "coupons":
         return <CouponManager />;
+
       case "help":
         return <ComingSoonContent title="Help & Support" icon={HelpCircle} />;
       default:

@@ -84,10 +84,7 @@ const FavoriteMovieCard: React.FC<FavoriteMovieCardProps> = ({
           src={favorite.movieId.poster}
           alt={favorite.movieId.title}
           className="w-full h-full object-cover"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = '/placeholder-movie.jpg'; // fallback image
-          }}
+      
         />
         
         {/* Rating Badge */}

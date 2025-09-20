@@ -2,8 +2,6 @@ import { Schema } from "mongoose";
 import { IUser } from "../interfaces/user.model.interface";
 import { model } from "mongoose";
 
-
-
 const userSchema = new Schema<IUser>(
   {
     username: {
@@ -19,6 +17,16 @@ const userSchema = new Schema<IUser>(
       lowercase: true,
       trim: true,
     },
+    groupBookingStats: {
+      totalInvitesSent: { type: Number, default: 0 },
+      totalInvitesReceived: { type: Number, default: 0 },
+      totalGroupBookings: { type: Number, default: 0 },
+      totalGroupBookingsCancelled: { type: Number, default: 0 },
+      reliabilityScore: { type: Number, default: 5.0, min: 0, max: 5 },
+      averageRating: { type: Number, default: 5.0, min: 1, max: 5 },
+      totalRatings: { type: Number, default: 0 },
+    },
+
     googleId: {
       type: String,
       sparse: true,
@@ -83,7 +91,7 @@ const userSchema = new Schema<IUser>(
         enum: ["Point"],
       },
       coordinates: {
-        type: [Number], 
+        type: [Number],
         required: false,
         validate: {
           validator: function (v: number[]) {
@@ -127,7 +135,7 @@ const userSchema = new Schema<IUser>(
 
 userSchema.index({ email: 1, authProvider: 1 });
 userSchema.index({ username: 1 });
-userSchema.index({ location: "2dsphere" }); 
+userSchema.index({ location: "2dsphere" });
 userSchema.index({ isActive: 1, lastActive: -1 });
 
 userSchema.pre("save", function (next) {

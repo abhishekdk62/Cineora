@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 export interface ITicket extends Document {
   _id?:string;
   ticketId: string;
+  isInvited:boolean,
   bookingId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
   movieId: mongoose.Types.ObjectId;
@@ -13,6 +14,7 @@ export interface ITicket extends Document {
   seatRow: string;
   seatType: "VIP" | "Premium" | "Normal";
   price: number;
+  inviteGroupId:mongoose.Types.ObjectId;
   showDate: Date;
   showTime: string;
   status: "confirmed" | "cancelled" | "used" | "expired";
@@ -21,5 +23,5 @@ export interface ITicket extends Document {
   usedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
-  couponId:string;
+  couponId:mongoose.Types.ObjectId;
 }

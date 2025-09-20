@@ -15,6 +15,16 @@ export interface IUser extends Document {
   profilePicture?: string;
   locationCity?: string;
   googleId?: string;
+    groupBookingStats: {
+    totalInvitesSent: number;
+    totalInvitesReceived: number;
+    totalGroupBookings: number;
+    totalGroupBookingsCancelled: number;
+    reliabilityScore: number;
+    averageRating: number;
+    totalRatings: number;
+  };
+
   authProvider: "email" | "google";
   avatar?: string;
   locationState?: string;

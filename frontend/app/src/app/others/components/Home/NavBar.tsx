@@ -55,12 +55,10 @@ export default function NavBar() {
 
   const getUnreadNotifications = async () => {
     try {
-      console.log('getUnreadNotifications');
       
       const data = await getAllUserNotifications()
 
       setUnreadNotifications(data.data.notifications)
-      console.log('getUnreadNotifications',data.data.notifications);
       setUnreadCount(data.data.unreadCount)
     } catch (error) {
       console.log(error);

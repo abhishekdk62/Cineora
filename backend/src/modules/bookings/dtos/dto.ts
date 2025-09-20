@@ -12,6 +12,7 @@ export interface CreateBookingDto {
   userId?: string;
   bookingId?: string;
   movieId: string;
+  isInvited?:boolean;
   appliedCoupon?: {
     _id:string;
     discountPercentage?: number;

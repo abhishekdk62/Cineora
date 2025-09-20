@@ -12,6 +12,26 @@ export interface IShowtimeReadRepository {
     startDate: Date;
     endDate: Date;
   }): Promise<IMovieShowtime[]>;
+    holdSeats(
+    showtimeId: string,
+    seatNumbers: string[],
+    userId: string,
+    sessionId: string,
+    inviteGroupId: string,
+    expiresAt: Date
+  ): Promise<{ success: boolean; heldSeats: string[]; failedSeats: string[] }>;
+  
+  releaseHeldSeats(
+    showtimeId: string,
+    filter: {
+      seatNumbers?: string[];
+      inviteGroupId?: string;
+      userId?: string;
+    }
+  ): Promise<{ success: boolean; releasedSeats: string[] }>;
+  
+  getHeldSeats(showtimeId: string): Promise<string[]>;
+
   countShowtimesByOwnerId(ownerId: string): Promise<number>;
   getShowtimesByOwnerId(ownerId: string): Promise<IMovieShowtime[]>;
   getShowtimesByScreenPaginated(

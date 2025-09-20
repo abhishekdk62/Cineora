@@ -30,8 +30,8 @@ export default function NavLinks({  onAccountClick, isMobile, onMobileClose }: N
       <button onClick={() => handleClick("/search/theaters")} className={linkClass}>
         Theaters
       </button>
-      <button className={linkClass}>
-        Pricing
+      <button onClick={()=>handleClick('/invites')} className={linkClass}>
+        Invites and Chats
       </button>
       <button onClick={() => handleClick('/user/account')} className={linkClass}>
         My Account

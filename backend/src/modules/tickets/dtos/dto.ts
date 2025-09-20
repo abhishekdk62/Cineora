@@ -146,6 +146,7 @@ export interface TicketValidationResponseDto {
 
 export interface CreateTicketFromRowsDto {
   bookingId: string;
+  isInvited:boolean;
   selectedRows: {
     rowLabel: string;
     seatsSelected: number[];
@@ -223,7 +224,7 @@ export interface GetUserTicketsDto {
   userId: string;
   page?: number;
   limit?: number;
-  types?: ("upcoming" | "past" | "cancelled" | "all")[];
+  types?: ("upcoming" | "history" | "cancelled" | "all")[];
 }
 
 export interface GetUserTicketsFilterDto {

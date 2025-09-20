@@ -18,6 +18,16 @@ const SeatBlockSchema = new Schema<ISeatBlock>({
     type: String,
     required: true,
   },
+    blockType: {
+    type: String,
+    enum: ["group_invite"],
+    default: "group_invite"
+  },
+  inviteGroupId: {
+    type: String, 
+    required: false
+  },
+
   blockedAt: {
     type: Date,
     default: Date.now,

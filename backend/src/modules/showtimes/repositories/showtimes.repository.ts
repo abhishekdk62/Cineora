@@ -34,6 +34,191 @@ export class ShowtimeRepository implements IShowtimeRepository {
       throw error;
     }
   }
+  async holdSeats(
+    showtimeId: string,
+    seatNumbers: string[],
+    userId: string,
+    sessionId: string,
+    inviteGroupId: string,
+    expiresAt: Date
+  ): Promise<{ success: boolean; heldSeats: string[]; failedSeats: string[] }> {
+    try {
+      const session = await mongoose.startSession();
+      session.startTransaction();
+
+      try {
+        // First, check which seats are available (not booked and not blocked)
+        const showtime = await MovieShowtime.findById(showtimeId).session(session);
+        if (!showtime) {
+          throw new Error("Showtime not found");
+        }
+
+        const unavailableSeats = new Set([
+          ...showtime.bookedSeats,
+          ...showtime.blockedSeats
+            .filter(block => new Date() < block.expiresAt) // Only active blocks
+            .map(block => block.seatId)
+        ]);
+
+        const availableSeats = seatNumbers.filter(seat => !unavailableSeats.has(seat));
+        const failedSeats = seatNumbers.filter(seat => unavailableSeats.has(seat));
+
+        if (availableSeats.length === 0) {
+          await session.abortTransaction();
+          return {
+            success: false,
+            heldSeats: [],
+            failedSeats: seatNumbers,
+          };
+        }
+
+        // Create seat blocks for available seats
+        const seatBlocks = availableSeats.map(seatId => ({
+          seatId,
+          userId,
+          sessionId,
+          blockType: "group_invite" as const,
+          inviteGroupId,
+          blockedAt: new Date(),
+          expiresAt,
+        }));
+
+        // Update showtime with new blocked seats
+        await MovieShowtime.findByIdAndUpdate(
+          showtimeId,
+          {
+            $push: {
+              blockedSeats: { $each: seatBlocks }
+            }
+          },
+          { session }
+        );
+
+        await session.commitTransaction();
+        
+        return {
+          success: true,
+          heldSeats: availableSeats,
+          failedSeats,
+        };
+
+      } catch (error) {
+        await session.abortTransaction();
+        throw error;
+      } finally {
+        await session.endSession();
+      }
+
+    } catch (error) {
+      console.error("Error holding seats:", error);
+      return {
+        success: false,
+        heldSeats: [],
+        failedSeats: seatNumbers,
+      };
+    }
+  }
+
+  async releaseHeldSeats(
+    showtimeId: string,
+    filter: {
+      seatNumbers?: string[];
+      inviteGroupId?: string;
+      userId?: string;
+    }
+  ): Promise<{ success: boolean; releasedSeats: string[] }> {
+    try {
+      const session = await mongoose.startSession();
+      session.startTransaction();
+
+      try {
+        // Build the filter for blocked seats to remove
+        const blockFilter: any = {};
+        
+        if (filter.seatNumbers?.length) {
+          blockFilter.seatId = { $in: filter.seatNumbers };
+        }
+        if (filter.inviteGroupId) {
+          blockFilter.inviteGroupId = filter.inviteGroupId;
+        }
+        if (filter.userId) {
+          blockFilter.userId = filter.userId;
+        }
+
+        // Get the showtime to find which seats will be released
+        const showtime = await MovieShowtime.findById(showtimeId).session(session);
+        if (!showtime) {
+          throw new Error("Showtime not found");
+        }
+
+        // Find matching blocked seats
+        const seatsToRelease = showtime.blockedSeats
+          .filter(block => {
+            if (filter.seatNumbers?.length && !filter.seatNumbers.includes(block.seatId)) {
+              return false;
+            }
+            if (filter.inviteGroupId && block.inviteGroupId !== filter.inviteGroupId) {
+              return false;
+            }
+            if (filter.userId && block.userId !== filter.userId) {
+              return false;
+            }
+            return true;
+          })
+          .map(block => block.seatId);
+
+        // Remove the blocked seats
+        await MovieShowtime.findByIdAndUpdate(
+          showtimeId,
+          {
+            $pull: {
+              blockedSeats: blockFilter
+            }
+          },
+          { session }
+        );
+
+        await session.commitTransaction();
+        
+        return {
+          success: true,
+          releasedSeats: seatsToRelease,
+        };
+
+      } catch (error) {
+        await session.abortTransaction();
+        throw error;
+      } finally {
+        await session.endSession();
+      }
+
+    } catch (error) {
+      console.error("Error releasing held seats:", error);
+      return {
+        success: false,
+        releasedSeats: [],
+      };
+    }
+  }
+
+  async getHeldSeats(showtimeId: string): Promise<string[]> {
+    try {
+      const showtime = await MovieShowtime.findById(showtimeId);
+      if (!showtime) {
+        return [];
+      }
+
+      // Return currently active blocked seats
+      const now = new Date();
+      return showtime.blockedSeats
+        .filter(block => block.expiresAt > now)
+        .map(block => block.seatId);
+
+    } catch (error) {
+      console.error("Error getting held seats:", error);
+      return [];
+    }
+  }
 
   async getShowtimesByMovieAndDate(
     movieId: string,
@@ -326,7 +511,7 @@ export class ShowtimeRepository implements IShowtimeRepository {
     } catch (error) {
       console.error("Error updating showtime status:", error);
       throw error;
-    }
+    } 
   }
 
   async bookShowtimeSeats(showtimeId: string, seatIds: string[]): Promise<boolean> {
@@ -350,6 +535,7 @@ export class ShowtimeRepository implements IShowtimeRepository {
         });
 
         await Promise.all(updatePromises);
+        
       }
 
       return result !== null;

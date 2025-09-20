@@ -312,6 +312,7 @@ return {
               onSelectCoupon={handleSelectCoupon}
               onRemoveCoupon={handleRemoveCoupon}
               onShowCouponsModal={handleShowCouponsModal}
+              
 
             />
           </div>

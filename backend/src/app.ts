@@ -82,18 +82,44 @@ import { AdminAnalyticsRepository } from "./modules/adminAnalytics/repository/ad
 import { CouponController } from "./modules/coupons/controllers/coupons.controller";
 import { CouponService } from "./modules/coupons/services/coupons.service";
 import { CouponRepository } from "./modules/coupons/repositories/coupons.repository";
+import { SocketService } from "./services/socket.service";
+import { Server as SocketIOServer } from 'socket.io';
+import { createServer } from "http";
+import { InviteGroupController } from "./modules/inviteGroup/controllers/inviteGroup.controller";
+import { InviteGroupService } from "./modules/inviteGroup/services/inviteGroup.service";
+import { InviteGroupRepository } from "./modules/inviteGroup/repositories/inviteGroup.repository";
+
 
 export class App {
   private _app: Application;
+  private _server: any; 
+  private _io: SocketIOServer; 
+  private _socketService: SocketService; 
+
 
   constructor() {
     this._app = express();
+    this._initializeServer();
     this._setMiddlewares();
     this._setUtilityRoutes();
     this._setModuleRoutes();
     this._setErrorHandling();
   }
+    private _initializeServer() {
+    this._server = createServer(this._app);
+    this._io = new SocketIOServer(this._server, {
+      cors: {
+        origin: process.env.CORS_ALLOWED_ORIGIN || "http://localhost:3000",
+        methods: ["GET", "POST"],
+        credentials: true
+      }
+    });
+    this._socketService = new SocketService(this._io);
+    console.log('Socket.IO server initialized');
+  }
+
   private _setMiddlewares() {
+    
     this._app.use(helmet());
     this._app.use(cookieParser());
     this._app.use(express.json({ limit: "10mb" }));
@@ -113,6 +139,9 @@ export class App {
   }
 
   private _setModuleRoutes() {
+
+ 
+
     const emailService = new EmailService();
 
     const userRepo = new UserRepository();
@@ -129,6 +158,7 @@ export class App {
     const paymentRepo = new PaymentRepository();
     const favoriteRepo = new FavoriteRepository();
     const reviewRepo = new ReviewRepository();
+    const inviteGroupRepo=new InviteGroupRepository();
     const couponRepo = new CouponRepository();
     const analyticsRepository = new AnalyticsRepository();
     const adminAnalyticsRepository = new AdminAnalyticsRepository();
@@ -161,9 +191,9 @@ export class App {
     const screenService = new ScreenService(screenRepo, theaterRepo);
     const ticketService = new TicketService(ticketRepo, emailService);
     const paymentService = new PaymentService(paymentRepo,walletRepo,walletTransactionRepo);
-    const bookingService = new BookingService(bookingRepo, showtimeRepo);
+    const showtimeService = new ShowtimeService(showtimeRepo,this._socketService);
+    const bookingService = new BookingService(bookingRepo,showtimeService,showtimeRepo);
     const walletService = new WalletService(walletRepo);
-    const showtimeService = new ShowtimeService(showtimeRepo);
     const notificationService = new NotificationService(notificationRepo);
     const notificationScheduler = new NotificationScheduler(
       notificationService
@@ -234,6 +264,7 @@ export class App {
     const notificationController = new NotificationController(
       notificationService
     );
+    const inviteGroupService=new InviteGroupService(inviteGroupRepo,this._socketService,showtimeService)
     const paymentController = new PaymentController(
       paymentService,
       notificationService
@@ -248,6 +279,7 @@ export class App {
     );
     const reviewController = new ReviewController(reviewService);
     const couponController = new CouponController(couponService);
+    const inviteGroupController=new InviteGroupController(inviteGroupService)
     const favoriteController = new MovieFavoriteController(favoriteService);
     const analyticsRoutes = new AnalyticsRoute(
       express.Router(),
@@ -284,7 +316,8 @@ export class App {
       notificationController,
       favoriteController,
       reviewController,
-      couponController
+      couponController,
+      inviteGroupController
     );
 
     const ownerRoutes = new OwnerMainRoute(
@@ -362,6 +395,6 @@ paymentController
   }
 
   public getApp() {
-    return this._app;
+    return this._server;
   }
 }

@@ -128,7 +128,6 @@ if (total !== undefined) {
     
     setHasMore(hasNextPage);
     
-    console.log(`📊 Current Page: ${currentPage}, Total Items: ${total}, HasNext: ${hasNextPage}`);
 
   } catch (error) {
     console.error("❌ Error fetching showtimes:", error);

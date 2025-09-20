@@ -287,3 +287,33 @@ export const ANALYTICS_MESSAGES = {
   AUTH_REQUIRED: "Authentication required for admin analytics",
   UNAUTHORIZED_ACCESS: "Unauthorized access to admin analytics"
 };
+// constants/inviteGroup.messages.ts
+export const INVITE_GROUP_MESSAGES = {
+  // Success messages
+  INVITE_GROUP_CREATED: 'Invite group created successfully',
+  AVAILABLE_INVITES_RETRIEVED: 'Available invites retrieved successfully',
+  USER_INVITE_GROUPS_RETRIEVED: 'User invite groups retrieved successfully',
+  JOIN_SUCCESSFUL: 'Successfully joined the invite group',
+  LEAVE_SUCCESSFUL: 'Successfully left the invite group',
+  CANCEL_SUCCESSFUL: 'Invite group cancelled successfully',
+  INVITE_GROUP_RETRIEVED: 'Invite group details retrieved successfully',
+
+  // Error messages
+  UNAUTHORIZED: 'Unauthorized access',
+  ACCESS_DENIED: 'Access denied',
+  INVITE_GROUP_NOT_FOUND: 'Invite group not found',
+  ALREADY_PARTICIPANT: 'You are already part of this invite group',
+  NO_AVAILABLE_SLOTS: 'No available slots in this group',
+  ONLY_HOST_CAN_CANCEL: 'Only the host can cancel the invite group',
+  CANNOT_CANCEL_WITH_PARTICIPANTS: 'Cannot cancel - people have already joined and paid',
+  GROUP_ALREADY_COMPLETED: 'Cannot cancel - group booking is already completed',
+  GROUP_ALREADY_CANCELLED: 'Invite group is already cancelled',
+  INVALID_PAYMENT_DETAILS: 'Invalid payment details provided',
+  INTERNAL_SERVER_ERROR: 'An internal server error occurred',
+
+  // Validation messages
+  MISSING_REQUIRED_FIELDS: 'Missing required fields',
+  INVALID_INVITE_ID: 'Invalid invite ID format',
+  INVALID_USER_ID: 'Invalid user ID format',
+  INVALID_FILTERS: 'Invalid filter parameters'
+} as const;

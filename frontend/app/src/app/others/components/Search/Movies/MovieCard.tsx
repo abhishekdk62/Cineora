@@ -35,9 +35,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, languageMap, formatDuratio
           src={movie.poster}
           alt={movie.title}
           className="w-full h-96 object-cover group-hover:scale-105 transition-transform duration-300"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = "/api/placeholder/300/450";
-          }}
+    
         />
 
         {/* Rating Display with Yellow Star */}

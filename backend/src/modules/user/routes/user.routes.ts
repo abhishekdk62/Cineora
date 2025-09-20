@@ -11,6 +11,7 @@ import { NotificationController } from "../../notification/controllers/notificat
 import { MovieFavoriteController } from "../../favorites/controllers/favorite.controller";
 import { ReviewController } from "../../reviews/controllers/review.controller";
 import { CouponController } from "../../coupons/controllers/coupons.controller";
+import { InviteGroupController } from "../../inviteGroup/controllers/inviteGroup.controller";
 
 export class UserRoutes {
   constructor(
@@ -25,7 +26,8 @@ export class UserRoutes {
     private _notificationController: NotificationController,
     private _favoritesController: MovieFavoriteController,
     private reviewsController: ReviewController,
-    private _couponController: CouponController
+    private _couponController: CouponController,
+    private _inviteGroupController: InviteGroupController,
   ) {
     this._setRoutes();
   }
@@ -51,6 +53,39 @@ export class UserRoutes {
     this._router.put("/profile", (req, res) =>
       this._userController.updateUserProfile(req, res)
     );
+        this._router.post("/invite-groups", (req, res) =>
+      this._inviteGroupController.createInviteGroup(req, res)
+    );
+
+    // Get available invites for user to join
+    this._router.get("/invite-groups/available", (req, res) =>
+      this._inviteGroupController.getAvailableInvites(req, res)
+    );
+
+    // Get user's created invite groups
+    this._router.get("/invite-groups/my-invites", (req, res) =>
+      this._inviteGroupController.getUserInviteGroups(req, res)
+    );
+
+    // Get specific invite group details
+    this._router.get("/invite-groups/:inviteId", (req, res) =>
+      this._inviteGroupController.getInviteGroupById(req, res)
+    );
+
+    this._router.post("/invite-groups/confirm-join", (req, res) =>
+      this._inviteGroupController.confirmJoinAfterPayment(req, res)
+    );
+
+    // Leave invite group
+    this._router.post("/invite-groups/:inviteId/leave", (req, res) =>
+      this._inviteGroupController.leaveInviteGroup(req, res)
+    );
+
+    // Cancel invite group (host only)
+    this._router.delete("/invite-groups/:inviteId/cancel", (req, res) =>
+      this._inviteGroupController.cancelInviteGroup(req, res)
+    );
+
 
     this._router.post("/email/change", (req, res) =>
       this._userController.changeEmail(req, res)
