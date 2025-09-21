@@ -36,24 +36,36 @@ export const useSocket = () => {
         setIsConnected(false);
       });
 
-      // ✅ ADD GLOBAL EVENT LISTENER FOR DEBUGGING
+      // ADD THESE NEW CHAT LISTENERS:
+      socket.on('new-message', (messageData) => {
+        console.log('📨 New message received:', messageData);
+        window.dispatchEvent(new CustomEvent('newMessage', { detail: messageData }));
+      });
+
+      socket.on('message-edited', (data) => {
+        console.log('✏️ Message edited:', data);
+        window.dispatchEvent(new CustomEvent('messageEdited', { detail: data }));
+      });
+
+      socket.on('message-deleted', (data) => {
+        console.log('🗑️ Message deleted:', data);
+        window.dispatchEvent(new CustomEvent('messageDeleted', { detail: data }));
+      });
+
+      // Your existing listeners
       socket.onAny((eventName, ...args) => {
       });
 
-      // ✅ SPECIFIC LISTENER FOR participant_left EVENTS
       socket.on('participant_left', (data) => {
       });
 
-      // ✅ SPECIFIC LISTENER FOR participant_joined EVENTS
       socket.on('participant_joined', (data) => {
       });
 
-      // ✅ TEST CONNECTION BY SENDING PING
       socket.on('connect', () => {
         socket?.emit('test-ping', { message: 'Frontend connected' });
       });
 
-      // ✅ LISTEN FOR PONG RESPONSE
       socket.on('test-pong', (data) => {
       });
     }
@@ -65,9 +77,8 @@ export const useSocket = () => {
     return () => {
       // Keep connection alive - don't disconnect
     };
-  }, []); // ✅ Remove isConnected from dependencies to prevent infinite re-renders
+  }, []);
 
-  // ✅ ADD PERIODIC CONNECTION STATUS CHECK
   useEffect(() => {
     const checkConnection = () => {
       if (socket) {
@@ -82,7 +93,20 @@ export const useSocket = () => {
     return () => clearInterval(interval);
   }, [isConnected]);
 
+  const joinChatRoom = (chatRoomId: string) => {
+    console.log('🔗 Joining chat room:', chatRoomId);
+    socket?.emit('join-showtime', `chat-${chatRoomId}`);
+  };
 
+  const leaveChatRoom = (chatRoomId: string) => {
+    console.log('👋 Leaving chat room:', chatRoomId);
+    socket?.emit('leave-showtime', `chat-${chatRoomId}`);
+  };
 
-  return { socket, isConnected };
+  return { 
+    socket, 
+    isConnected, 
+    joinChatRoom, 
+    leaveChatRoom 
+  };
 };

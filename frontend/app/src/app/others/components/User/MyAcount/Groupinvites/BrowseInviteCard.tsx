@@ -14,6 +14,8 @@ import toast from 'react-hot-toast';
 import { leaveInviteGroup } from "@/app/others/services/userServices/inviteGroupServices";
 import { confirmAction } from "../../../utils/ConfirmDialog";
 import { cancelSingleTicket } from "@/app/others/services/userServices/ticketServices";
+import { createSystemMessage, getChatRoomByInvite, leaveChatRoom } from "@/app/others/services/userServices/chatServices";
+import { RootState } from "@/app/others/redux/store";
 
 const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
@@ -40,6 +42,8 @@ const BrowseInviteCard: React.FC<Props> = ({ invite, onJoin, onRefresh }) => {
   const isCompleted = invite.status === 'completed' || invite.availableSlots === 0;
   const isExpired = isTimerExpired || new Date() > new Date(invite.expiresAt);
   const isDisabled = isCompleted || isExpired;
+    const id = useSelector((state: RootState) => state?.auth?.user?.id) 
+    const email = useSelector((state: RootState) => state?.auth?.user?.email) 
 
   const handleExitGroup = async () => {
     if (isExpired) {
@@ -72,7 +76,22 @@ const BrowseInviteCard: React.FC<Props> = ({ invite, onJoin, onRefresh }) => {
       }
 
       const res = await cancelSingleTicket([ticketId], amount);
+                    const dat = await getChatRoomByInvite(invite.inviteId)
+      console.log('getChatRoomByInvite',dat);
+      
+      const resp=await leaveChatRoom({chatRoomId:dat.data.inviteGroupId,userId:id}) 
       console.log(res);
+      console.log(resp);
+
+const chated=await createSystemMessage({chatRoomId:dat.data._id,systemMessageType:'USER_LEFT',content:'User Left ',systemData:{userId:id,username:email?.split('@')[0]}})
+console.log('checked',chated);
+
+
+
+
+
+
+
 
       toast.success('Exited from this group');
       onRefresh();
@@ -196,11 +215,11 @@ const BrowseInviteCard: React.FC<Props> = ({ invite, onJoin, onRefresh }) => {
       selectedSeatIds: [],
 
       seatPricing: [{
-        rowId: seatInfo.nextSeat._id,
-        seatType: seatInfo.nextSeat.seatType as "VIP" | "Premium" | "Normal",
-        basePrice: seatInfo.priceBreakdown.originalPrice,
-        finalPrice: seatInfo.priceBreakdown.discountedPrice,
-        rowLabel: seatInfo.nextSeat.seatRow,
+        rowId: seatInfo?.nextSeat?._id,
+        seatType: seatInfo?.nextSeat?.seatType as "VIP" | "Premium" | "Normal",
+        basePrice: seatInfo?.priceBreakdown?.originalPrice,
+        finalPrice: seatInfo?.priceBreakdown?.discountedPrice,
+        rowLabel: seatInfo?.nextSeat?.seatRow,
       }],
 
       priceDetails: {
@@ -316,7 +335,7 @@ const BrowseInviteCard: React.FC<Props> = ({ invite, onJoin, onRefresh }) => {
               <div className="flex items-center gap-1">
                 <Crown className="w-3 h-3 text-white" />
                 <span className="text-white text-xs font-medium">
-                  Next: {seatInfo.nextSeat.seatNumber}
+                  Next: {seatInfo?.nextSeat?.seatNumber}
                 </span>
               </div>
             </div>
@@ -337,24 +356,24 @@ const BrowseInviteCard: React.FC<Props> = ({ invite, onJoin, onRefresh }) => {
             <h3 className={`${lexendBold.className} text-lg text-white mb-1 line-clamp-1`}>
               {invite.movieId?.title || 'Unknown Movie'}
             </h3>
-          <div className="flex items-center gap-1 text-gray-300 mb-2">
-  <MapPin className="w-3 h-3" />
-  <p className={`${lexendSmall.className} text-sm line-clamp-1`}>
-    {invite.theaterId?.name || 'Unknown Theater'}
-  </p>
+            <div className="flex items-center gap-1 text-gray-300 mb-2">
+              <MapPin className="w-3 h-3" />
+              <p className={`${lexendSmall.className} text-sm line-clamp-1`}>
+                {invite.theaterId?.name || 'Unknown Theater'}
+              </p>
 
-  <div className="ml-auto">
-    <p
-      onClick={() => {
-        const url = `https://www.google.com/maps?q=${invite.theaterId?.location?.coordinates[1]},${invite.theaterId?.location?.coordinates[0]}`;
-        window.open(url, "_blank");
-      }}
-      className="text-blue-400 hover:text-blue-300 underline text-xs transition-colors cursor-pointer"
-    >
-      View on Google Maps
-    </p>
-  </div>
-</div>
+              <div className="ml-auto">
+                <p
+                  onClick={() => {
+                    const url = `https://www.google.com/maps?q=${invite.theaterId?.location?.coordinates[1]},${invite.theaterId?.location?.coordinates[0]}`;
+                    window.open(url, "_blank");
+                  }}
+                  className="text-blue-400 hover:text-blue-300 underline text-xs transition-colors cursor-pointer"
+                >
+                  View on Google Maps
+                </p>
+              </div>
+            </div>
 
 
             <div className="mb-2">
@@ -391,8 +410,8 @@ const BrowseInviteCard: React.FC<Props> = ({ invite, onJoin, onRefresh }) => {
             <div className="w-full bg-gray-700 rounded-full h-1.5">
               <div
                 className={`h-1.5 rounded-full transition-all duration-500 ${progressPercentage >= 100 ? 'bg-green-500' :
-                    progressPercentage >= 75 ? 'bg-green-500' :
-                      progressPercentage >= 50 ? 'bg-yellow-500' : 'bg-blue-500'
+                  progressPercentage >= 75 ? 'bg-green-500' :
+                    progressPercentage >= 50 ? 'bg-yellow-500' : 'bg-blue-500'
                   }`}
                 style={{ width: `${Math.max(10, progressPercentage)}%` }}
               />
@@ -421,13 +440,13 @@ const BrowseInviteCard: React.FC<Props> = ({ invite, onJoin, onRefresh }) => {
             <div className="mb-4 p-3 bg-white/5 rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-gray-400 text-xs">Seat Assignment</span>
-                <span className="text-blue-400 text-xs">{seatInfo.nextSeat.seatType}</span>
+                <span className="text-blue-400 text-xs">{seatInfo?.nextSeat?.seatType}</span>
               </div>
 
               <div className="flex flex-wrap gap-1">
                 {invite.requestedSeats.map((seat, index) => {
                   const isOccupied = occupiedSeats.includes(seat.seatNumber);
-                  const isNext = index === seatInfo.nextSeatIndex;
+                  const isNext = index === seatInfo?.nextSeatIndex;
 
                   return (
                     <div
@@ -462,31 +481,31 @@ const BrowseInviteCard: React.FC<Props> = ({ invite, onJoin, onRefresh }) => {
 
               <div className="space-y-1 text-xs">
                 <div className="flex justify-between text-gray-300">
-                  <span>Seat {seatInfo.nextSeat.seatNumber} ({seatInfo.nextSeat.seatType})</span>
-                  <span>₹{seatInfo.priceBreakdown.originalPrice}</span>
+                  <span>Seat {seatInfo?.nextSeat?.seatNumber} ({seatInfo?.nextSeat?.seatType})</span>
+                  <span>₹{seatInfo?.priceBreakdown?.originalPrice}</span>
                 </div>
 
                 {invite.couponUsed && (
                   <div className="flex justify-between text-green-400">
                     <span>Discount ({invite.couponUsed.discountPercentage}%)</span>
-                    <span>-₹{seatInfo.priceBreakdown.discountAmount}</span>
+                    <span>-₹{seatInfo?.priceBreakdown?.discountAmount}</span>
                   </div>
                 )}
 
                 <div className="flex justify-between text-gray-400">
                   <span>Convenience Fee (5%)</span>
-                  <span>₹{seatInfo.priceBreakdown.convenienceFee}</span>
+                  <span>₹{seatInfo?.priceBreakdown?.convenienceFee}</span>
                 </div>
 
                 <div className="flex justify-between text-gray-400">
                   <span>Tax (18%)</span>
-                  <span>₹{seatInfo.priceBreakdown.tax}</span>
+                  <span>₹{seatInfo?.priceBreakdown?.tax}</span>
                 </div>
 
                 <div className="border-t border-green-500/20 pt-1 mt-2">
                   <div className="flex justify-between text-green-300 font-bold">
                     <span>Total Amount</span>
-                    <span>₹{seatInfo.actualPriceForJoiner}</span>
+                    <span>₹{seatInfo?.actualPriceForJoiner}</span>
                   </div>
                 </div>
               </div>
@@ -547,7 +566,7 @@ const BrowseInviteCard: React.FC<Props> = ({ invite, onJoin, onRefresh }) => {
           />
 
           {showPaymentModal && (
-            <PaymentModalInvt totalAmount={seatInfo.actualPriceForJoiner} onClose={handleClose} inviteId={slectedInvite} />
+            <PaymentModalInvt totalAmount={seatInfo?.actualPriceForJoiner} onClose={handleClose} inviteId={slectedInvite} />
           )}
         </>
       )}

@@ -7,6 +7,7 @@ import { googleAuth, logout } from "../../services/authServices/authService";
 import { AxiosError } from "axios";
 
 interface User {
+  id:string;
   user: string;
   email: string;
   username?: string;

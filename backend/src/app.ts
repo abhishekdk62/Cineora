@@ -88,6 +88,12 @@ import { createServer } from "http";
 import { InviteGroupController } from "./modules/inviteGroup/controllers/inviteGroup.controller";
 import { InviteGroupService } from "./modules/inviteGroup/services/inviteGroup.service";
 import { InviteGroupRepository } from "./modules/inviteGroup/repositories/inviteGroup.repository";
+import { ChatRoomRepository } from "./modules/chatroom/repositories/chatroom.repository";
+import { ChatMessageRepository } from "./modules/messages/repositories/messages.repository";
+import { ChatRoomService } from "./modules/chatroom/services/chatroom.service";
+import { ChatMessageService } from "./modules/messages/services/messages.service";
+import { ChatRoomController } from "./modules/chatroom/controllers/chatroom.controller";
+import { ChatMessageController } from "./modules/messages/controllers/messages.controller";
 
 
 export class App {
@@ -159,12 +165,16 @@ export class App {
     const favoriteRepo = new FavoriteRepository();
     const reviewRepo = new ReviewRepository();
     const inviteGroupRepo=new InviteGroupRepository();
+    const chatRoomRepo=new ChatRoomRepository()
+    const chatMessageRepo=new ChatMessageRepository()
     const couponRepo = new CouponRepository();
     const analyticsRepository = new AnalyticsRepository();
     const adminAnalyticsRepository = new AdminAnalyticsRepository();
     const notificationRepo = new NotificationRepository();
     const walletTransactionRepo = new WalletTransactionRepository();
     const bookingRepo = new BookingRepository();
+    const chatRoomService=new ChatRoomService(chatRoomRepo)
+    const chatMessageService=new ChatMessageService(chatMessageRepo,chatRoomRepo,this._socketService)
     const userService = new UserService(
       userRepo,
       ownerRepo,
@@ -227,6 +237,8 @@ export class App {
       ownerRequestService
     );
     const screenController = new ScreenController(screenService);
+    const chatRoomController=new ChatRoomController(chatRoomService)
+    const chatMessageController=new ChatMessageController(chatMessageService)
 
     const ticketController = new TicketController(
       ticketService,
@@ -317,7 +329,9 @@ export class App {
       favoriteController,
       reviewController,
       couponController,
-      inviteGroupController
+      inviteGroupController,
+      chatMessageController,
+      chatRoomController,
     );
 
     const ownerRoutes = new OwnerMainRoute(

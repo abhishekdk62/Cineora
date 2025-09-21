@@ -9,6 +9,9 @@ import MyInvitesSection from "./MyInvitesSection";
 import { confirmAction } from "../../../utils/ConfirmDialog";
 import { useSocket } from "@/app/others/Utils/useSocket";
 import { cancelSingleTicket } from "@/app/others/services/userServices/ticketServices";
+import { getChatRoomByInvite, leaveChatRoom } from "@/app/others/services/userServices/chatServices";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/others/redux/store";
 
 const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
@@ -155,7 +158,7 @@ const GroupInvitesManager: React.FC = () => {
         releasedSeatPrice: data.releasedSeatPrice
       });
 
-      // ✅ SEPARATELY RESET STATUS TO PENDING FOR BOTH ARRAYS
+     
       setMyInvites(prev =>
         prev.map(invite =>
           invite.inviteId === data.inviteId
@@ -202,6 +205,7 @@ const GroupInvitesManager: React.FC = () => {
       socket.off('invite_cancelled');
     };
   }, [socket, isConnected, activeTab]);
+    const id = useSelector((state: RootState) => state?.auth?.user?.id) 
 
   const fetchData = async () => {
     try {
@@ -304,7 +308,12 @@ const GroupInvitesManager: React.FC = () => {
       let amount = response.data.participantDetails[0].amount
       const res = await cancelSingleTicket([ticket], amount)
       console.log(res);
-
+                const dat = await getChatRoomByInvite(inviteId)
+      console.log('getChatRoomByInvite',dat);
+      
+      const resp=await leaveChatRoom({chatRoomId:dat.data.inviteGroupId,userId:id}) 
+      console.log(res);
+      console.log(resp);
       fetchData();
       toast.success('Cancelled successfully');
     } catch (error) {

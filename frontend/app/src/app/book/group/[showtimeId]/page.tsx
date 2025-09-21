@@ -16,7 +16,7 @@ import toast from 'react-hot-toast';
 import { GroupInviteSummary } from "@/app/others/components/User/GroupInvite/GroupInviteSummary";
 import { getCouponsByTheaterId } from "@/app/others/services/userServices/couponServices";
 import { PaymentGroupModal } from "@/app/others/components/User/GroupInvite/PaymentGroupModal";
-import { applyCoupon, calculateTotalAmount, removeCoupon } from "@/app/others/redux/slices/bookingSlice"; // ✅ Import Redux actions
+import { applyCoupon, calculateTotalAmount, removeCoupon } from "@/app/others/redux/slices/bookingSlice"; 
 import { BookingState } from "@/app/others/types";
 
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });

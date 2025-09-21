@@ -5,6 +5,7 @@ import { createRazorpayOrder, verifyRazorpayPayment } from "@/app/others/service
 import toast from "react-hot-toast";
 import { getWallet } from "@/app/others/services/userServices/walletServices";
 import PaymentGroupForm from "./PaymentGroupForm";
+import { createChatRoom } from "@/app/others/services/userServices/chatServices";
 
 interface PaymentModalProps {
   totalAmount: number;
@@ -145,6 +146,34 @@ export const PaymentGroupModal: React.FC<PaymentModalProps> = ({
               const inviteResult = await onCreateInvite(inviteData);
               console.log('Invite created successfully:', inviteResult);
 
+
+let inviteId=inviteResult.data.inviteId
+let inviteGroupId=inviteResult.data._id
+let roomName=hostBookingData.movieTitle
+let movieId=hostBookingData.movieId
+let theaterId=hostBookingData.theaterId
+let screenId=hostBookingData.screenId
+let showDate=hostBookingData.showDate
+let showTime=hostBookingData.showTime
+let createdBy=hostBookingData.userId
+let expiresAt = hostBookingData.showDate.substring(0, 10) + "T" + hostBookingData.showDetails.endTime + ":00.000Z";
+
+const createRoomData = {
+  inviteGroupId,
+  inviteId,
+  roomName,
+  movieId,
+  theaterId,
+  screenId,
+  showDate,
+  showTime,
+  createdBy,
+  expiresAt
+};
+
+const createRoom = await createChatRoom(createRoomData);
+console.log('created room',createRoom);
+
               router.push(`/booking/success?type=group&inviteId=${inviteResult.data?._id || inviteResult.data?.inviteId}`);
 
             } else {
@@ -202,14 +231,13 @@ export const PaymentGroupModal: React.FC<PaymentModalProps> = ({
 
   async function handleWalletPayment() {
     try {
+
+      console.log('hoiii',hostBookingData);
       setIsProcessing(true);
 
 
-      console.log('Processing wallet payment for amount:', totalAmount);
       const walletData = await walletBook(totalAmount, 'User');
-      console.log('Wallet payment successful:', walletData);
 
-      // ✅ 3. Create Host Booking
       const updatedBookingData = {
         ...hostBookingData,
         paymentMethod: 'wallet',
@@ -219,19 +247,43 @@ export const PaymentGroupModal: React.FC<PaymentModalProps> = ({
         groupRole: 'host'
       };
 
-      console.log('Creating host booking with data:', updatedBookingData);
       const bookingResult = await bookTicket({
         ...updatedBookingData,
         isInvited: true
       });
 
-      console.log('Host booking successful:', bookingResult);
-      console.log('sdfdsf', bookingResult);
 
       let ticketId = bookingResult.data.tickets[0]._id
-      console.log('tickss', ticketId);
       inviteData.participants[0].ticketId = ticketId
       const inviteResult = await onCreateInvite(inviteData);
+
+
+let inviteId=inviteResult.data.inviteId
+let inviteGroupId=inviteResult.data._id
+let roomName=hostBookingData.movieTitle
+let movieId=hostBookingData.movieId
+let theaterId=hostBookingData.theaterId
+let screenId=hostBookingData.screenId
+let showDate=hostBookingData.showDate
+let showTime=hostBookingData.showTime
+let createdBy=hostBookingData.userId
+let expiresAt = hostBookingData.showDate.substring(0, 10) + "T" + hostBookingData.showDetails.endTime + ":00.000Z";
+
+const createRoomData = {
+  inviteGroupId,
+  inviteId,
+  roomName,
+  movieId,
+  theaterId,
+  screenId,
+  showDate,
+  showTime,
+  createdBy,
+  expiresAt
+};
+
+const createRoom = await createChatRoom(createRoomData);
+console.log(createRoom);
 
       toast.success('Group invite created and wallet payment successful! 🎉');
       router.push(`/booking/success?type=group&inviteId=${inviteResult.data?._id || inviteResult.data?.inviteId}`);

@@ -1,146 +1,302 @@
 "use client";
 
-import React, { useState } from "react";
-import { MessageCircle, Send, Users } from "lucide-react";
-
-const lexendBold = { className: "font-bold" };
-const lexendMedium = { className: "font-medium" };
-const lexendSmall = { className: "font-normal text-sm" };
+import React, { useEffect, useState } from "react";
+import {
+  getMessages,
+  getUserChatRooms,
+  sendMessageApi,
+  SendMessageDto,
+  editMessage,
+  deleteMessage,
+  EditMessageDto,
+  DeleteMessageDto
+} from "@/app/others/services/userServices/chatServices";
+import ChatRoomList from "./ChatRoomList";
+import ChatMessages, { MessageItem } from "./ChatMessages";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/others/redux/store";
+import { useSocket } from "@/app/others/Utils/useSocket";
 
 interface ChatRoom {
   id: string;
   name: string;
-  movieName: string;
-  participants: number;
-  lastMessage: string;
+  movieTitle: string;
+  theaterName: string;
+  participantsCount: number;
+  lastMessageTime: string;
   unreadCount: number;
 }
 
 const GroupChatManager: React.FC = () => {
-  const [selectedChatId, setSelectedChatId] = useState<string>('1');
-  const [messageInput, setMessageInput] = useState('');
+  const [selectedChatId, setSelectedChatId] = useState("");
+  const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
+  const [messageInput, setMessageInput] = useState("");
+  const [messages, setMessages] = useState<MessageItem[]>([]);
+  const id = useSelector((state: RootState) => state?.auth?.user?.id) || 4545345;
+  const email = useSelector((state: RootState) => state?.auth?.user?.email);
+  const { socket, isConnected, joinChatRoom, leaveChatRoom } = useSocket();
 
-  const chatRooms: ChatRoom[] = [
-    {
-      id: '1',
-      name: 'Avengers Group',
-      movieName: 'Avengers: Endgame',
-      participants: 4,
-      lastMessage: 'See you at the theater!',
-      unreadCount: 2
-    },
-    {
-      id: '2',
-      name: 'Weekend Squad',
-      movieName: 'Spider-Man',
-      participants: 6,
-      lastMessage: 'Grab dinner before?',
-      unreadCount: 0
+  useEffect(() => {
+    const handleNewMessage = (event: any) => {
+      const messageData = event.detail;
+      if (messageData.chatRoomId === selectedChatId && messageData.senderId !== String(id)) {
+        const newMessage: MessageItem = {
+          _id: messageData._id,
+          chatRoomId: messageData.chatRoomId,
+          content: messageData.content,
+          createdAt: messageData.createdAt,
+          updatedAt: messageData.updatedAt,
+          isDeleted: messageData.isDeleted,
+          messageType: messageData.messageType,
+          senderId: messageData.senderId,
+          senderName: messageData.senderName || "Unknown",
+          systemData: messageData.systemData,
+          systemMessageType: messageData.systemMessageType,
+          replyToMessageId: messageData.replyToMessageId,
+        };
+        setMessages(prev => [...prev, newMessage]);
+      }
+    };
+
+    const handleMessageEdited = (event: any) => {
+      const { messageId, content, chatRoomId } = event.detail;
+      if (chatRoomId === selectedChatId) {
+        setMessages(prev =>
+          prev.map(msg =>
+            msg._id === messageId
+              ? { ...msg, content, updatedAt: new Date().toISOString() }
+              : msg
+          )
+        );
+      }
+    };
+
+    const handleMessageDeleted = (event: any) => {
+      const { messageId, chatRoomId } = event.detail;
+      if (chatRoomId === selectedChatId) {
+        setMessages(prev =>
+          prev.map(msg =>
+            msg._id === messageId
+              ? { ...msg, isDeleted: true, content: "This message was deleted" }
+              : msg
+          )
+        );
+      }
+    };
+
+    window.addEventListener('newMessage', handleNewMessage);
+    window.addEventListener('messageEdited', handleMessageEdited);
+    window.addEventListener('messageDeleted', handleMessageDeleted);
+
+    return () => {
+      window.removeEventListener('newMessage', handleNewMessage);
+      window.removeEventListener('messageEdited', handleMessageEdited);
+      window.removeEventListener('messageDeleted', handleMessageDeleted);
+    };
+  }, [selectedChatId, id]);
+
+  // ADD CHAT ROOM JOIN/LEAVE LOGIC:
+  useEffect(() => {
+    if (selectedChatId && isConnected) {
+      joinChatRoom(selectedChatId);
+
+      return () => {
+        leaveChatRoom(selectedChatId);
+      };
     }
-  ];
+  }, [selectedChatId, isConnected]);
 
-  const messages = [
-    { id: '1', sender: 'Rahul', content: 'Hey everyone! Movie tonight 🎬', time: '10:32 AM' },
-    { id: '2', sender: 'Priya', content: 'Meet 30 mins before?', time: '10:35 AM' },
-    { id: '3', sender: 'Arjun', content: 'Ill bring snacks 🍿', time: '10:38 AM' }
-  ]
+  useEffect(() => {
+    const fetchUserChatRooms = async () => {
+      try {
+        const res = await getUserChatRooms();
+        if (res.success && res.data) {
+          const rooms: ChatRoom[] = res.data.map((room: any) => ({
+            id: room._id,
+            name: room.roomName,
+            movieTitle: room.movieInfo.title,
+            theaterName: room.theaterInfo.name,
+            participantsCount: room.participantCount,
+            lastMessageTime: room.lastMessageAt,
+            unreadCount: 0,
+          }));
+          setChatRooms(rooms);
+          if (rooms.length > 0) setSelectedChatId(rooms[0].id);
+        } else {
+          setChatRooms([]);
+        }
+      } catch {
+        setChatRooms([]);
+      }
+    };
+    fetchUserChatRooms();
+  }, []);
+
+  const selectedChatRoom = chatRooms.find((r) => r.id === selectedChatId);
+
+  const getMessagesFunc = async () => {
+    if (!selectedChatId) {
+      setMessages([]);
+      return;
+    }
+
+    try {
+      const response = await getMessages({ chatRoomId: selectedChatId });
+      console.log("the messages are:", response);
+
+      if (response.success && response.data && response.data.messages) {
+        const mappedMessages: MessageItem[] = response.data.messages.map((msg: any) => ({
+          _id: msg._id,
+          chatRoomId: msg.chatRoomId,
+          content: msg.content,
+          createdAt: msg.createdAt,
+          updatedAt: msg.updatedAt,
+          isDeleted: msg.isDeleted,
+          messageType: msg.messageType,
+          senderId: msg.senderId,
+          senderName: msg.senderName || "Unknown",
+          // 🔥 ADD THESE MISSING FIELDS:
+          systemData: msg.systemData, // Contains userId and username
+          systemMessageType: msg.systemMessageType, // USER_JOINED, USER_LEFT, etc.
+          replyToMessageId: msg.replyToMessageId,
+        }));
+
+        // Debug log to verify system messages are mapped correctly
+        const systemMessages = mappedMessages.filter(m => m.messageType === 'SYSTEM');
+        console.log("System messages found:", systemMessages);
+        systemMessages.forEach(sm => {
+          console.log(`System message: ${sm.systemMessageType}, username: ${sm.systemData?.username}`);
+        });
+
+        setMessages(mappedMessages);
+      } else {
+        setMessages([]);
+      }
+    } catch (error) {
+      console.log(error);
+      setMessages([]);
+    }
+  };
+
+  useEffect(() => {
+    getMessagesFunc();
+  }, [selectedChatId]);
+
+  const sendMessage = () => {
+    if (!messageInput.trim()) return;
+    sendMsg();
+    setMessageInput("");
+  };
+
+  const sendMsg = async () => {
+    if (!messageInput.trim() || !selectedChatId) return;
+
+    try {
+      const payload: SendMessageDto = {
+        chatRoomId: selectedChatId,
+        content: messageInput.trim(),
+        messageType: 'TEXT',
+      };
+      console.log('send data', payload);
+
+      const response = await sendMessageApi(payload);
+      console.log(response);
+
+      const newMessage: MessageItem = {
+        _id: `temp-${Date.now()}`,
+        chatRoomId: selectedChatId,
+        content: messageInput.trim(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        isDeleted: false,
+        messageType: "TEXT",
+        senderId: String(id),
+        //@ts-ignore
+        senderName: email?.split("@")[0]
+      };
+
+      setMessages(prev => [...prev, newMessage]);
+      setMessageInput("");
+    } catch (error) {
+      console.error("Failed to send message:", error);
+    }
+  };
+
+  const handleEditMessage = async (messageId: string, newContent: string) => {
+    try {
+      const payload: EditMessageDto = {
+        messageId,
+        content: newContent
+      };
+
+      const response = await editMessage(payload);
+      console.log("Edit response:", response);
+
+      if (response.success) {
+        setMessages(prev =>
+          prev.map(msg =>
+            msg._id === messageId
+              ? { ...msg, content: newContent, updatedAt: new Date().toISOString() }
+              : msg
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Failed to edit message:", error);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      const payload: DeleteMessageDto = {
+        messageId
+      };
+
+      const response = await deleteMessage(payload);
+      console.log("Delete response:", response);
+
+      if (response.success) {
+        setMessages(prev =>
+          prev.map(msg =>
+            msg._id === messageId
+              ? { ...msg, isDeleted: true, content: "This message was deleted" }
+              : msg
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Failed to delete message:", error);
+    }
+  };
 
   return (
     <div>
       <div className="mb-6">
-        <h1 className={`${lexendBold.className} text-3xl text-white mb-2`}>Group Chats</h1>
-        <p className={`${lexendSmall.className} text-gray-400`}>Chat with your movie group members</p>
+        <h1 className="font-bold text-3xl text-white mb-2">Group Chats</h1>
+        <p className="text-sm text-gray-400">Chat with your movie group members</p>
       </div>
-
       <div className="flex h-[500px] bg-white/5 rounded-2xl overflow-hidden">
-        {/* Chat List */}
-        <div className="w-1/3 bg-white/5 border-r border-white/10">
-          <div className="p-4 border-b border-white/10">
-            <h3 className={`${lexendMedium.className} text-white`}>Active Groups</h3>
+        <ChatRoomList chatRooms={chatRooms} selectedChatId={selectedChatId} onSelect={setSelectedChatId} />
+        {!chatRooms.length ? (
+          <div className="flex-1 flex items-center justify-center text-gray-400">
+            You have not joined any groups yet.
           </div>
-          
-          <div className="overflow-y-auto">
-            {chatRooms.map((chat) => (
-              <div
-                key={chat.id}
-                onClick={() => setSelectedChatId(chat.id)}
-                className={`p-4 border-b border-white/5 cursor-pointer ${
-                  selectedChatId === chat.id ? 'bg-blue-500/20' : 'hover:bg-white/5'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
-                    <MessageCircle className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className={`${lexendMedium.className} text-white text-sm`}>{chat.name}</h4>
-                    <p className="text-xs text-gray-400">{chat.movieName}</p>
-                    <p className="text-xs text-gray-300 mt-1">{chat.lastMessage}</p>
-                  </div>
-                  {chat.unreadCount > 0 && (
-                    <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                      {chat.unreadCount}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
+        ) : selectedChatId ? (
+          <ChatMessages
+            chatRoom={selectedChatRoom}
+            messages={messages}
+            messageInput={messageInput}
+            onMessageChange={setMessageInput}
+            onSend={sendMessage}
+            onEditMessage={handleEditMessage}
+            onDeleteMessage={handleDeleteMessage}
+            id={id}
+          />
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-gray-400">
+            Select a chat group to start messaging.
           </div>
-        </div>
-
-        {/* Chat Messages */}
-        <div className="flex-1 flex flex-col">
-          {/* Chat Header */}
-          <div className="p-4 border-b border-white/10 flex items-center gap-3">
-            <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-              <MessageCircle className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <h3 className={`${lexendMedium.className} text-white`}>Avengers Group</h3>
-              <p className="text-xs text-gray-400 flex items-center gap-1">
-                <Users className="w-3 h-3" /> 4 members
-              </p>
-            </div>
-          </div>
-
-          {/* Messages */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-3">
-            {messages.map((msg) => (
-              <div key={msg.id} className="flex gap-3">
-                <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
-                  <span className="text-xs text-white">{msg.sender[0]}</span>
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={`${lexendMedium.className} text-sm text-white`}>{msg.sender}</span>
-                    <span className="text-xs text-gray-400">{msg.time}</span>
-                  </div>
-                  <p className="text-sm text-gray-200">{msg.content}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Message Input */}
-          <div className="p-4 border-t border-white/10">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={messageInput}
-                onChange={(e) => setMessageInput(e.target.value)}
-                placeholder="Type a message..."
-                className="flex-1 bg-white/10 text-white placeholder-gray-400 px-4 py-2 rounded-lg focus:outline-none"
-                onKeyPress={(e) => e.key === 'Enter' && setMessageInput('')}
-              />
-              <button
-                onClick={() => setMessageInput('')}
-                className="bg-blue-500 hover:bg-blue-600 p-2 rounded-lg transition-colors"
-              >
-                <Send className="w-4 h-4 text-white" />
-              </button>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

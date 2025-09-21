@@ -12,6 +12,8 @@ import { MovieFavoriteController } from "../../favorites/controllers/favorite.co
 import { ReviewController } from "../../reviews/controllers/review.controller";
 import { CouponController } from "../../coupons/controllers/coupons.controller";
 import { InviteGroupController } from "../../inviteGroup/controllers/inviteGroup.controller";
+import { ChatMessageController } from "../../messages/controllers/messages.controller";
+import { ChatRoomController } from "../../chatroom/controllers/chatroom.controller";
 
 export class UserRoutes {
   constructor(
@@ -28,11 +30,46 @@ export class UserRoutes {
     private reviewsController: ReviewController,
     private _couponController: CouponController,
     private _inviteGroupController: InviteGroupController,
+    private chatMessageController: ChatMessageController,
+    private chatRoomController: ChatRoomController
   ) {
     this._setRoutes();
   }
 
   private _setRoutes() {
+    this._router.post("/rooms", (req, res) =>
+      this.chatRoomController.createChatRoom(req, res)
+    );
+    this._router.get("/rooms/invite/:inviteId", (req, res) =>
+      this.chatRoomController.getChatRoomByInvite(req, res)
+    );
+    this._router.get("/rooms/user", (req, res) =>
+      this.chatRoomController.getUserChatRooms(req, res)
+    );
+    this._router.post("/rooms/join", (req, res) =>
+      this.chatRoomController.joinChatRoom(req, res)
+    );
+    this._router.post("/rooms/leave", (req, res) =>
+      this.chatRoomController.leaveChatRoom(req, res)
+    );
+
+    // Chat Message routes
+    this._router.post("/messages", (req, res) =>
+      this.chatMessageController.sendMessage(req, res)
+    );
+    this._router.get("/messages/:chatRoomId", (req, res) =>
+      this.chatMessageController.getMessages(req, res)
+    );
+    this._router.patch("/messages/:messageId", (req, res) =>
+      this.chatMessageController.editMessage(req, res)
+    );
+    this._router.delete("/messages/:messageId", (req, res) =>
+      this.chatMessageController.deleteMessage(req, res)
+    );
+    this._router.post("/messages/system", (req, res) =>
+      this.chatMessageController.createSystemMessage(req, res)
+    );
+
     this._router.get("/profile", (req, res) =>
       this._userController.getUserProfile(req, res)
     );
@@ -53,7 +90,7 @@ export class UserRoutes {
     this._router.put("/profile", (req, res) =>
       this._userController.updateUserProfile(req, res)
     );
-        this._router.post("/invite-groups", (req, res) =>
+    this._router.post("/invite-groups", (req, res) =>
       this._inviteGroupController.createInviteGroup(req, res)
     );
 
@@ -85,7 +122,6 @@ export class UserRoutes {
     this._router.delete("/invite-groups/:inviteId/cancel", (req, res) =>
       this._inviteGroupController.cancelInviteGroup(req, res)
     );
-
 
     this._router.post("/email/change", (req, res) =>
       this._userController.changeEmail(req, res)
@@ -126,13 +162,13 @@ export class UserRoutes {
     this._router.post("/wallet/transactions", (req, res) =>
       this._walletController.handleWalletTransaction(req, res)
     );
-//!cancel all 
+    //!cancel all
     this._router.delete("/cancel/ticket", (req, res) =>
       this._ticketController.cancelTicket(req, res)
     );
-//!cancel single
-//?single
-//!cancel single  
+    //!cancel single
+    //?single
+    //!cancel single
 
     this._router.post("/cancel/single/ticket", (req, res) =>
       this._ticketController.cancelSingleTicket(req, res)

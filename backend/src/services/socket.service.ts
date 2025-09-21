@@ -126,4 +126,49 @@ emitParticipantLeft(inviteId: string, participantData: any): void {
       inviteId: inviteId || null
     });
   }
+
+  //!chat soket funcs
+
+
+// Add these new emit methods to your existing SocketService class
+
+emitNewMessage(chatRoomId: string, messageData: any): void {
+  console.log('🚀 Broadcasting new message to chat room:', chatRoomId);
+  console.log('📊 Clients in chat room:', this.io.sockets.adapter.rooms.get(`chat-${chatRoomId}`)?.size || 0);
+  
+  this.io.to(`chat-${chatRoomId}`).emit('new-message', messageData);
+}
+
+emitMessageEdit(chatRoomId: string, messageData: any): void {
+  console.log('🚀 Broadcasting message edit to chat room:', chatRoomId);
+  
+  this.io.to(`chat-${chatRoomId}`).emit('message-edited', {
+    messageId: messageData.messageId,
+    content: messageData.content,
+    chatRoomId
+  });
+}
+
+emitMessageDelete(chatRoomId: string, messageId: string): void {
+  console.log('🚀 Broadcasting message delete to chat room:', chatRoomId);
+  
+  this.io.to(`chat-${chatRoomId}`).emit('message-deleted', {
+    messageId,
+    chatRoomId
+  });
+}
+
+emitUserJoinedChat(chatRoomId: string, userData: any): void {
+  console.log('🚀 Broadcasting user joined chat:', chatRoomId);
+  
+  this.io.to(`chat-${chatRoomId}`).emit('user-joined-chat', userData);
+}
+
+emitUserLeftChat(chatRoomId: string, userData: any): void {
+  console.log('🚀 Broadcasting user left chat:', chatRoomId);
+  
+  this.io.to(`chat-${chatRoomId}`).emit('user-left-chat', userData);
+}
+
+
 }

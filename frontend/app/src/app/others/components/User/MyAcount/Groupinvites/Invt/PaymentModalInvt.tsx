@@ -12,6 +12,8 @@ import { BookingState } from "@/app/others/types";
 import PaymentFormInvt from "./PaymentFormInvt";
 import { setBookingData } from "@/app/others/redux/slices/bookingSlice";
 import { confirmJoinInviteGroup } from "@/app/others/services/userServices/inviteGroupServices";
+import { createSystemMessage, getChatRoomByInvite, joinChatRoom } from "@/app/others/services/userServices/chatServices";
+import { RootState } from "@/app/others/redux/store";
 
 interface PaymentModalProps {
   totalAmount: number;
@@ -68,6 +70,9 @@ export const PaymentModalInvt: React.FC<PaymentModalProps> = ({ totalAmount, onC
   useEffect(() => {
     getWalletDetails()
   }, [])
+    const id = useSelector((state: RootState) => state?.auth?.user?.id) || 4545345;
+    const email = useSelector((state: RootState) => state?.auth?.user?.email);
+  
   const handleRazorpayPayment = async () => {
     if (!window.Razorpay || !isRazorpayLoaded) {
       alert('Razorpay SDK failed to load. Please try again.');
@@ -106,11 +111,20 @@ export const PaymentModalInvt: React.FC<PaymentModalProps> = ({ totalAmount, onC
               bookingData: null
             });
             if (verifyResponse.success) {
-              const bookingResult = await bookTicket({...bookingDatasRedux,isInvited: true});
+              const bookingResult = await bookTicket({ ...bookingDatasRedux, isInvited: true });
               console.log('Booking successful:', bookingResult.data);
 
-      const response = await confirmJoinInviteGroup({ inviteId, totalAmount,ticketId:bookingResult.data.tickets[0]._id })
+              const response = await confirmJoinInviteGroup({ inviteId, totalAmount, ticketId: bookingResult.data.tickets[0]._id })
+              const dat = await getChatRoomByInvite(inviteId)
+              console.log('the sns for getchattoombyinviteid', dat);
 
+              const resd = await joinChatRoom({ inviteGroupId: dat.data.inviteGroupId });
+const chated=await createSystemMessage({chatRoomId:resd.data.data._id,systemMessageType:'USER_JOINED',content:'User joined ',systemData:{userId:id,username:email?.split('@')[0]}})
+console.log('checked',chated);
+
+              console.log('joined', resd);
+
+toast.success('Joined this invite group plaese open the chat box.')
               console.log(response);
               router.push(`/booking/success`);
             } else {
@@ -178,12 +192,23 @@ export const PaymentModalInvt: React.FC<PaymentModalProps> = ({ totalAmount, onC
   async function handleWalletPayment() {
     try {
 
+      console.log('haha', inviteId);
 
 
       setIsProcessing(true);
       const data = await walletBook(totalAmount, 'User')
-      const res = await bookTicket({...bookingDatasRedux,isInvited:true});
-      const response = await confirmJoinInviteGroup({ inviteId, totalAmount,ticketId:res.data.tickets[0]._id })
+      const res = await bookTicket({ ...bookingDatasRedux, isInvited: true });
+      const response = await confirmJoinInviteGroup({ inviteId, totalAmount, ticketId: res.data.tickets[0]._id })
+
+      const dat = await getChatRoomByInvite(inviteId)
+      console.log('the sns for getchattoombyinviteid', dat);
+
+      const resd = await joinChatRoom({ inviteGroupId: dat.data.inviteGroupId });
+const chated=await createSystemMessage({chatRoomId:resd.data.data._id,systemMessageType:'USER_JOINED',content:'User joined ',systemData:{userId:id,username:email?.split('@')[0]}})
+console.log('checked',chated);
+      console.log('joined', resd);
+toast.success('Joined this invite group plaese open the chat box.')
+
       router.push('/booking/success');
     } catch (error: unknown) {
       console.log(error);
