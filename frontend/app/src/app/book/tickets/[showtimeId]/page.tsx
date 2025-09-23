@@ -668,12 +668,8 @@ console.log('seat-update',data);
       movieTitle: (showtimeData.movieId as { title: string }).title,
       theaterName: (showtimeData.theaterId as { name: string }).name,
     };
-
     sessionStorage.setItem("bookingData", JSON.stringify(backupBookingData));
-
-
     router.push(`/book/group/${showtimeId}`);
-
   }
 
 

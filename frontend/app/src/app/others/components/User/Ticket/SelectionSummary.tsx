@@ -138,7 +138,7 @@ export default function SelectionSummary({
         </div>
       )}
         <div className="flex gap-3">
-      {onCreateGroupInvite&&selectedSeats.length>1 && (
+      {/* {onCreateGroupInvite&&selectedSeats.length>1 && (
         <button
           onClick={onCreateGroupInvite}
           className={`${lexendMediumClassName} flex-1 border border-purple-500 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20 hover:text-purple-200 font-medium py-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center gap-2`}
@@ -146,7 +146,7 @@ export default function SelectionSummary({
           <Users className="w-5 h-5" />
           Create Group Invite
         </button>
-      )}
+      )} */}
 
       <button
         onClick={onProceed}
