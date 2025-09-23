@@ -62,7 +62,7 @@ export class ShowtimeService implements IShowtimeService {
           errors: skipped > 0 ? errors : undefined,
         },
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error creating bulk showtimes:", error);
       return this._handleServiceError(error, "Failed to create bulk showtimes");
     }
@@ -73,7 +73,6 @@ export class ShowtimeService implements IShowtimeService {
 
   ): Promise<ServiceResponse<{ heldSeats: string[]; failedSeats: string[] }>> {
     try {
-      // Validate input
       if (!showtimeId || !holdData.seatNumbers?.length) {
         return {
           success: false,
@@ -81,11 +80,9 @@ export class ShowtimeService implements IShowtimeService {
         };
       }
 
-      // Default hold duration is 15 minutes
       const holdDurationMs = (holdData.holdDurationMinutes || 15) * 60 * 1000;
       const expiresAt = new Date(Date.now() + holdDurationMs);
 
-      // Hold seats in database
       const holdResult = await this.showtimeRepository.holdSeats(
         showtimeId,
         holdData.seatNumbers,
@@ -102,7 +99,6 @@ export class ShowtimeService implements IShowtimeService {
         };
       }
 
-      // Emit socket events for held seats
       if (holdResult.heldSeats.length > 0) {
         this.socketService.emitSeatHold(
           showtimeId,
@@ -111,7 +107,6 @@ export class ShowtimeService implements IShowtimeService {
         );
       }
 
-      // Schedule automatic release (you might want to use a job queue for this)
       this._scheduleAutoRelease(showtimeId, holdData.inviteGroupId, expiresAt);
 console.log('hold seats',holdResult.heldSeats);
 console.log('failedSeats seats',holdResult.failedSeats);
@@ -124,7 +119,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
           failedSeats: holdResult.failedSeats,
         },
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error holding seats:", error);
       return {
         success: false,
@@ -161,7 +156,6 @@ console.log('failedSeats seats',holdResult.failedSeats);
         };
       }
 
-      // Emit socket events for released seats
       if (releaseResult.releasedSeats.length > 0) {
         this.socketService.emitSeatRelease(
           showtimeId,
@@ -176,7 +170,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
           releasedSeats: releaseResult.releasedSeats,
         },
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error releasing held seats:", error);
       return {
         success: false,
@@ -194,7 +188,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
         message: "Successfully retrieved held seats",
         data: heldSeats,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error getting held seats:", error);
       return {
         success: false,
@@ -254,7 +248,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
         message: "Showtime created successfully",
         data: showtime,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error creating showtime:", error);
       return this._handleServiceError(error, "Failed to create showtime");
     }
@@ -305,7 +299,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
         message: "Showtime updated successfully",
         data: updatedShowtime,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error updating showtime:", error);
       return this._handleServiceError(error, "Failed to update showtime");
     }
@@ -334,7 +328,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
         message: "Showtime retrieved successfully",
         data: showtime,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error getting showtime by id:", error);
       return this._handleServiceError(error, "Failed to retrieve showtime");
     }
@@ -372,7 +366,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
         message: "Showtimes retrieved successfully",
         data: result,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error getting showtimes by screen admin:", error);
       return this._handleServiceError(error, "Failed to retrieve showtimes");
     }
@@ -400,7 +394,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
         message: "Showtimes retrieved successfully",
         data: result,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error getting all showtimes admin:", error);
       return this._handleServiceError(error, "Failed to retrieve showtimes");
     }
@@ -437,7 +431,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
         } successfully`,
         data: result,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error updating showtime status:", error);
       return this._handleServiceError(
         error,
@@ -469,7 +463,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
         message: "Showtimes retrieved successfully",
         data: showtimes,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error getting showtimes by screen:", error);
       return this._handleServiceError(error, "Failed to retrieve showtimes");
     }
@@ -495,7 +489,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
         message: "Showtimes retrieved successfully",
         data: showtimes,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error getting showtimes by movie:", error);
       return this._handleServiceError(error, "Failed to retrieve showtimes");
     }
@@ -524,7 +518,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
         message: "Showtimes retrieved successfully",
         data: showtimes,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error getting showtimes by theater:", error);
       return this._handleServiceError(error, "Failed to retrieve showtimes");
     }
@@ -563,7 +557,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
         message: "Paginated showtimes retrieved successfully",
         data: { items: showtimes, total },
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error getting showtimes by owner id paginated:", error);
       return this._handleServiceError(
         error,
@@ -592,7 +586,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
         message: "Showtimes retrieved successfully",
         data: showtimes,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error getting showtimes by owner id:", error);
       return this._handleServiceError(error, "Failed to retrieve showtimes");
     }
@@ -630,7 +624,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
         message: "Showtimes retrieved successfully",
         data: showtimes,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error getting showtimes by filters:", error);
       return this._handleServiceError(error, "Failed to retrieve showtimes");
     }
@@ -674,7 +668,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
         success: true,
         message: "Seats blocked successfully",
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error blocking showtime seats:", error);
       return this._handleServiceError(error, "Failed to block seats");
     }
@@ -722,7 +716,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
         success: true,
         message: "Seats released successfully",
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error releasing showtime seats:", error);
       return this._handleServiceError(error, "Failed to release seats");
     }
@@ -761,7 +755,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
         success: true,
         message: "Seats booked successfully",
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error booking showtime seats:", error);
       return this._handleServiceError(error, "Failed to book seats");
     }
@@ -789,7 +783,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
         success: true,
         message: "Showtime deleted successfully",
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error deleting showtime:", error);
       return this._handleServiceError(error, "Failed to delete showtime");
     }
@@ -827,7 +821,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
         message: "Showtimes retrieved successfully",
         data: showtimes,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error getting all showtimes:", error);
       return this._handleServiceError(error, "Failed to retrieve showtimes");
     }
@@ -856,7 +850,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
         message: "Theaters retrieved successfully",
         data: theaters,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error getting theaters by movie:", error);
       return this._handleServiceError(error, "Failed to retrieve theaters");
     }
@@ -896,7 +890,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
         } successfully`,
         data: updatedShowtime,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error toggling showtime status:", error);
       return this._handleServiceError(
         error,
@@ -1256,7 +1250,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
   }
 
   private _handleServiceError(
-    error: any,
+    error: unknown,
     defaultMessage: string
   ): ServiceResponse<any> {
     return {

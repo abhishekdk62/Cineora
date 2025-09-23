@@ -16,7 +16,7 @@ export const checkCoupon = async (theaterId:string,couponCode:string): Promise<G
 };
 export interface GetCouponsResponseDto {
   data: {
-    data: CouponResponseDto[];        // Your actual coupon array
+    data: CouponResponseDto[];      
     totalCount: number;
     totalPages: number;
     currentPage: number;

@@ -4,13 +4,11 @@ export interface IChatMessage extends Document {
   _id: mongoose.Types.ObjectId;
   chatRoomId: mongoose.Types.ObjectId;
   senderId: mongoose.Types.ObjectId;
-  senderName: string; // Cached for performance
+  senderName: string; 
   
-  // Message Content
   messageType: 'TEXT' | 'SYSTEM' | 'BOOKING_UPDATE' | 'IMAGE';
   content: string;
   
-  // System Message Data
   systemMessageType?: 'USER_JOINED' | 'USER_LEFT' | 'PAYMENT_COMPLETED' | 'GROUP_COMPLETED' | 'GROUP_CANCELLED' | 'REMINDER';
   systemData?: {
     userId?: mongoose.Types.ObjectId;
@@ -62,7 +60,6 @@ const ChatMessageSchema: Schema<IChatMessage> = new Schema(
       maxlength: 2000 
     },
     
-    // System message fields
     systemMessageType: {
       type: String,
       enum: ['USER_JOINED', 'USER_LEFT', 'PAYMENT_COMPLETED', 'GROUP_COMPLETED', 'GROUP_CANCELLED', 'REMINDER'],
@@ -93,7 +90,6 @@ const ChatMessageSchema: Schema<IChatMessage> = new Schema(
   }
 );
 
-// Indexes for efficient queries
 ChatMessageSchema.index({ chatRoomId: 1, createdAt: -1 });
 ChatMessageSchema.index({ senderId: 1 });
 ChatMessageSchema.index({ messageType: 1 });

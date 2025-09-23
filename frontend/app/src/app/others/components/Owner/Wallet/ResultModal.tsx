@@ -1,4 +1,3 @@
-// ResultModal.tsx - Complete Success/Failure Modal
 import React from 'react';
 import { CheckCircle, XCircle, X } from 'lucide-react';
 

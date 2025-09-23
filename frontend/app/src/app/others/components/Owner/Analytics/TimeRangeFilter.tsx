@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState } from 'react';
 import { Calendar, ChevronDown, AlertCircle } from 'lucide-react';
 
@@ -26,9 +25,8 @@ export const TimeRangeFilter: React.FC<TimeRangeFilterProps> = ({
   const [dateError, setDateError] = useState<string>('');
   const isCustomRange = timeframe === 'custom';
 
-  // ✅ Handle timeframe changes and auto-set dates
   const handleTimeframeChange = (newTimeframe: string) => {
-    setDateError(''); // Clear string errors when switching timeframes
+    setDateError(''); 
     
     if (newTimeframe !== 'custom') {
       const today = new Date();
@@ -59,17 +57,14 @@ export const TimeRangeFilter: React.FC<TimeRangeFilterProps> = ({
     onTimeframeChange(newTimeframe as string);
   };
 
-  // ✅ Handle start date changes with validation
   const handleStartDateChange = (date: string) => {
     setDateError('');
     
-    // ✅ Validate: start date cannot be after end date
     if (date && endDate && date > endDate) {
       setDateError('Start date cannot be after end date');
       return;
     }
 
-    // ✅ Validate: start date cannot be in the future
     const today = new Date().toISOString().split('T')[0];
     if (date > today) {
       setDateError('Start date cannot be in the future');
@@ -82,17 +77,14 @@ export const TimeRangeFilter: React.FC<TimeRangeFilterProps> = ({
     }
   };
 
-  // ✅ Handle end date changes with validation
   const handleEndDateChange = (date: string) => {
     setDateError('');
     
-    // ✅ Validate: end date cannot be before start date
     if (date && startDate && date < startDate) {
       setDateError('End date cannot be before start date');
       return;
     }
 
-    // ✅ Validate: end date cannot be in the future
     const today = new Date().toISOString().split('T')[0];
     if (date > today) {
       setDateError('End date cannot be in the future');
@@ -119,7 +111,7 @@ export const TimeRangeFilter: React.FC<TimeRangeFilterProps> = ({
             value={startDate}
             onChange={(e) => handleStartDateChange(e.target.value)}
             disabled={!isCustomRange}
-            max={endDate || new Date().toISOString().split('T')[0]} // ✅ Prevent selecting date after end date
+            max={endDate || new Date().toISOString().split('T')[0]} 
             className={`${lexendMedium.className} w-full px-4 py-3 bg-white/10 border ${
               dateError && dateError.includes('Start') ? 'border-red-500' : 'border-gray-500/30'
             } rounded-xl text-white focus:outline-none focus:border-white/50 focus:bg-white/15 transition-all duration-300 ${
@@ -139,8 +131,8 @@ export const TimeRangeFilter: React.FC<TimeRangeFilterProps> = ({
             value={endDate}
             onChange={(e) => handleEndDateChange(e.target.value)}
             disabled={!isCustomRange}
-            min={startDate} // ✅ Prevent selecting date before start date
-            max={new Date().toISOString().split('T')[0]} // ✅ Prevent future dates
+            min={startDate} 
+            max={new Date().toISOString().split('T')[0]} 
             className={`${lexendMedium.className} w-full px-4 py-3 bg-white/10 border ${
               dateError && dateError.includes('End') ? 'border-red-500' : 'border-gray-500/30'
             } rounded-xl text-white focus:outline-none focus:border-white/50 focus:bg-white/15 transition-all duration-300 ${

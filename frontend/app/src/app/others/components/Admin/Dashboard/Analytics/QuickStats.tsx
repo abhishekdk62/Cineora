@@ -1,4 +1,3 @@
-// components/admin/analytics/QuickStats.tsx
 import React from 'react';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 

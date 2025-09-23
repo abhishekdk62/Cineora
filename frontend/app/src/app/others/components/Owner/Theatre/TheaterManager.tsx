@@ -17,6 +17,7 @@ import toast from "react-hot-toast";
 import TheaterViewModal from "./TheaterViewModal";
 import { ITheater } from "@/app/others/types";
 import { confirmAction, ConfirmDialog } from "@/app/others/components/utils/ConfirmDialog";
+import AddStaffModal from "./AddStaffModal";
 
 const lexendBold = Lexend({
   weight: "700",
@@ -55,6 +56,19 @@ const TheaterManager: React.FC = () => {
   });
 
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+const [showAddStaffModal, setShowAddStaffModal] = useState(false);
+const [selectedTheaterForStaff, setSelectedTheaterForStaff] = useState<ITheater | null>(null);
+
+const openAddStaffModal = (theater: ITheater) => {
+  setSelectedTheaterForStaff(theater);
+  setShowAddStaffModal(true);
+};
+
+const handleAddStaff = (newStaff) => {
+  setShowAddStaffModal(false);
+  setSelectedTheaterForStaff(null);
+};
+
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -144,9 +158,8 @@ const TheaterManager: React.FC = () => {
 
       const confirmed = await confirmAction({
         title: theater.isActive ? "Disable Theater" : "Enable Theater",
-        message: `Are you sure you want to ${
-          theater.isActive ? `disable` : `enable`
-        }'the theater?`,
+        message: `Are you sure you want to ${theater.isActive ? `disable` : `enable`
+          }'the theater?`,
         confirmText: theater.isActive ? "Disable" : "Enable",
         cancelText: "Cancel",
       });
@@ -157,7 +170,7 @@ const TheaterManager: React.FC = () => {
 
       console.log(data);
 
-      
+
     } catch (error) {
       console.error("Error toggling theater status:", error);
       fetchTheaters();
@@ -346,6 +359,9 @@ const TheaterManager: React.FC = () => {
                 onDelete={handleDeleteTheater}
                 onEdit={handleEditTheater}
                 onView={onView}
+
+                openAddStaffModal={openAddStaffModal}
+
               />
             ))}
           </div>
@@ -396,13 +412,11 @@ const TheaterManager: React.FC = () => {
                       <button
                         key={pageNumber}
                         onClick={() => handlePageChange(pageNumber)}
-                        className={`${
-                          lexendMedium.className
-                        } w-10 h-10 rounded-lg border border-gray-500/30 transition-all duration-300 ${
-                          pagination.currentPage === pageNumber
+                        className={`${lexendMedium.className
+                          } w-10 h-10 rounded-lg border border-gray-500/30 transition-all duration-300 ${pagination.currentPage === pageNumber
                             ? "bg-white text-black"
                             : "text-white hover:bg-white/10"
-                        }`}
+                          }`}
                       >
                         {pageNumber}
                       </button>
@@ -446,6 +460,17 @@ const TheaterManager: React.FC = () => {
           onClose={() => setShowTheaterDetails(false)}
         />
       )}
+   {showAddStaffModal && selectedTheaterForStaff && (
+  <AddStaffModal 
+    onClose={() => {
+      setShowAddStaffModal(false);
+      setSelectedTheaterForStaff(null);
+    }}
+    onSuccess={handleAddStaff}
+    selectedTheater={selectedTheaterForStaff}
+  />
+)}
+
     </div>
   );
 };

@@ -4,7 +4,7 @@ export interface LoginResponse {
   success: boolean;
   message: string;
   data?: {
-    user: any;
+    user: UserDataDto;
     token: string;
     role: "user" | "admin" | "owner";
     redirectTo: string;
@@ -86,7 +86,7 @@ export interface LoginSuccessDataDto {
   user: UserDataDto;
   accessToken: string;
   refreshToken: string;
-  role: 'user' | 'admin' | 'owner';
+  role: 'user' | 'admin' | 'owner'|'staff';
   redirectTo: string;
 }
 

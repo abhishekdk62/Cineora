@@ -1,4 +1,3 @@
-//@ts-nocheck
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -130,7 +129,7 @@ if (total !== undefined) {
     
 
   } catch (error) {
-    console.error("❌ Error fetching showtimes:", error);
+    console.error(" Error fetching showtimes:", error);
     toast.error("Failed to fetch showtimes");
   } finally {
     if (reset) {

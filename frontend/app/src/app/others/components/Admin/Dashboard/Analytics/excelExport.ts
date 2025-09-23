@@ -1,8 +1,8 @@
 import * as XLSX from 'xlsx';
 
 export interface TabPayload {
-  name: string;                 // worksheet name
-  rows: Record<string, any>[];  // flat objects → rows
+  name: string;              
+  rows: Record<string, string>[];  
 }
 
 export function exportTabsToExcel(tabs: TabPayload[], fileName = 'analytics.xlsx') {

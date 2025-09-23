@@ -314,9 +314,8 @@ export class PaymentController {
       const { amount, mode, purpose } = req.body;
       const ownerId = req.owner?.ownerId;
 
-      console.log('🏦 Creating payout order:', { ownerId, amount, mode, purpose });
+      console.log(' Creating payout order:', { ownerId, amount, mode, purpose });
 
-      // Validate inputs
       if (!amount || amount < 100) {
         res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
@@ -327,7 +326,6 @@ export class PaymentController {
         return;
       }
 
-      // Check wallet balance
       const result = await this._paymentService.createPayoutOrder({
         ownerId,
         amount,
@@ -352,8 +350,8 @@ export class PaymentController {
         );
       }
 
-    } catch (error: any) {
-      console.error('❌ Create payout order error:', error);
+    } catch (error: unknown) {
+      console.error(' Create payout order error:', error);
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
@@ -363,7 +361,6 @@ export class PaymentController {
     }
   }
 
-  // 🔥 Step 2: Confirm payout (after Razorpay UI approval)
   async confirmPayout(req: Request, res: Response): Promise<void> {
     try {
       const { razorpay_payment_id, amount, mode, order_id } = req.body;
@@ -403,8 +400,8 @@ export class PaymentController {
         );
       }
 
-    } catch (error: any) {
-      console.error('❌ Confirm payout error:', error);
+    } catch (error: unknown) {
+      console.error(' Confirm payout error:', error);
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,

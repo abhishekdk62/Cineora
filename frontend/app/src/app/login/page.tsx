@@ -47,8 +47,10 @@ export default function LoginPage() {
 
       if (loginUser.fulfilled.match(resultAction)) {
         const userData = resultAction.payload;
+        
         redirectBasedOnRole(userData.role);
-        console.log(`${userData.role} login successful`);
+       console.log('the user data',userData);
+       
       }
     } catch (err: unknown) {
       console.error("Login error:", err);
@@ -80,8 +82,13 @@ export default function LoginPage() {
       router.push("/admin/dashboard");
     } else if (userRole === "owner") {
       router.push("/owner/dashboard");
-    } else {
+    } else if(userRole=='staff') {
+      router.push("/staff");
+    }
+    else
+    {
       router.push("/");
+
     }
   };
 

@@ -43,9 +43,7 @@ export class CommonRoutes {
     this._router.get("/movies/from-theater/:theaterId", (req, res) =>
       this._showTimeController.getShowtimesByTheater(req, res)
     );
-    this._router.get("/verify-ticket/:data", (req, res) =>
-      this._ticketController.verifyTicketFromQrCode(req, res)
-    );
+  
     this._router.get("/reviews/movies/:movieId", (req, res) =>
       this.reviewsController.getMovieReviews(req, res)
     );

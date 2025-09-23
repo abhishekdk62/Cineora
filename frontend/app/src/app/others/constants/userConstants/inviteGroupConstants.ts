@@ -6,5 +6,5 @@ export const USER_INVITE_GROUPS = {
   JOIN_INVITE: '/users/invite-groups/confirm-join',
   LEAVE_INVITE: (inviteId: string) => `/users/invite-groups/${inviteId}/leave`,
   CANCEL_INVITE: (inviteId: string) => `/users/invite-groups/${inviteId}/cancel`,
-  GET_BY_ID: (inviteId: string) => `/users/invite-groups/${inviteId}`, // ✅ Added missing route
+  GET_BY_ID: (inviteId: string) => `/users/invite-groups/${inviteId}`, 
 };

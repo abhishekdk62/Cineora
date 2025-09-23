@@ -3,18 +3,16 @@ import React from "react";
 import { Copy, Calendar, Users, CheckCircle } from "lucide-react";
 
 interface CouponCardUIProps {
-  // Coupon data
   name: string;
   description?: string;
   discountPercentage: number;
   uniqueId: string;
   expiryDate?: string|Date;
   maxUsageCount: number;
-  currentUsageCount?: number; // Add this prop
+  currentUsageCount?: number; 
   isActive: boolean;
   isExpired: boolean;
 
-  // UI state
   copied: boolean;
   expiryStatus: {
     status: string;
@@ -22,7 +20,6 @@ interface CouponCardUIProps {
     color: string;
   };
 
-  // Event handlers
   onCopyCode: () => void;
   onShowTheaters: () => void;
 
@@ -36,7 +33,7 @@ const CouponCardUI: React.FC<CouponCardUIProps> = ({
   uniqueId,
   expiryDate,
   maxUsageCount,
-  currentUsageCount = 0, // Default to 0
+  currentUsageCount = 0,
   isActive,
   isExpired,
   copied,
@@ -45,7 +42,6 @@ const CouponCardUI: React.FC<CouponCardUIProps> = ({
   onShowTheaters,
   index = 0
 }) => {
-  // Determine if coupon is truly expired/inactive
   const isCouponInactive = !isActive || isExpired || (currentUsageCount >= maxUsageCount);
   
   return (

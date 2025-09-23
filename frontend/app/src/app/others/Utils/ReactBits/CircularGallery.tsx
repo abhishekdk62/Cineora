@@ -319,7 +319,7 @@ class Media {
     };
 
     img.onerror = (error) => {
-      console.error('❌ Poster failed to load:', this.image, error);
+      console.error(' Poster failed to load:', this.image, error);
       const canvas = document.createElement('canvas');
       canvas.width = 600;
       canvas.height = 900;
@@ -628,7 +628,6 @@ class App {
       },
     ];
 
-    // ✅ Use proxy service for TMDB images to show real posters
     const galleryItems = items && items.length ? items.map(movie => ({
       poster: movie.poster?.includes('image.tmdb.org') 
         ? `https://images.weserv.nl/?url=${encodeURIComponent(movie.poster)}&w=600&h=900&output=webp`
@@ -839,7 +838,7 @@ export default function CircularGallery({
         appRef.current = null;
       };
     } catch (error) {
-      console.error('❌ Error creating CircularGallery app:', error);
+      console.error(' Error creating CircularGallery app:', error);
     }
   }, [items, bend, textColor, borderRadius, font, scrollSpeed, scrollEase]);
 

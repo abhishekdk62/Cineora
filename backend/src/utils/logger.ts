@@ -37,7 +37,7 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
   next();
 };
 
-export const errorLogger = (err: any, req: Request, res: Response, next: NextFunction) => {
+export const errorLogger = (err: unknown, req: Request, res: Response, next: NextFunction) => {
   logger.error(err.stack || err.message);   
   res.status(err.status || 500).send('Internal Server Error');
 };

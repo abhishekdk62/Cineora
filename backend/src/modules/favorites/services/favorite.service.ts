@@ -27,7 +27,7 @@ export class FavoriteService implements IFavoriteService {
         message: "Movie added to favorites successfully",
         data: favorite,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
         message: error.message || "Failed to add movie to favorites",
@@ -53,7 +53,7 @@ export class FavoriteService implements IFavoriteService {
         success: true,
         message: "Movie removed from favorites successfully",
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
         message: error.message || "Failed to remove movie from favorites",
@@ -86,7 +86,7 @@ export class FavoriteService implements IFavoriteService {
           totalPages,
         },
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
         message: error.message || "Failed to get user favorites",
@@ -117,7 +117,7 @@ export class FavoriteService implements IFavoriteService {
           message: "Movie added to favorites",
         };
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
         isFavorite: false,

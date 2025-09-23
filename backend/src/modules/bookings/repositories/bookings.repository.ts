@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { FilterQuery } from "mongoose";
 import {
   CreateBookingDto,
   UpdateBookingDto,
@@ -11,6 +11,7 @@ import {
   IBookingRepository,
 } from "../interfaces/bookings.repository.interface";
 import Booking from "../models/bookings.model";
+import { bookingInfo } from "../../tickets/dtos/dto";
 
 export class BookingRepository implements IBookingRepository {
   async findBookingById(bookingId: string): Promise<IBooking | null> {
@@ -35,11 +36,11 @@ export class BookingRepository implements IBookingRepository {
     try {
       const skip = (page - 1) * limit;
 
-      const dateFilter: any = {};
+      const dateFilter: FilterQuery = {};
       if (startDate && endDate) {
         dateFilter.bookedAt = {
-          $gte: new Date(startDate + "T00:00:00.000Z"), // Start of day
-          $lte: new Date(endDate + "T23:59:59.999Z"), // End of day
+          $gte: new Date(startDate + "T00:00:00.000Z"), 
+          $lte: new Date(endDate + "T23:59:59.999Z"), 
         };
       } else if (startDate) {
         dateFilter.bookedAt = {
@@ -59,7 +60,7 @@ export class BookingRepository implements IBookingRepository {
           .populate("userId", "firstName lastName email phone")
           .populate("screenId", "name screenType totalSeats")
           .populate("showtimeId", "showDate showTime")
-          .sort({ bookedAt: -1 }) // Most recent bookings first
+          .sort({ bookedAt: -1 }) 
           .skip(skip)
           .limit(limit)
           .exec(),
@@ -73,7 +74,6 @@ export class BookingRepository implements IBookingRepository {
       );
     }
   }
-// BookingRepository - Add this method
 async findAllBookingsByOwnerId(ownerId: string): Promise<IBooking[]> {
   try {
     return await Booking.find({
@@ -225,10 +225,10 @@ async findAllBookingsByOwnerId(ownerId: string): Promise<IBooking[]> {
       throw new Error(`Failed to find booking by payment id: ${error.message}`);
     }
   }
-  async createBooking(bookingData: any): Promise<IBooking | null> {
+  async createBooking(bookingData: bookingInfo): Promise<IBooking | null> {
     try {
 
-      let transformedBookingData: any = {
+      let transformedBookingData = {
         bookingId: bookingData.bookingId,
         userId: bookingData.userId,
         movieId: bookingData.movieId,

@@ -2,7 +2,6 @@ import Mongoose from "mongoose";
 import mongoose from "mongoose";  
 import { IScreen } from "../interfaces/screens.model.interface";
 
-// ADD THESE: Aisle sub-schemas
 const verticalAisleSchema = new Mongoose.Schema({
   id: { type: String, required: true },
   position: { type: Number, required: true, min: 1 },
@@ -51,7 +50,6 @@ const screenSchema = new Mongoose.Schema<IScreen>(
             message: 'At least one row is required'
           }
         },
-        // ADD THIS: Aisle configuration (optional)
         aisles: {
           type: {
             vertical: [verticalAisleSchema],
@@ -77,7 +75,6 @@ const screenSchema = new Mongoose.Schema<IScreen>(
   }
 );
 
-// ADD INDEX for better performance
 screenSchema.index({ theaterId: 1, name: 1 });
 
 export const Screen = mongoose.model<IScreen>("Screen", screenSchema);

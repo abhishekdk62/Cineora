@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -25,7 +24,6 @@ import { AnalyticsQueryDto } from '../../../dtos/analytics.dto';
 
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#a28ce3', '#8dd1e1'];
 
-// Define proper types for chart data
 interface RevenueChartData {
   name: string;
   revenue: number;
@@ -50,7 +48,6 @@ interface ChartProps {
   lexendSmall: string;
 }
 
-// Revenue Area Chart
 export const RevenueAreaChart: React.FC<ChartProps> = ({ dateRange, lexendMedium, lexendSmall }) => {
   const [data, setData] = useState<RevenueChartData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -167,9 +164,8 @@ export const FormatPieChart: React.FC<ChartProps> = ({ dateRange, lexendMedium, 
     }
   }, [dateRange]);
 
-  // FIXED: Create proper label render function
   const renderLabel = (props: string) => {
-    const { name, percent } = props; // Use 'percent' not 'percentage'
+    const { name, percent } = props; 
     if (!name || percent === undefined) return '';
     return `${name}: ${(percent * 100).toFixed(1)}%`;
   };
@@ -197,7 +193,7 @@ export const FormatPieChart: React.FC<ChartProps> = ({ dateRange, lexendMedium, 
             cx="50%"
             cy="50%"
             labelLine={false}
-            label={renderLabel}  // FIXED: Use the proper function reference
+            label={renderLabel} 
             outerRadius={100}
             fill="#8884d8"
             dataKey="value"
@@ -222,7 +218,6 @@ export const FormatPieChart: React.FC<ChartProps> = ({ dateRange, lexendMedium, 
   );
 };
 
-// Time Slot Performance Bar Chart
 export const TimeSlotBarChart: React.FC<ChartProps> = ({ dateRange, lexendMedium, lexendSmall }) => {
   const [data, setData] = useState<TimeSlotChartData[]>([]);
   const [loading, setLoading] = useState(true);

@@ -90,7 +90,6 @@ export const CustomerInsightsSection: React.FC<OperationalAnalyticsSectionProps>
         getAdvanceBookingTrendsApi(dateRange)
       ]);
 
-      // Combine all data with fallback values
       setCustomerData({
         ...insights,
         satisfactionScore: satisfaction?.avgRating || 4.2,
@@ -101,7 +100,6 @@ export const CustomerInsightsSection: React.FC<OperationalAnalyticsSectionProps>
           { daysInAdvance: '1 Week', bookings: 1234, percentage: 22 },
           { daysInAdvance: '2+ Weeks', bookings: 876, percentage: 15 }
         ],
-        // Mock comprehensive data
         totalCustomers: insights?.totalCustomers || 12456,
         newCustomers: insights?.newCustomers || 1245,
         returningCustomers: insights?.returningCustomers || 8934,
@@ -152,7 +150,6 @@ export const CustomerInsightsSection: React.FC<OperationalAnalyticsSectionProps>
       });
     } catch (error) {
       console.error('Error loading customer data:', error);
-      // Set default data on error
       setCustomerData({
         totalCustomers: 0,
         newCustomers: 0,

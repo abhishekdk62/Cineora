@@ -1,3 +1,5 @@
+import { Movie } from "../tmdb/AddMovieModal";
+
 export interface TMDBMovie {
   id: number;
   title: string;
@@ -19,6 +21,6 @@ export interface TMDBGenre {
 }
 
 export interface TMDBMoviesListProps {
-  onAddMovie: (movie: any) => void;
+  onAddMovie: (movie: Movie) => void;
   
 }

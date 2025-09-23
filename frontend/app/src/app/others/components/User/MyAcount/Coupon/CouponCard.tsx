@@ -7,7 +7,7 @@ import TheaterModal, { TheaterData } from "./TheaterModal";
 interface CouponCardProps {
   coupon: CouponResponseDto;
   index?: number;
-  isExpired?: boolean; // Add this prop from CouponManager
+  isExpired?: boolean; 
 }
 
 
@@ -15,13 +15,11 @@ interface CouponCardProps {
 const CouponCard: React.FC<CouponCardProps> = ({ 
   coupon, 
   index = 0, 
-  isExpired = false // Accept isExpired from parent
+  isExpired = false 
 }) => {
-  // State management
   const [copied, setCopied] = useState(false);
   const [showTheaterModal, setShowTheaterModal] = useState(false);
 
-  // Event handlers
   const handleCopyCode = async () => {
     try {
       await navigator.clipboard.writeText(coupon.uniqueId);
@@ -40,7 +38,6 @@ const CouponCard: React.FC<CouponCardProps> = ({
     setShowTheaterModal(false);
   };
 
-  // Business logic
   const getExpiryStatus = () => {
     if (!coupon.expiryDate) return { status: 'no-expiry', text: 'No expiry', color: 'text-green-500' };
     
@@ -53,7 +50,6 @@ const CouponCard: React.FC<CouponCardProps> = ({
     return { status: 'active', text: `${diffDays} days left`, color: 'text-green-500' };
   };
 
-  // Computed values
   const expiryStatus = getExpiryStatus();
   const theaters = (coupon.theaterIds as TheaterData[]) || [];
   const isAllTheaters = theaters.length === 0;
@@ -62,26 +58,22 @@ const CouponCard: React.FC<CouponCardProps> = ({
     <>
       {/* Pure UI Component */}
       <CouponCardUI
-        // Coupon data
         name={coupon.name || ""}
         description={coupon.description}
         discountPercentage={coupon.discountPercentage}
         uniqueId={coupon.uniqueId}
         expiryDate={coupon.expiryDate}
         maxUsageCount={coupon.maxUsageCount}
-        currentUsageCount={coupon.currentUsageCount || 0} // Pass the actual usage count
+        currentUsageCount={coupon.currentUsageCount || 0} 
         isActive={coupon.isActive}
-        isExpired={isExpired} // Use the calculated isExpired from parent
+        isExpired={isExpired} 
 
-        // UI state
         copied={copied}
         expiryStatus={expiryStatus}
 
-        // Event handlers
         onCopyCode={handleCopyCode}
         onShowTheaters={handleShowTheaters}
 
-        // Optional props
         index={index}
       />
 

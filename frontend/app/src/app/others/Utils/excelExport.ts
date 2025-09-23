@@ -1,4 +1,3 @@
-// utils/excelExport.ts
 import * as XLSX from 'xlsx';
 
 interface BookingData {
@@ -92,13 +91,11 @@ interface ProcessedTheaterData {
   };
 }
 
-// Filter bookings by date range
 const filterBookingsByDateRange = (bookings: BookingData[], dateRange?: DateRange): BookingData[] => {
   if (!dateRange) return bookings;
   
   const startDate = new Date(dateRange.startDate);
   const endDate = new Date(dateRange.endDate);
-  // Set end date to end of day
   endDate.setHours(23, 59, 59, 999);
   
   return bookings.filter(booking => {
@@ -107,9 +104,7 @@ const filterBookingsByDateRange = (bookings: BookingData[], dateRange?: DateRang
   });
 };
 
-// Process bookings data by theater and screen with date filtering
 export const processBookingsForExcel = (bookings: BookingData[], dateRange?: DateRange) => {
-  // Filter bookings by date range first
   const filteredBookings = filterBookingsByDateRange(bookings, dateRange);
   
   const theaterData: { [theaterId: string]: ProcessedTheaterData } = {};
@@ -120,7 +115,6 @@ export const processBookingsForExcel = (bookings: BookingData[], dateRange?: Dat
     const screenId = booking.screenId._id;
     const screenName = booking.screenId.name;
     
-    // Initialize theater if doesn't exist
     if (!theaterData[theaterId]) {
       theaterData[theaterId] = {
         theaterName,
@@ -132,7 +126,6 @@ export const processBookingsForExcel = (bookings: BookingData[], dateRange?: Dat
       };
     }
     
-    // Initialize screen if doesn't exist
     if (!theaterData[theaterId].screens[screenId]) {
       theaterData[theaterId].screens[screenId] = {
         screenName,
@@ -144,7 +137,6 @@ export const processBookingsForExcel = (bookings: BookingData[], dateRange?: Dat
       };
     }
     
-    // Process booking data
     const ticketCount = booking.selectedSeats.length;
     const couponInfo = booking.couponUsed 
       ? `${booking.couponUsed.couponName} (${booking.couponUsed.couponCode})`
@@ -172,21 +164,17 @@ export const processBookingsForExcel = (bookings: BookingData[], dateRange?: Dat
       paymentMethod: booking.paymentMethod
     };
     
-    // Add to screen bookings
     theaterData[theaterId].screens[screenId].bookings.push(bookingDetail);
     
-    // Update screen totals
     theaterData[theaterId].screens[screenId].totalRevenue += booking.priceDetails.total;
     theaterData[theaterId].screens[screenId].totalBookings += 1;
     theaterData[theaterId].screens[screenId].totalTickets += ticketCount;
     
-    // Update theater totals
     theaterData[theaterId].totalRevenue += booking.priceDetails.total;
     theaterData[theaterId].totalBookings += 1;
     theaterData[theaterId].totalTickets += ticketCount;
   });
   
-  // Calculate average ticket prices
   Object.values(theaterData).forEach(theater => {
     Object.values(theater.screens).forEach(screen => {
       screen.avgTicketPrice = screen.totalTickets > 0 
@@ -202,7 +190,6 @@ export const processBookingsForExcel = (bookings: BookingData[], dateRange?: Dat
   };
 };
 
-// Format date range for display
 const formatDateRangeForDisplay = (dateRange?: DateRange): string => {
   if (!dateRange) return 'All Time';
   
@@ -211,17 +198,15 @@ const formatDateRangeForDisplay = (dateRange?: DateRange): string => {
   return `${startDate} to ${endDate}`;
 };
 
-// Calculate date range duration in days
 const calculateDateRangeDuration = (dateRange?: DateRange): number => {
   if (!dateRange) return 0;
   
   const startDate = new Date(dateRange.startDate);
   const endDate = new Date(dateRange.endDate);
   const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include both start and end dates
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; 
 };
 
-// Export complete revenue report with date filtering
 export const exportTheaterRevenueReport = (
   processedDataResult: {
     processedData: { [theaterId: string]: ProcessedTheaterData };
@@ -233,7 +218,6 @@ export const exportTheaterRevenueReport = (
   const { processedData, filteredBookingsCount, totalBookingsCount } = processedDataResult;
   const workbook = XLSX.utils.book_new();
   
-  // Calculate grand totals
   const grandTotals = Object.values(processedData).reduce(
     (acc, theater) => ({
       totalRevenue: acc.totalRevenue + theater.totalRevenue,
@@ -248,20 +232,19 @@ export const exportTheaterRevenueReport = (
   const dateRangeText = formatDateRangeForDisplay(dateRange);
   const dateRangeDuration = calculateDateRangeDuration(dateRange);
   
-  // Sheet 1: Executive Summary with Date Information
   const summaryData = [
     { 'Metric': '📅 REPORT PERIOD', 'Value': '' },
     { 'Metric': 'Date Range', 'Value': dateRangeText },
     { 'Metric': 'Duration (Days)', 'Value': dateRange ? `${dateRangeDuration} days` : 'All Time' },
     { 'Metric': 'Report Generated On', 'Value': new Date().toLocaleString('en-IN') },
-    { 'Metric': '', 'Value': '' }, // Empty row
+    { 'Metric': '', 'Value': '' },
     
     { 'Metric': '💰 REVENUE METRICS', 'Value': '' },
     { 'Metric': 'Total Revenue', 'Value': `₹${grandTotals.totalRevenue.toLocaleString('en-IN')}` },
     { 'Metric': 'Average Daily Revenue', 'Value': dateRange ? `₹${(grandTotals.totalRevenue / dateRangeDuration).toFixed(2)}` : 'N/A' },
     { 'Metric': 'Average Revenue per Ticket', 'Value': `₹${(grandTotals.totalRevenue / grandTotals.totalTickets).toFixed(2)}` },
     { 'Metric': 'Average Revenue per Theater', 'Value': `₹${(grandTotals.totalRevenue / grandTotals.totalTheaters).toFixed(2)}` },
-    { 'Metric': '', 'Value': '' }, // Empty row
+    { 'Metric': '', 'Value': '' }, 
     
     { 'Metric': '🎟️ BOOKING METRICS', 'Value': '' },
     { 'Metric': 'Total Bookings (Filtered)', 'Value': filteredBookingsCount.toLocaleString('en-IN') },
@@ -269,7 +252,7 @@ export const exportTheaterRevenueReport = (
     { 'Metric': 'Total Tickets Sold', 'Value': grandTotals.totalTickets.toLocaleString('en-IN') },
     { 'Metric': 'Average Daily Bookings', 'Value': dateRange ? `${(filteredBookingsCount / dateRangeDuration).toFixed(1)}` : 'N/A' },
     { 'Metric': 'Average Tickets per Booking', 'Value': `${(grandTotals.totalTickets / grandTotals.totalBookings).toFixed(1)}` },
-    { 'Metric': '', 'Value': '' }, // Empty row
+    { 'Metric': '', 'Value': '' }, 
     
     { 'Metric': '🏢 INFRASTRUCTURE METRICS', 'Value': '' },
     { 'Metric': 'Total Theaters', 'Value': grandTotals.totalTheaters },
@@ -281,9 +264,7 @@ export const exportTheaterRevenueReport = (
   summarySheet['!cols'] = [{ width: 35 }, { width: 30 }];
   XLSX.utils.book_append_sheet(workbook, summarySheet, 'Executive Summary');
   
-  // Sheet 2: Theater Overview with Date Info
   const theaterOverview = [
-    // Header row with date range info
     {
       'S.No': `📅 PERIOD: ${dateRangeText}`,
       'Theater Name': '',
@@ -295,9 +276,8 @@ export const exportTheaterRevenueReport = (
       'Market Share (%)': '',
       'Daily Avg Revenue (₹)': ''
     },
-    {}, // Empty row
+    {}, 
     
-    // Theater data
     ...Object.values(processedData).map((theater, index) => ({
       'S.No': index + 1,
       'Theater Name': theater.theaterName,
@@ -318,10 +298,8 @@ export const exportTheaterRevenueReport = (
   ];
   XLSX.utils.book_append_sheet(workbook, theaterSheet, 'Theater Overview');
   
-  // Sheet 3: Detailed Bookings Report with Date Filter Info
   const detailedBookings: any[] = [];
   
-  // Add date range header
   detailedBookings.push({
     'Theater': `📅 REPORT PERIOD: ${dateRangeText}`,
     'Screen': `Showing ${filteredBookingsCount} of ${totalBookingsCount} total bookings`,
@@ -343,10 +321,9 @@ export const exportTheaterRevenueReport = (
     'Payment Method': ''
   });
   
-  detailedBookings.push({}); // Empty row
+  detailedBookings.push({}); 
   
   Object.values(processedData).forEach(theater => {
-    // Theater Header
     detailedBookings.push({
       'Theater': `🏢 ${theater.theaterName.toUpperCase()}`,
       'Screen': `Revenue: ₹${theater.totalRevenue.toLocaleString('en-IN')} | Bookings: ${theater.totalBookings} | Tickets: ${theater.totalTickets}`,
@@ -369,7 +346,6 @@ export const exportTheaterRevenueReport = (
     });
     
     Object.values(theater.screens).forEach(screen => {
-      // Screen Header
       detailedBookings.push({
         'Theater': '',
         'Screen': `📺 ${screen.screenName}`,
@@ -391,7 +367,6 @@ export const exportTheaterRevenueReport = (
         'Payment Method': ''
       });
       
-      // Screen Bookings
       screen.bookings.forEach(booking => {
         detailedBookings.push({
           'Theater': '',
@@ -415,10 +390,9 @@ export const exportTheaterRevenueReport = (
         });
       });
       
-      // Screen Total
       detailedBookings.push({
         'Theater': '',
-        'Screen': `📊 ${screen.screenName} TOTAL`,
+        'Screen': ` ${screen.screenName} TOTAL`,
         'Booking ID': '',
         'Movie': '',
         'Customer Email': '',
@@ -437,13 +411,11 @@ export const exportTheaterRevenueReport = (
         'Payment Method': ''
       });
       
-      // Empty row
       detailedBookings.push({});
     });
     
-    // Theater Total
     detailedBookings.push({
-      'Theater': `🏆 ${theater.theaterName.toUpperCase()} TOTAL`,
+      'Theater': ` ${theater.theaterName.toUpperCase()} TOTAL`,
       'Screen': '',
       'Booking ID': '',
       'Movie': '',
@@ -463,13 +435,11 @@ export const exportTheaterRevenueReport = (
       'Payment Method': ''
     });
     
-    // Empty rows between theaters
     detailedBookings.push({}, {});
   });
   
-  // Grand Total with period info
   detailedBookings.push({
-    'Theater': `🎯 GRAND TOTAL - ${dateRangeText}`,
+    'Theater': ` GRAND TOTAL - ${dateRangeText}`,
     'Screen': `${filteredBookingsCount} bookings in period`,
     'Booking ID': '',
     'Movie': '',
@@ -499,7 +469,6 @@ export const exportTheaterRevenueReport = (
   ];
   XLSX.utils.book_append_sheet(workbook, detailedSheet, 'Detailed Bookings');
   
-  // Generate filename with date range
   const timestamp = new Date().toISOString().split('T')[0];
   const dateRangeFileName = dateRange 
     ? `_${dateRange.startDate}_to_${dateRange.endDate}`

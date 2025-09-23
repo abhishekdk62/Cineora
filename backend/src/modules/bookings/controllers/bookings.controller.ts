@@ -20,6 +20,7 @@ import { ITheaterService } from "../../theaters/interfaces/theater.service.inter
 import { CreateWalletDto, CreditWalletDto } from "../../wallet/dtos/dto";
 import { ICouponService } from "../../coupons/interfaces/coupons.service.interface";
 import mongoose from "mongoose";
+import { bookingInfo } from "../../tickets/dtos/dto";
 
 export class BookingController {
   constructor(
@@ -92,7 +93,7 @@ export class BookingController {
           ),
         },
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -129,7 +130,7 @@ export class BookingController {
         message: "Bookings fetched successfully",
         data: result.data,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -148,7 +149,6 @@ export class BookingController {
         endDate?: string;
       };
 
-      // Validate required parameters
       if (!theaterId) {
         return this._sendErrorResponse(
           res,
@@ -193,7 +193,7 @@ export class BookingController {
         message: BOOKING_MESSAGES.BOOKINGS_RETRIEVED_SUCCESS,
         data: result.data,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -221,7 +221,7 @@ export class BookingController {
           result.message
         );
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -252,7 +252,7 @@ export class BookingController {
         message: result.message || "Upcoming bookings retrieved successfully",
         data: result.data,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -294,7 +294,7 @@ export class BookingController {
           result.message
         );
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -327,7 +327,7 @@ export class BookingController {
           result.message
         );
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -358,7 +358,7 @@ export class BookingController {
         message: result.message || "Booking history retrieved successfully",
         data: result.data,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -390,7 +390,7 @@ export class BookingController {
           result.message || "Owner booking history retrieved successfully",
         data: result.data,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -415,7 +415,7 @@ export class BookingController {
           result.message || "Bookings by showtime retrieved successfully",
         data: result.data,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -424,15 +424,15 @@ export class BookingController {
     }
   }
 
-  private _mapBodyToCreateBookingDto(body: any): CreateBookingDto {
+  private _mapBodyToCreateBookingDto(body: CreateBookingDto): CreateBookingDto {
     return body as CreateBookingDto;
   }
 
-  private _mapBodyToUpdatePaymentStatusDto(body: any): UpdatePaymentStatusDto {
+  private _mapBodyToUpdatePaymentStatusDto(body: UpdatePaymentStatusDto): UpdatePaymentStatusDto {
     return body as UpdatePaymentStatusDto;
   }
 
-  private _mapParamsToBookingParams(params: any): BookingParamsDto {
+  private _mapParamsToBookingParams(params: BookingParamsDto): BookingParamsDto {
     return params as BookingParamsDto;
   }
 
@@ -463,18 +463,17 @@ export class BookingController {
   private async _createTicketsForBooking(
     userId: string,
     bookingDto: CreateBookingDto,
-    bookingData: any
+    bookingData: bookingInfo
   ) {
     const user = await this.userService.getUserProfile(userId);
 
-    // ✅ IF selectedRows is empty, create tickets differently
     if (!bookingDto.selectedRows || bookingDto.selectedRows.length === 0) {
       const transformedSelectedRows =
         bookingDto.selectedSeats?.map((seatNumber, index) => {
           const seatPricing = bookingDto.seatPricing[index];
           return {
             rowLabel: seatPricing.rowLabel,
-            seatsSelected: [parseInt(seatNumber.replace(/[A-Z]/g, ""), 10)], // H9 -> [9]
+            seatsSelected: [parseInt(seatNumber.replace(/[A-Z]/g, ""), 10)], 
             seatType: seatPricing.seatType,
             pricePerSeat: seatPricing.finalPrice,
           };
@@ -543,7 +542,7 @@ export class BookingController {
   private async _handlePostBookingOperations(
     userId: string,
     bookingDto: CreateBookingDto,
-    bookingData: any
+    bookingData: bookingInfo
   ): Promise<void> {
     const bookingNotificationData = {
       bookingId: bookingData.bookingId || bookingData._id.toString(),
@@ -576,7 +575,7 @@ export class BookingController {
   private _sendSuccessResponse(
     res: Response,
     statusCode: number,
-    payload: { message?: string; data?: any }
+    payload: { message?: string; data?: bookingInfo }
   ): Response {
     return res.status(statusCode).json(
       createResponse({

@@ -7,7 +7,6 @@ const lexendSmall = Lexend({
   subsets: ["latin"],
 })
 
-// Font variables for styling
 const lexendSmallStyle = { fontFamily: 'Lexend', fontWeight: '400' };
 
 interface MoviesTopBarProps {

@@ -1,4 +1,3 @@
-// components/User/GroupInvite/HostSeatDetails.tsx
 import React from "react";
 import { Lexend } from "next/font/google";
 import { Crown } from "lucide-react";

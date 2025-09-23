@@ -3,7 +3,6 @@ import { Eye, Play, Pause, Filter } from "lucide-react";
 import { Movie } from "./MoviesList";
 import { MovieResponseDto } from "@/app/others/dtos";
 
-// Font variables for styling
 const lexendMedium = { fontFamily: 'Lexend', fontWeight: '500' };
 const lexendSmallStyle = { fontFamily: 'Lexend', fontWeight: '400' };
 

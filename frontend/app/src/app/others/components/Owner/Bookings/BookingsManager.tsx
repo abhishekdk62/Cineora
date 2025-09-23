@@ -1,4 +1,3 @@
-// @ts-nocheck
 
 "use client";
 
@@ -9,6 +8,7 @@ import ShowDetailsPage from "./ShowDetailsPage";
 import { getTheatersByOwnerId } from "@/app/others/services/ownerServices/theaterServices";
 import { getScreensByTheaterId } from "@/app/others/services/ownerServices/screenServices";
 import { getShowTimesForBookings } from "@/app/others/services/ownerServices/bookingServices";
+import { Theater } from "@/app/others/services/userServices/interfaces";
 
 interface BookingsManagerProps {
     lexendMedium: string;
@@ -28,7 +28,7 @@ const BookingsManager: React.FC<BookingsManagerProps> = ({
     const [isLoading, setIsLoading] = useState(false);
     const [selectedShowtime, setSelectedShowtime] = useState(null);
     const [showDetails, setShowDetails] = useState(false);
-const [isInitialLoad, setIsInitialLoad] = useState(true); // ✅ Add this state
+const [isInitialLoad, setIsInitialLoad] = useState(true);
 
     useEffect(() => {
         fetchOwnerTheaters();
@@ -61,22 +61,20 @@ useEffect(() => {
         
         if (isInitialLoad && theatersData.length > 0) {  
             setSelectedTheater(theatersData[0]._id);
-            // Don't call fetchTheaterScreens here, let useEffect handle it
-            setIsInitialLoad(false);  // ✅ Fix: Mark initial load as complete
+            setIsInitialLoad(false);  
         }
     } catch (error) {
         console.log(error);
     }
 }
 
-const fetchTheaterScreens = async (theaterId, autoSelectFirst = false) => {  // ✅ Fix: Add parameter
+const fetchTheaterScreens = async (theaterId, autoSelectFirst = false) => {  
     try {
         const result = await getScreensByTheaterId(theaterId);
         const screensData = result.data || [];
         setScreens(screensData);
         
-        // Auto-select first screen if requested and available
-        if (autoSelectFirst && screensData.length > 0) {  // ✅ Fix: Now autoSelectFirst is defined
+        if (autoSelectFirst && screensData.length > 0) {  
             setSelectedScreen(screensData[0]._id);
         }
     } catch (error) {
@@ -166,7 +164,7 @@ const fetchTheaterScreens = async (theaterId, autoSelectFirst = false) => {  // 
                                 className={`${lexendMedium.className} w-full px-4 py-3 bg-white/10 border border-gray-500/30 rounded-xl text-white focus:outline-none focus:border-white/50 focus:bg-white/15 transition-all duration-300 appearance-none`}
                             >
                                 <option value="" className="bg-gray-900">Select Theater</option>
-                                {theaters.map((theater: any) => (
+                                {theaters.map((theater: Theater) => (
                                     <option key={theater._id} value={theater._id} className="bg-gray-900">
                                         {theater.name}
                                     </option>

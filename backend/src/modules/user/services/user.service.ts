@@ -110,7 +110,7 @@ export class UserService implements IUserService {
         });
       }
 
-      const existingUser = await this.userRepository.findUserByEmail(email);
+      const existingUser = await this.userRepository.findByEmail(email);
       if (existingUser && existingUser.isVerified) {
         return createResponse({
           success: false,
@@ -118,7 +118,7 @@ export class UserService implements IUserService {
         });
       }
 
-      const newUser = await this.userRepository.createUser({
+      const newUser = await this.userRepository.create({
         ...validOTP.userData,
         isVerified: true,
         xpPoints: 100,
@@ -148,7 +148,7 @@ export class UserService implements IUserService {
 
   async resendOTP(email: string): Promise<ApiResponse<void>> {
     try {
-      const existingUser = await this.userRepository.findUserByEmail(email);
+      const existingUser = await this.userRepository.findByEmail(email);
       if (existingUser && existingUser.isVerified) {
         return createResponse({
           success: false,
@@ -215,8 +215,7 @@ export class UserService implements IUserService {
         });
       }
 
-    
-      let userDto=UserMapper.toDto(user)
+      let userDto = UserMapper.toDto(user);
 
       return createResponse({
         success: true,
@@ -265,7 +264,7 @@ export class UserService implements IUserService {
         }
       }
 
-      const updatedUser = await this.userRepository.updateUserProfile(
+      const updatedUser = await this.userRepository.update(
         id,
         updateData
       );
@@ -276,7 +275,7 @@ export class UserService implements IUserService {
           message: "User not found",
         });
       }
-let user=UserMapper.toDto(updatedUser)
+      let user = UserMapper.toDto(updatedUser);
       return createResponse({
         success: true,
         message: "Profile updated successfully",
@@ -305,7 +304,7 @@ let user=UserMapper.toDto(updatedUser)
         user.location.coordinates,
         maxDistance
       );
-let users=nearbyUsers.map((user)=>UserMapper.toDto(user))
+      let users = nearbyUsers.map((user) => UserMapper.toDto(user));
       return createResponse({
         success: true,
         message: "Nearby users fetched successfully",
@@ -362,7 +361,7 @@ let users=nearbyUsers.map((user)=>UserMapper.toDto(user))
       }
 
       const hash = await bcrypt.hash(newPassword, config.bcryptRounds);
-      const updated = await this.userRepository.updateUserPassword(
+      const updated = await this.userRepository.updatePassword(
         userId,
         hash
       );
@@ -508,7 +507,7 @@ let users=nearbyUsers.map((user)=>UserMapper.toDto(user))
         });
       }
 
-      const updatedUser = await this.userRepository.updateUserProfile(id, {
+      const updatedUser = await this.userRepository.update(id, {
         email,
         isVerified: true,
       });
@@ -554,10 +553,10 @@ let users=nearbyUsers.map((user)=>UserMapper.toDto(user))
       const [activeUsers, inactiveUsers, verifiedUsers, unverifiedUsers] =
         await Promise.all([
           this.userRepository
-            .findUsersByStatus("active", 1, 1)
+            .findByStatus("active", 1, 1)
             .then((result) => result.total),
           this.userRepository
-            .findUsersByStatus("inactive", 1, 1)
+            .findByStatus("inactive", 1, 1)
             .then((result) => result.total),
           this.userRepository
             .findUsersByVerification(true, 1, 1)
@@ -584,7 +583,9 @@ let users=nearbyUsers.map((user)=>UserMapper.toDto(user))
     }
   }
 
-  async getUsers(filters: GetUsersFilterDto): Promise<ApiResponse<GetUsersResponseDto>> {
+  async getUsers(
+    filters: GetUsersFilterDto
+  ): Promise<ApiResponse<GetUsersResponseDto>> {
     try {
       const {
         search,
@@ -598,13 +599,13 @@ let users=nearbyUsers.map((user)=>UserMapper.toDto(user))
 
       let result;
       if (status) {
-        result = await this.userRepository.findUsersByStatus(
+        result = await this.userRepository.findByStatus(
           status,
           Number(page),
           Number(limit)
         );
       } else {
-        result = await this.userRepository.findAllUsers(
+        result = await this.userRepository.findAll(
           Number(page),
           Number(limit)
         );
@@ -625,7 +626,9 @@ let users=nearbyUsers.map((user)=>UserMapper.toDto(user))
       }
 
       result.users = this._processUserProfilePictures(result.users);
-const userDtos = result.users.map((user: IUser) => UserMapper.toDto(user));
+      const userDtos = result.users.map((user: IUser) =>
+        UserMapper.toDto(user)
+      );
 
       return createResponse({
         success: true,
@@ -658,7 +661,7 @@ const userDtos = result.users.map((user: IUser) => UserMapper.toDto(user));
         });
       }
 
-      const updatedUser = await this.userRepository.toggleUserStatus(userId);
+      const updatedUser = await this.userRepository.toggleStatus(userId);
 
       if (!updatedUser) {
         return createResponse({
@@ -715,7 +718,7 @@ const userDtos = result.users.map((user: IUser) => UserMapper.toDto(user));
     email: string,
     username: string
   ): Promise<string | null> {
-    const existingUser = await this.userRepository.findUserByEmail(email);
+    const existingUser = await this.userRepository.findByEmail(email);
     if (existingUser && existingUser.isVerified) {
       return "User with this email already exists";
     }
@@ -743,7 +746,7 @@ const userDtos = result.users.map((user: IUser) => UserMapper.toDto(user));
   private async _validateEmailAvailability(
     email: string
   ): Promise<string | null> {
-    const existingUser = await this.userRepository.findUserByEmail(email);
+    const existingUser = await this.userRepository.findByEmail(email);
     if (existingUser) {
       return "Email already in use";
     }
@@ -771,7 +774,7 @@ const userDtos = result.users.map((user: IUser) => UserMapper.toDto(user));
     email: string,
     userId: string
   ): Promise<string | null> {
-    const existingUser = await this.userRepository.findUserByEmail(email);
+    const existingUser = await this.userRepository.findByEmail(email);
     if (existingUser && existingUser._id.toString() !== userId) {
       return "Email already in use";
     }
@@ -807,7 +810,11 @@ const userDtos = result.users.map((user: IUser) => UserMapper.toDto(user));
     );
   }
 
-  private _sortUsers(users: IUser[], sortBy: string, sortOrder: string): IUser[] {
+  private _sortUsers(
+    users: IUser[],
+    sortBy: string,
+    sortOrder: string
+  ): IUser[] {
     return users.sort((a: IUser, b: IUser) => {
       let aValue = a[sortBy];
       let bValue = b[sortBy];
@@ -829,7 +836,7 @@ const userDtos = result.users.map((user: IUser) => UserMapper.toDto(user));
   }
 
   private _processUserProfilePictures(users: IUser[]): any[] {
-    return users.map((user:IUser) => {
+    return users.map((user: IUser) => {
       return {
         ...user,
         profilePicture: user.profilePicture

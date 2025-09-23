@@ -41,7 +41,7 @@ export default function Trending() {
         setError("No trending movies found");
       }
     } catch (error) {
-      console.error('❌ Error fetching trending movies:', error);
+      console.error(' Error fetching trending movies:', error);
       setError("Failed to load trending movies");
     } finally {
       setLoading(false);

@@ -17,7 +17,6 @@ export class ChatMessageRepository implements IChatMessageRepository {
     
     const savedMessage = await message.save();
     
-    // Populate reply message if exists
     if (savedMessage.replyToMessageId) {
       await savedMessage.populate('replyToMessageId', 'content senderName');
     }
@@ -28,7 +27,7 @@ export class ChatMessageRepository implements IChatMessageRepository {
   async createSystemMessage(data: CreateSystemMessageDto): Promise<IChatMessage> {
     const systemMessage = new ChatMessage({
       chatRoomId: new mongoose.Types.ObjectId(data.chatRoomId),
-      senderId: new mongoose.Types.ObjectId('000000000000000000000000'), // System user ID
+      senderId: new mongoose.Types.ObjectId('000000000000000000000000'), 
       senderName: 'System',
       content: data.content,
       messageType: 'SYSTEM',
@@ -70,7 +69,7 @@ export class ChatMessageRepository implements IChatMessageRepository {
       chatRoomId: new mongoose.Types.ObjectId(chatRoomId),
     });
     
-    return { messages: messages.reverse(), total }; // Reverse to show oldest first
+    return { messages: messages.reverse(), total };
   }
 
   async findById(messageId: string): Promise<IChatMessage | null> {

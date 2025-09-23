@@ -1,4 +1,3 @@
-// components/User/GroupInvite/GroupPriceSummary.tsx
 import React from "react";
 import { Lexend } from "next/font/google";
 import { Calculator, Info } from "lucide-react";

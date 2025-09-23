@@ -8,6 +8,8 @@ import {
   ValidateTicketDto,
   RefundCalculationDto,
   CancelSingleTicketDto,
+  TicketResponseDto,
+  bookingInfo,
 } from "../dtos/dto";
 import { ApiResponse, createResponse } from "../../../utils/createResponse";
 import { ITicket } from "../interfaces/ticket.model.interface";
@@ -15,7 +17,7 @@ import { IEmailService } from "../../../services/email.service";
 import crypto from "crypto";
 import mongoose from "mongoose";
 import { config } from "../../../config";
-
+import {Staff} from '../../staff/model/staff.model'
 export class TicketService implements ITicketService {
   constructor(
     private readonly ticketRepository: ITicketRepository,
@@ -59,7 +61,6 @@ export class TicketService implements ITicketService {
     try {
       this._validateCancelSingleTicketData(data);
 
-      // Get all tickets to be cancelled
       const tickets = await this._getTicketsForCancellation(data.ticketIds);
 
       if (tickets.length === 0) {
@@ -69,7 +70,6 @@ export class TicketService implements ITicketService {
         });
       }
 
-      // Validate ownership and eligibility
       const validationError = this._validateSingleTicketCancellationEligibility(
         tickets,
         data.userId
@@ -132,7 +132,6 @@ export class TicketService implements ITicketService {
       throw new Error("Invalid user ID format");
     }
 
-    // Validate all ticket IDs
     for (const ticketId of data.ticketIds) {
       if (!this._isValidObjectId(ticketId)) {
         throw new Error(`Invalid ticket ID format: ${ticketId}`);
@@ -159,7 +158,6 @@ export class TicketService implements ITicketService {
     tickets: ITicket[],
     userId: string
   ): string | null {
-    // Check if all tickets belong to the same user
     for (const ticket of tickets) {
       if (ticket.userId._id.toString() !== userId) {
         return "Unauthorized: You can only cancel your own tickets";
@@ -174,7 +172,6 @@ export class TicketService implements ITicketService {
       }
     }
 
-    // Check if cancellation is within allowed time
     const firstTicket = tickets[0];
     const showDateTime = this._parseShowDateTime(
       firstTicket.showDate,
@@ -288,50 +285,102 @@ export class TicketService implements ITicketService {
       return this._handleServiceError(error, "Failed to cancel booking");
     }
   }
+async verifyTicket(encryptedData: string, staffId: string): Promise<ApiResponse<TicketResponseDto>> {
+  try {
+    const decryptedData = this._decryptQRData(encryptedData);
+    const ticket = await this.ticketRepository.findTicketByTicketId(
+      decryptedData.tid
+    );
 
-  async verifyTicket(encryptedData: string): Promise<ApiResponse<any>> {
-    try {
-      const decryptedData = this._decryptQRData(encryptedData);
-      const ticket = await this.ticketRepository.findTicketByTicketId(
-        decryptedData.tid
-      );
-
-      if (!ticket || ticket.status === "cancelled") {
-        return createResponse({
-          success: false,
-          message: "Ticket not found or cancelled",
-        });
-      }
-
-      if (ticket.isUsed) {
-        return createResponse({
-          success: false,
-          message: "Ticket already used",
-        });
-      }
-
-      const isShowActive = this._validateShowTiming(decryptedData);
-      if (!isShowActive) {
-        return createResponse({
-          success: false,
-          message: "Show has ended",
-        });
-      }
-
+    if (!ticket || ticket.status === "cancelled") {
       return createResponse({
-        success: true,
-        message: "Ticket is valid",
+        success: false,
+        message: "Ticket not found or cancelled",
+      });
+    }
+
+    if (ticket.isUsed) {
+      return createResponse({
+        success: false,
+        message: "Ticket already used",
         data: {
-          ticketData: decryptedData,
-          databaseTicket: ticket,
+          usedAt: ticket.usedAt,
+          ticketDetails: {
+            ticketId: ticket.ticketId,
+            movieTitle: ticket.movieId?.title || "N/A",
+            theater: ticket.theaterId?.name || "N/A",
+            screen: ticket.screenId?.name || "N/A",
+            seat: `${ticket.seatRow}${ticket.seatNumber}`,
+            showDate: ticket.showDate,
+            showTime: ticket.showTime,
+          }
         },
       });
-    } catch (error: unknown) {
-      return this._handleServiceError(error, "Invalid QR code");
     }
-  }
 
-  async getTicketById(ticketId: string): Promise<ApiResponse<any>> {
+    const staff = await Staff.findById(staffId);
+    if (!staff) {
+      return createResponse({
+        success: false,
+        message: "Staff not found",
+      });
+    }
+console.log('staff',staff);
+console.log('ticket',ticket);
+console.log('staff',staff);
+console.log('ticket',ticket);
+console.log('staff.theaterId',staff.theaterId);
+console.log('ticket.theaterId',ticket.theaterId);
+
+
+    if (staff.theaterId && staff.theaterId.toString() !== ticket.theaterId._id.toString()) {
+      return createResponse({
+        success: false,
+        message: "Unauthorized: You can only verify tickets for your assigned theater",
+      });
+    }
+
+    const isShowActive = this._validateShowTiming(ticket);
+    if (!isShowActive) {
+      return createResponse({
+        success: false,
+        message: "Show has ended",
+      });
+    }
+
+    const updatedTicket = await this.ticketRepository.markTicketAsUsed(ticket.ticketId);
+
+    return createResponse({
+      success: true,
+      message: "Ticket verified successfully! Entry granted.",
+      data: {
+        ticket: {
+          ticketId: updatedTicket.ticketId,
+          movieTitle: ticket.movieId?.title || "N/A",
+          theater: ticket.theaterId?.name || "N/A", 
+          screen: ticket.screenId?.name || "N/A",
+          seat: `${ticket.seatRow}${ticket.seatNumber}`,
+          seatType: ticket.seatType,
+          showDate: ticket.showDate,
+          showTime: ticket.showTime,
+          price: ticket.price,
+          verifiedAt: updatedTicket.usedAt,
+          verifiedBy: `${staff.firstName} ${staff.lastName}`,
+        },
+        customer: {
+          name: ticket.userId?.firstName || "N/A",
+          email: ticket.userId?.email || "N/A",
+        }
+      },
+    });
+  } catch (error: unknown) {
+    return this._handleServiceError(error, "Invalid QR code or verification failed");
+  }
+}
+
+
+
+  async getTicketById(ticketId: string): Promise<ApiResponse<TicketResponseDto>> {
     try {
       this._validateTicketId(ticketId);
 
@@ -354,7 +403,7 @@ export class TicketService implements ITicketService {
     }
   }
 
-  async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<any>> {
+  async getUserTickets(data: GetUserTicketsDto): Promise<ApiResponse<TicketResponseDto>> {
     try {
       this._validateGetUserTicketsData(data);
 
@@ -376,7 +425,7 @@ export class TicketService implements ITicketService {
     }
   }
 
-  async markTicketAsUsed(ticketId: string): Promise<ApiResponse<any>> {
+  async markTicketAsUsed(ticketId: string): Promise<ApiResponse<TicketResponseDto>> {
     try {
       this._validateTicketId(ticketId);
 
@@ -399,7 +448,7 @@ export class TicketService implements ITicketService {
     }
   }
 
-  async validateTicket(data: ValidateTicketDto): Promise<ApiResponse<any>> {
+  async validateTicket(data: ValidateTicketDto): Promise<ApiResponse<TicketResponseDto>> {
     try {
       this._validateTicketValidationData(data);
 
@@ -495,7 +544,7 @@ export class TicketService implements ITicketService {
     }
   }
 
-  private _generateQREncryptedData(ticketData: any): string {
+  private _generateQREncryptedData(ticketData: TicketResponseDto): string {
     const qrPayload = {
       tid: ticketData,
     };
@@ -512,23 +561,32 @@ export class TicketService implements ITicketService {
     return iv.toString("hex") + ":" + encrypted;
   }
 
-  private _decryptQRData(encryptedData: string): any {
-    const [ivHex, encrypted] = encryptedData.split(":");
-    const iv = Buffer.from(ivHex, "hex");
-
-    const algorithm = "aes-256-cbc";
-    const key = crypto.scryptSync(
-      process.env.QR_VERIFICATION_SECRET!,
-      "salt",
-      32
-    );
-
-    const decipher = crypto.createDecipheriv(algorithm, key, iv);
-    let decrypted = decipher.update(encrypted, "hex", "utf8");
-    decrypted += decipher.final("utf8");
-
-    return JSON.parse(decrypted);
+ private _decryptQRData(encryptedData: string): string {
+  const decodedData = decodeURIComponent(encryptedData);
+  console.log('🔓 Decoded data:', decodedData);
+  
+  const [ivHex, encrypted] = decodedData.split(":");
+  
+  if (!ivHex || !encrypted) {
+    throw new Error('Invalid QR code format - missing IV or encrypted data');
   }
+  
+  const iv = Buffer.from(ivHex, "hex");
+
+  const algorithm = "aes-256-cbc";
+  const key = crypto.scryptSync(
+    process.env.QR_VERIFICATION_SECRET!,
+    "salt",
+    32
+  );
+
+  const decipher = crypto.createDecipheriv(algorithm, key, iv);
+  let decrypted = decipher.update(encrypted, "hex", "utf8");
+  decrypted += decipher.final("utf8");
+
+  return JSON.parse(decrypted);
+}
+
 
   private _generateTicketId(): string {
     return `TK${Date.now()}${Math.random()
@@ -655,7 +713,7 @@ export class TicketService implements ITicketService {
     tickets: ITicket[]
   ): Promise<ITicket[]> {
     const updatePromises = tickets.map((ticket) =>
-      this.ticketRepository.updateTicketById((ticket as any)._id.toString(), {
+      this.ticketRepository.updateTicketById((ticket as TicketResponseDto)._id.toString(), {
         status: "cancelled",
         updatedAt: new Date(),
       })
@@ -664,16 +722,17 @@ export class TicketService implements ITicketService {
     return await Promise.all(updatePromises);
   }
 
-  private _validateShowTiming(qrData: any): boolean {
-    const showDateTime = new Date(`${qrData.dt} ${qrData.tm}`);
-    const showEndTime = new Date(showDateTime.getTime() + 3 * 60 * 60 * 1000);
-    return new Date() <= showEndTime;
-  }
+private _validateShowTiming(ticket: ITicket): boolean {
+  const showDateTime = this._parseShowDateTime(ticket.showDate, ticket.showTime);
+  const showEndTime = new Date(showDateTime.getTime() + 3 * 60 * 60 * 1000); 
+  return new Date() <= showEndTime;
+}
+
 
   private async _sendTicketEmail(
     email: string,
     tickets: ITicket[],
-    bookingInfo: any
+    bookingInfo: bookingInfo
   ): Promise<void> {
     try {
       await this.emailService.sendTicketsEmail(email, tickets, bookingInfo);

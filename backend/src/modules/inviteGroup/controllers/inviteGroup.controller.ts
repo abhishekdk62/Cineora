@@ -61,7 +61,7 @@ export class InviteGroupController {
         message: INVITE_GROUP_MESSAGES.INVITE_GROUP_CREATED,
         data: inviteGroup,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -97,7 +97,7 @@ export class InviteGroupController {
         data: invites,
         count: invites.length,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -133,7 +133,7 @@ export class InviteGroupController {
         data: inviteGroups,
         count: inviteGroups.length,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -183,7 +183,7 @@ export class InviteGroupController {
         message: INVITE_GROUP_MESSAGES.INVITE_GROUP_RETRIEVED,
         data: inviteGroup,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -233,7 +233,7 @@ export class InviteGroupController {
         message: result.message,
         data: result.inviteGroup,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -295,7 +295,7 @@ export class InviteGroupController {
           },
         },
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -348,7 +348,7 @@ export class InviteGroupController {
             }
           : undefined,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,

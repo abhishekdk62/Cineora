@@ -20,7 +20,7 @@ export interface SeatHoldDTO {
   userId: string;
   sessionId: string;
   inviteGroupId: string;
-  holdDurationMinutes?: number; // Default 15 minutes
+  holdDurationMinutes?: number; 
 }
 
 export interface SeatReleaseDTO {
@@ -77,7 +77,7 @@ export interface ShowtimePaginationDTO {
 }
 
 export interface ShowtimeListResponseDTO {
-  showtimes: any[];
+  showtimes: ShowtimeListResponseDTO[];
   pagination: ShowtimePaginationDTO;
 }
 
@@ -131,7 +131,7 @@ export interface ShowtimeFilters {
 }
 
 export interface PaginatedShowtimeResult {
-  showtimes: any[];
+  showtimes: ShowtimeListResponseDTO[];
   total: number;
   currentPage: number;
   totalPages: number;
@@ -150,7 +150,7 @@ export interface ShowtimePaginationDTO {
 }
 
 export interface ShowtimeListResponseDTO {
-  showtimes: any[];
+  showtimes: ShowtimeListResponseDTO[];
   pagination: ShowtimePaginationDTO;
 }
 
@@ -165,7 +165,7 @@ export interface TimeSlotCheckDTO {
 export interface BulkShowtimeCreateDTO {
   created: number;
   skipped: number;
-  showtimes: any[];
+  showtimes: ShowtimeListResponseDTO[];
   errors?: string[];
 }
 

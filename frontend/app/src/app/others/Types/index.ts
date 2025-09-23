@@ -76,18 +76,18 @@ export interface TheaterResponse {
   totalPages: number;
 }
 export interface GoogleCredentialResponse {
-  credential: string; // JWT token
-  select_by?: string; // How the credential was selected
-  client_id?: string; // Your Google client ID
+  credential: string; 
+  select_by?: string; 
+  client_id?: string; 
 }
 
 export interface SignupFormData {
   email: string;
   password: string;
-  confirmPassword?: string; // Optional since it might not always be present
+  confirmPassword?: string;
   firstName: string;
   lastName: string;
-  username?: string; // Optional since it can be derived from email
+  username?: string; 
 }
  export interface UnifiedBookingEntity {
   _id: string;
@@ -189,7 +189,7 @@ export interface SignupFormData {
     time?: string;
     showTime?: string;
     endTime?: string;
-    format?: "2D" | "3D" | "IMAX" | "4DX" | "Dolby Atmos"; // ✅ REPLACED: string with specific union type from IMovieShowtime
+    format?: "2D" | "3D" | "IMAX" | "4DX" | "Dolby Atmos"; 
     language?: string;
     screenName?: string;
     screenType?: string;
@@ -225,7 +225,6 @@ interface BookingData {
   selectedSeats: string[];
   theaterId: string;
   selectedRowIds?: string[];
-  // ✅ ADD: Missing properties
   showtimeId?: string;
   priceDetails?: {
     subtotal: number;
@@ -250,7 +249,6 @@ export interface RowPricing {
 export interface ShowTimeData {
   _id: string;
   rowPricing: RowPricing[];
-  // Add other showtime properties as needed
     movieId?: {
     _id: string;
     title: string;
@@ -271,7 +269,7 @@ export interface CouponData {
   _id: string;
   code: string;
   discount: number;
-    discountPercentage?: number; // ✅ ADD: If API uses this field
+    discountPercentage?: number; 
 
   discountType: 'percentage' | 'fixed';
   minAmount?: number;
@@ -279,7 +277,6 @@ export interface CouponData {
   theaterId: string;
   isActive: boolean;
   expiresAt: Date;
-  // Add other coupon properties as needed
 }
 
 export interface SeatBreakdownItem {

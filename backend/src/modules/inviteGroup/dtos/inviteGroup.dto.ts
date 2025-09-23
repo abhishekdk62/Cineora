@@ -1,4 +1,3 @@
-// dtos/inviteGroup.dto.ts
 import { Types } from "mongoose";
 
 export interface CreateInviteGroupDTO {
@@ -67,7 +66,6 @@ export interface JoinInviteRequestDTO {
   userRating?: number;
 }
 
-// dtos/inviteGroup.dto.ts
 export interface CreateInviteRequestDTO {
   inviteId?: string;
   showtimeId: string;
@@ -89,7 +87,6 @@ export interface CreateInviteRequestDTO {
   paidAmount?: number;
   currency?: string;
   
-  // ✅ Add missing fields
   priceBreakdown: {
     originalAmount: number;
     discountedSubtotal: number;

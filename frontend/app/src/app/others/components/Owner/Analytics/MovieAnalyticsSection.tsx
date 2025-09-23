@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { Film, BarChart2, Globe, Star, Trophy } from 'lucide-react';
 

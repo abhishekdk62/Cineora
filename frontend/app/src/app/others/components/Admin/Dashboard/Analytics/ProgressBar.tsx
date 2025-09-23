@@ -1,4 +1,3 @@
-// components/admin/analytics/ProgressBar.tsx
 import React from 'react';
 
 interface ProgressBarProps {

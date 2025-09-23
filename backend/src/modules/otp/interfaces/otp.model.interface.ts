@@ -1,4 +1,5 @@
 import { Document } from "mongoose";
+import { UserDto } from "../../../mappers/user.mapper";
 
 
 
@@ -18,7 +19,7 @@ export interface IOTP extends Document {
   expiresAt: Date;
   isUsed: boolean;
   refreshToken: string;
-  userData?: any;
+  userData?: UserDto;
   createdAt: Date;
   updatedAt: Date;
 }

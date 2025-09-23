@@ -1,4 +1,3 @@
-// components/admin/analytics/AnalyticsModal.tsx
 import React from 'react';
 import { X } from 'lucide-react';
 

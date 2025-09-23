@@ -15,7 +15,7 @@ import { OWNER_REQUEST_MESSAGES } from "../../../utils/messages.constants";
 export class OwnerRequestController {
   constructor(private readonly _ownerRequestService: IOwnerRequestService) {}
 
-  async sendOTP(req: Request, res: Response): Promise<any> {
+  async sendOTP(req: Request, res: Response): Promise<void> {
     try {
       const sendOTPDto: SendOTPDto = req.body;
 
@@ -64,7 +64,7 @@ export class OwnerRequestController {
     }
   }
 
-  async verifyOTP(req: Request, res: Response): Promise<any> {
+  async verifyOTP(req: Request, res: Response): Promise<void> {
     try {
       const verifyOTPDto: VerifyOTPDto = req.body;
 
@@ -121,7 +121,7 @@ export class OwnerRequestController {
     }
   }
 
-  async submitKYC(req: Request, res: Response): Promise<any> {
+  async submitKYC(req: Request, res: Response): Promise<void> {
     try {
       const ownerData = req.body;
       const submitKYCDto: SubmitKYCDto = req.body;
@@ -185,7 +185,7 @@ export class OwnerRequestController {
     }
   }
 
-  async getRequestStatus(req: Request, res: Response): Promise<any> {
+  async getRequestStatus(req: Request, res: Response): Promise<void> {
     try {
       const { requestId } = req.params;
 
@@ -228,7 +228,7 @@ export class OwnerRequestController {
 
 
 
-  async getAllRequests(req: Request, res: Response): Promise<any> {
+  async getAllRequests(req: Request, res: Response): Promise<void> {
     try {
       const getAllRequestsDto: GetAllRequestsDto = {
         page: Number(req.query.page) || 1,
@@ -267,7 +267,7 @@ export class OwnerRequestController {
     }
   }
 
-  async updateRequestStatus(req: Request, res: Response): Promise<any> {
+  async updateRequestStatus(req: Request, res: Response): Promise<void> {
     try {
       const { requestId } = req.params;
       const updateRequestStatusDto: UpdateRequestStatusDto = req.body;
@@ -322,7 +322,7 @@ export class OwnerRequestController {
     }
   }
 
-  async getOwnerRequests(req: Request, res: Response): Promise<any> {
+  async getOwnerRequests(req: Request, res: Response): Promise<void> {
     try {
       const filters = req.query;
       const result = await this._ownerRequestService.getOwnerRequests(filters);
@@ -353,7 +353,7 @@ export class OwnerRequestController {
     }
   }
 
-  async acceptOwnerRequest(req: Request, res: Response): Promise<any> {
+  async acceptOwnerRequest(req: Request, res: Response): Promise<void> {
     try {
       const { requestId } = req.params;
       const adminId = req.admin.adminId;
@@ -408,7 +408,7 @@ export class OwnerRequestController {
     }
   }
 
-  async rejectOwnerRequest(req: Request, res: Response): Promise<any> {
+  async rejectOwnerRequest(req: Request, res: Response): Promise<void> {
     try {
       const { requestId } = req.params;
       const { rejectionReason } = req.body;
@@ -474,7 +474,7 @@ export class OwnerRequestController {
     }
   }
 
-    async uploadFile(req: Request, res: Response): Promise<any> {
+    async uploadFile(req: Request, res: Response): Promise<void> {
     try {
       if (!req.file) {
         return res.status(StatusCodes.BAD_REQUEST).json(
@@ -529,7 +529,7 @@ export class OwnerRequestController {
     }
   }
 
-  async uploadMultipleFiles(req: Request, res: Response): Promise<any> {
+  async uploadMultipleFiles(req: Request, res: Response): Promise<void> {
     try {
       if (!req.files || (req.files as Express.Multer.File[]).length === 0) {
         return res.status(StatusCodes.BAD_REQUEST).json(
@@ -584,7 +584,7 @@ export class OwnerRequestController {
     }
   }
 
-  async getSignedUrl(req: Request, res: Response): Promise<any> {
+  async getSignedUrl(req: Request, res: Response): Promise<void> {
     try {
       const { publicId, width, height, crop } = req.body;
       

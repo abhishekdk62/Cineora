@@ -1,4 +1,3 @@
-// hooks/useSocket.ts
 import { useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
@@ -28,7 +27,7 @@ export const useSocket = () => {
       });
 
       socket.on('disconnect', (reason) => {
-        console.log('❌ Socket disconnected. Reason:', reason);
+        console.log(' Socket disconnected. Reason:', reason);
         setIsConnected(false);
       });
 
@@ -36,7 +35,6 @@ export const useSocket = () => {
         setIsConnected(false);
       });
 
-      // ADD THESE NEW CHAT LISTENERS:
       socket.on('new-message', (messageData) => {
         console.log('📨 New message received:', messageData);
         window.dispatchEvent(new CustomEvent('newMessage', { detail: messageData }));
@@ -52,7 +50,6 @@ export const useSocket = () => {
         window.dispatchEvent(new CustomEvent('messageDeleted', { detail: data }));
       });
 
-      // Your existing listeners
       socket.onAny((eventName, ...args) => {
       });
 
@@ -75,7 +72,6 @@ export const useSocket = () => {
     }
 
     return () => {
-      // Keep connection alive - don't disconnect
     };
   }, []);
 

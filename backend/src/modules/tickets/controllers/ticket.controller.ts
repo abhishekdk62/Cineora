@@ -3,6 +3,7 @@ import { ITicketService } from "../interfaces/ticket.service.interface";
 import {
   CancelTicketDto,
   GetUserTicketsDto,
+  TicketResponseDto,
   ValidateTicketDto,
 } from "../dtos/dto";
 import { createResponse } from "../../../utils/createResponse";
@@ -176,13 +177,12 @@ export class TicketController {
 
   private validateCancelSingleTicketParams(
     ticketIds: string[],
-    totalAmount: any
+    totalAmount: number
   ): string | null {
     if (!ticketIds || !Array.isArray(ticketIds) || ticketIds.length === 0) {
       return "At least one ticket ID is required";
     }
 
-    // Check if all ticketIds are valid strings
     for (const ticketId of ticketIds) {
       if (
         !ticketId ||
@@ -210,7 +210,7 @@ export class TicketController {
 
 
   private async _handleSeatRelease(
-    cancelledTickets: any[],
+    cancelledTickets: TicketResponseDto[],
     userId: string
   ): Promise<void> {
     try {
@@ -235,13 +235,12 @@ export class TicketController {
   }
 
   private async _handleBookingUpdateAfterCancellation(
-    cancelledTickets: any[],
+    cancelledTickets: TicketResponseDto[],
     cancelledAmount: number
   ): Promise<void> {
     try {
       const firstTicket = cancelledTickets[0];
 
-      // FIX: Extract the actual string ID from the ObjectId
       const bookingId = firstTicket.bookingId._id
         ? firstTicket.bookingId._id.toString()
         : firstTicket.bookingId.toString();
@@ -269,23 +268,19 @@ export class TicketController {
         (seatId) => !cancelledSeatIds.includes(seatId)
       );
 
-      // Better seat pricing filter logic - keep pricing but remove specific seats
       const updatedSeatPricing = booking.seatPricing.filter((pricing) => {
-        // Keep the pricing row if there are still seats in this row that aren't cancelled
         const allRowSeats = booking.selectedSeats.filter((seat) =>
           seat.startsWith(pricing.rowLabel)
         );
         const remainingRowSeats = allRowSeats.filter(
           (seat) => !cancelledSeatIds.includes(seat)
         );
-        return remainingRowSeats.length > 0; // Keep pricing if this row still has active seats
+        return remainingRowSeats.length > 0;
       });
 
-      // FIX: Better price calculation with safety checks
       const originalSubtotal = booking.priceDetails.subtotal || 0;
       const newSubtotal = Math.max(0, originalSubtotal - cancelledAmount);
 
-      // Avoid division by zero
       const convenienceFeeRatio =
         originalSubtotal > 0
           ? (booking.priceDetails.convenienceFee || 0) / originalSubtotal
@@ -340,7 +335,7 @@ export class TicketController {
 
   private async _handleSingleTicketPaymentReversal(
     totalAmount:number,
-    cancelledTicket: any,
+    cancelledTicket: TicketResponseDto,
     refundPercentage: number
   ): Promise<void> {
     try {
@@ -379,10 +374,10 @@ export class TicketController {
 
   private async _handleSingleTicketWalletRefund(
     userId: string,
-    cancelledTickets: any[],
+    cancelledTickets: TicketResponseDto[],
     refundAmount: number,
     refundPercentage: number,
-    cancellationData: any
+    cancellationData: TicketResponseDto
   ): Promise<boolean> {
     try {
       const wallet = await this.walletService.getWalletDetails(userId, "User");
@@ -405,7 +400,7 @@ export class TicketController {
         return false;
       }
 
-      const walletId = (wallet.data as any)._id;
+      const walletId = (wallet.data as string)._id;
       const firstTicket = cancelledTickets[0];
 
       const walletTransactionResult =
@@ -441,8 +436,8 @@ export class TicketController {
 
   private async _handleSingleTicketCancellationNotifications(
     userId: string,
-    cancelledTickets: any[],
-    cancellationData: any
+    cancelledTickets: TicketResponseDto[],
+    cancellationData: TicketResponseDto
   ): Promise<void> {
     try {
       const firstTicket = cancelledTickets[0];
@@ -460,9 +455,9 @@ export class TicketController {
     }
   }
   private _formatSingleTicketCancellationResponse(
-    cancellationData: any,
+    cancellationData: TicketResponseDto,
     originalAmount: number
-  ): any {
+  ): TicketResponseDto {
     const {
       refundAmount,
       refundPercentage,
@@ -501,7 +496,7 @@ export class TicketController {
 
   private async _handlePaymentReversal(
     amount:number,
-    cancelledTicket: any,
+    cancelledTicket: TicketResponseDto,
     refundPercentage: number
   ): Promise<void> {
     try {
@@ -640,7 +635,7 @@ export class TicketController {
 
   private validateCancelTicketParams(
     bookingId: string,
-    amount: any
+    amount: number
   ): string | null {
     if (!bookingId) {
       return "Booking ID is required";
@@ -671,7 +666,7 @@ export class TicketController {
 
 
 
-  private parseAmount(amount: any): number {
+  private parseAmount(amount: number): number {
     return Array.isArray(amount) ? Number(amount[0]) : Number(amount);
   }
 
@@ -691,7 +686,7 @@ export class TicketController {
     bookingId: string,
     refundAmount: number,
     refundPercentage: number,
-    cancellationData: any
+    cancellationData: TicketResponseDto
   ): Promise<boolean> {
     try {
       const wallet = await this.walletService.getWalletDetails(userId, "User");
@@ -712,7 +707,7 @@ export class TicketController {
         console.error("Failed to credit wallet:", creditResult.message);
         return false;
       }
-      const walletId = (wallet.data as any)._id;
+      const walletId = (wallet.data as string)._id;
 
       const walletTransactionResult =
         await this.walletTransactionService.createWalletTransaction({
@@ -752,7 +747,7 @@ export class TicketController {
   private async _debitOwnerWalletForCancellation(
     ownerId: string,
     amount: number,
-    cancelledTicket: any
+    cancelledTicket: TicketResponseDto
   ): Promise<void> {
     try {
       if (amount <= 0) return;
@@ -786,7 +781,7 @@ export class TicketController {
 
   private async _debitAdminWalletForCancellation(
     amount: number,
-    cancelledTicket: any
+    cancelledTicket: TicketResponseDto
   ): Promise<void> {
     try {
       if (amount <= 0) return;
@@ -838,7 +833,7 @@ export class TicketController {
   private async _handleCancellationNotifications(
     userId: string,
     bookingId: string,
-    cancellationData: any
+    cancellationData: TicketResponseDto
   ): Promise<void> {
     try {
       await this.notificationService.sendCancellationNotification(userId, {
@@ -854,9 +849,9 @@ export class TicketController {
 
   private _formatCancellationResponse(
     bookingId: string,
-    cancellationData: any,
+    cancellationData: TicketResponseDto,
     originalAmount: number
-  ): any {
+  ): TicketResponseDto {
     const {
       refundAmount,
       refundPercentage,
@@ -892,10 +887,10 @@ export class TicketController {
   }
 
   private _formatPaginatedTicketsResponse(
-    result: any,
+    result: TicketResponseDto,
     page: number,
     limit: number
-  ): any {
+  ): TicketResponseDto {
     return createResponse({
       success: true,
       message: result.message || "User tickets retrieved successfully",
@@ -1051,41 +1046,43 @@ export class TicketController {
     }
   }
 
-  async verifyTicketFromQrCode(req: Request, res: Response): Promise<void> {
-    try {
-      const { data } = req.params;
+async verifyTicketFromQrCode(req: Request, res: Response): Promise<void> {
+  try {
+    const { data } = req.body; 
+    const staffId = req.staff.staffId;
+console.log('data',data);
+console.log('req.body',req.body);
 
-      if (!data) {
-        res.status(StatusCodes.BAD_REQUEST).json(
-          createResponse({
-            success: false,
-            message: "QR code data is required",
-          })
-        );
-        return;
-      }
 
-      const decodedData = decodeURIComponent(data);
-      const result = await this.ticketService.verifyTicket(decodedData);
-
-      if (!result.success) {
-        res.status(StatusCodes.BAD_REQUEST).json(result);
-        return;
-      }
-
-      res.status(StatusCodes.OK).json(result);
-    } catch (error: unknown) {
-      this._handleControllerError(
-        res,
-        error,
-        TICKET_MESSAGES.INTERNAL_SERVER_ERROR
+    if (!data) {
+      res.status(StatusCodes.BAD_REQUEST).json(
+        createResponse({
+          success: false,
+          message: "QR code data is required",
+        })
       );
+      return;
     }
+
+    const result = await this.ticketService.verifyTicket(data, staffId);
+
+    if (!result.success) {
+      res.status(StatusCodes.BAD_REQUEST).json(result);
+      return;
+    }
+
+    res.status(StatusCodes.OK).json(result);
+  } catch (error: unknown) {
+    this._handleControllerError(
+      res,
+      error,
+      TICKET_MESSAGES.INTERNAL_SERVER_ERROR
+    );
   }
+}
 
 
-
-
+  
 
 
 

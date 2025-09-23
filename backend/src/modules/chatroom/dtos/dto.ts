@@ -1,6 +1,5 @@
 import { Types } from "mongoose";
 
-// ===== REQUEST DTOs =====
 
 export interface CreateChatRoomDto {
   inviteGroupId: string;
@@ -46,7 +45,6 @@ export interface GetChatRoomDto {
   inviteId: string;
 }
 
-// ===== RESPONSE DTOs =====
 
 export interface ParticipantResponseDto {
   _id: string;
@@ -89,14 +87,12 @@ export interface ChatRoomResponseDto {
   roomType: 'GROUP_BOOKING';
   isActive: boolean;
   
-  // Movie & Theater Info
   movieInfo: MovieInfoDto;
   theaterInfo: TheaterInfoDto;
   screenInfo?: ScreenInfoDto;
   showDate: string;
   showTime: string;
   
-  // Participants
   participants: ParticipantResponseDto[];
   participantCount: number;
   maxParticipants?: number;
@@ -108,13 +104,11 @@ export interface ChatRoomResponseDto {
     username: string;
   };
   
-  // Timestamps
   createdAt: Date;
   updatedAt: Date;
   lastMessageAt: Date;
   expiresAt: Date;
   
-  // Chat Status
   hasUnreadMessages?: boolean;
   lastMessage?: {
     content: string;
@@ -146,7 +140,6 @@ export interface ChatRoomListResponseDto {
   expiresAt: Date;
 }
 
-// ===== VALIDATION DTOs =====
 
 export interface CreateChatRoomValidationDto {
   inviteGroupId: string;
@@ -155,9 +148,9 @@ export interface CreateChatRoomValidationDto {
   movieId: string;
   theaterId: string;
   screenId: string;
-  showDate: string; // Format: YYYY-MM-DD
-  showTime: string; // Format: HH:MM
-  expiresAt: string; // ISO Date string
+  showDate: string; 
+  showTime: string; 
+  expiresAt: string;
 }
 
 export interface JoinChatRoomValidationDto {
@@ -168,7 +161,6 @@ export interface LeaveChatRoomValidationDto {
   inviteGroupId: string;
 }
 
-// ===== SOCKET EVENT DTOs =====
 
 export interface ChatRoomJoinEventDto {
   chatRoomId: string;
@@ -203,7 +195,6 @@ export interface ChatRoomCancelledEventDto {
   reason: 'expired' | 'cancelled' | 'insufficient_participants';
 }
 
-// ===== SYSTEM MESSAGE DTOs =====
 
 export interface SystemMessageDto {
   type: 'user_joined' | 'user_left' | 'payment_completed' | 'group_completed' | 'group_cancelled' | 'reminder';
@@ -217,7 +208,6 @@ export interface SystemMessageDto {
   };
 }
 
-// ===== ERROR DTOs =====
 
 export interface ChatRoomErrorDto {
   code: 'ROOM_NOT_FOUND' | 'ROOM_EXPIRED' | 'ROOM_FULL' | 'USER_NOT_PARTICIPANT' | 'INVALID_INVITE';
@@ -225,7 +215,6 @@ export interface ChatRoomErrorDto {
   details?: any;
 }
 
-// ===== PAGINATION DTO =====
 
 export interface PaginationDto {
   page: number;

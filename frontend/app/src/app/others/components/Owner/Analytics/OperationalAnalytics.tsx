@@ -17,7 +17,6 @@ interface OperationalAnalyticsProps {
 }
 
 const OperationalAnalytics: React.FC<OperationalAnalyticsProps> = ({ dateFilter }) => {
-  // Convert dateFilter to dateRange format that OperationalAnalyticsSection expects
   const dateRange = {
     startDate: dateFilter.startDate,
     endDate: dateFilter.endDate,

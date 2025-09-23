@@ -5,11 +5,11 @@ export class ReviewService implements IReviewService {
   constructor(private readonly _reviewRepo: IReviewRepository) {}
   async addReview(
     userId: string,
-    reviewData: any
+    reviewData: ReviewResponseDto
   ): Promise<{
     success: boolean;
     message?: string;
-    data?: any;
+    data?: ReviewResponseDto;
   }> {
     try {
       const hasReviewed = await this._reviewRepo.hasUserReviewed(
@@ -36,7 +36,7 @@ export class ReviewService implements IReviewService {
         message: "Review added successfully",
         data: review,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
         message: error.message || "Failed to add review",
@@ -48,11 +48,11 @@ export class ReviewService implements IReviewService {
   async updateReview(
     reviewId: string,
     userId: string,
-    reviewData: any
+    reviewData: ReviewResponseDto
   ): Promise<{
     success: boolean;
     message?: string;
-    data?: any;
+    data?: ReviewResponseDto;
   }> {
     try {
       const updated = await this._reviewRepo.updateReview(reviewId, reviewData);
@@ -69,7 +69,7 @@ export class ReviewService implements IReviewService {
         message: "Review updated successfully",
         data: updated,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
         message: error.message || "Failed to update review",
@@ -98,7 +98,7 @@ export class ReviewService implements IReviewService {
         success: true,
         message: "Review deleted successfully",
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
         message: error.message || "Failed to delete review",
@@ -113,7 +113,7 @@ export class ReviewService implements IReviewService {
     limit: number = 10
   ): Promise<{
     success: boolean;
-    data?: any;
+    data?: ReviewResponseDto;
     message?: string;
   }> {
     try {
@@ -132,7 +132,7 @@ export class ReviewService implements IReviewService {
           totalPages: Math.ceil(result.total / limit),
         },
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
         message: error.message || "Failed to get movie reviews",
@@ -160,7 +160,7 @@ async getBulkMovieRatings(movieIds: string[]): Promise<{
     });
 
     return { success: true, data: ratingsMap };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return { success: false };
   }
 }
@@ -186,7 +186,7 @@ async getBulkTheaterRatings(theaterIds: string[]): Promise<{
     });
 
     return { success: true, data: ratingsMap };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return { success: false };
   }
 }
@@ -197,7 +197,7 @@ async getBulkTheaterRatings(theaterIds: string[]): Promise<{
     limit: number = 10
   ): Promise<{
     success: boolean;
-    data?: any;
+    data?: ReviewResponseDto;
     message?: string;
   }> {
     try {
@@ -216,7 +216,7 @@ async getBulkTheaterRatings(theaterIds: string[]): Promise<{
           totalPages: Math.ceil(result.total / limit),
         },
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
         message: error.message || "Failed to get theater reviews",
@@ -230,7 +230,7 @@ async getBulkTheaterRatings(theaterIds: string[]): Promise<{
     limit: number = 10
   ): Promise<{
     success: boolean;
-    data?: any;
+    data?: ReviewResponseDto;
     message?: string;
   }> {
     try {
@@ -245,7 +245,7 @@ async getBulkTheaterRatings(theaterIds: string[]): Promise<{
           totalPages: Math.ceil(result.total / limit),
         },
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
         message: error.message || "Failed to get user reviews",
@@ -255,7 +255,7 @@ async getBulkTheaterRatings(theaterIds: string[]): Promise<{
 
   async getMovieRatingStats(movieId: string): Promise<{
     success: boolean;
-    data?: any;
+    data?: ReviewResponseDto;
   }> {
     try {
       const stats = await this._reviewRepo.getMovieRatingStats(movieId);
@@ -264,7 +264,7 @@ async getBulkTheaterRatings(theaterIds: string[]): Promise<{
         success: true,
         data: stats,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
       };
@@ -273,7 +273,7 @@ async getBulkTheaterRatings(theaterIds: string[]): Promise<{
 
   async getTheaterRatingStats(theaterId: string): Promise<{
     success: boolean;
-    data?: any;
+    data?: ReviewResponseDto;
   }> {
     try {
       const stats = await this._reviewRepo.getTheaterRatingStats(theaterId);
@@ -282,7 +282,7 @@ async getBulkTheaterRatings(theaterIds: string[]): Promise<{
         success: true,
         data: stats,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
       };
@@ -307,7 +307,7 @@ async getBulkTheaterRatings(theaterIds: string[]): Promise<{
         success: true,
         message: "Review marked as helpful",
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
         message: error.message || "Failed to mark as helpful",
@@ -333,7 +333,7 @@ async getBulkTheaterRatings(theaterIds: string[]): Promise<{
         success: true,
         message: "Review reported successfully",
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
         message: error.message || "Failed to report review",

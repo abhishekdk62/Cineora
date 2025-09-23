@@ -1,13 +1,10 @@
-// dtos/analytics.dto.ts
 import { ApiResponse } from './common.dto';
 
-// Date Range Interface
 export interface DateRange {
   start: Date;
   end: Date;
 }
 
-// Query Parameters
 export interface AnalyticsQueryDto {
   startDate?: string;
   endDate?: string;
@@ -25,7 +22,6 @@ export interface AnalyticsQueryDto {
   period?: 'monthly' | 'quarterly';
 }
 
-// Revenue Analytics DTOs
 export interface MonthlyRevenueDto {
   period: {
     year: number;
@@ -87,7 +83,6 @@ export interface MovieRevenueDto {
   revenueShare: number;
 }
 
-// Performance Metrics DTOs
 export interface OccupancyDto {
   totalSeatsAvailable: number;
   totalSeatsBooked: number;
@@ -111,7 +106,6 @@ export interface WeekdayWeekendDto {
   performanceRatio: number;
 }
 
-// Movie Analytics DTOs
 export interface TopMovieDto {
   movieId: string;
   movieTitle: string;
@@ -147,7 +141,6 @@ export interface MovieLifecycleDto {
   performanceStage: 'opening' | 'peak' | 'declining' | 'steady';
 }
 
-// Customer Insights DTOs
 export interface CustomerSatisfactionDto {
   theaterId: string;
   theaterName: string;
@@ -179,7 +172,6 @@ export interface AdvanceBookingDto {
   trend: 'increasing' | 'decreasing' | 'stable';
 }
 
-// Financial KPIs DTOs
 export interface PotentialRevenueDto {
   potentialRevenue: number;
   actualRevenue: number;
@@ -206,7 +198,6 @@ export interface DiscountImpactDto {
   roi: number;
 }
 
-// Operational Analytics DTOs
 export interface ShowUtilizationDto {
   showtimeId: string;
   totalRevenue: number;
@@ -221,7 +212,6 @@ export interface GrowthRateDto {
   trend: 'positive' | 'negative' | 'stable';
 }
 
-// Comprehensive DTOs
 export interface RevenueAnalyticsDto {
   monthly: MonthlyRevenueDto[];
   weekly: WeeklyRevenueDto[];
@@ -289,7 +279,6 @@ export interface ComprehensiveAnalyticsDto {
   summary: AnalyticsSummaryDto;
 }
 
-// API Response DTOs
 export interface ComprehensiveAnalyticsResponseDto extends ApiResponse<ComprehensiveAnalyticsDto> {}
 export interface RevenueAnalyticsResponseDto extends ApiResponse<RevenueAnalyticsDto> {}
 export interface MonthlyRevenueResponseDto extends ApiResponse<MonthlyRevenueDto[]> {}

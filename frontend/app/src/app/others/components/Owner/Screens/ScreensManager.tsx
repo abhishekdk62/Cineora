@@ -1,4 +1,3 @@
-// @ts-nocheck
 
 import React, { useState, useEffect } from "react";
 import {
@@ -10,12 +9,11 @@ import {
   Users,
   Grid,
   Power,
-} from "lucide-react"; // REMOVED Route import
+} from "lucide-react"; 
 import TheatersList from "./TheatersList";
 import ScreensList from "./ScreensList";
 import ScreenFormModal from "./ScreenFormModal";
 import ScreenViewModal from "./ScreenViewModal";
-// REMOVED AisleManagementModal import
 import { ITheater } from "@/app/others/types";
 import { IScreen } from "@/app/others/types/screen.types";
 import {
@@ -31,7 +29,6 @@ const ScreenManagement = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
-  // REMOVED showAisleModal state
   const [selectedScreen, setSelectedScreen] = useState<IScreen | null>(null);
   const [theaters, setTheaters] = useState([]);
   const [isLoading, setIsLoading] = useState(true);

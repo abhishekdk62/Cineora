@@ -30,7 +30,7 @@ export const RenderOverviewContent: React.FC<RenderOverviewContentProps> = ({
                 title="No Analytics Data"
                 description="Unable to load analytics overview. Please check your filters and try again."
                 actionLabel="Retry"
-                onAction={() => fetchData()}  // ✅ Now this will work
+                onAction={() => fetchData()} 
             />
         );
     }

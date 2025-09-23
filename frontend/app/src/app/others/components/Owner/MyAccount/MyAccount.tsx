@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -111,12 +110,11 @@ const MyAccount: React.FC = () => {
       console.log('Full API Response:', response);
       console.log('Response data:', response.data);
       
-      // The actual profile data is directly in response.data (not response.data.data)
       const profileData = response.data;
       
       // Set the profile state
       setProfile(profileData);
-      setDocs(response); // Pass the full response for docs
+      setDocs(response); 
       
       console.log('Profile Data:', profileData);
       

@@ -1,4 +1,5 @@
 import { ServiceResponse } from "../../../interfaces/interface";
+import { bookingInfo } from "../../tickets/dtos/dto";
 import { CreateBookingDto } from "../dtos/dto";
 
 export interface IBookingService {
@@ -27,7 +28,7 @@ export interface IBookingService {
   ): Promise<ServiceResponse>;
   updateBookingById(
     bookingId: string,
-    updateData: any
+    updateData: bookingInfo
   ): Promise<ServiceResponse>;
   getBookingHistory(userId: string): Promise<ServiceResponse>;
   processBookingExpiry(): Promise<ServiceResponse>;

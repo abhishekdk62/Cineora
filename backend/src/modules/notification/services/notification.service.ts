@@ -347,8 +347,8 @@ export class NotificationService implements INotificationService {
 
       const title =
         paymentData.status === "completed"
-          ? "Payment Successful! 💳"
-          : "Payment Failed ❌";
+          ? "Payment Successful! "
+          : "Payment Failed ";
       const message =
         paymentData.status === "completed"
           ? `Your payment of Rs ${paymentData.amount} has been processed successfully.`

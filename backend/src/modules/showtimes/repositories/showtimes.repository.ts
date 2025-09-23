@@ -1,8 +1,9 @@
 import { IMovieShowtime } from "../interfaces/showtimes.model.interfaces";
 import MovieShowtime from "../models/showtimes.model";
-import mongoose, { Types } from "mongoose";
+import mongoose, { FilterQuery, Types } from "mongoose";
 import { IShowtimeReadRepository, IShowtimeWriteRepository, IShowtimeRepository } from "../interfaces/showtimes.repository.interface";
 import { CreateShowtimeDTO, UpdateShowtimeDTO, ShowtimeFilters, PaginatedShowtimeResult, SeatBookingDTO, SeatReleaseDTO } from "../dtos/dto";
+import { TheaterListResponseDTO } from "../../theaters/dtos/dto";
 
 export class ShowtimeRepository implements IShowtimeRepository {
   async createShowtime(
@@ -47,7 +48,6 @@ export class ShowtimeRepository implements IShowtimeRepository {
       session.startTransaction();
 
       try {
-        // First, check which seats are available (not booked and not blocked)
         const showtime = await MovieShowtime.findById(showtimeId).session(session);
         if (!showtime) {
           throw new Error("Showtime not found");
@@ -56,7 +56,7 @@ export class ShowtimeRepository implements IShowtimeRepository {
         const unavailableSeats = new Set([
           ...showtime.bookedSeats,
           ...showtime.blockedSeats
-            .filter(block => new Date() < block.expiresAt) // Only active blocks
+            .filter(block => new Date() < block.expiresAt) 
             .map(block => block.seatId)
         ]);
 
@@ -72,7 +72,6 @@ export class ShowtimeRepository implements IShowtimeRepository {
           };
         }
 
-        // Create seat blocks for available seats
         const seatBlocks = availableSeats.map(seatId => ({
           seatId,
           userId,
@@ -83,7 +82,6 @@ export class ShowtimeRepository implements IShowtimeRepository {
           expiresAt,
         }));
 
-        // Update showtime with new blocked seats
         await MovieShowtime.findByIdAndUpdate(
           showtimeId,
           {
@@ -132,7 +130,6 @@ export class ShowtimeRepository implements IShowtimeRepository {
       session.startTransaction();
 
       try {
-        // Build the filter for blocked seats to remove
         const blockFilter: any = {};
         
         if (filter.seatNumbers?.length) {
@@ -145,13 +142,11 @@ export class ShowtimeRepository implements IShowtimeRepository {
           blockFilter.userId = filter.userId;
         }
 
-        // Get the showtime to find which seats will be released
         const showtime = await MovieShowtime.findById(showtimeId).session(session);
         if (!showtime) {
           throw new Error("Showtime not found");
         }
 
-        // Find matching blocked seats
         const seatsToRelease = showtime.blockedSeats
           .filter(block => {
             if (filter.seatNumbers?.length && !filter.seatNumbers.includes(block.seatId)) {
@@ -167,7 +162,6 @@ export class ShowtimeRepository implements IShowtimeRepository {
           })
           .map(block => block.seatId);
 
-        // Remove the blocked seats
         await MovieShowtime.findByIdAndUpdate(
           showtimeId,
           {
@@ -208,7 +202,6 @@ export class ShowtimeRepository implements IShowtimeRepository {
         return [];
       }
 
-      // Return currently active blocked seats
       const now = new Date();
       return showtime.blockedSeats
         .filter(block => block.expiresAt > now)
@@ -465,7 +458,7 @@ export class ShowtimeRepository implements IShowtimeRepository {
     filters?: ShowtimeFilters
   ): Promise<PaginatedShowtimeResult> {
     try {
-      const query: any = {};
+      const query: FilterQuery = {};
       this._applyFiltersToQuery(query, filters);
 
       const skipCount = (page - 1) * limit;
@@ -573,7 +566,7 @@ export class ShowtimeRepository implements IShowtimeRepository {
     excludeId?: string
   ): Promise<boolean> {
     try {
-      const query: any = {
+      const query: FilterQuery = {
         screenId: new Types.ObjectId(screenId),
         showDate,
         isActive: true,
@@ -624,7 +617,7 @@ export class ShowtimeRepository implements IShowtimeRepository {
   }> {
     try {
       const skipCount = (page - 1) * limit;
-      const query: any = {};
+      const query: FilterQuery = {};
       
       if (filters.theaterId) {
         query.theaterId = new Types.ObjectId(filters.theaterId);
@@ -687,7 +680,7 @@ export class ShowtimeRepository implements IShowtimeRepository {
   async getTheatersByMovieWithShowtimes(
     movieId: string,
     date: Date
-  ): Promise<any[]> {
+  ): Promise<TheaterListResponseDTO[]> {
     try {
       const { startOfDay, endOfDay } = this._getDayBounds(date);
 

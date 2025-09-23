@@ -13,7 +13,7 @@ import { Movie } from "../models/movies.model";
 
 export class MovieRepository implements IMovieRepository {
   
-  async findMovieById(movieId: string): Promise<IMovie | null> {
+  async findById(movieId: string): Promise<IMovie | null> {
     try {
       return await Movie.findById(movieId).exec();
     } catch (error) {
@@ -29,7 +29,7 @@ export class MovieRepository implements IMovieRepository {
     }
   }
 
-  async findAllMovies(): Promise<IMovie[]> {
+  async findAll(page?: number, limit?: number): Promise<{ data: IMovie[]; total: number }> {
     try {
       return await Movie.find().exec();
     } catch (error) {
@@ -86,7 +86,7 @@ export class MovieRepository implements IMovieRepository {
     }
   }
 
-  async createMovie(movieData: CreateMovieDto): Promise<IMovie> {
+  async create(movieData: CreateMovieDto): Promise<IMovie> {
     try {
       const movie = new Movie(movieData);
       return await movie.save();
@@ -95,7 +95,7 @@ export class MovieRepository implements IMovieRepository {
     }
   }
 
-  async updateMovie(movieId: string, movieData: UpdateMovieDto): Promise<IMovie | null> {
+  async update(movieId: string, movieData: UpdateMovieDto): Promise<IMovie | null> {
     try {
       return await Movie.findByIdAndUpdate(movieId, movieData, { new: true }).exec();
     } catch (error) {
@@ -103,16 +103,16 @@ export class MovieRepository implements IMovieRepository {
     }
   }
 
-  async deleteMovie(movieId: string): Promise<boolean> {
+  async delete(movieId: string): Promise<IMovie> {
     try {
       const deletionResult = await Movie.findByIdAndDelete(movieId).exec();
-      return !!deletionResult;
+      return deletionResult;
     } catch (error) {
       throw new Error(`Failed to delete movie: ${error.message}`);
     }
   }
 
-  async toggleMovieStatus(movieId: string): Promise<IMovie | null> {
+  async toggleStatus(movieId: string): Promise<IMovie | null> {
     try {
       const movie = await Movie.findById(movieId).exec();
       if (!movie) return null;

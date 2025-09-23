@@ -67,7 +67,7 @@ export const RenderCustomersContent: React.FC<RenderCustomersContentProps> = ({
         <TopPerformersList
           title="Customer Demographics - Age Groups"
           data={Array.isArray(customerData.insights?.demographics?.ageGroups) ?
-            customerData.insights.demographics.ageGroups.map((group: any, index: number) => ({
+            customerData.insights.demographics.ageGroups.map((group: string, index: number) => ({
               id: index,
               name: group.range || 'Unknown',
               value: group.count || 0,
@@ -82,7 +82,7 @@ export const RenderCustomersContent: React.FC<RenderCustomersContentProps> = ({
         <TopPerformersList
           title="Top Cities"
           data={Array.isArray(customerData.insights?.demographics?.locations) ?
-            customerData.insights.demographics.locations.map((location: any, index: number) => ({
+            customerData.insights.demographics.locations.map((location: string, index: number) => ({
               id: index,
               name: location.city || 'Unknown',
               value: location.count || 0,
@@ -100,7 +100,7 @@ export const RenderCustomersContent: React.FC<RenderCustomersContentProps> = ({
         <div className="bg-black p-6 rounded-lg shadow-sm border">
           <h3 className="font-semibold text-white mb-4">Rating Distribution</h3>
           <div className="space-y-3">
-            {customerData.satisfaction.ratingDistribution.map((rating: any, index: number) => (
+            {customerData.satisfaction.ratingDistribution.map((rating: string, index: number) => (
               <div key={index} className="flex items-center gap-3">
                 <span className="w-12 text-sm font-medium text-white">{rating.rating}⭐</span>
                 <div className="flex-1 bg-gray-200 rounded-full h-2">

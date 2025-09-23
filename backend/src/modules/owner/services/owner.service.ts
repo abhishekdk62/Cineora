@@ -477,7 +477,7 @@ export class OwnerService implements IOwnerService {
       };
     }
 
-    const existingUser = await this.userRepository.findUserByEmail(email);
+    const existingUser = await this.userRepository.findByEmail(email);
     if (existingUser) {
       return { isValid: false, message: "Email already in use" };
     }
@@ -576,8 +576,8 @@ export class OwnerService implements IOwnerService {
 
     if (sortBy) {
       result.owners.sort((a: IOwner, b: IOwner) => {
-        let aValue = (a as any)[sortBy];
-        let bValue = (b as any)[sortBy];
+        let aValue = (a as string)[sortBy];
+        let bValue = (b as string)[sortBy];
 
         if (sortBy.includes("Date") || sortBy.includes("At")) {
           aValue = new Date(aValue);

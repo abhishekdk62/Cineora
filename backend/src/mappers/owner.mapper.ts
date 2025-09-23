@@ -1,3 +1,4 @@
+import { TheaterInfoDto } from "../modules/chatroom/dtos/dto";
 import { IOwner } from "../modules/owner/interfaces/owner.model.interface";
 
 export interface OwnerDto {
@@ -28,8 +29,7 @@ export interface OwnerDto {
 
 export class OwnerMapper {
   static toDto(owner: IOwner): OwnerDto {
-    // Extract data from Mongoose document if needed
-    const data = (owner as any)._doc || owner;
+    const data = (owner as string)._doc || owner;
     
     return {
       id: data._id?.toString() || '',
@@ -51,7 +51,7 @@ export class OwnerMapper {
       approvedBy: data.approvedBy || '',
       isActive: data.isActive || false,
       isVerified: data.isVerified || false,
-      theatres: data.theatres?.map((t: any) => t?.toString()).filter(Boolean) || [],
+      theatres: data.theatres?.map((t: TheaterInfoDto) => t?.toString()).filter(Boolean) || [],
       lastLogin: data.lastLogin || null,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,

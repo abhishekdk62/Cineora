@@ -1,4 +1,3 @@
-// components/admin/analytics/EmptyState.tsx
 import React from 'react';
 import { BarChart3, Database, Search, AlertCircle } from 'lucide-react';
 

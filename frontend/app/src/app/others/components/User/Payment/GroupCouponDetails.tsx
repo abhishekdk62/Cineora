@@ -1,4 +1,3 @@
-// components/User/GroupInvite/GroupCouponDetails.tsx
 import React, { useState } from "react";
 import { Lexend } from "next/font/google";
 import { Info, X, Tag, ChevronDown, ChevronUp, Ticket } from "lucide-react";
@@ -67,7 +66,7 @@ export const GroupCouponDetails: React.FC<GroupCouponDetailsProps> = ({
     setShowCouponsModal(!showCouponsModal);
   };
 
-  const handleSelectCoupon = (coupon: any) => {
+  const handleSelectCoupon = (coupon: CouponData) => {
     onSelectCoupon?.(coupon);
     setShowCouponsModal(false);
     setCouponError("");

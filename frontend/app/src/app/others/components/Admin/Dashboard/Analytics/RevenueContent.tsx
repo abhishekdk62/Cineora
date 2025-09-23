@@ -30,7 +30,7 @@ export const RenderRevenueContent: React.FC<RenderRevenueContentProps> = ({
         title="No Revenue Data"
         description="Unable to load revenue analytics. Please adjust your filters and try again."
         actionLabel="Retry"
-        onAction={() => fetchData()} // ✅ Now this will work
+        onAction={() => fetchData()}
       />
     );
   }
@@ -85,22 +85,22 @@ export const RenderRevenueContent: React.FC<RenderRevenueContentProps> = ({
             format: 'percentage'
           }
         ]}
-        loading={loading} // ✅ Now this will work
+        loading={loading} 
       />
 
       {/* Revenue Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <RevenueChart
           data={dailyTrends}
-          loading={loading} // ✅ Now this will work
+          loading={loading} 
           type="daily"
-          onRefresh={() => fetchData()} // ✅ Now this will work
+          onRefresh={() => fetchData()} 
         />
         <RevenueChart
           data={monthlyTrends}
-          loading={loading} // ✅ Now this will work
+          loading={loading} 
           type="monthly"
-          onRefresh={() => fetchData()} // ✅ Now this will work
+          onRefresh={() => fetchData()} 
         />
       </div>
 
@@ -110,12 +110,12 @@ export const RenderRevenueContent: React.FC<RenderRevenueContentProps> = ({
           title="Theater-wise Revenue"
           columns={tableColumns}
           data={theaterData}
-          loading={loading} // ✅ Now this will work
+          loading={loading} 
         />
         
         <TopPerformersList
           title="Top Revenue Generating Owners"
-          data={ownerData.slice(0, 10).map((owner: any, index: number) => ({
+          data={ownerData.slice(0, 10).map((owner: string, index: number) => ({
             id: owner.ownerId || index,
             name: owner.email || 'Unknown Owner',
             value: owner.revenue || 0,
@@ -123,7 +123,7 @@ export const RenderRevenueContent: React.FC<RenderRevenueContentProps> = ({
             rank: index + 1
           }))}
           type="revenue"
-          loading={loading} // ✅ Now this will work
+          loading={loading} 
         />
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { Types } from "mongoose";
+import { ScreenInfoDto } from "../../chatroom/dtos/dto";
 
 export interface CreateScreenDto {
   name: string;
@@ -20,7 +21,6 @@ export interface CreateScreenDto {
           price: number;
         }[];
       }[];
-      // ADD THIS: Aisle configuration
       aisles?: {
         vertical?: {
           id: string;
@@ -58,7 +58,6 @@ export interface UpdateScreenDto {
           price: number;
         }[];
       }[];
-      // ADD THIS: Aisle configuration
       aisles?: {
         vertical?: {
           id: string;
@@ -98,7 +97,7 @@ export interface AdvancedScreenFilterDto {
 }
 
 export interface PaginatedScreenResultDto {
-  screens: any[];
+  screens: ScreenInfoDto[];
   total: number;
   currentPage: number;
   totalPages: number;
@@ -106,7 +105,7 @@ export interface PaginatedScreenResultDto {
 }
 
 export interface ScreenStatisticsDto {
-  screens: any[];
+  screens: ScreenInfoDto[];
   totalFiltered: number;
   totalAll: number;
   activeAll: number;
@@ -167,7 +166,7 @@ export interface AdvancedScreenFilters {
 }
 
 export interface PaginatedScreenResult {
-  screens: any[];
+  screens: ScreenInfoDto[];
   total: number;
   currentPage: number;
   totalPages: number;
@@ -175,7 +174,7 @@ export interface PaginatedScreenResult {
 }
 
 export interface ScreenWithStatisticsResult {
-  screens: any[];
+  screens: ScreenInfoDto[];
   totalFiltered: number;
   totalAll: number;
   activeAll: number;
@@ -183,7 +182,7 @@ export interface ScreenWithStatisticsResult {
 }
 
 export interface ScreenResponseDto {
-  screen: any;
+  screen: ScreenInfoDto;
 }
 
 export interface ScreenStatsResponseDto {

@@ -8,18 +8,15 @@ export interface IChatRoom extends Document {
   roomType: 'GROUP_BOOKING';
   isActive: boolean;
   
-  // Movie & Theater Info
   movieId: mongoose.Types.ObjectId;
   theaterId: mongoose.Types.ObjectId;
   screenId: mongoose.Types.ObjectId;
   showDate: string;
   showTime: string;
   
-  // Participants
   participants: mongoose.Types.ObjectId[];
   createdBy: mongoose.Types.ObjectId;
   
-  // Timestamps
   createdAt: Date;
   updatedAt: Date;
   lastMessageAt: Date;
@@ -101,7 +98,6 @@ const ChatRoomSchema: Schema<IChatRoom> = new Schema(
   }
 );
 
-// Index for efficient queries
 ChatRoomSchema.index({ inviteGroupId: 1 });
 ChatRoomSchema.index({ inviteId: 1 });
 ChatRoomSchema.index({ participants: 1 });

@@ -85,7 +85,6 @@ const inviteGroupSchema = new Schema<IInviteGroup>(
       type: Number,
     },
 
-    // ✅ Coupon Usage Details
     couponUsed: {
       type: {
         couponId: { 
@@ -102,7 +101,6 @@ const inviteGroupSchema = new Schema<IInviteGroup>(
       required: false
     },
 
-    // ✅ Price Breakdown Details - Fixed Structure
     priceBreakdown: {
       type: {
         originalAmount: { 

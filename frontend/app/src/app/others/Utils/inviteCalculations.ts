@@ -1,8 +1,7 @@
-// utils/inviteCalculations.ts
 
 interface SeatInfo {
   nextSeatIndex: number;
-  nextSeat: any | null;
+  nextSeat: string | null;
   actualPriceForJoiner: number;
   priceBreakdown: {
     originalPrice: number;
@@ -15,7 +14,6 @@ interface SeatInfo {
 }
 
 export const calculateJoinerSeatPrice = (invite: GroupInvite): SeatInfo => {
-  // Get available seats
   const availableSeats = getAvailableSeats(invite);
 
   if (availableSeats.length === 0) {
@@ -37,16 +35,13 @@ export const calculateJoinerSeatPrice = (invite: GroupInvite): SeatInfo => {
 
   }
 
-  // Pick the next available seat (first one from the list)
   const nextSeat = availableSeats[0];
   const nextSeatIndex = invite.requestedSeats.findIndex(
     seat => seat.seatNumber === nextSeat.seatNumber
   );
 
-  // Get the original price for this specific seat
   const originalPrice = nextSeat.price;
 
-  // Calculate discount if coupon is applied
   let discountAmount = 0;
   let discountedPrice = originalPrice;
 
@@ -57,11 +52,9 @@ export const calculateJoinerSeatPrice = (invite: GroupInvite): SeatInfo => {
     discountedPrice = originalPrice - discountAmount;
   }
 
-  // Calculate fees on original price (not discounted)
-  const convenienceFee = Math.round((originalPrice * 5) / 100); // 5% of original
-  const tax = Math.round((originalPrice * 18) / 100); // 18% of original
+  const convenienceFee = Math.round((originalPrice * 5) / 100); 
+  const tax = Math.round((originalPrice * 18) / 100); 
 
-  // Final amount = discounted price + fees
   const finalAmount = discountedPrice + convenienceFee + tax;
 
   return {
@@ -83,7 +76,7 @@ export const getOccupiedSeats = (invite: GroupInvite): string[] => {
   return invite.participants.map((participant) => participant.seatAssigned);
 };
 
-export const getAvailableSeats = (invite: GroupInvite): any[] => {
+export const getAvailableSeats = (invite: GroupInvite): GroupInvite[] => {
   const occupiedSeats = getOccupiedSeats(invite);
   return invite.requestedSeats.filter(
     (seat) => !occupiedSeats.includes(seat.seatNumber)

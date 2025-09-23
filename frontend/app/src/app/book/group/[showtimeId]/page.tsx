@@ -7,7 +7,7 @@ import Prism from "@/app/others/components/ReactBits/Prism";
 import { NavBar } from "@/app/others/components/Home";
 import Loader from "@/app/others/components/utils/Loader";
 import { lexendBold } from "@/app/others/Utils/fonts";
-import { useSelector, useDispatch } from "react-redux"; // ✅ Add useDispatch
+import { useSelector, useDispatch } from "react-redux"; 
 import { getShowTimeUser } from "@/app/others/services/userServices/showTimeServices";
 import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
 import { ShowtimeResponseDto, RowPricingDto } from "@/app/others/dtos";
@@ -30,15 +30,14 @@ interface SelectedSeatData {
 export default function GroupInvitePage() {
   const params = useParams();
   const router = useRouter();
-  const dispatch = useDispatch(); // ✅ Add dispatch
+  const dispatch = useDispatch();
   const showtimeId = params?.showtimeId as string;
   
-  // ✅ USE REDUX STATE
-  const user = useSelector((state: any) => state.auth.user);
+  const user = useSelector((state: string) => state.auth.user);
   const bookingData = useSelector((state: { booking: BookingState }) => state.booking.bookingData);
   
-  const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
-  const [selectedCoupon, setSelectedCoupon] = useState<any>(null);
+  const [availableCoupons, setAvailableCoupons] = useState<string[]>([]);
+  const [selectedCoupon, setSelectedCoupon] = useState<string>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showTimeData, setShowTimeData] = useState<ShowtimeResponseDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,7 +45,6 @@ export default function GroupInvitePage() {
   const [minRating, setMinRating] = useState<number | undefined>();
   const [isCreating, setIsCreating] = useState(false);
 
-  // ✅ FETCH COUPONS - Same as payment page
   useEffect(() => {
     const fetchTheaterCoupons = async () => {
       if (bookingData?.theaterId) {
@@ -63,8 +61,7 @@ export default function GroupInvitePage() {
     fetchTheaterCoupons();
   }, [bookingData?.theaterId]);
 
-  // ✅ HANDLE COUPON SELECTION - Same as payment page
-  const handleSelectCoupon = useCallback((coupon: any) => {
+  const handleSelectCoupon = useCallback((coupon: string) => {
     setSelectedCoupon(coupon);
     if (bookingData?.priceDetails?.subtotal) {
       const discount = Math.round(bookingData.priceDetails.subtotal * (coupon.discountPercentage / 100));
@@ -88,10 +85,8 @@ export default function GroupInvitePage() {
     setShowPaymentModal(false);
   };
 
-  // ✅ GET DATA FROM REDUX
   useEffect(() => {
     const fetchShowTimeData = async () => {
-      // ✅ Use Redux data instead of sessionStorage
       if (!bookingData?.showtimeId) {
         toast.error("No booking data found");
         router.push(`/book/seats/${showtimeId}`);
@@ -103,7 +98,6 @@ export default function GroupInvitePage() {
         if (result.data) {
           setShowTimeData(result.data);
 
-          // ✅ Get selected seats from Redux
           if (bookingData.selectedSeats) {
             const seatsWithDetails = bookingData.selectedSeats.map((seatId: string) => {
               const rowLabel = seatId.charAt(0);
@@ -129,21 +123,18 @@ export default function GroupInvitePage() {
     fetchShowTimeData();
   }, [bookingData, showtimeId, router]);
 
-  // ✅ CALCULATE TOTAL AMOUNT ON LOAD
   useEffect(() => {
     if (bookingData?.totalAmount === 0 && bookingData?.amount > 0) {
       dispatch(calculateTotalAmount());
     }
   }, [bookingData?.totalAmount, bookingData?.amount, dispatch]);
 
-  // ✅ CREATE GROUP INVITE DATA - Use Redux state
   const groupInviteData = useMemo(() => {
     if (!showTimeData || selectedSeats.length === 0 || !bookingData) return null;
 
     const hostSeat = selectedSeats[0];
     const availableSeats = selectedSeats.slice(1);
     
-    // ✅ Use Redux pricing data
     const totalAmount = bookingData.priceDetails?.subtotal || 0;
     const convenienceFee = bookingData.priceDetails?.convenienceFee || 0;
     const taxes = bookingData.priceDetails?.taxes || 0;
@@ -176,7 +167,7 @@ export default function GroupInvitePage() {
       hostSeat,
       availableSeats,
       totalSeats: selectedSeats.length,
-      totalAmount: totalAmount + discount, // Original amount
+      totalAmount: totalAmount + discount, 
       subtotal: discountedSubtotal,
       convenienceFee,
       taxes,
@@ -189,7 +180,6 @@ export default function GroupInvitePage() {
       minRating,
       selectedSeats,
 
-      // For API call
       showtimeId: bookingData.showtimeId,
       movieId: bookingData.movieId,
       theaterId: bookingData.theaterId,
@@ -197,7 +187,6 @@ export default function GroupInvitePage() {
     };
   }, [showTimeData, selectedSeats, minRating, bookingData]);
 
-  // ✅ CREATE HOST BOOKING DATA - Use Redux state
   const createHostBookingData = useCallback(() => {
     if (!groupInviteData || !showTimeData || !user || !bookingData) return null;
 
@@ -205,9 +194,8 @@ export default function GroupInvitePage() {
     const hostProportion = hostSeat.price / groupInviteData.totalAmount;
     
     return {
-      ...bookingData, // ✅ Use existing Redux booking data as base
+      ...bookingData, 
       
-      // Override with host-specific values
       selectedSeats: [hostSeat.seatNumber],
       selectedSeatIds: [hostSeat.seatNumber],
       
@@ -239,7 +227,6 @@ export default function GroupInvitePage() {
     };
   }, [groupInviteData, showTimeData, user, bookingData]);
 
-  // ✅ Rest of your existing functions remain the same...
   const createInviteData = useCallback(() => {
     if (!groupInviteData || !user) return null;
     

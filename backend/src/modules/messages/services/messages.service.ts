@@ -13,7 +13,6 @@ export class ChatMessageService implements IChatMessageService {
   ) {}
 
   async sendMessage(userId: string, data: SendMessageDto,senderName:string): Promise<MessageResponseDto> {
-    // Verify user is participant of chat room
     const chatRoom = await this.chatRoomRepository.findById(data.chatRoomId)
     
     if (!chatRoom) {
@@ -36,7 +35,6 @@ export class ChatMessageService implements IChatMessageService {
       senderName
     });
 
-    // Update chat room's last message time
     await this.chatRoomRepository.update(chatRoom._id.toString(), {
       lastMessageAt: new Date()
     });
@@ -161,7 +159,6 @@ export class ChatMessageService implements IChatMessageService {
       updatedAt: message.updatedAt
     };
 
-    // Add system message data if applicable
     if (message.messageType === 'SYSTEM' && message.systemMessageType) {
       response.systemMessageType = message.systemMessageType;
       if (message.systemData) {
@@ -175,20 +172,17 @@ export class ChatMessageService implements IChatMessageService {
       }
     }
 
-    // Add edit/delete timestamps if applicable
     if (message.editedAt) response.editedAt = message.editedAt;
     if (message.deletedAt) response.deletedAt = message.deletedAt;
 
-    // Add reply info if applicable
-    if (message.replyToMessageId && (message.replyToMessageId as any).content) {
+    if (message.replyToMessageId && (message.replyToMessageId as string).content) {
       response.replyToMessage = {
-        _id: (message.replyToMessageId as any)._id.toString(),
-        content: (message.replyToMessageId as any).content,
-        senderName: (message.replyToMessageId as any).senderName
+        _id: (message.replyToMessageId as string)._id.toString(),
+        content: (message.replyToMessageId as string).content,
+        senderName: (message.replyToMessageId as string).senderName
       };
     }
 
-    // Add UI helper flags
     if (currentUserId) {
       response.isOwnMessage = message.senderId.toString() === currentUserId;
       response.canEdit = response.isOwnMessage && message.messageType !== 'SYSTEM' && !message.isDeleted;

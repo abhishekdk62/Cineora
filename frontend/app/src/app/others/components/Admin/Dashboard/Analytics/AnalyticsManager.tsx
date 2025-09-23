@@ -1,4 +1,4 @@
-y// @ts-nocheck
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { ErrorBoundary } from './ErrorBoundary';
 import { AnalyticsDashboardHeader } from './AnalyticsDashboardHeader';
@@ -16,7 +16,6 @@ import { EmptyState } from './EmptyState';
 import { LoadingSkeleton } from './LoadingSkeleton';
 import { AnalyticsModal } from './AnalyticsModal';
 
-// Import API functions
 import {
   getComprehensiveAnalyticsApi,
   getRevenueAnalyticsApi,
@@ -70,7 +69,6 @@ interface Notification {
 }
 
 export const AnalyticsManager: React.FC = () => {
-  // State management
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -96,7 +94,6 @@ export const AnalyticsManager: React.FC = () => {
     };
   });
 
-  // Tab configuration
   const tabs = [
     { id: 'overview', label: 'Overview', count: undefined },
     { id: 'revenue', label: 'Revenue', count: undefined },
@@ -105,7 +102,6 @@ export const AnalyticsManager: React.FC = () => {
     { id: 'financial', label: 'Financial', count: undefined },
   ];
 
-  // Notification helper
   const showNotification = useCallback((type: Notification['type'], title: string, message: string) => {
     setNotification({ type, title, message, visible: true });
   }, []);
@@ -114,7 +110,6 @@ export const AnalyticsManager: React.FC = () => {
     setNotification(prev => ({ ...prev, visible: false }));
   }, []);
 
-  // Data fetching functions
   const fetchComprehensiveData = useCallback(async () => {
     try {
       const response = await getComprehensiveAnalyticsApi({
@@ -124,10 +119,10 @@ export const AnalyticsManager: React.FC = () => {
         theaterId: filters.theaterId,
         movieId: filters.movieId
       });
-      console.log('🔥 Comprehensive Analytics Response:', response);
+      console.log(' Comprehensive Analytics Response:', response);
       return response.data;
     } catch (error) {
-      console.error('❌ Error fetching comprehensive analytics:', error);
+      console.error(' Error fetching comprehensive analytics:', error);
       throw error;
     }
   }, [filters]);
@@ -152,7 +147,7 @@ export const AnalyticsManager: React.FC = () => {
         movieWise: movieWise.data
       };
     } catch (error) {
-      console.error('❌ Error fetching revenue analytics:', error);
+      console.error(' Error fetching revenue analytics:', error);
       throw error;
     }
   }, [filters]);
@@ -165,17 +160,13 @@ export const AnalyticsManager: React.FC = () => {
         getTimeSlotPerformanceApi(filters)
       ]);
 
-      console.log('⚡ Performance Metrics Response:', performance);
-      console.log('👥 Occupancy Analytics Response:', occupancy);
-      console.log('⏰ Time Slot Performance Response:', timeSlots);
-
       return {
         metrics: performance.data,
         occupancy: occupancy.data,
         timeSlots: timeSlots.data
       };
     } catch (error) {
-      console.error('❌ Error fetching performance analytics:', error);
+      console.error(' Error fetching performance analytics:', error);
       throw error;
     }
   }, [filters]);
@@ -198,7 +189,7 @@ export const AnalyticsManager: React.FC = () => {
         formatAnalytics: formatAnalytics.data
       };
     } catch (error) {
-      console.error('❌ Error fetching movie analytics:', error);
+      console.error(' Error fetching movie analytics:', error);
       throw error;
     }
   }, [filters]);
@@ -210,15 +201,12 @@ export const AnalyticsManager: React.FC = () => {
         getCustomerSatisfactionApi(filters)
       ]);
 
-      console.log('👤 Customer Insights Response:', insights);
-      console.log('😊 Customer Satisfaction Response:', satisfaction);
-
       return {
         insights: insights.data,
         satisfaction: satisfaction.data
       };
     } catch (error) {
-      console.error('❌ Error fetching customer analytics:', error);
+      console.error(' Error fetching customer analytics:', error);
       throw error;
     }
   }, [filters]);
@@ -230,15 +218,12 @@ export const AnalyticsManager: React.FC = () => {
         getGrowthRatesApi(filters)
       ]);
 
-      console.log('💳 Financial KPIs Response:', financial);
-      console.log('📈 Growth Rates Response:', growth);
-
       return {
         kpis: financial.data,
         growth: growth.data
       };
     } catch (error) {
-      console.error('❌ Error fetching financial analytics:', error);
+      console.error(' Error fetching financial analytics:', error);
       throw error;
     }
   }, [filters]);
@@ -246,15 +231,14 @@ export const AnalyticsManager: React.FC = () => {
   const fetchOperationalData = useCallback(async () => {
     try {
       const response = await getOperationalAnalyticsApi(filters);
-      console.log('⚙️ Operational Analytics Response:', response);
+      console.log(' Operational Analytics Response:', response);
       return response.data;
     } catch (error) {
-      console.error('❌ Error fetching operational analytics:', error);
+      console.error(' Error fetching operational analytics:', error);
       throw error;
     }
   }, [filters]);
 
-  // Main data fetching function
   const fetchData = useCallback(async (tabId?: string) => {
     const targetTab = tabId || activeTab;
     setLoading(true);
@@ -290,14 +274,13 @@ export const AnalyticsManager: React.FC = () => {
       showNotification('success', 'Data Updated', 'Analytics data has been refreshed successfully.');
 
     } catch (error) {
-      console.error('❌ Error fetching analytics data:', error);
+      console.error(' Error fetching analytics data:', error);
       showNotification('error', 'Error Loading Data', 'Failed to load analytics data. Please try again.');
     } finally {
       setLoading(false);
     }
   }, [activeTab, fetchComprehensiveData, fetchRevenueData, fetchPerformanceData, fetchMovieData, fetchCustomerData, fetchFinancialData, fetchOperationalData, showNotification]);
 
-  // Refresh data
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -315,7 +298,7 @@ export const AnalyticsManager: React.FC = () => {
     }
   }, [data, fetchData]);
 
-const handleFiltersChange = useCallback((newFilters: any) => {
+const handleFiltersChange = useCallback((newFilters: string) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
   }, []);
 
@@ -441,7 +424,7 @@ const exportCurrentTab = useCallback(() => {
     showNotification('success', 'Export Complete', `Analytics data exported successfully as ${fileName}`);
 
   } catch (error) {
-    console.error('❌ Export error:', error);
+    console.error(' Export error:', error);
     showNotification('error', 'Export Failed', 'Failed to export analytics data. Please try again.');
   }
 }, [activeTab, data, showNotification]);
@@ -450,7 +433,6 @@ const handleExport = useCallback(() => {
   exportCurrentTab();
 }, [exportCurrentTab]);
 
-  // ✅ FIXED: renderContent function with proper JSX returns
   const renderContent = () => {
     switch (activeTab) {
       case 'overview':
@@ -500,7 +482,6 @@ const handleExport = useCallback(() => {
     return display;
   };
 
-  // Initial data load
   useEffect(() => {
     fetchData();
   }, []);

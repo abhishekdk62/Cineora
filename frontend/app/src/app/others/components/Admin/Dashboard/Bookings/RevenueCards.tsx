@@ -1,4 +1,3 @@
-// components/RevenueCards.tsx
 "use client";
 import React from 'react';
 import { DollarSign, Users, Ticket, TrendingUp } from 'lucide-react';

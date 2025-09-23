@@ -71,41 +71,39 @@ export class ChatRoomService implements IChatRoomService {
       inviteGroupId: chatRoom.inviteGroupId.toString(),
       inviteId: chatRoom.inviteId,
       roomName: chatRoom.roomName,
-      roomType: chatRoom.roomType, // ✅ Added missing property
+      roomType: chatRoom.roomType, 
       isActive: chatRoom.isActive,
 
       movieInfo: {
         _id:
-          (chatRoom.movieId as any)._id?.toString() ||
+          (chatRoom.movieId as string)._id?.toString() ||
           chatRoom.movieId.toString(),
-        title: (chatRoom.movieId as any).title || "Unknown Movie",
-        poster: (chatRoom.movieId as any).poster || "",
+        title: (chatRoom.movieId as string).title || "Unknown Movie",
+        poster: (chatRoom.movieId as string).poster || "",
       },
       theaterInfo: {
         _id:
-          (chatRoom.theaterId as any)._id?.toString() ||
+          (chatRoom.theaterId as string)._id?.toString() ||
           chatRoom.theaterId.toString(),
-        name: (chatRoom.theaterId as any).name || "Unknown Theater",
+        name: (chatRoom.theaterId as string).name || "Unknown Theater",
       },
       showDate: chatRoom.showDate,
       showTime: chatRoom.showTime,
 
-      participants: (chatRoom.participants as any[]).map((p) => ({
+      participants: (chatRoom.participants as string[]).map((p) => ({
         _id: p._id?.toString() || p.toString(),
         username: p.username || "Unknown User",
-        seatAssigned: undefined, // Will be populated from invite data later
+        seatAssigned: undefined,
       })),
       participantCount: chatRoom.participants.length,
 
-      // ✅ Added missing createdBy property
       createdBy: {
         _id:
-          (chatRoom.createdBy as any)._id?.toString() ||
+          (chatRoom.createdBy as string)._id?.toString() ||
           chatRoom.createdBy.toString(),
-        username: (chatRoom.createdBy as any).username || "Unknown User",
+        username: (chatRoom.createdBy as string).username || "Unknown User",
       },
 
-      // ✅ Added missing timestamps
       createdAt: chatRoom.createdAt,
       updatedAt: chatRoom.updatedAt,
       lastMessageAt: chatRoom.lastMessageAt,

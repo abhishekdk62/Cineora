@@ -1,3 +1,4 @@
+import { UserDto } from "../../../mappers/user.mapper";
 import { IOTP, OTPType } from "../interfaces/otp.model.interface";
 import { IOTPRepository } from "../interfaces/otp.repository.interface";
 import { IOTPService } from "../interfaces/otp.service.interface";
@@ -82,7 +83,7 @@ export class OTPService implements IOTPService {
   async generateAndSaveOTP(
     email: string,
     type: OTPType,
-    userData?: any
+    userData?: UserDto
   ): Promise<{ otp: string; expiresAt: Date }> {
     const otp = this.generateOTP();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);

@@ -20,7 +20,6 @@ import RevenueCards from './RevenueCards';
 import { getTheaterWiseRevenueApi } from '@/app/others/services/commonServices/analyticServices';
 import { getBookingsForAdmin } from '@/app/others/services/adminServices/bookingServices';
 import BookingsListForAdmins from './BookingsListForAdmin';
-// Add this interface before TheaterBookingsData
 interface TheaterBooking {
   _id: string;
   bookingId: string;

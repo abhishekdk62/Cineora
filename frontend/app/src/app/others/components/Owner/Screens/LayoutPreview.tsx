@@ -1,4 +1,3 @@
-//@ts-nocheck
 import React from 'react';
 import { Lexend } from "next/font/google";
 
@@ -95,7 +94,6 @@ export const LayoutPreview: React.FC<LayoutPreviewProps> = ({
                   }}
                 >
                   {Array.from({ length: maxCols }).map((_, colIndex) => {
-                    // SIMPLIFIED: All vertical aisles are red
                     if (showAisles && isVerticalAisle(colIndex)) {
                       return (
                         <div

@@ -18,7 +18,6 @@ export interface IScreen extends Document {
           price: number;
         }[];
       }[];
-      // ADD THIS: Aisle configuration (optional for backwards compatibility)
       aisles?: {
         vertical: {
           id: string;

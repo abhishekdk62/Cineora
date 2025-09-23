@@ -23,7 +23,6 @@ export interface MessageItem {
   senderId: string;
   senderName: string;
   replyToMessageId?: string;
-  // System message specific fields
   systemData?: {
     userId: string;
     username: string;
@@ -56,11 +55,9 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
   const [editingContent, setEditingContent] = useState("");
   const [showOptionsMenu, setShowOptionsMenu] = useState<string | null>(null);
   
-  // Refs for auto-scroll functionality
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Helper function to check if message can be edited/deleted (within 5 minutes)
   const canModifyMessage = (messageCreatedAt: string): boolean => {
     const messageDate = new Date(messageCreatedAt);
     const currentDate = new Date();
@@ -70,7 +67,6 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
     return diffInMinutes <= 5;
   };
 
-  // Function to render system message content
   const renderSystemMessage = (msg: MessageItem) => {
     const username = msg.systemData?.username || 'Someone';
     
@@ -86,12 +82,10 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
     }
   };
 
-  // Auto-scroll to bottom when messages change
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Scroll to bottom when messages update
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -160,7 +154,6 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
             const isEditing = editingMessageId === msg._id;
             const canModify = canModifyMessage(msg.createdAt);
             
-            // Render system messages differently - centered and small
             if (isSystemMessage) {
               return (
                 <div key={msg._id} className="flex justify-center my-2">
@@ -181,7 +174,6 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
               );
             }
             
-            // Regular message rendering
             return (
               <div 
                 key={msg._id} 

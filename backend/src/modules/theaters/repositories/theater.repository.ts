@@ -1,10 +1,13 @@
+import { PipelineOptions } from "stream";
 import { TheaterFilters, CreateTheaterDTO, UpdateTheaterDTO } from "../dtos/dto";
 import { ITheater } from "../interfaces/theater.model.interface";
 import { ITheaterReadRepository, ITheaterWriteRepository, ITheaterRepository } from "../interfaces/theater.repository.interface";
 import { Theater } from "../models/theater.model";
+import { FilterQuery } from "mongoose";
+import { TheaterInfoDto } from "../../chatroom/dtos/dto";
 
 export class TheaterRepository implements ITheaterRepository {
-  async createTheater(
+  async create(
     ownerId: string,
     theaterData: CreateTheaterDTO
   ): Promise<ITheater> {
@@ -21,7 +24,7 @@ export class TheaterRepository implements ITheaterRepository {
     }
   }
 
-  async getTheaterById(theaterId: string): Promise<ITheater | null> {
+  async findById(theaterId: string): Promise<ITheater | null> {
     try {
       return await Theater.findById(theaterId).populate("ownerId", "ownerName email");
     } catch (error) {
@@ -41,7 +44,7 @@ export class TheaterRepository implements ITheaterRepository {
     totalAll: number;
   }> {
     try {
-      const query: any = { ownerId };
+      const query: FilterQuery = { ownerId };
 
       if (filters?.status === "active") {
         query.isActive = true;
@@ -72,7 +75,7 @@ export class TheaterRepository implements ITheaterRepository {
 
       const sortField = filters?.sortBy || "createdAt";
       const sortOrder = filters?.sortOrder === "desc" ? -1 : 1;
-      const sortOptions: any = { [sortField]: sortOrder };
+      const sortOptions: FilterQuery = { [sortField]: sortOrder };
 
       const theaters = await Theater.find(query)
         .sort(sortOptions)
@@ -126,13 +129,13 @@ export class TheaterRepository implements ITheaterRepository {
     }
   }
 
-  async getAllTheaters(
+  async findAll(
     page: number,
     limit: number,
     filters?: TheaterFilters
   ): Promise<{ theaters: ITheater[]; total: number }> {
     try {
-      const query: any = {};
+      const query: FilterQuery = {};
       this._applyFiltersToQuery(query, filters);
 
       const skipCount = (page - 1) * limit;
@@ -158,10 +161,10 @@ export class TheaterRepository implements ITheaterRepository {
     page: number,
     limit: number
   ): Promise<{ theaters: ITheater[]; total: number }> {
-    return this.getAllTheaters(page, limit, filters);
+    return this.findAll(page, limit, filters);
   }
 
-  async updateTheater(
+  async update(
     theaterId: string,
     updateData: UpdateTheaterDTO
   ): Promise<ITheater | null> {
@@ -177,7 +180,7 @@ export class TheaterRepository implements ITheaterRepository {
     }
   }
 
-  async toggleTheaterStatus(theaterId: string): Promise<ITheater | null> {
+  async toggleStatus(theaterId: string): Promise<ITheater | null> {
     try {
       const theater = await Theater.findById(theaterId);
       if (!theater) return null;
@@ -216,7 +219,7 @@ export class TheaterRepository implements ITheaterRepository {
     }
   }
 
-  async deleteTheater(theaterId: string): Promise<boolean> {
+  async delete(theaterId: string): Promise<boolean> {
     try {
       const result = await Theater.findByIdAndDelete(theaterId);
       return !!result;
@@ -258,7 +261,7 @@ export class TheaterRepository implements ITheaterRepository {
     excludeId?: string
   ): Promise<boolean> {
     try {
-      const query: any = {
+      const query: FilterQuery = {
         name: new RegExp(`^${name.trim()}$`, "i"),
         city: new RegExp(`^${city.trim()}$`, "i"),
         state: new RegExp(`^${state.trim()}$`, "i"),
@@ -320,7 +323,7 @@ export class TheaterRepository implements ITheaterRepository {
     lat: number,
     lon: number
   ): Promise<{ theaters: ITheater[]; total: number; totalPages: number }> {
-    const pipeline: any[] = [
+    const pipeline: PipelineOptions[] = [
       {
         $geoNear: {
           near: {
@@ -386,7 +389,7 @@ export class TheaterRepository implements ITheaterRepository {
     lat?: number,
     lon?: number
   ): Promise<{ theaters: ITheater[]; total: number; totalPages: number }> {
-    const query: any = {
+    const query: FilterQuery = {
       isActive: true,
       isVerified: true,
     };
@@ -429,7 +432,7 @@ export class TheaterRepository implements ITheaterRepository {
       mongooseQuery.skip(skipCount).limit(limitNum).lean(),
     ]);
 
-    const theatersWithDistance = theaters.map((theater: any) => {
+    const theatersWithDistance = theaters.map((theater: TheaterInfoDto) => {
       let distance = undefined;
       if (lat != null && lon != null && theater.location?.coordinates) {
         const [tLon, tLat] = theater.location.coordinates;
@@ -469,7 +472,7 @@ export class TheaterRepository implements ITheaterRepository {
     return deg * (Math.PI / 180);
   }
 
-  private _applyFiltersToQuery(query: any, filters?: TheaterFilters): void {
+  private _applyFiltersToQuery(query: FilterQuery, filters?: TheaterFilters): void {
     if (filters?.isActive !== undefined) {
       query.isActive = filters.isActive === "true";
     }

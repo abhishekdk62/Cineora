@@ -12,7 +12,7 @@ const lexendMedium = Lexend({
 
 type SearchInputProps = {
   onSearch: (query: string) => void;
-  onSuggestionSelect: (suggestion: any) => void;
+  onSuggestionSelect: (suggestion) => void;
 };
 
 export default function SearchInput({ onSearch, onSuggestionSelect }: SearchInputProps) {

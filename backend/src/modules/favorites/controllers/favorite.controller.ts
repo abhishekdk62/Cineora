@@ -23,7 +23,7 @@ export class MovieFavoriteController {
       
       const statusCode = result.success ? 201 : 400;
       res.status(statusCode).json(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({
         success: false,
         message: error.message || "Internal server error",
@@ -45,7 +45,7 @@ export class MovieFavoriteController {
       
       const statusCode = result.success ? 200 : 404;
       res.status(statusCode).json(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({
         success: false,
         message: error.message || "Internal server error",
@@ -67,7 +67,7 @@ export class MovieFavoriteController {
       const result = await this._favoriteService.getUserFavorites(userId, page, limit);
       
       res.status(200).json(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({
         success: false,
         message: error.message || "Internal server error",
@@ -93,7 +93,7 @@ export class MovieFavoriteController {
       const result = await this._favoriteService.toggleFavorite(userId, movieId);
       
       res.status(200).json(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({
         success: false,
         message: error.message || "Internal server error",
@@ -118,7 +118,7 @@ export class MovieFavoriteController {
         success: true,
         isFavorite,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({
         success: false,
         message: error.message || "Internal server error",
@@ -136,7 +136,7 @@ export class MovieFavoriteController {
         success: true,
         data: { favoriteCount: count },
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({
         success: false,
         message: error.message || "Internal server error",

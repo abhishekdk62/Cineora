@@ -25,8 +25,6 @@ const OwnerManager = () => {
         return <ShowtimesManager lexendMedium={lexendMedium} lexendSmall={lexendSmall} />;
       case "bookings":
         return <BookingsManager lexendMedium={lexendMedium} lexendSmall={lexendSmall} />;
-
-
       case "wallet":
         return (
           <WalletManager />

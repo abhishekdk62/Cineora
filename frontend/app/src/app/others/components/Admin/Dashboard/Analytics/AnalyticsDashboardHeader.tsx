@@ -1,4 +1,3 @@
-// components/admin/analytics/AnalyticsDashboardHeader.tsx
 import React from 'react';
 import { 
   BarChart3, 

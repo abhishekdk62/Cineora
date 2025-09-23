@@ -7,22 +7,17 @@ import {
   PaginatedScreenResultDto,
   ScreenStatisticsDto
 } from "../dtos/dtos";
+import { IBaseReadRepository, IBaseRepository, IBaseWriteRepository } from "../../../repositories/baseRepository.interface";
 
-export interface IScreenReadRepository {
-  getScreenById(screenId: string): Promise<IScreen | null>;
+export interface IScreenReadRepository extends IBaseReadRepository<IScreen> {
   getScreensByTheaterId(theaterId: string): Promise<IScreen[]>;
-  getAllScreensPaginated(page: number, limit: number, filters?: ScreenFilterDto): Promise<PaginatedScreenResultDto>;
   getScreenByIdWithTheaterDetails(screenId: string): Promise<IScreen | null>;
   getScreensByTheaterIdWithAdvancedFilters(theaterId: string, filters: AdvancedScreenFilterDto): Promise<ScreenStatisticsDto>;
   getScreenByTheaterIdAndName(theaterId: string, name: string): Promise<IScreen | null>;
   getActiveScreensByTheaterId(theaterId: string): Promise<IScreen[]>;
 }
 
-export interface IScreenWriteRepository {
-  createScreen(screenData: CreateScreenDto): Promise<IScreen>;
-  updateScreen(screenId: string, updateData: UpdateScreenDto): Promise<IScreen>;
-  toggleScreenStatus(screenId: string): Promise<IScreen>;
-  deleteScreen(screenId: string): Promise<IScreen>;
+export interface IScreenWriteRepository extends IBaseWriteRepository<IScreen, string, CreateScreenDto, UpdateScreenDto> {
   deleteScreensByTheaterId(theaterId: string): Promise<number>;
 }
 

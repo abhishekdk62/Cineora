@@ -28,23 +28,22 @@ export const googleAuth = async (credentialResponse: GoogleCredentialResponse) =
 };
 
 export const getCurrentUser = async () => {
-  console.log('🔍 getCurrentUser called');
   try {
     const userData = localStorage.getItem('userData');
-    console.log('📦 Raw data from localStorage:', userData);
+    console.log(' Raw data from localStorage:', userData);
 
     if (!userData) {
-      console.log('❌ No userData found in localStorage');
-      console.log('🗄️ All localStorage items:', { ...localStorage });
+      console.log(' No userData found in localStorage');
+      console.log(' All localStorage items:', { ...localStorage });
       return null;
     }
 
     const parsedUser = JSON.parse(userData);
-    console.log('✅ Parsed user data:', parsedUser);
+    console.log(' Parsed user data:', parsedUser);
     return parsedUser;
 
   } catch (error) {
-    console.log('💥 getCurrentUser error:', error);
+    console.log(' getCurrentUser error:', error);
     localStorage.removeItem('userData');
     return null;
   }

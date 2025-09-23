@@ -1,4 +1,3 @@
-//@ts-nocheck
 import React from 'react';
 import { Plus, Trash2, ArrowRight } from 'lucide-react';
 import { Lexend } from "next/font/google";
@@ -6,7 +5,6 @@ import { Lexend } from "next/font/google";
 const lexendMedium = Lexend({ weight: "500", subsets: ["latin"] });
 const lexendSmall = Lexend({ weight: "400", subsets: ["latin"] });
 
-// SUPER SIMPLIFIED: Only position and width
 interface VerticalAisle {
   id: string;
   position: number;

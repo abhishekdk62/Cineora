@@ -1,3 +1,4 @@
+import { UserDto } from "../../../mappers/user.mapper";
 import { IOTP, OTPType } from "../interfaces/otp.model.interface";
 
 export interface CreateOTPDto {
@@ -15,7 +16,7 @@ export interface VerifyOTPDto {
 export interface GenerateAndSaveOTPDto {
   email: string;
   type: OTPType;
-  userData?: any;
+  userData?: UserDto;
 }
 
 export interface SendOTPDto {
@@ -77,7 +78,7 @@ export interface OTPDetailsDto {
   type: OTPType;
   expiresAt: Date;
   isUsed: boolean;
-  userData?: any;
+  userData?: UserDto;
   createdAt: Date;
   updatedAt: Date;
 }

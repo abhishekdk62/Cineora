@@ -1,4 +1,3 @@
-// components/admin/analytics/NotificationToast.tsx
 import React, { useEffect } from 'react';
 import { CheckCircle, AlertCircle, XCircle, Info, X } from 'lucide-react';
 

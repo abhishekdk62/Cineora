@@ -19,10 +19,12 @@ import {
   
 } from '../dtos/dtos'
 import { ServiceResponse } from "../../../interfaces/interface";
+import { MovieResponseDto } from "../../movies/dtos/dtos";
+import { UserLookupResponseDto } from "../../auth/dtos/dtos";
+import { ShowtimeValidationResult } from "../../showtimes/dtos/dto";
 export class AdminAnalyticsService implements IAdminAnalyticsService {
   constructor(private readonly analyticsRepository: IAnalyticsRepository) {}
 
-  // Comprehensive dashboard analytics
   async getComprehensiveAnalytics(filter: IDateRange): Promise<ServiceResponse<IComprehensiveAnalyticsDTO>> {
     try {
       const [
@@ -56,7 +58,7 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
         totalOwners,
         totalTheaters,
         avgOccupancy,
-        revenueGrowthRate: 12.5, // Calculate from growth rate service
+        revenueGrowthRate: 12.5, 
         topPerformingTheater: topTheaters[0]?.theaterName || "N/A",
         topPerformingMovie: topMovies[0]?.movieName || "N/A",
         platformHealth: {
@@ -80,7 +82,6 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     }
   }
 
-  // Revenue analytics
   async getRevenueAnalytics(filter: IDateRange): Promise<ServiceResponse<IRevenueAnalyticsDTO>> {
     try {
       const [financialKPIs, totalBookings] = await Promise.all([
@@ -97,7 +98,7 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
         platformCommission: financialKPIs.platformCommission,
         refunds: financialKPIs.totalRefunds,
         netRevenue: financialKPIs.totalRevenue - financialKPIs.totalRefunds - financialKPIs.totalDiscounts,
-        growthRate: 8.5 // Calculate from previous period comparison
+        growthRate: 8.5 
       };
 
       return {
@@ -125,7 +126,6 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
         monthlyData[0] || { month: 'N/A', revenue: 0, bookings: 0 }
       );
 
-      // Add growth rate calculation for each month
       const trendsWithGrowth = monthlyData.map((month, index) => ({
         ...month,
         growthRate: index > 0 ? 
@@ -160,10 +160,9 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
       const totalRevenue = dailyData.reduce((sum, day) => sum + day.revenue, 0);
       const avgDailyRevenue = totalRevenue / (dailyData.length || 1);
 
-      // Add occupancy calculation (would need additional data)
       const trendsWithOccupancy = dailyData.map(day => ({
         ...day,
-        occupancy: 65.5 // Would calculate from actual occupancy data
+        occupancy: 65.5 
       }));
 
       const dailyRevenueData: IDailyRevenueDTO = {
@@ -192,15 +191,14 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
       
       const totalRevenue = theaterData.reduce((sum, theater) => sum + theater.revenue, 0);
 
-      // Enhance theater data with additional metrics
       const enhancedTheaters = theaterData.map(theater => ({
         theaterId: theater.theaterId,
         theaterName: theater.theaterName,
-        location: "Mumbai", // Would fetch from theater data
+        location: "Mumbai", 
         revenue: theater.revenue,
         bookings: theater.bookings,
         occupancy: theater.occupancy,
-        screens: 5, // Would fetch actual screen count
+        screens: 5, 
         avgTicketPrice: theater.bookings > 0 ? theater.revenue / theater.bookings : 0
       }));
 
@@ -230,11 +228,10 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
       
       const totalRevenue = ownerData.reduce((sum, owner) => sum + owner.revenue, 0);
 
-      // Enhance owner data with market share calculation
       const enhancedOwners = ownerData.map(owner => ({
         ownerId: owner.ownerId,
         ownerName: owner.ownerName,
-        email: "owner@example.com", // Would fetch actual email
+        email: "owner@example.com", 
         revenue: owner.revenue,
         bookings: owner.bookings,
         theatersCount: owner.theatersCount,
@@ -268,16 +265,15 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
       
       const totalRevenue = movieData.reduce((sum, movie) => sum + movie.revenue, 0);
 
-      // Enhance movie data
       const enhancedMovies = movieData.map(movie => ({
         movieId: movie.movieId,
         movieName: movie.movieName,
         revenue: movie.revenue,
         bookings: movie.bookings,
         avgRating: movie.avgRating,
-        format: "2D", // Would fetch actual format
-        language: "Hindi", // Would fetch actual language
-        screens: 25 // Would calculate actual screen count
+        format: "2D", 
+        language: "Hindi", 
+        screens: 25 
       }));
 
       const movieRevenueData: IMovieRevenueDTO = {
@@ -300,7 +296,6 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     }
   }
 
-  // Performance metrics
   async getPerformanceMetrics(filter: IDateRange): Promise<ServiceResponse<IPerformanceMetricsDTO>> {
     try {
       const [
@@ -353,7 +348,6 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     }
   }
 
-  // Customer insights
   async getCustomerInsights(filter: IDateRange): Promise<ServiceResponse<ICustomerInsightsDTO>> {
     try {
       const [
@@ -371,7 +365,7 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
         newCustomers: customerStats.newCustomers,
         retentionRate: customerStats.retentionRate,
         avgBookingsPerCustomer: customerStats.avgBookingsPerCustomer,
-        customerLifetimeValue: 2850, // Calculate based on avg revenue per customer
+        customerLifetimeValue: 2850,
         segments: customerSegments,
         satisfaction: {
           avgRating: customerSatisfaction.avgRating,
@@ -408,7 +402,6 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     }
   }
 
-  // Movie performance
   async getMoviePerformance(filter: IDateRange): Promise<ServiceResponse<IMoviePerformanceDTO>> {
     try {
       const [
@@ -419,12 +412,11 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
         this.analyticsRepository.getTopPerformingMovies(filter, 10)
       ]);
 
-      // Group by format and language for performance analysis
       const formatPerformance = moviePerformanceData.reduce((acc, movie) => {
         const existing = acc.find(item => item.format === movie.format);
         if (existing) {
           existing.bookings += movie.totalBookings;
-          existing.revenue += 0; // Would need revenue data
+          existing.revenue += 0; 
         } else {
           acc.push({
             format: movie.format,
@@ -458,7 +450,7 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
           movieName: movie.movieName,
           totalBookings: movie.bookings,
           revenue: movie.revenue,
-          avgRating: 4.2, // Would get from movie data
+          avgRating: 4.2, 
           occupancyRate: 68.5
         })),
         formatPerformance,
@@ -479,7 +471,6 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     }
   }
 
-  // Financial KPIs
   async getFinancialKPIs(filter: IDateRange): Promise<ServiceResponse<IFinancialKPIsDTO>> {
     try {
       const [financialData, totalCustomers, totalBookings] = await Promise.all([
@@ -498,7 +489,7 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
         netPlatformRevenue: financialData.totalRevenue - financialData.totalRefunds,
         avgTicketPrice: financialData.avgTicketPrice,
         revenuePerCustomer: totalCustomers > 0 ? financialData.totalRevenue / totalCustomers : 0,
-        monthlyRecurringRevenue: financialData.totalRevenue / 12 // Simplified calculation
+        monthlyRecurringRevenue: financialData.totalRevenue / 12 
       };
 
       return {
@@ -515,12 +506,10 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     }
   }
 
-  // Growth rates
   async getGrowthRates(filter: IDateRange): Promise<ServiceResponse<IGrowthRatesDTO>> {
     try {
       const growthData = await this.analyticsRepository.getGrowthRates(filter);
       
-      // Enhanced with projections
       const growthRates: IGrowthRatesDTO = {
         monthlyGrowthRate: growthData.monthlyGrowthRate,
         quarterlyGrowthRate: growthData.quarterlyGrowthRate,
@@ -548,7 +537,6 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     }
   }
 
-  // Operational analytics
   async getOperationalAnalytics(filter: IDateRange): Promise<ServiceResponse<IOperationalAnalyticsDTO>> {
     try {
       const [cancellationData, paymentData] = await Promise.all([
@@ -601,8 +589,7 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     }
   }
 
-  // Additional service methods
-  async getOccupancyAnalytics(filter: IDateRange): Promise<ServiceResponse<any>> {
+  async getOccupancyAnalytics(filter: IDateRange): Promise<ServiceResponse<ShowtimeValidationResult>> {
     try {
       const occupancy = await this.analyticsRepository.getAggregateOccupancy(filter);
       return {
@@ -619,7 +606,7 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     }
   }
 
-  async getTimeSlotPerformance(filter: IDateRange): Promise<ServiceResponse<any>> {
+  async getTimeSlotPerformance(filter: IDateRange): Promise<ServiceResponse<ShowtimeValidationResult>> {
     try {
       const timeSlotData = await this.analyticsRepository.getTimeSlotPerformance(filter);
       return {
@@ -636,7 +623,7 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     }
   }
 
-  async getCustomerSatisfaction(filter: IDateRange): Promise<ServiceResponse<any>> {
+  async getCustomerSatisfaction(filter: IDateRange): Promise<ServiceResponse<UserLookupResponseDto>> {
     try {
       const satisfactionData = await this.analyticsRepository.getCustomerSatisfaction(filter);
       return {
@@ -653,7 +640,7 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     }
   }
 
-  async getTopPerformingMovies(filter: IDateRange, limit = 10): Promise<ServiceResponse<any>> {
+  async getTopPerformingMovies(filter: IDateRange, limit = 10): Promise<ServiceResponse<MovieResponseDto>> {
     try {
       const topMovies = await this.analyticsRepository.getTopPerformingMovies(filter, limit);
       return {

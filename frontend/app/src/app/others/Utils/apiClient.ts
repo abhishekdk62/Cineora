@@ -61,7 +61,7 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
         
       } catch (refreshError) {
-        console.error('❌ Refresh failed:', refreshError);
+        console.error(' Refresh failed:', refreshError);
         processQueue(refreshError);
         
         window.location.href = "/login";

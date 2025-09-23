@@ -27,7 +27,6 @@ const lexendSmall = Lexend({
   subsets: ["latin"],
 });
 
-// Font variables for styling
 const lexendMedium = { fontFamily: 'Lexend', fontWeight: '500' };
 const lexendSmallStyle = { fontFamily: 'Lexend', fontWeight: '400' };
 

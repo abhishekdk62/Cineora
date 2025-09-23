@@ -32,7 +32,6 @@ export default function SeatLayout({
     const horizontalAisles = aisles?.horizontal || [];
     
     rows.forEach((row, index) => {
-      // Add the regular seat row
       result.push(
         <SeatRow
           key={row.rowLabel}
@@ -47,16 +46,14 @@ export default function SeatLayout({
         />
       );
       
-      // Check if there's a horizontal aisle after this row (afterRow is 1-based)
       const horizontalAisle = horizontalAisles.find(aisle => aisle.afterRow === (index + 1));
       if (horizontalAisle) {
-        // Add MINIMAL horizontal aisle - just empty space, same height as space-y-2 gap
         for (let i = 0; i < horizontalAisle.width; i++) {
           result.push(
             <div 
               key={`h-aisle-${row.rowLabel}-${i}`} 
               style={{ 
-                height: '8px', // Same as space-y-2 gap (0.5rem = 8px)
+                height: '8px', 
                 width: '100%'
               }}
             />

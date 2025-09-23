@@ -1,4 +1,3 @@
-// WalletBalance.tsx - Complete with onShowResult prop
 import React, { useState } from 'react';
 import { DollarSign, TrendingUp, RefreshCw } from 'lucide-react';
 import PayoutModal from './PayoutModal';

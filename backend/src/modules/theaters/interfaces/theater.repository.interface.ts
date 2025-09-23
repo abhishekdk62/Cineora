@@ -1,8 +1,8 @@
-import { TheaterFilters, CreateTheaterDTO, UpdateTheaterDTO } from "../dtos/dto";
 import { ITheater } from "./theater.model.interface";
+import { TheaterFilters, CreateTheaterDTO, UpdateTheaterDTO } from "../dtos/dto";
+import { IBaseReadRepository, IBaseRepository, IBaseWriteRepository } from "../../../repositories/baseRepository.interface";
 
-export interface ITheaterReadRepository {
-  getTheaterById(theaterId: string): Promise<ITheater | null>;
+export interface ITheaterReadRepository extends IBaseReadRepository<ITheater> {
   getTheatersByOwnerId(
     ownerId: string,
     filters?: TheaterFilters
@@ -13,11 +13,6 @@ export interface ITheaterReadRepository {
     activeAll: number;
     totalAll: number;
   }>;
-  getAllTheaters(
-    page: number,
-    limit: number,
-    filters?: TheaterFilters
-  ): Promise<{ theaters: ITheater[]; total: number }>;
   getTheatersByFilters(
     filters: TheaterFilters,
     page: number,
@@ -45,19 +40,10 @@ export interface ITheaterReadRepository {
   }>;
 }
 
-export interface ITheaterWriteRepository {
-  createTheater(
-    ownerId: string,
-    theaterData: CreateTheaterDTO
-  ): Promise<ITheater>;
-  updateTheater(
-    theaterId: string,
-    updateData: UpdateTheaterDTO
-  ): Promise<ITheater | null>;
-  deleteTheater(theaterId: string): Promise<boolean>;
+export interface ITheaterWriteRepository extends IBaseWriteRepository<ITheater, string, CreateTheaterDTO, UpdateTheaterDTO> {
+  createTheater(ownerId: string, theaterData: CreateTheaterDTO): Promise<ITheater>; 
   incrementTheaterScreenCount(theaterId: string): Promise<void>;
   decrementTheaterScreenCount(theaterId: string): Promise<void>;
-  toggleTheaterStatus(theaterId: string): Promise<ITheater | null>;
   verifyTheater(theaterId: string): Promise<ITheater | null>;
   rejectTheater(theaterId: string): Promise<ITheater | null>;
 }

@@ -1,5 +1,4 @@
 
-// @ts-nocheck
 
 "use client";
 import React, { useState, useEffect } from "react";
@@ -158,17 +157,14 @@ export default function SeatSelectionPage() {
   const [seatStatuses, setSeatStatuses] = useState<Record<string, SeatStatus>>({});
   const [showGroupInviteModal, setShowGroupInviteModal] = useState(false);
 
-  // This should match exactly how the owner side calculates it
   const getMaxCols = (rows: Row[], aisles?: string) => {
     if (!rows || rows.length === 0) return 0;
 
-    // Base calculation - same as owner side
     const baseMaxCols = Math.max(...rows.map((row: Row) =>
       (row.offset || 0) + (row.seats?.length || 0)
     ));
 
-    // DON'T add aisle width here - the owner side doesn't do this
-    return baseMaxCols; // This should be 16 for your data
+    return baseMaxCols; 
   };
 
 
@@ -451,13 +447,12 @@ export default function SeatSelectionPage() {
   useEffect(() => {
     console.log('- showtimeId:', showtimeId);
     if (!socket || !isConnected) {
-    console.log('❌ Socket not ready yet');
+    console.log(' Socket not ready yet');
     return;
   }
 
-    // FIRST: Handle reconnection if needed
     if (socket && !socket.connected && !isConnected) {
-      console.log('🔄 Force reconnecting socket...');
+      console.log(' Force reconnecting socket...');
       socket.connect();
       return;
     }

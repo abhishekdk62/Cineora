@@ -6,7 +6,7 @@ export interface IReview extends Document {
   movieId?: Types.ObjectId;
   theaterId?: Types.ObjectId;
   bookingId?: Types.ObjectId;
-  rating: number; // 1-5 stars
+  rating: number; 
   reviewText?: string;
   reviewType: 'movie' | 'theater' | 'experience';
   isVerifiedBooking: boolean;

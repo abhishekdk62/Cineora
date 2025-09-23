@@ -1,6 +1,8 @@
 import * as cron from 'node-cron';
 import { NotificationService } from '../modules/notification/services/notification.service';
 import Notification from '../modules/notification/models/notification.model'
+import { NotificationResponseDTO } from '../modules/notification/dtos/dto';
+import { MovieInfoDto } from '../modules/chatroom/dtos/dto';
 
 export class NotificationScheduler {
   constructor(private readonly notificationService: NotificationService) {
@@ -31,7 +33,7 @@ export class NotificationScheduler {
     console.log(' Notification scheduler started! Checking every minute...');
   }
 
-  private async _sendScheduledNotification(notification: any) {
+  private async _sendScheduledNotification(notification: NotificationResponseDTO) {
     try {
       if (notification.type === 'reminder') {
         await this.notificationService.sendReminderNotification(
@@ -49,7 +51,7 @@ export class NotificationScheduler {
     }
   }
 
-  async scheduleReminder(userId: string, showDateTime: Date, movieData: any) {
+  async scheduleReminder(userId: string, showDateTime: Date, movieData: MovieInfoDto) {
     const reminderTime = new Date(showDateTime.getTime() - 2 * 60 * 60 * 1000); 
     
     if (reminderTime > new Date()) {

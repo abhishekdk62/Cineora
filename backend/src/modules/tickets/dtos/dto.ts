@@ -22,7 +22,6 @@ export interface CancelSingleTicketDto {
   userId: string;
   totalAmount: number;
 }
-// Add this interface to your existing dto file (usually dtos/dto.ts or ticket/dtos/dto.ts)
 
 export interface CancelSingleTicketDto {
   ticketIds: string[];
@@ -30,17 +29,15 @@ export interface CancelSingleTicketDto {
   totalAmount: number;
 }
 
-// Optional: Enhanced interface with more details
 export interface CancelSingleTicketRequestDto {
   ticketIds: string[];
   totalAmount: number;
-  reason?: string; // Optional cancellation reason
-  cancelledSeats?: string[]; // Optional: seat identifiers for validation
+  reason?: string; 
+  cancelledSeats?: string[];
 }
 
-// Optional: Response interface for better type safety
 export interface SingleTicketCancellationResponseDto {
-  cancelledTickets: any[];
+  cancelledTickets: TicketResponseDto[];
   ticketCount: number;
   refundDetails: {
     originalAmount: number;
@@ -165,7 +162,6 @@ export interface CreateTicketFromRowsDto {
     couponId?:string
   };
 }
-// Add these interface definitions at the top or in your types file
 export interface DecryptedQRData {
   tid: string;
   dt?: string;

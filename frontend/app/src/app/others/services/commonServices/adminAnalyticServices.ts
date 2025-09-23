@@ -1,4 +1,3 @@
-// @ts-nocheck
 import ADMIN_ANALYTICS_ROUTES from "../../constants/commonConstants/adminAnalyticsConstants";
 import apiClient from "../../Utils/apiClient";
 
@@ -11,7 +10,6 @@ interface AdminAnalyticsQuery {
   limit?: number;
 }
 
-// Main Comprehensive Analytics
 export const getComprehensiveAnalyticsApi = async (
   params?: AdminAnalyticsQuery
 ): Promise<AdminAnalyticsDto> => {
@@ -19,7 +17,6 @@ export const getComprehensiveAnalyticsApi = async (
   return response.data;
 };
 
-// Revenue Analytics APIs
 export const getRevenueAnalyticsApi = async (
   params?: AdminAnalyticsQuery
 ): Promise<AdminAnalyticsDto> => {
@@ -62,7 +59,6 @@ export const getMovieWiseRevenueApi = async (
   return response.data;
 };
 
-// Performance Metrics APIs
 export const getPerformanceMetricsApi = async (
   params?: AdminAnalyticsQuery
 ): Promise<AdminAnalyticsDto> => {
@@ -84,7 +80,6 @@ export const getTimeSlotPerformanceApi = async (
   return response.data;
 };
 
-// Customer Analytics APIs
 export const getCustomerInsightsApi = async (
   params?: AdminAnalyticsQuery
 ): Promise<AdminAnalyticsDto> => {
@@ -99,7 +94,6 @@ export const getCustomerSatisfactionApi = async (
   return response.data;
 };
 
-// Movie Analytics APIs
 export const getMoviePerformanceApi = async (
   params?: AdminAnalyticsQuery
 ): Promise<AdminAnalyticsDto> => {
@@ -121,7 +115,6 @@ export const getMovieFormatAnalyticsApi = async (
   return response.data;
 };
 
-// Financial KPIs API
 export const getFinancialKPIsApi = async (
   params?: AdminAnalyticsQuery
 ): Promise<AdminAnalyticsDto> => {
@@ -129,7 +122,6 @@ export const getFinancialKPIsApi = async (
   return response.data;
 };
 
-// Growth Analytics API
 export const getGrowthRatesApi = async (
   params?: AdminAnalyticsQuery
 ): Promise<AdminAnalyticsDto> => {
@@ -137,7 +129,6 @@ export const getGrowthRatesApi = async (
   return response.data;
 };
 
-// Operational Analytics API
 export const getOperationalAnalyticsApi = async (
   params?: AdminAnalyticsQuery
 ): Promise<AdminAnalyticsDto> => {

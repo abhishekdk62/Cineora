@@ -74,7 +74,6 @@ export default function TheaterReviewCard({ review, onEdit, onDelete }: TheaterR
     return user.username || user.email.split('@')[0];
   };
 
-  // Check if current user is the owner of this review
   const isOwner = isAuthenticated === review.userId._id;
 
   return (

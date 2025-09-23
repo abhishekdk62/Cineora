@@ -1,4 +1,3 @@
-//@ts-nocheck
 import { Request, Response } from "express";
 import { IAdminAnalyticsService } from "../interfaces/adminAnalytics.service.interface";
 import { ANALYTICS_MESSAGES } from "../../../utils/messages.constants";
@@ -16,7 +15,7 @@ export class AdminAnalyticsController {
     };
   }
 
-  private handleError(res: Response, error: any): void {
+  private handleError(res: Response, error: unknown): void {
     const errorMessage = error instanceof Error ? error.message : "Internal Server Error";
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
       createResponse({
@@ -26,7 +25,6 @@ export class AdminAnalyticsController {
     );
   }
 
-  // Comprehensive analytics endpoint
   async getComprehensiveAnalytics(req: Request, res: Response): Promise<void> {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
@@ -54,7 +52,6 @@ export class AdminAnalyticsController {
     }
   }
 
-  // Revenue analytics
   async getRevenueAnalytics(req: Request, res: Response): Promise<void> {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
@@ -217,7 +214,6 @@ export class AdminAnalyticsController {
     }
   }
 
-  // Performance metrics
   async getPerformanceMetrics(req: Request, res: Response): Promise<void> {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
@@ -299,7 +295,6 @@ export class AdminAnalyticsController {
     }
   }
 
-  // Customer insights
   async getCustomerInsights(req: Request, res: Response): Promise<void> {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
@@ -354,7 +349,6 @@ export class AdminAnalyticsController {
     }
   }
 
-  // Movie analytics
   async getMoviePerformance(req: Request, res: Response): Promise<void> {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
@@ -437,7 +431,6 @@ export class AdminAnalyticsController {
     }
   }
 
-  // Financial KPIs
   async getFinancialKPIs(req: Request, res: Response): Promise<void> {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
@@ -465,7 +458,6 @@ export class AdminAnalyticsController {
     }
   }
 
-  // Growth rates
   async getGrowthRates(req: Request, res: Response): Promise<void> {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
@@ -493,7 +485,6 @@ export class AdminAnalyticsController {
     }
   }
 
-  // Operational analytics
   async getOperationalAnalytics(req: Request, res: Response): Promise<void> {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);

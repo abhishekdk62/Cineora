@@ -12,12 +12,10 @@ export class AdminAnalyticsRoute {
   }
 
   private _setRoutes() {
-    // Main comprehensive analytics endpoint
     this._router.get("/comprehensive", 
       (req, res) => this._analyticsController.getComprehensiveAnalytics(req, res)
     );
 
-    // Revenue Analytics Routes
     this._router.get("/revenue", 
       (req, res) => this._analyticsController.getRevenueAnalytics(req, res)
     );
@@ -42,7 +40,6 @@ export class AdminAnalyticsRoute {
       (req, res) => this._analyticsController.getMovieWiseRevenue(req, res)
     );
 
-    // Performance Metrics Routes
     this._router.get("/performance", 
       (req, res) => this._analyticsController.getPerformanceMetrics(req, res)
     );
@@ -55,7 +52,6 @@ export class AdminAnalyticsRoute {
       (req, res) => this._analyticsController.getTimeSlotPerformance(req, res)
     );
 
-    // Customer Analytics Routes
     this._router.get("/customers", 
       (req, res) => this._analyticsController.getCustomerInsights(req, res)
     );
@@ -64,7 +60,6 @@ export class AdminAnalyticsRoute {
       (req, res) => this._analyticsController.getCustomerSatisfaction(req, res)
     );
 
-    // Movie Analytics Routes
     this._router.get("/movies", 
       (req, res) => this._analyticsController.getMoviePerformance(req, res)
     );
@@ -77,17 +72,14 @@ export class AdminAnalyticsRoute {
       (req, res) => this._analyticsController.getMovieFormatAnalytics(req, res)
     );
 
-    // Financial KPIs Routes
     this._router.get("/financial", 
       (req, res) => this._analyticsController.getFinancialKPIs(req, res)
     );
 
-    // Growth Analytics Routes
     this._router.get("/growth", 
       (req, res) => this._analyticsController.getGrowthRates(req, res)
     );
 
-    // Operational Analytics Routes
     this._router.get("/operational", 
       (req, res) => this._analyticsController.getOperationalAnalytics(req, res)
     );
@@ -98,7 +90,6 @@ export class AdminAnalyticsRoute {
   }
 }
 
-// Factory function to create routes with dependency injection
 export const createAdminAnalyticsRoutes = (): express.Router => {
   const repository = new AdminAnalyticsRepository();
   const service = new AdminAnalyticsService(repository);
@@ -108,5 +99,4 @@ export const createAdminAnalyticsRoutes = (): express.Router => {
   return routes.getRouter();
 };
 
-// Export default router
 export default createAdminAnalyticsRoutes();

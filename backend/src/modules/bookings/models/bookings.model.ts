@@ -66,26 +66,26 @@ const CouponUsageSchema = new Schema<ICouponUsage>({
   couponId: {
     type: Schema.Types.ObjectId,
     ref: "Coupon",
-    required: false, // Optional
+    required: false, 
   },
   couponCode: {
     type: String,
-    required: false, // Optional
+    required: false,
     uppercase: true,
   },
   couponName: {
     type: String,
-    required: false, // Optional
+    required: false, 
   },
   discountPercentage: {
     type: Number,
-    required: false, // Optional
+    required: false, 
     min: 0,
     max: 100,
   },
   discountAmount: {
     type: Number,
-    required: false, // Optional
+    required: false, 
     min: 0,
   },
   appliedAt: {
@@ -143,11 +143,10 @@ const BookingSchema = new Schema<IBooking>({
     required: true,
   },
   
-  // OPTIONAL coupon field - only present if coupon was used
   couponUsed: {
     type: CouponUsageSchema,
-    required: false, // Completely optional
-    default: undefined, // No default value
+    required: false, 
+    default: undefined, 
   },
   
   paymentStatus: {

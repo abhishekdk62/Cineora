@@ -37,7 +37,7 @@ const BrowseInviteCard: React.FC<Props> = ({ invite, onJoin, onRefresh }) => {
   const [isTimerExpired, setIsTimerExpired] = useState(false);
 
   const dispatch = useDispatch();
-  const user = useSelector((state: any) => state.auth.user);
+  const user = useSelector((state) => state.auth.user);
 
   const isCompleted = invite.status === 'completed' || invite.availableSlots === 0;
   const isExpired = isTimerExpired || new Date() > new Date(invite.expiresAt);
@@ -70,7 +70,7 @@ const BrowseInviteCard: React.FC<Props> = ({ invite, onJoin, onRefresh }) => {
       let ticketId = response.data.removedParticipant.ticketId;
 
       if (!ticketId || !amount) {
-        console.error('❌ Missing ticket data:', { ticketId, amount });
+        console.error(' Missing ticket data:', { ticketId, amount });
         toast.error('Missing ticket information');
         return;
       }
@@ -102,7 +102,6 @@ console.log('checked',chated);
     }
   }
 
-  // ✅ ONLY UPDATE FROM PROPS - NO SOCKET LISTENERS
   useEffect(() => {
     setCurrentAvailableSlots(invite.availableSlots);
     setIsGroupCompleted(invite.status === 'completed' || invite.availableSlots === 0);
@@ -116,11 +115,10 @@ console.log('checked',chated);
     });
   };
 
-  // ✅ CALCULATE PROGRESS FROM AVAILABLE SLOTS
   const joinedCount = invite.totalSlotsRequested - currentAvailableSlots;
   const progressPercentage = Math.round((joinedCount / invite.totalSlotsRequested) * 100);
 
-  const getOccupiedSeatsFromCurrent = (participants: any[]) => {
+  const getOccupiedSeatsFromCurrent = (participants: string[]) => {
     return participants
       .filter(p => p.role !== 'host')
       .map(p => p.seatAssigned);
@@ -129,7 +127,6 @@ console.log('checked',chated);
   const occupiedSeats = getOccupiedSeatsFromCurrent(currentParticipants);
   let seatInfo;
 
-  // ✅ CHECK AVAILABLE SLOTS BEFORE CALCULATION
   if (isCompleted || currentAvailableSlots === 0) {
     seatInfo = {
       nextSeat: {
@@ -156,7 +153,6 @@ console.log('checked',chated);
     } catch (error) {
       console.error('Error calculating seat price:', error);
 
-      // Fallback for calculation errors
       seatInfo = {
         nextSeat: {
           seatNumber: 'Unavailable',
@@ -177,7 +173,6 @@ console.log('checked',chated);
         actualPriceForJoiner: 0
       };
 
-      // Mark as completed to prevent join attempts
       setIsGroupCompleted(true);
     }
   }

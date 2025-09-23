@@ -45,7 +45,7 @@ export class TheaterController {
           },
         },
       }));
-    } catch (error: any) {
+    } catch (error: unknown) {
       this._handleControllerError(res, error, "Failed to retrieve theaters with filters");
     }
   }
@@ -79,7 +79,7 @@ export class TheaterController {
         message: result.message,
         data: result.data,
       }));
-    } catch (error: any) {
+    } catch (error: unknown) {
       this._handleControllerError(res, error, "Failed to create theater");
     }
   }
@@ -112,7 +112,7 @@ export class TheaterController {
         message: result.message,
         data: result.data,
       }));
-    } catch (error: any) {
+    } catch (error: unknown) {
       this._handleControllerError(res, error, "Failed to retrieve theaters by owner");
     }
   }
@@ -147,7 +147,7 @@ export class TheaterController {
         message: result.message,
         data: result.data,
       }));
-    } catch (error: any) {
+    } catch (error: unknown) {
       this._handleControllerError(res, error, "Failed to update theater");
     }
   }
@@ -181,7 +181,7 @@ export class TheaterController {
         success: true,
         message: result.message,
       }));
-    } catch (error: any) {
+    } catch (error: unknown) {
       this._handleControllerError(res, error, "Failed to delete theater");
     }
   }
@@ -213,7 +213,7 @@ export class TheaterController {
         message: result.message,
         data: result.data,
       }));
-    } catch (error: any) {
+    } catch (error: unknown) {
       this._handleControllerError(res, error, "Failed to toggle theater status");
     }
   }
@@ -245,7 +245,7 @@ export class TheaterController {
         message: result.message,
         data: result.data,
       }));
-    } catch (error: any) {
+    } catch (error: unknown) {
       this._handleControllerError(res, error, "Failed to verify theater");
     }
   }
@@ -278,7 +278,7 @@ export class TheaterController {
         message: result.message,
         data: result.data,
       }));
-    } catch (error: any) {
+    } catch (error: unknown) {
       this._handleControllerError(res, error, "Failed to reject theater");
     }
   }
@@ -311,7 +311,7 @@ export class TheaterController {
         message: result.message,
         data: result.data,
       }));
-    } catch (error: any) {
+    } catch (error: unknown) {
       this._handleControllerError(res, error, "Failed to retrieve theater");
     }
   }
@@ -403,7 +403,7 @@ export class TheaterController {
     return StatusCodes.NOT_FOUND;
   }
 
-  private _handleControllerError(res: Response, error: any, defaultMessage: string): void {
+  private _handleControllerError(res: Response, error: unknown, defaultMessage: string): void {
     console.error(`Controller error: ${defaultMessage}`, error);
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(createResponse({
       success: false,

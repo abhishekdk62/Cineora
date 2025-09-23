@@ -1,4 +1,3 @@
-//@ts-nocheck
 'use client';
 
 import React, { useState } from 'react';
@@ -106,12 +105,10 @@ const TicketCard: React.FC<TicketCardProps> = ({
     } else {
       const basePrice = booking.price;
 
-      // Apply coupon discount if available
       const discountPercentage = booking.coupon?.discountPercentage || 0;
       const discountAmount = (basePrice * discountPercentage) / 100;
       const discountedPrice = basePrice - discountAmount;
 
-      // Apply tax and convenience fee on the discounted amount
       const taxAmount = basePrice * 0.18;
       const convenienceAmount = basePrice * 0.05;
       const totalPrice = discountedPrice + taxAmount + convenienceAmount;
@@ -173,10 +170,8 @@ const TicketCard: React.FC<TicketCardProps> = ({
     }
   };
 
-  // Check if this booking has multiple tickets
   const hasMultipleTickets = booking.allTickets && booking.allTickets.length > 1;
 
-  // Handle single ticket cancellation (opens modal for selection)
   const handleSingleTicketCancel = () => {
     if (booking.allTickets[0].isInvited) {
 
@@ -194,7 +189,6 @@ const TicketCard: React.FC<TicketCardProps> = ({
     setShowCancellationModal(true);
   };
 
-  // Handle full booking cancellation (existing logic)
   const handleFullBookingCancel = async () => {
     try {
       let { totalAmount } = calculatePricing();

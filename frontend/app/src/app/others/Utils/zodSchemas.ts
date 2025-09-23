@@ -51,7 +51,6 @@ export const screenSchema = z.object({
         }))
       })).min(1, "At least one row is required"),
       
-      // ADD THIS: Aisle validation (optional)
       aisles: z.object({
         vertical: z.array(z.object({
           id: z.string(),

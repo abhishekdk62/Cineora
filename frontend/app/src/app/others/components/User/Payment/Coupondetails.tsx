@@ -34,7 +34,7 @@ export const CouponDetails: React.FC<CouponDetailsProps> = ({
   const [isApplying, setIsApplying] = useState(false);
   const [couponError, setCouponError] = useState("");
   const [couponSuccess, setCouponSuccess] = useState("");
-  const bookingDatasRedux = useSelector((state: any) => state.booking.bookingData);
+  const bookingDatasRedux = useSelector((state) => state.booking.bookingData);
 
 
 const applyCouponByCode = async (code: string) => {
@@ -70,7 +70,7 @@ const applyCouponByCode = async (code: string) => {
     onShowCouponsModal?.();
   };
 
-  const handleSelectCoupon = (coupon: any) => {
+  const handleSelectCoupon = (coupon: CouponData) => {
     onSelectCoupon?.(coupon);
     setShowCouponsModal(false);
     setCouponError("");
@@ -91,12 +91,10 @@ const handleApplyCouponCode = async () => {
     const result = await applyCouponByCode(couponCode.trim());
     
     if (result && result.success) {
-      // Success - coupon already applied via handleSelectCoupon in applyCouponByCode
       setCouponSuccess("Coupon applied successfully!");
       setCouponCode("");
       setTimeout(() => setCouponSuccess(""), 3000);
     } else {
-      // Error
       setCouponError(result?.message || "Coupon doesn't exist or expired");
     }
   } catch (error) {

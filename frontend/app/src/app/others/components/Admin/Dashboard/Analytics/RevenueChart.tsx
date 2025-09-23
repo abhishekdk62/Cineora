@@ -1,4 +1,3 @@
-// components/admin/analytics/RevenueChart.tsx
 import React from 'react';
 import { ChartContainer } from './ChartContainer';
 
@@ -40,7 +39,6 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
       );
     }
 
-    // Simple bar chart representation
     const maxRevenue = Math.max(...data.map(d => d.revenue));
     
     return (

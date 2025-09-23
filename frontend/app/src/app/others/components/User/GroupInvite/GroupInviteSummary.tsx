@@ -1,4 +1,3 @@
-// components/User/GroupInvite/GroupInviteSummary.tsx
 import React from "react";
 import { Lexend } from "next/font/google";
 import { Users } from "lucide-react";
@@ -8,20 +7,20 @@ import { AvailableSeatsDetails } from "./AvailableSeatsDetails";
 import { GroupSettings } from "./GroupSettings";
 import { GroupPriceSummary } from "./GroupPriceSummary";
 import { GroupCouponDetails } from "../Payment/GroupCouponDetails";
+import { CouponData } from "@/app/others/types";
 
 const lexendMedium = Lexend({ weight: "400", subsets: ["latin"] });
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
 
 interface GroupInviteSummaryProps {
-  data: any;
+  data: CouponData;
   onCreateInvite: () => void;
   onRatingChange: (rating: number | undefined) => void;
   minRating?: number;
   isCreating: boolean;
-  // Add coupon props
-  selectedCoupon?: any;
-  availableCoupons?: any[];
-  onSelectCoupon?: (coupon: any) => void;
+  selectedCoupon?: CouponData;
+  availableCoupons?: CouponData[];
+  onSelectCoupon?: (coupon: CouponData) => void;
   onRemoveCoupon?: () => void;
 }
 

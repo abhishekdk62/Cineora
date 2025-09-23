@@ -15,7 +15,6 @@ export const screenTemplates: ScreenTemplate[] = [
       { rowLabel: 'E', seatCount: 14, offset: 1, type: 'Premium', price: 200 },
     ],
     aisles: {
-      // one main vertical aisle in center, one horizontal after C
       vertical: [
         { id: 'v1', position: 7, width: 1 }
       ],

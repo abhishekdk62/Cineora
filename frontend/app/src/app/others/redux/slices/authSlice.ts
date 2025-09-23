@@ -5,6 +5,7 @@ import {
 } from "../../services/userServices/authServices";
 import { googleAuth, logout } from "../../services/authServices/authService";
 import { AxiosError } from "axios";
+import { CredentialResponse } from "@react-oauth/google";
 
 interface User {
   id:string;
@@ -112,7 +113,7 @@ if(error instanceof AxiosError)
 
 export const googleLogin = createAsyncThunk(
   "auth/googleLogin",
-  async (credentialResponse: any, { rejectWithValue }) => {
+  async (credentialResponse: CredentialResponse, { rejectWithValue }) => {
     try {
       const result = await googleAuth(credentialResponse);
 

@@ -8,7 +8,7 @@ import {
   UpdateInviteStatusDTO,
   InviteGroupFilterDTO,
 } from "../dtos/inviteGroup.dto";
-import mongoose from "mongoose";
+import mongoose, { FilterQuery } from "mongoose";
 
 export class InviteGroupRepository implements IInviteGroupRepository {
   async createInviteGroup(inviteGroupData: any): Promise<IInviteGroup> {
@@ -39,7 +39,7 @@ export class InviteGroupRepository implements IInviteGroupRepository {
     filters?: InviteGroupFilterDTO
   ): Promise<IInviteGroup[]> {
     try {
-      const query: any = { hostUserId };
+      const query: FilterQuery = { hostUserId };
       const inviteGroups = await InviteGroup.find(query)
         .populate("hostUserId", "username profilePicture groupBookingStats")
         .populate("movieId", "title poster")
@@ -63,16 +63,16 @@ export class InviteGroupRepository implements IInviteGroupRepository {
     filters?: InviteGroupFilterDTO
   ): Promise<IInviteGroup[]> {
     try {
-      const query: any = {
+      const query: FilterQuery = {
         status: { $ne: "cancelled" },
-            hostUserId: { $ne: userId },           // 🚫 exclude groups you hosted
+            hostUserId: { $ne: userId },         
 
         $or: [
 
-          { status: "completed" }, // Show completed regardless of slots
+          { status: "completed" }, 
           {
             status: { $in: ["pending", "active"] },
-            availableSlots: { $gt: 0 }, // Only check slots for pending/active
+            availableSlots: { $gt: 0 }, 
           },
         ],
       };
@@ -91,7 +91,6 @@ export class InviteGroupRepository implements IInviteGroupRepository {
         .populate("screenId", "name layout features screenType")
         .populate("theaterId", "name location")
         .sort({
-          // ✅ Sort by status first (pending/active first), then by creation date
           status: 1,
           createdAt: -1,
         })
@@ -131,7 +130,7 @@ export class InviteGroupRepository implements IInviteGroupRepository {
     filters?: InviteGroupFilterDTO
   ): Promise<IInviteGroup[]> {
     try {
-      const query: any = {
+      const query: FilterQuery = {
         showtimeId,
 
         status: { $in: filters?.status || ["pending", "active"] },
@@ -159,7 +158,7 @@ export class InviteGroupRepository implements IInviteGroupRepository {
         { inviteId },
         {
           $push: { participants: participantData },
-          $inc: { availableSlots: -1 }, // ✅ Decrease available slots
+          $inc: { availableSlots: -1 },
         },
         { new: true, runValidators: true }
       );
@@ -183,19 +182,16 @@ export class InviteGroupRepository implements IInviteGroupRepository {
     } | null;
   }> {
     try {
-      // First, find the invite group to get participant details before removal
       const inviteGroup = await InviteGroup.findOne({ inviteId });
 
       if (!inviteGroup) {
         return { updatedInviteGroup: null, removedParticipant: null };
       }
 
-      // Find the specific participant being removed
       const participantToRemove = inviteGroup.participants.find(
         (participant) => participant.userId.toString() === userId
       );
 
-      // Extract participant data before removal
       const removedParticipant = participantToRemove
         ? {
             ticketId: participantToRemove.ticketId,
@@ -205,7 +201,6 @@ export class InviteGroupRepository implements IInviteGroupRepository {
           }
         : null;
 
-      // Remove the participant and increment available slots
       const updatedInviteGroup = await InviteGroup.findOneAndUpdate(
         { inviteId },
         {
@@ -245,7 +240,7 @@ export class InviteGroupRepository implements IInviteGroupRepository {
             "participants.$.paidAt": paymentData.paidAt || new Date(),
           },
           ...(paymentData.paymentStatus === "completed" && {
-            $inc: { paidAmount: 0 }, // Will be calculated in service
+            $inc: { paidAmount: 0 }, 
           }),
         },
         { new: true }
@@ -283,14 +278,14 @@ export class InviteGroupRepository implements IInviteGroupRepository {
         { $set: updateData },
         {
           new: true,
-          runValidators: true, // ✅ Add this
+          runValidators: true,
         }
       );
 console.log('participantDetails at repo',updatedInviteGroup);
 
       return updatedInviteGroup;
     } catch (error) {
-      console.error("❌ Update status error:", error);
+      console.error(" Update status error:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
       throw new Error(`Update invite group status failed: ${errorMessage}`);

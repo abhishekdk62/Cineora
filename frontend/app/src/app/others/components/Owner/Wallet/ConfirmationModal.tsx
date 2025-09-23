@@ -1,4 +1,3 @@
-// ConfirmationModal.tsx - Complete Fix
 import React from 'react';
 import { AlertTriangle, DollarSign, X, Check, FileQuestion, CircleQuestionMark } from 'lucide-react';
 

@@ -20,12 +20,10 @@ const MyInviteCard: React.FC<Props> = ({
   onRefresh, 
   handleCancel 
 }) => {
-  // ✅ Local state for real-time updates
   const [currentAvailableSlots, setCurrentAvailableSlots] = useState(invite.availableSlots);
   const [currentStatus, setCurrentStatus] = useState(invite.status);
   const [participantCount, setParticipantCount] = useState(invite.participants?.length || 0);
 
-  // ✅ ONLY UPDATE FROM PROPS - NO SOCKET LISTENERS
   useEffect(() => {
    
     
@@ -42,7 +40,6 @@ const MyInviteCard: React.FC<Props> = ({
     });
   };
 
-  // ✅ Use real-time state for calculations
   const joinedCount = invite.totalSlotsRequested - currentAvailableSlots;
   const progressPercentage = Math.round((joinedCount / invite.totalSlotsRequested) * 100);
   const pricePerSeat = Math.round(invite.totalAmount / invite.totalSlotsRequested);
@@ -60,7 +57,6 @@ const MyInviteCard: React.FC<Props> = ({
         : 'from-white/10 via-white/5 to-transparent border-white/10'
     }`}>
       <div className="flex gap-6">
-        {/* Movie Poster */}
         <div className="flex-shrink-0 relative">
           <img
             src={invite.movieId?.poster || 'https://via.placeholder.com/300x400/1f2937/ffffff?text=No+Poster'}
@@ -73,7 +69,6 @@ const MyInviteCard: React.FC<Props> = ({
             }}
           />
           
-          {/* Status Overlays */}
           {isCancelled && (
             <div className="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center">
               <div className="text-center">

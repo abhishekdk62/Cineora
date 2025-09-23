@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { Activity, Layers, DollarSign, Clock, TrendingUp } from 'lucide-react';
 

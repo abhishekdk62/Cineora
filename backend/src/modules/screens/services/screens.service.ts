@@ -27,7 +27,6 @@ export class ScreenService implements IScreenService {
   ): Promise<ServiceResponse<IScreen>> {
     try {
       this._validateCreateScreenData(screenData);
-//@ts-ignore
       const theaterIdString =        screenData.theater!._id.toString() || screenData?.theaterId;
 
       const theater = await this.theaterRepository.getTheaterById(
@@ -54,7 +53,6 @@ export class ScreenService implements IScreenService {
       }
 
       const processedData: CreateScreenDto = {
-        //@ts-ignore
         theaterId: new Types.ObjectId(screenData.theater!._id)||new Types.ObjectId(screenData?.theaterId),
         name: screenData.name.trim(),
         totalSeats: screenData.totalSeats,
@@ -77,7 +75,7 @@ export class ScreenService implements IScreenService {
         isActive: true,
       };
 
-      const screen = await this.screenRepository.createScreen(processedData);
+      const screen = await this.screenRepository.create(processedData);
 
       await this.theaterRepository.incrementTheaterScreenCount(theaterIdString);
 
@@ -95,7 +93,7 @@ export class ScreenService implements IScreenService {
     try {
       this._validateScreenId(screenId);
 
-      const screen = await this.screenRepository.getScreenById(screenId);
+      const screen = await this.screenRepository.findById(screenId);
 
       if (!screen) {
         return {
@@ -202,7 +200,7 @@ export class ScreenService implements IScreenService {
       if (page < 1) page = 1;
       if (limit < 1 || limit > 100) limit = 10;
 
-      const result = await this.screenRepository.getAllScreensPaginated(
+      const result = await this.screenRepository.findAll(
         page,
         limit,
         filters
@@ -273,7 +271,7 @@ export class ScreenService implements IScreenService {
       this._validateScreenId(screenId);
       this._validateUpdateScreenData(updateData);
 
-      const currentScreen = await this.screenRepository.getScreenById(screenId);
+      const currentScreen = await this.screenRepository.findById(screenId);
       if (!currentScreen) {
         return {
           success: false,
@@ -300,7 +298,7 @@ export class ScreenService implements IScreenService {
         }
       }
 
-      const updatedScreen = await this.screenRepository.updateScreen(
+      const updatedScreen = await this.screenRepository.update(
         screenId,
         updateData
       );
@@ -321,7 +319,7 @@ export class ScreenService implements IScreenService {
     try {
       this._validateScreenId(screenId);
 
-      const screen = await this.screenRepository.toggleScreenStatus(screenId);
+      const screen = await this.screenRepository.toggleStatus(screenId);
 
       return {
         success: true,
@@ -339,7 +337,7 @@ export class ScreenService implements IScreenService {
     try {
       this._validateScreenId(screenId);
 
-      const deletedScreen = await this.screenRepository.deleteScreen(screenId);
+      const deletedScreen = await this.screenRepository.delete(screenId);
 
       const theaterIdString = this._extractTheaterIdString(
         deletedScreen.theaterId
@@ -501,13 +499,11 @@ export class ScreenService implements IScreenService {
       throw new Error("Advanced layout with rows is required");
     }
 
-    // ADD THIS: Validate aisle configuration
     if (screenData.layout?.advancedLayout?.aisles) {
       const aisles = screenData.layout.advancedLayout.aisles;
       const maxSeatsPerRow = screenData.layout.seatsPerRow;
       const maxRows = screenData.layout.rows;
 
-      // Validate vertical aisles
       if (aisles.vertical) {
         aisles.vertical.forEach((aisle, index) => {
           if (!aisle.id || typeof aisle.id !== "string") {
@@ -528,7 +524,6 @@ export class ScreenService implements IScreenService {
         });
       }
 
-      // Validate horizontal aisles
       if (aisles.horizontal) {
         aisles.horizontal.forEach((aisle, index) => {
           if (!aisle.id || typeof aisle.id !== "string") {
@@ -550,7 +545,6 @@ export class ScreenService implements IScreenService {
       }
     }
 
-    // ADD THIS: Validate seats structure
     screenData.layout.advancedLayout.rows.forEach((row, rowIndex) => {
       if (!row.rowLabel) {
         throw new Error(`Row ${rowIndex + 1}: Row label is required`);
@@ -600,13 +594,11 @@ export class ScreenService implements IScreenService {
       throw new Error("Advanced layout with rows is required");
     }
 
-    // ADD THIS: Validate aisle configuration
     if (updateData.layout?.advancedLayout?.aisles) {
       const aisles = updateData.layout.advancedLayout.aisles;
-      const maxSeatsPerRow = updateData.layout.seatsPerRow || 50; // fallback
-      const maxRows = updateData.layout.rows || 20; // fallback
+      const maxSeatsPerRow = updateData.layout.seatsPerRow || 50; 
+      const maxRows = updateData.layout.rows || 20; 
 
-      // Validate vertical aisles
       if (aisles.vertical) {
         aisles.vertical.forEach((aisle, index) => {
           if (!aisle.id || typeof aisle.id !== "string") {

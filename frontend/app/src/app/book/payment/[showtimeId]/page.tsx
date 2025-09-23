@@ -164,7 +164,6 @@ const paymentData = useMemo(() => {
   }
 
 return {
-  // ✅ FIX: Handle movieId union type (string | object)
   movieTitle: (typeof showTimeData.movieId === 'object' && showTimeData.movieId?.title) 
     ? showTimeData.movieId.title 
     : "Movie Title",
@@ -181,7 +180,6 @@ return {
     ? showTimeData.theaterId.name 
     : "Theater Name",
   
-  // ✅ FIX: Handle screenId union type (string | object)
   screenName: (() => {
     if (typeof showTimeData.screenId === 'object' && showTimeData.screenId?.name) {
       return `Screen ${showTimeData.screenId.name}`;
@@ -192,7 +190,6 @@ return {
     }
   })(),
   
-  // ✅ FIX: Handle showDate which might be undefined
   showDate: showTimeData.showDate 
     ? new Date(showTimeData.showDate).toLocaleDateString('en-US', {
         weekday: 'short',
@@ -211,7 +208,6 @@ return {
   selectedSeats: bookingDatasRedux.selectedSeats,
   seatBreakdown: finalSeatBreakdown,
   
-  // Use Redux state values (these include coupon discounts)
   subtotal: bookingDatasRedux.priceDetails?.subtotal || 0,
   convenienceFee: bookingDatasRedux.priceDetails?.convenienceFee || 0,
   taxes: bookingDatasRedux.priceDetails?.taxes || 0,

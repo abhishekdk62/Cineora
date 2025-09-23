@@ -1,4 +1,3 @@
-//@ts-nocheck
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
@@ -101,7 +100,6 @@ const convertScreenLayoutToRowsDefs = (screen: IScreen): RowDef[] => {
   return screen.layout.advancedLayout.rows.map((row: string, index: number) => {
     const seats = Array.isArray(row.seats) ? row.seats : [];
     
-    // More defensive seat access
     let seatType = "Normal";
     let seatPrice = 150;
     
@@ -113,7 +111,6 @@ const convertScreenLayoutToRowsDefs = (screen: IScreen): RowDef[] => {
       }
     }
     
-    // Fallback: Try to get type/price from row-level data
     if (seatType === "Normal" && row.type) {
       seatType = row.type;
     }
@@ -122,7 +119,7 @@ const convertScreenLayoutToRowsDefs = (screen: IScreen): RowDef[] => {
     }
     
     return {
-      rowLabel: row.rowLabel || String.fromCharCode(65 + index), // A, B, C...
+      rowLabel: row.rowLabel || String.fromCharCode(65 + index), 
       seatCount: seats.length,
       offset: row.offset || 0,
       type: seatType,
@@ -132,7 +129,6 @@ const convertScreenLayoutToRowsDefs = (screen: IScreen): RowDef[] => {
 };
 
 
-  // SINGLE useEffect for edit mode - removed duplicate
 useEffect(() => {
   if (mode === "edit" && initialData) {
     const existingRowsDefs = convertScreenLayoutToRowsDefs(initialData);
@@ -159,7 +155,6 @@ useEffect(() => {
         seatsPerRow: initialData.layout?.seatsPerRow || 0,
         advancedLayout: {
           ...baseAdvancedLayout,
-          // ENSURE aisles structure exists
           aisles: baseAdvancedLayout.aisles || {
             vertical: [],
             horizontal: []
@@ -202,7 +197,6 @@ useEffect(() => {
     const template = screenTemplates[templateIndex];
     setRowsDefs(template.layout);
     
-    // Apply template aisles if they exist
     if (template.aisles) {
       setVerticalAisles(template.aisles.vertical || []);
       setHorizontalAisles(template.aisles.horizontal || []);

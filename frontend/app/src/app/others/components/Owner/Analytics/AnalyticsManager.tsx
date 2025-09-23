@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { Calendar, ChevronDown, BarChart3, TrendingUp, Users, DollarSign } from 'lucide-react';
 import { getAnalyticsSummaryApi } from '@/app/others/services/commonServices/analyticServices';
@@ -12,7 +11,6 @@ import { FormatPieChart, RevenueAreaChart } from './Charts';
 import { CustomerInsightsSection } from './CustomerInsightsSection';
 
 
-// Define your font styles
 const lexendMedium = { fontFamily: 'Lexend', fontWeight: '500' };
 const lexendSmall = { fontFamily: 'Lexend', fontWeight: '400' };
 

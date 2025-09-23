@@ -217,23 +217,23 @@ export class MoviesController {
     }
   }
 
-  private mapQueryToMovieFilters(query: any): MovieFiltersDto {
+  private mapQueryToMovieFilters(query: MovieFiltersDto): MovieFiltersDto {
     return query as MovieFiltersDto;
   }
 
-  private _mapQueryToPaginationDto(query: any): PaginationQueryDto {
+  private _mapQueryToPaginationDto(query: PaginationQueryDto): PaginationQueryDto {
     return query as PaginationQueryDto;
   }
 
-  private _mapBodyToCreateMovieDto(body: any): CreateMovieDto {
+  private _mapBodyToCreateMovieDto(body: CreateMovieDto): CreateMovieDto {
     return body as CreateMovieDto;
   }
 
-  private _mapBodyToUpdateMovieDto(body: any): UpdateMovieDto {
+  private _mapBodyToUpdateMovieDto(body: UpdateMovieDto): UpdateMovieDto {
     return body as UpdateMovieDto;
   }
 
-  private _mapParamsToMovieParams(params: any): MovieParamsDto {
+  private _mapParamsToMovieParams(params: MovieParamsDto): MovieParamsDto {
     return params as MovieParamsDto;
   }
 

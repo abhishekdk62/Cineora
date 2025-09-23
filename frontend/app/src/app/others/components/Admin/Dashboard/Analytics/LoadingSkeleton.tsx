@@ -1,4 +1,3 @@
-// components/admin/analytics/LoadingSkeleton.tsx
 import React from 'react';
 
 interface LoadingSkeletonProps {

@@ -25,7 +25,7 @@ export default function Hero({ onNavigateToSearch }: HeroProps) {
       onNavigateToSearch(query);
     }
   };
-  const handleSuggestionSelect = (suggestion: any) => {
+  const handleSuggestionSelect = (suggestion) => {
     console.log(`Navigating to ${suggestion.type} detail page:`, suggestion);
   };
   return (

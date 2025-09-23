@@ -66,7 +66,7 @@ export const RenderOperationalContent: React.FC<RenderOperationalContentProps> =
         <TopPerformersList
           title="Payment Gateway Performance"
           data={Array.isArray(operationalData.paymentAnalytics?.gatewayPerformance) ?
-            operationalData.paymentAnalytics.gatewayPerformance.map((gateway: any, index: number) => ({
+            operationalData.paymentAnalytics.gatewayPerformance.map((gateway: string, index: number) => ({
               id: index,
               name: gateway.gateway || 'Unknown',
               value: gateway.successRate || 0,
@@ -81,7 +81,7 @@ export const RenderOperationalContent: React.FC<RenderOperationalContentProps> =
         <TopPerformersList
           title="Top Cancellation Reasons"
           data={Array.isArray(operationalData.cancellationAnalytics?.topCancellationReasons) ?
-            operationalData.cancellationAnalytics.topCancellationReasons.map((reason: any, index: number) => ({
+            operationalData.cancellationAnalytics.topCancellationReasons.map((reason: string, index: number) => ({
               id: index,
               name: reason.reason || 'Unknown',
               value: reason.count || 0,
@@ -118,7 +118,7 @@ export const RenderOperationalContent: React.FC<RenderOperationalContentProps> =
         <div className="bg-black p-6 rounded-lg shadow-sm border">
           <h3 className="font-semibold text-white mb-4">Seasonal Trends</h3>
           <div className="space-y-3">
-            {operationalData.seasonalTrends.map((trend: any, index: number) => (
+            {operationalData.seasonalTrends.map((trend: string, index: number) => (
               <div key={index} className="flex justify-between items-center p-3 bg-gray-800 rounded">
                 <span className="font-medium text-white">{trend.season || `Season ${index + 1}`}</span>
                 <div className="text-right">

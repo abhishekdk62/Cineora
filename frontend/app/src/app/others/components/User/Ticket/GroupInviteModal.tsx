@@ -1,20 +1,21 @@
-// components/GroupInviteModal.tsx
 import React, { useState } from "react";
 import { X, Users, Clock, MapPin, Calendar } from "lucide-react";
+import { inviteDto } from "@/app/others/services/userServices/inviteGroupServices";
+import { ShowtimeData } from "@/app/book/tickets/[showtimeId]/page";
 
 interface GroupInviteModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedSeats: string[];
-  showtimeData: any;
+  showtimeData: ShowtimeData;
   getSeatPrice: (seatId: string) => number;
   getSeatType: (seatId: string) => string;
   totalAmount: number;
-  onCreateInvite: (inviteData: any) => void;
+  onCreateInvite: (inviteData: inviteDto) => void;
   lexendMediumClassName: string;
   lexendSmallClassName: string;
   lexendBoldClassName: string;
-}// Updated GroupInviteModal.tsx - Much simpler!
+}
 export default function GroupInviteModal({
   isOpen,
   onClose,
@@ -30,10 +31,9 @@ export default function GroupInviteModal({
 }: GroupInviteModalProps) {
   const [minRating, setMinRating] = useState<number | undefined>();
 
-  // Host will pay for FIRST seat only
   const hostSeat = selectedSeats[0];
   const hostSeatPrice = getSeatPrice(hostSeat);
-  const availableSeats = selectedSeats.slice(1); // Remaining seats for others
+  const availableSeats = selectedSeats.slice(1);
 
   const handleCreateInvite = () => {
     const selectedSeatsWithDetails = selectedSeats.map(seatId => ({
@@ -48,7 +48,7 @@ export default function GroupInviteModal({
       theaterId: showtimeData.theaterId._id,
       screenId: showtimeData.screenId._id,
       selectedSeats: selectedSeatsWithDetails,
-      totalSlotsRequested: selectedSeats.length, // Total seats
+      totalSlotsRequested: selectedSeats.length, 
       minRequiredRating: minRating
     };
 

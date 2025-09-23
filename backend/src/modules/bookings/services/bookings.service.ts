@@ -5,6 +5,7 @@ import { IBookingService } from "../interfaces/bookings.service.interface";
 import { IBookingRepository } from "../interfaces/bookings.repository.interface";
 import { IShowtimeService } from "../../showtimes/interfaces/showtimes.service.interface";
 import { IShowtimeRepository } from "../../showtimes/interfaces/showtimes.repository.interface";
+import { bookingInfo } from "../../tickets/dtos/dto";
 
 export class BookingService implements IBookingService {
   constructor(
@@ -77,12 +78,10 @@ export class BookingService implements IBookingService {
     endDate?: string
   ): Promise<ServiceResponse> {
     try {
-      // Validate theater ID
       if (!mongoose.Types.ObjectId.isValid(theaterId)) {
         return this._createErrorResponse("Invalid theater ID format");
       }
 
-      // Validate dates if provided
       if (startDate && !this._isValidDateFormat(startDate)) {
         return this._createErrorResponse(
           "Invalid start date format. Use YYYY-MM-DD"
@@ -134,7 +133,6 @@ export class BookingService implements IBookingService {
     }
   }
 
-  // Add this helper method
   private _isValidDateFormat(dateString: string): boolean {
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(dateString)) return false;
@@ -266,11 +264,10 @@ export class BookingService implements IBookingService {
       );
     }
   }
-  // Add this method to your existing BookingService class
 
   async updateBookingById(
     bookingId: string,
-    updateData: any
+    updateData: bookingInfo
   ): Promise<ServiceResponse> {
     try {
       if (!bookingId) {
@@ -300,8 +297,8 @@ export class BookingService implements IBookingService {
   async updateBookingAfterTicketCancellation(
     bookingId: string,
     cancelledSeats: string[],
-    newPricing: any,
-    newSeatPricing: any[]
+    newPricing: number,
+    newSeatPricing: number[]
   ): Promise<ServiceResponse> {
     try {
       const booking = await this.bookingRepository.findBookingById(bookingId);
@@ -318,7 +315,6 @@ export class BookingService implements IBookingService {
         (seatId) => !cancelledSeats.includes(seatId)
       );
 
-      // Determine booking status
       const newStatus =
         updatedSelectedSeats.length === 0 ? "cancelled" : "confirmed";
 

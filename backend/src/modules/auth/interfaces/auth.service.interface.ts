@@ -21,7 +21,7 @@ export interface IAuthService {
   ): Promise<LoginResponseDto>;
 
   generateTokenPair(
-    user: any,
+    user: UserDataDto,
     role: string
   ): TokenPairDto;
 

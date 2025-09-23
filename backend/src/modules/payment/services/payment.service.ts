@@ -155,7 +155,7 @@ export class PaymentService implements IPaymentService {
           available_balance: wallet,
         },
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Create payout order error:", error);
       return {
         success: false,
@@ -229,7 +229,7 @@ razorpay_payment_id?description= `Cash withdrawnn ₹${amount} to your bank acco
           estimated_time: this.getEstimatedTime(mode),
         },
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Confirm payout error:", error);
       return {
         success: false,

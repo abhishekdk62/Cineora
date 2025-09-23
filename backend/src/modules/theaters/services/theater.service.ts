@@ -43,14 +43,14 @@ export class TheaterService implements ITheaterService {
         };
       }
 
-      const theater = await this.theaterRepository.createTheater(ownerId, theaterData);
+      const theater = await this.theaterRepository.create(ownerId, theaterData);
 
       return {
         success: true,
         message: "Theater created successfully",
         data: theater,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error creating theater:", error);
       return this._handleServiceError(error, "Failed to create theater");
     }
@@ -65,7 +65,7 @@ export class TheaterService implements ITheaterService {
         };
       }
 
-      const theater = await this.theaterRepository.getTheaterById(theaterId);
+      const theater = await this.theaterRepository.findById(theaterId);
 
       if (!theater) {
         return {
@@ -79,7 +79,7 @@ export class TheaterService implements ITheaterService {
         message: "Theater retrieved successfully",
         data: theater,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error getting theater by ID:", error);
       return this._handleServiceError(error, "Failed to retrieve theater");
     }
@@ -110,7 +110,7 @@ export class TheaterService implements ITheaterService {
         message: "Theaters retrieved successfully",
         data: result,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error getting theaters by owner ID:", error);
       return this._handleServiceError(error, "Failed to retrieve theaters");
     }
@@ -124,7 +124,7 @@ export class TheaterService implements ITheaterService {
     try {
       const validatedPage = this._validatePagination(page, limit);
       
-      const result = await this.theaterRepository.getAllTheaters(
+      const result = await this.theaterRepository.findAll(
         validatedPage.page, 
         validatedPage.limit, 
         filters
@@ -135,7 +135,7 @@ export class TheaterService implements ITheaterService {
         message: "Theaters retrieved successfully",
         data: result,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error getting all theaters:", error);
       return this._handleServiceError(error, "Failed to retrieve theaters");
     }
@@ -163,7 +163,7 @@ export class TheaterService implements ITheaterService {
         }
       }
 
-      const theater = await this.theaterRepository.updateTheater(theaterId, updateData);
+      const theater = await this.theaterRepository.update(theaterId, updateData);
 
       if (!theater) {
         return {
@@ -177,7 +177,7 @@ export class TheaterService implements ITheaterService {
         message: "Theater updated successfully",
         data: theater,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error updating theater:", error);
       return this._handleServiceError(error, "Failed to update theater");
     }
@@ -192,7 +192,7 @@ export class TheaterService implements ITheaterService {
         };
       }
 
-      const theater = await this.theaterRepository.toggleTheaterStatus(theaterId);
+      const theater = await this.theaterRepository.toggleStatus(theaterId);
 
       if (!theater) {
         return {
@@ -206,7 +206,7 @@ export class TheaterService implements ITheaterService {
         message: `Theater ${theater.isActive ? "activated" : "deactivated"} successfully`,
         data: theater,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error toggling theater status:", error);
       return this._handleServiceError(error, "Failed to toggle theater status");
     }
@@ -221,7 +221,7 @@ export class TheaterService implements ITheaterService {
         };
       }
 
-      const existingTheater = await this.theaterRepository.getTheaterById(theaterId);
+      const existingTheater = await this.theaterRepository.findById(theaterId);
       if (!existingTheater) {
         return {
           success: false,
@@ -244,7 +244,7 @@ export class TheaterService implements ITheaterService {
         message: "Theater verified successfully",
         data: theater,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error verifying theater:", error);
       return this._handleServiceError(error, "Failed to verify theater");
     }
@@ -262,7 +262,7 @@ export class TheaterService implements ITheaterService {
         };
       }
 
-      const existingTheater = await this.theaterRepository.getTheaterById(theaterId);
+      const existingTheater = await this.theaterRepository.findById(theaterId);
       if (!existingTheater) {
         return {
           success: false,
@@ -270,7 +270,7 @@ export class TheaterService implements ITheaterService {
         };
       }
 
-      const deleted = await this.theaterRepository.deleteTheater(theaterId);
+      const deleted = await this.theaterRepository.delete(theaterId);
       if (!deleted) {
         return {
           success: false,
@@ -285,7 +285,7 @@ export class TheaterService implements ITheaterService {
         message: "Theater rejected successfully",
         data: { deleted: true },
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error rejecting theater:", error);
       return this._handleServiceError(error, "Failed to reject theater");
     }
@@ -300,7 +300,7 @@ export class TheaterService implements ITheaterService {
         };
       }
 
-      const deleted = await this.theaterRepository.deleteTheater(theaterId);
+      const deleted = await this.theaterRepository.delete(theaterId);
 
       if (!deleted) {
         return {
@@ -313,7 +313,7 @@ export class TheaterService implements ITheaterService {
         success: true,
         message: "Theater deleted successfully",
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error deleting theater:", error);
       return this._handleServiceError(error, "Failed to delete theater");
     }
@@ -351,7 +351,7 @@ export class TheaterService implements ITheaterService {
         message: "Nearby theaters retrieved successfully",
         data: theaters,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error getting nearby theaters:", error);
       return this._handleServiceError(error, "Failed to retrieve nearby theaters");
     }
@@ -380,7 +380,7 @@ export class TheaterService implements ITheaterService {
         hasNextPage: currentPage < result.totalPages,
         hasPrevPage: currentPage > 1,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error getting theaters with filters:", error);
       throw error;
     }
@@ -415,7 +415,7 @@ export class TheaterService implements ITheaterService {
         message: "Theater retrieved successfully",
         data: theater,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error getting theater by owner and name:", error);
       return this._handleServiceError(error, "Failed to retrieve theater");
     }
@@ -456,7 +456,7 @@ export class TheaterService implements ITheaterService {
   }
 
   private async _checkTheaterNameDuplicate(theaterId: string, updateData: UpdateTheaterDTO): Promise<boolean> {
-    const currentTheater = await this.theaterRepository.getTheaterById(theaterId);
+    const currentTheater = await this.theaterRepository.findById(theaterId);
     if (!currentTheater) {
       return false;
     }
@@ -473,7 +473,7 @@ export class TheaterService implements ITheaterService {
     try {
       if (this._isTheaterOwnerEmailAvailable(theater)) {
         await this.emailService.sendTheaterVerifiedEmail(
-          (theater.ownerId as any).email,
+          (theater.ownerId as string).email,
           theater.name
         );
       }
@@ -486,7 +486,7 @@ export class TheaterService implements ITheaterService {
     try {
       if (this._isTheaterOwnerEmailAvailable(theater)) {
         await this.emailService.sendTheaterRejectedEmail(
-          (theater.ownerId as any).email,
+          (theater.ownerId as string).email,
           theater.name,
           rejectionReason || "Your theater application did not meet our requirements."
         );
@@ -526,7 +526,7 @@ export class TheaterService implements ITheaterService {
     };
   }
 
-  private _handleServiceError(error: any, defaultMessage: string): ServiceResponse<any> {
+  private _handleServiceError(error: unknown, defaultMessage: string): ServiceResponse<any> {
     if (error.message === "Theater with this name already exists in this city") {
       return {
         success: false,

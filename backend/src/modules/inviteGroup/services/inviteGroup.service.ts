@@ -1,4 +1,3 @@
-// services/inviteGroup.service.ts
 import mongoose, { Types } from "mongoose";
 import { IInviteGroupService } from "../interfaces/inviteGroup.service.interface";
 import { IInviteGroupRepository } from "../interfaces/inviteGroup.repository.interface";
@@ -53,7 +52,6 @@ async createInviteGroup(
       holdResult.data!.failedSeats.includes(seat.seatNumber)
     );
 
-    // ✅ IDENTIFY newly held seats
     const newlyHeldSeats = inviteData.requestedSeats.filter(seat => 
       holdResult.data!.heldSeats.includes(seat.seatNumber)
     );
@@ -84,25 +82,22 @@ async createInviteGroup(
     return new Date(showDateTime.getTime() - (4 * 60 * 60 * 1000));
   })(),
 
-      // ✅ INCLUDE ALL SEATS (host's existing + newly held)
       requestedSeats: allInviteSeats.map((seat) => ({
         seatNumber: seat.seatNumber,
         seatRow: seat.seatRow || seat.seatNumber.charAt(0),
         seatType: seat.seatType,
         price: seat.price,
-        isOccupied: hostExistingSeats.some(h => h.seatNumber === seat.seatNumber), // Host's seats are occupied
+        isOccupied: hostExistingSeats.some(h => h.seatNumber === seat.seatNumber), 
       })),
 
-      // ✅ ADJUST counts: total seats - host's occupied seats = available for others
       totalSlotsRequested: allInviteSeats.length,
-      availableSlots: newlyHeldSeats.length, // Only newly held seats are available for others
+      availableSlots: newlyHeldSeats.length, 
 
       showDate: inviteData.showDate ? new Date(inviteData.showDate) : new Date(),
       showTime: inviteData.showTime || "00:00",
 
-      // ✅ TOTAL amount includes host's seats + available seats
       totalAmount: totalInviteAmount,
-      paidAmount: hostExistingSeats.reduce((total, seat) => total + seat.price, 0), // Host already paid
+      paidAmount: hostExistingSeats.reduce((total, seat) => total + seat.price, 0), 
       currency: inviteData.currency || "INR",
 
       priceBreakdown: inviteData.priceBreakdown,
@@ -114,7 +109,6 @@ async createInviteGroup(
         },
       }),
 
-      // ✅ INCLUDE host as participant + others
       participants: allParticipants,
 
       minRequiredRating: inviteData.minRequiredRating,
@@ -125,7 +119,6 @@ async createInviteGroup(
       completeInviteData
     );
 
-    // ✅ Emit seat hold event for newly held seats only
     this.socketService.emitSeatHold(
       inviteGroup.showtimeId.toString(),
       holdResult.data!.heldSeats,
@@ -201,7 +194,6 @@ async createInviteGroup(
         };
       }
 
-      // ✅ GET PARTICIPANT DETAILS BEFORE CANCELING
       const participantDetails = inviteGroup.participants
         .filter((p) => p.ticketId && p.amount)
         .map((p) => ({
@@ -211,7 +203,6 @@ async createInviteGroup(
           seatAssigned: p.seatAssigned || "",
         }));
 
-      // ✅ RELEASE HELD SEATS using showtime service
       const releaseResult = await this.showTimeService.releaseHeldSeats(
         inviteGroup.showtimeId.toString(),
         { inviteGroupId: inviteId }
@@ -219,7 +210,6 @@ async createInviteGroup(
 
       if (!releaseResult.success) {
         console.warn("Failed to release held seats:", releaseResult.message);
-        // Continue with cancellation even if seat release fails
       }
 
       const updatedInviteGroup =
@@ -229,7 +219,6 @@ async createInviteGroup(
         });
 
       if (updatedInviteGroup) {
-        // ✅ Emit seat release event with all requested seats
         const seatNumbers = inviteGroup.requestedSeats.map(
           (seat) => seat.seatNumber
         );
@@ -249,7 +238,7 @@ async createInviteGroup(
           participantDetails.length > 0 ? participantDetails : undefined,
       };
     } catch (error) {
-      console.error(`❌ [BACKEND] cancelInviteGroup error:`, error);
+      console.error(` [BACKEND] cancelInviteGroup error:`, error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
       return {
@@ -366,7 +355,6 @@ async createInviteGroup(
         ticketId,
       };
 
-      // ✅ Add participant to invite group
       const updatedInviteGroup =
         await this.inviteGroupRepository.addParticipantToInvite(
           inviteId,
@@ -374,7 +362,6 @@ async createInviteGroup(
         );
 
       if (updatedInviteGroup) {
-        // ✅ Update payment status immediately since payment was successful
         await this.inviteGroupRepository.updateParticipantPaymentStatus(
           inviteId,
           userId,
@@ -461,14 +448,13 @@ async createInviteGroup(
           inviteId: inviteId,
           leftUserId: userId,
           availableSlots: result.updatedInviteGroup.availableSlots,
-          // ✅ REMOVE totalJoined - let frontend calculate it
           releasedSeat: result.removedParticipant.seatAssigned,
           releasedSeatPrice: result.removedParticipant.amount,
         };
 
         this.socketService.emitParticipantLeft(inviteId, socketData);
       } else {
-        console.error(`❌ [BACKEND] Cannot emit socket - missing data:`, {
+        console.error(` [BACKEND] Cannot emit socket - missing data:`, {
           updatedInviteGroup: !!result.updatedInviteGroup,
           removedParticipant: !!result.removedParticipant,
         });
@@ -481,7 +467,7 @@ async createInviteGroup(
         participantData: result.removedParticipant,
       };
     } catch (error) {
-      console.error(`❌ [BACKEND] leaveInviteGroup error:`, error);
+      console.error(` [BACKEND] leaveInviteGroup error:`, error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
       return {

@@ -1,5 +1,9 @@
 
 import { ServiceResponse } from "../../../interfaces/interface";
+import { UserLookupResponseDto } from "../../auth/dtos/dtos";
+import { MovieResponseDto } from "../../movies/dtos/dtos";
+import { IMovie } from "../../movies/interfaces/movies.model.interface";
+import { ShowtimeValidationResult } from "../../showtimes/dtos/dto";
 import {
   IComprehensiveAnalyticsDTO,
   IRevenueAnalyticsDTO,
@@ -18,10 +22,8 @@ import {
 } from "../dtos/dtos";
 
 export interface IAdminAnalyticsService {
-  // Comprehensive dashboard
   getComprehensiveAnalytics(filter: IDateRange): Promise<ServiceResponse<IComprehensiveAnalyticsDTO>>;
   
-  // Revenue analytics
   getRevenueAnalytics(filter: IDateRange): Promise<ServiceResponse<IRevenueAnalyticsDTO>>;
   getMonthlyRevenueTrends(filter: IDateRange): Promise<ServiceResponse<IMonthlyRevenueDTO>>;
   getDailyRevenueTrends(filter: IDateRange): Promise<ServiceResponse<IDailyRevenueDTO>>;
@@ -29,26 +31,20 @@ export interface IAdminAnalyticsService {
   getOwnerWiseRevenue(filter: IDateRange): Promise<ServiceResponse<IOwnerRevenueDTO>>;
   getMovieWiseRevenue(filter: IDateRange): Promise<ServiceResponse<IMovieRevenueDTO>>;
   
-  // Performance metrics
   getPerformanceMetrics(filter: IDateRange): Promise<ServiceResponse<IPerformanceMetricsDTO>>;
-  getOccupancyAnalytics(filter: IDateRange): Promise<ServiceResponse<any>>;
-  getTimeSlotPerformance(filter: IDateRange): Promise<ServiceResponse<any>>;
+  getOccupancyAnalytics(filter: IDateRange): Promise<ServiceResponse<ShowtimeValidationResult>>;
+  getTimeSlotPerformance(filter: IDateRange): Promise<ServiceResponse<ShowtimeValidationResult>>;
   
-  // Customer analytics
   getCustomerInsights(filter: IDateRange): Promise<ServiceResponse<ICustomerInsightsDTO>>;
-  getCustomerSatisfaction(filter: IDateRange): Promise<ServiceResponse<any>>;
+  getCustomerSatisfaction(filter: IDateRange): Promise<ServiceResponse<UserLookupResponseDto>>;
   
-  // Movie analytics
   getMoviePerformance(filter: IDateRange): Promise<ServiceResponse<IMoviePerformanceDTO>>;
-  getTopPerformingMovies(filter: IDateRange, limit?: number): Promise<ServiceResponse<any>>;
-  getMovieFormatAnalytics(filter: IDateRange): Promise<ServiceResponse<any>>;
+  getTopPerformingMovies(filter: IDateRange, limit?: number): Promise<ServiceResponse<MovieResponseDto>>;
+  getMovieFormatAnalytics(filter: IDateRange): Promise<ServiceResponse<IMovie >>;
   
-  // Financial insights
   getFinancialKPIs(filter: IDateRange): Promise<ServiceResponse<IFinancialKPIsDTO>>;
   
-  // Growth and trends
   getGrowthRates(filter: IDateRange): Promise<ServiceResponse<IGrowthRatesDTO>>;
   
-  // Operational analytics
   getOperationalAnalytics(filter: IDateRange): Promise<ServiceResponse<IOperationalAnalyticsDTO>>;
 }

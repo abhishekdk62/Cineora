@@ -53,7 +53,6 @@ export class UserRoutes {
       this.chatRoomController.leaveChatRoom(req, res)
     );
 
-    // Chat Message routes
     this._router.post("/messages", (req, res) =>
       this.chatMessageController.sendMessage(req, res)
     );

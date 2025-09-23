@@ -139,7 +139,7 @@ export default function MovieDetailsPage() {
             onBookTicket={handleBookTicket}
             onWatchTrailer={() => setShowTrailer(true)}
             onGoBack={() => router.back()}
-            ratingStats={ratingStats} // Add this line
+            ratingStats={ratingStats}
           />
 
 

@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 import { getTicketsApi } from '@/app/others/services/userServices/ticketServices';
 import React, { useEffect, useState, useCallback } from 'react';
@@ -10,6 +9,7 @@ import EmptyState from './EmptyState';
 import ReviewModal from './ReviewModal';
 import toast from 'react-hot-toast';
 import { addReview } from '@/app/others/services/userServices/reviewServices';
+import { AdvanceBookingDto } from '@/app/others/dtos/analytics.dto';
 
 const lexendBold = { className: "font-bold" };
 
@@ -41,7 +41,7 @@ export interface TicketData {
         theaterId: string;
         name: string;
         totalSeats: number;
-        layout?: any;
+        layout?: JSON;
     };
     seatNumber: string;
     seatRow: string;
@@ -83,7 +83,6 @@ interface ApiResponse {
     timestamp: string;
 }
 
-// Update the TabType
 type TabType = 'upcoming' | 'history' | 'cancelled';
 
 
@@ -104,7 +103,7 @@ const TicketsList: React.FC = () => {
 
     const [showReviewModal, setShowReviewModal] = useState(false);
     const [rating, setRating] = useState(0);
-    const [selectedBookingForReview, setSelectedBookingForReview] = useState<any>(null);
+    const [selectedBookingForReview, setSelectedBookingForReview] = useState<AdvanceBookingDto>(null);
     const [reviewText, setReviewText] = useState('');
     const [submittingReview, setSubmittingReview] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
@@ -113,7 +112,6 @@ const TicketsList: React.FC = () => {
     const [hasMore, setHasMore] = useState(true);
     const [totalCount, setTotalCount] = useState(0);
 
- // Update the getTickets function
 const getTickets = async (pageNumber: number = 1, filterType?: string, append: boolean = false) => {
     try {
         if (pageNumber === 1) {
@@ -126,7 +124,6 @@ const getTickets = async (pageNumber: number = 1, filterType?: string, append: b
         if (filterType) {
             typeParam = filterType;
         } else {
-            // Map frontend tabs to backend types
             switch (activeTab) {
                 case 'upcoming':
                     typeParam = 'upcoming';
@@ -152,7 +149,6 @@ const getTickets = async (pageNumber: number = 1, filterType?: string, append: b
                 setAllTickets(response.data);
             }
 
-            // Update the specific tab count
             setTabCounts(prev => ({
                 ...prev,
                 [activeTab]: response.meta.pagination.total
@@ -246,7 +242,7 @@ const getTickets = async (pageNumber: number = 1, filterType?: string, append: b
         setSelectedTicket(null);
     };
 
-    const handleAddReview = (booking: any) => {
+    const handleAddReview = (booking: AdvanceBookingDto) => {
         setSelectedBookingForReview(booking);
         setShowReviewModal(true);
     };
@@ -279,7 +275,7 @@ const getTickets = async (pageNumber: number = 1, filterType?: string, append: b
             setCurrentPage(1);
             setAllTickets([]);
             getTickets(1);
-        } catch (error: any) {
+        } catch (error: unknown) {
             if (error?.response?.data?.message?.includes('already reviewed')) {
                 toast('You have already reviewed this show!', {
                     style: {

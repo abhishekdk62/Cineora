@@ -1,4 +1,3 @@
-//@ts-nocheck
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -57,15 +56,12 @@ export default function TheaterReviewModal({
   ratingStats,
   theaterName
 }: TheaterReviewModalProps) {
-  // State for managing reviews locally
   const [reviews, setReviews] = useState<Review[]>([]);
 
-  // Edit modal state
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // Update local reviews state when reviewsData prop changes
   useEffect(() => {
     if (reviewsData?.reviews) {
       setReviews(reviewsData.reviews);
@@ -130,7 +126,6 @@ let filteredReviews=reviews.filter((r)=>r._id!=revid)
     }
   };
 
-  // Create updated reviewsData with local reviews state
   const updatedReviewsData = {
     ...reviewsData,
     reviews: reviews,

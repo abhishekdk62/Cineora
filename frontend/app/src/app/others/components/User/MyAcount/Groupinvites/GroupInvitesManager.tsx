@@ -12,6 +12,7 @@ import { cancelSingleTicket } from "@/app/others/services/userServices/ticketSer
 import { getChatRoomByInvite, leaveChatRoom } from "@/app/others/services/userServices/chatServices";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/others/redux/store";
+import { Row } from "@/app/book/tickets/[showtimeId]/page";
 
 const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
@@ -47,7 +48,7 @@ interface GroupInvite {
       rows: number;
       seatsPerRow: number;
       advancedLayout: {
-        rows: any[];
+        rows: Row[];
         aisles: any;
       };
     };
@@ -116,9 +117,8 @@ interface GroupInvite {
   updatedAt: string;
   __v: number;
 
-  // ✅ NEW FIELDS FOR SEAT INFO
-  nextAvailableSeat?: string;    // "A2"
-  nextSeatPrice?: number;        // 185
+  nextAvailableSeat?: string;    
+  nextSeatPrice?: number;     
 }
 
 const GroupInvitesManager: React.FC = () => {
@@ -138,7 +138,6 @@ const GroupInvitesManager: React.FC = () => {
 
     console.log('🔗 Setting up global invite listeners...');
 
-    // ✅ Listen for participant updates (broadcast to everyone)
     socket.on('participant_joined', (data) => {
       console.log('👥 Someone joined invite globally:', data.inviteId, 'Available slots:', data.availableSlots);
       updateInviteWithSeatInfo(data.inviteId, {
@@ -151,7 +150,6 @@ const GroupInvitesManager: React.FC = () => {
       console.log('💺 Released seat:', data.releasedSeat, 'Price:', data.releasedSeatPrice);
       console.log('🔍 Full socket data on left:', data);
 
-      // ✅ UPDATE WITH SEAT INFO AND RESET STATUS
       updateInviteWithSeatInfo(data.inviteId, {
         availableSlots: data.availableSlots,
         releasedSeat: data.releasedSeat,
@@ -186,14 +184,13 @@ const GroupInvitesManager: React.FC = () => {
       }
     });
 
-    // ✅ Listen for completed invites (mark as completed, don't remove)
     socket.on('group_completed', (data) => {
       console.log('✅ Group completed globally:', data.inviteId);
       markInviteAsCompleted(data.inviteId);
     });
 
     socket.on('invite_cancelled', (data) => {
-      console.log('❌ Invite cancelled globally:', data.inviteId);
+      console.log(' Invite cancelled globally:', data.inviteId);
       removeInviteFromList(data.inviteId);
     });
 
@@ -227,7 +224,6 @@ const GroupInvitesManager: React.FC = () => {
     }
   };
 
-  // ✅ ENHANCED HELPER FUNCTION
   const updateInviteWithSeatInfo = (
     inviteId: string,
     updateData: {
@@ -265,7 +261,6 @@ const GroupInvitesManager: React.FC = () => {
     );
   };
 
-  // ✅ Mark invite as completed (better than removing)
   const markInviteAsCompleted = (inviteId: string) => {
     setAvailableInvites(prev =>
       prev.map(invite =>

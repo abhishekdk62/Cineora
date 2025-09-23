@@ -1,4 +1,3 @@
-// components/admin/CouponCard.tsx
 import React from 'react';
 import { Eye, Ban, Calendar, Percent, DollarSign, MapPin, CheckCircle2 } from 'lucide-react';
 
@@ -27,7 +26,7 @@ interface Coupon {
 
 interface CouponCardProps {
   coupon: Coupon;
-  lexend: any;
+  lexend: string;
   onViewDetails: (coupon: Coupon) => void;
   onToggleStatus: (couponId: string,f:boolean) => void;
   loading: boolean;

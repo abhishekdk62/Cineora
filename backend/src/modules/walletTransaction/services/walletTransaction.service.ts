@@ -54,7 +54,6 @@ export class WalletTransactionService implements IWalletTransactionService {
     }
   }
 
-  // Private helper methods for business logic (SRP - Single Responsibility)
   private _validateCreateWalletTransactionData(data: CreateWalletTransactionDto): void {
     if (!data.userId || !data.walletId || !data.type || !data.category || !data.description) {
       throw new Error("Required fields are missing: userId, walletId, type, category, description");

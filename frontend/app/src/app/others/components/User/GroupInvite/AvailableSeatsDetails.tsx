@@ -1,4 +1,3 @@
-// components/User/GroupInvite/AvailableSeatsDetails.tsx
 import React from "react";
 import { Lexend } from "next/font/google";
 import { Users } from "lucide-react";

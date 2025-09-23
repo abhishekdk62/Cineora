@@ -329,7 +329,6 @@ export class AnalyticsService implements IAnalyticsService {
     }
   }
 
-  // Performance Metrics
   async getPerformanceMetrics(filters: IAnalyticsFilterDTO): Promise<ServiceResponse<IPerformanceMetricsDTO>> {
     try {
       if (!filters.dateRange || !filters.dateRange.start || !filters.dateRange.end) {
@@ -530,7 +529,6 @@ export class AnalyticsService implements IAnalyticsService {
     }
   }
 
-  // Movie & Content Analytics
   async getMovieAnalytics(filters: IAnalyticsFilterDTO): Promise<ServiceResponse<IMovieAnalyticsDTO>> {
     try {
       const [topMovies, formatPerformance, languagePerformance] = await Promise.all([
@@ -543,7 +541,7 @@ export class AnalyticsService implements IAnalyticsService {
         topMovies: topMovies.data || [],
         formatPerformance: formatPerformance.data || [],
         languagePerformance: languagePerformance.data || [],
-        movieLifecycle: [] // Will be populated if movieId is provided
+        movieLifecycle: [] 
       };
 
       return {
@@ -679,7 +677,6 @@ export class AnalyticsService implements IAnalyticsService {
     }
   }
 
-  // Customer Insights
   async getCustomerInsights(filters: IAnalyticsFilterDTO): Promise<ServiceResponse<ICustomerInsightsDTO>> {
     try {
       const [satisfaction, repeatCustomerRate, advanceBookingTrends, avgSpendPerCustomer, cancellationRate] = await Promise.all([
@@ -839,7 +836,6 @@ export class AnalyticsService implements IAnalyticsService {
     }
   }
 
-  // Financial KPIs
   async getFinancialKPIs(filters: IAnalyticsFilterDTO): Promise<ServiceResponse<IFinancialKPIsDTO>> {
     try {
       if (!filters.dateRange) {
@@ -1014,7 +1010,6 @@ export class AnalyticsService implements IAnalyticsService {
     }
   }
 
-  // Operational Analytics
   async getOperationalAnalytics(filters: IAnalyticsFilterDTO): Promise<ServiceResponse<IOperationalAnalyticsDTO>> {
     try {
       const [showUtilization, lowPerformingTimeSlots, theaterEfficiency, revenueGrowthRate] = await Promise.all([
@@ -1163,10 +1158,8 @@ export class AnalyticsService implements IAnalyticsService {
     }
   }
 
-  // Utility methods
   async generateAnalyticsReport(filters: IAnalyticsFilterDTO): Promise<ServiceResponse<string>> {
     try {
-      // Implementation for generating comprehensive analytics report
       const comprehensiveData = await this.getComprehensiveAnalytics(filters);
       
       if (!comprehensiveData.success) {
@@ -1177,7 +1170,6 @@ export class AnalyticsService implements IAnalyticsService {
         };
       }
 
-      // Generate report content (this is a simplified version)
       const reportContent = `Analytics Report for Owner: ${filters.ownerId}`;
 
       return {
@@ -1198,8 +1190,6 @@ export class AnalyticsService implements IAnalyticsService {
 
   async exportAnalyticsData(filters: IAnalyticsFilterDTO, format: 'csv' | 'excel' | 'pdf'): Promise<ServiceResponse<Buffer>> {
     try {
-      // Implementation for exporting analytics data in different formats
-      // This would typically use libraries like csv-writer, exceljs, or puppeteer for PDF
       
       const buffer = Buffer.from('Mock export data');
 
@@ -1221,7 +1211,6 @@ export class AnalyticsService implements IAnalyticsService {
 
   async getAnalyticsSummary(ownerId: string, dateRange?: IDateRange): Promise<ServiceResponse<IAnalyticsSummaryDTO>> {
     try {
-      // Get basic metrics for summary
       const [theaterRevenue, movieRevenue, occupancy, avgTicketPrice] = await Promise.all([
         this.analyticsRepository.getTheaterWiseRevenue(ownerId, dateRange),
         this.analyticsRepository.getMovieWiseRevenue(ownerId, dateRange),
@@ -1270,14 +1259,11 @@ export class AnalyticsService implements IAnalyticsService {
     }
   }
 
-  // Private helper methods for calculations and categorizations
   private calculateUtilizationRate(bookings: number): number {
-    // Simple calculation - would need more context for accurate calculation
     return Math.min(bookings * 10, 100);
   }
 
   private calculateOccupancyRate(bookings: number): number {
-    // Simple calculation - would need seat capacity for accurate calculation
     return Math.min(bookings * 5, 100);
   }
 
@@ -1306,7 +1292,6 @@ export class AnalyticsService implements IAnalyticsService {
   }
 
   private determineTrend(value: number): 'increasing' | 'decreasing' | 'stable' {
-    // Simplified logic - would need historical data for accurate trend analysis
     if (value >= 70) return 'increasing';
     if (value <= 30) return 'decreasing';
     return 'stable';
@@ -1334,29 +1319,24 @@ export class AnalyticsService implements IAnalyticsService {
   }
 
   private determineSeason(month: number): 'peak' | 'off-peak' | 'normal' {
-    // Simplified seasonality logic
-    if ([12, 1, 4, 5, 10, 11].includes(month)) return 'peak'; // Holiday/festival months
-    if ([6, 7, 8].includes(month)) return 'off-peak'; // Monsoon/low season
+    if ([12, 1, 4, 5, 10, 11].includes(month)) return 'peak'; 
+    if ([6, 7, 8].includes(month)) return 'off-peak'; 
     return 'normal';
   }
 
   private calculateAudiencePreference(bookings: number, totalRevenue: number): number {
-    // Simple preference calculation
     return totalRevenue > 0 ? (bookings / totalRevenue) * 100000 : 0;
   }
 
   private calculateLoyaltyScore(repeatRate: number, avgSpend: number): number {
-    // Weighted loyalty score
     return (repeatRate * 0.6) + (Math.min(avgSpend / 1000, 100) * 0.4);
   }
 
   private calculateDiscountROI(totalFinal: number, totalDiscount: number, discountBookings: number): number {
-    // Simple ROI calculation for discount campaigns
     return discountBookings > 0 ? (totalFinal / (totalDiscount || 1)) * 100 : 0;
   }
 
   private calculateEfficiencyScore(revenue: number, bookings: number): number {
-    // Simple efficiency calculation
     return bookings > 0 ? (revenue / bookings) / 100 : 0;
   }
 

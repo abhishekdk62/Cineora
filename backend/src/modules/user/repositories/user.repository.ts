@@ -4,16 +4,16 @@ import { User } from "../models/user.model";
 
 export class UserRepository implements IUserRepository {
   
-  async createUser(userData: Partial<IUser>): Promise<IUser> {
+  async create(userData: Partial<IUser>): Promise<IUser> {
     const user = new User(userData);
     return user.save();
   }
 
-  async findUserById(userId: string): Promise<IUser | null> {
+  async findById(userId: string): Promise<IUser | null> {
     return User.findById(userId).select("-password").exec();
   }
 
-  async findUserByEmail(userEmail: string): Promise<IUser | null> {
+  async findByEmail(userEmail: string): Promise<IUser | null> {
     return User.findOne({ email: userEmail }).exec();
   }
  
@@ -30,7 +30,7 @@ export class UserRepository implements IUserRepository {
     return result.modifiedCount > 0;
   }
 
-  async updateUserProfile(userId: string, updateData: Partial<IUser>): Promise<IUser | null> {
+  async update(userId: string, updateData: Partial<IUser>): Promise<IUser | null> {
     return User.findByIdAndUpdate(
       userId,
       { ...updateData, lastActive: new Date() },
@@ -48,7 +48,7 @@ export class UserRepository implements IUserRepository {
     return result.modifiedCount > 0;
   }
 
-  async updateUserPassword(userId: string, hashedPassword: string): Promise<boolean> {
+  async updatePassword(userId: string, hashedPassword: string): Promise<boolean> {
     const result = await User.updateOne(
       { _id: userId },
       {
@@ -64,7 +64,7 @@ export class UserRepository implements IUserRepository {
     return result.modifiedCount > 0;
   }
 
-  async toggleUserStatus(userId: string): Promise<IUser | null> {
+  async toggleStatus(userId: string): Promise<IUser | null> {
     const user = await User.findById(userId);
     if (!user) {
       throw new Error('User not found');
@@ -114,7 +114,7 @@ export class UserRepository implements IUserRepository {
       .exec();
   }
 
-  async findAllUsers(page: number = 1, limit: number = 10): Promise<{ users: IUser[], total: number }> {
+  async findAll(page: number = 1, limit: number = 10): Promise<{ users: IUser[], total: number }> {
     const skipCount = (page - 1) * limit;
     
     const [users, total] = await Promise.all([
@@ -130,7 +130,7 @@ export class UserRepository implements IUserRepository {
     return { users, total };
   }
 
-  async findUsersByStatus(status: string, page: number = 1, limit: number = 10): Promise<{ users: IUser[], total: number }> {
+  async findByStatus(status: string, page: number = 1, limit: number = 10): Promise<{ users: IUser[], total: number }> {
     const skipCount = (page - 1) * limit;
     
     const [users, total] = await Promise.all([
@@ -179,7 +179,7 @@ export class UserRepository implements IUserRepository {
     }).exec();
   }
 
-  async updateUserRefreshToken(userId: string, hashedRefreshToken: string): Promise<IUser | null> {
+  async updateRefreshToken(userId: string, hashedRefreshToken: string): Promise<IUser | null> {
     return await User.findByIdAndUpdate(
       userId,
       { 
@@ -190,7 +190,7 @@ export class UserRepository implements IUserRepository {
     );
   }
 
-  async clearUserRefreshToken(userId: string): Promise<IUser | null> {
+  async clearRefreshToken(userId: string): Promise<IUser | null> {
     return await User.findByIdAndUpdate(
       userId,
       { 

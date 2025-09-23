@@ -21,7 +21,7 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ data, size = 128 }) => {
 
         const encodedData = encodeURIComponent(data); 
 
-        const verificationUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/common/verify-ticket/${encodedData}`;
+        const verificationUrl = encodedData
         
         const qrDataUrl = await QRCode.toDataURL(verificationUrl, {
           errorCorrectionLevel: 'H',

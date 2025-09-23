@@ -96,7 +96,7 @@ export class MovieService implements IMovieService {
         return null;
       }
       
-      return await this.movieRepository.createMovie(movieData);
+      return await this.movieRepository.create(movieData);
     } catch (error) {
       throw new Error(`Failed to add movie: ${error.message}`);
     }
@@ -104,7 +104,7 @@ export class MovieService implements IMovieService {
 
   async getMovies(): Promise<MovieResponseDto[]> {
     try {
-      return await this.movieRepository.findAllMovies();
+      return await this.movieRepository.findAll();
     } catch (error) {
       throw new Error(`Failed to get movies: ${error.message}`);
     }
@@ -136,7 +136,7 @@ export class MovieService implements IMovieService {
         return null;
       }
 
-      return await this.movieRepository.findMovieById(id);
+      return await this.movieRepository.findById(id);
     } catch (error) {
       throw new Error(`Failed to get movie by id: ${error.message}`);
     }
@@ -151,7 +151,7 @@ export class MovieService implements IMovieService {
         return null;
       }
 
-      return await this.movieRepository.updateMovie(id, movieData);
+      return await this.movieRepository.update(id, movieData);
     } catch (error) {
       throw new Error(`Failed to update movie: ${error.message}`);
     }
@@ -163,7 +163,7 @@ export class MovieService implements IMovieService {
         return false;
       }
 
-      return await this.movieRepository.deleteMovie(id);
+      return await this.movieRepository.delete(id);
     } catch (error) {
       throw new Error(`Failed to delete movie: ${error.message}`);
     }
@@ -175,7 +175,7 @@ export class MovieService implements IMovieService {
         return null;
       }
       
-      return await this.movieRepository.toggleMovieStatus(id);
+      return await this.movieRepository.toggleStatus(id);
     } catch (error) {
       throw new Error(`Failed to toggle movie status: ${error.message}`);
     }

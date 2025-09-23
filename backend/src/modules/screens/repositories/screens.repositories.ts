@@ -12,12 +12,10 @@ import {
 import { Screen } from "../models/screens.model";
 
 export class ScreenRepository implements IScreenRepository {
-  async createScreen(screenData: CreateScreenDto): Promise<IScreen> {
+  async create(screenData: CreateScreenDto): Promise<IScreen> {
     try {
-      // ADD THIS: Final data processing before save
       const processedScreenData = {
         ...screenData,
-        // Ensure aisles structure is properly set
         layout: {
           ...screenData.layout,
           advancedLayout: {
@@ -38,7 +36,6 @@ export class ScreenRepository implements IScreenRepository {
         throw new Error("Failed to save screen to database");
       }
 
-      // ADD THIS: Populate theater info before returning
       const populatedScreen = await Screen.findById(savedScreen._id)
         .populate("theaterId", "name city state")
         .exec();
@@ -47,7 +44,7 @@ export class ScreenRepository implements IScreenRepository {
     } catch (error) {
       if (error.name === "ValidationError") {
         const validationErrors = Object.values(error.errors).map(
-          (err: any) => err.message
+          (err: unknown) => err.message
         );
         throw new Error(`Validation failed: ${validationErrors.join(", ")}`);
       }
@@ -59,7 +56,7 @@ export class ScreenRepository implements IScreenRepository {
     }
   }
 
-  async getScreenById(screenId: string): Promise<IScreen | null> {
+  async findById(screenId: string): Promise<IScreen | null> {
     try {
       if (!this._isValidObjectId(screenId)) {
         throw new Error("Invalid screen ID format");
@@ -96,7 +93,7 @@ export class ScreenRepository implements IScreenRepository {
     }
   }
 
-  async getAllScreensPaginated(
+  async findAll(
     page: number,
     limit: number,
     filters?: ScreenFilterDto
@@ -234,7 +231,7 @@ export class ScreenRepository implements IScreenRepository {
     }
   }
 
-  async updateScreen(
+  async update(
     screenId: string,
     updateData: UpdateScreenDto
   ): Promise<IScreen> {
@@ -265,7 +262,7 @@ export class ScreenRepository implements IScreenRepository {
     }
   }
 
-  async toggleScreenStatus(screenId: string): Promise<IScreen> {
+  async toggleStatus(screenId: string): Promise<IScreen> {
     try {
       if (!this._isValidObjectId(screenId)) {
         throw new Error("Invalid screen ID format");
@@ -287,7 +284,7 @@ export class ScreenRepository implements IScreenRepository {
     }
   }
 
-  async deleteScreen(screenId: string): Promise<IScreen> {
+  async delete(screenId: string): Promise<IScreen> {
     try {
       if (!this._isValidObjectId(screenId)) {
         throw new Error("Invalid screen ID format");
@@ -462,7 +459,6 @@ export class ScreenRepository implements IScreenRepository {
     const processedData = { ...updateData };
 
 
-    // ADD THIS: Ensure aisles structure exists (backwards compatibility)
     if (processedData.layout?.advancedLayout) {
       if (!processedData.layout.advancedLayout.aisles) {
         processedData.layout.advancedLayout.aisles = {
@@ -470,7 +466,6 @@ export class ScreenRepository implements IScreenRepository {
           horizontal: [],
         };
       } else {
-        // Ensure vertical and horizontal arrays exist
         if (!processedData.layout.advancedLayout.aisles.vertical) {
           processedData.layout.advancedLayout.aisles.vertical = [];
         }
@@ -480,7 +475,6 @@ export class ScreenRepository implements IScreenRepository {
       }
     }
 
-    // ADD THIS: Clean empty feature strings
     if (processedData.features && Array.isArray(processedData.features)) {
       processedData.features = processedData.features.filter(
         (feature) =>
@@ -488,7 +482,6 @@ export class ScreenRepository implements IScreenRepository {
       );
     }
 
-    // ADD THIS: Set default screenType
     if (!processedData.screenType) {
       processedData.screenType = "Standard";
     }

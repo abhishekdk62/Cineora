@@ -18,7 +18,6 @@ export class CouponService implements ICouponService {
     try {
       this._validateCreateCouponData(data);
 
-      // Check if unique ID already exists
       const existingCoupon = await this.couponRepository.findCouponByUniqueId(
         data.uniqueId
       );
@@ -48,14 +47,12 @@ export class CouponService implements ICouponService {
       return this._handleServiceError(error, "Failed to create coupon");
     }
   }
-  // Add this method to your CouponService class
   async validateCouponByCode(
     data: ValidateCouponDtoNew
   ): Promise<ApiResponse<ICoupon>> {
     try {
       const { couponCode, theaterId } = data;
 
-      // Find coupon by unique ID
       const coupon = await this.couponRepository.findCouponByUniqueId(
         couponCode
       );
@@ -67,7 +64,6 @@ export class CouponService implements ICouponService {
         });
       }
 
-      // Check if coupon is active
       if (!coupon.isActive) {
 
         return createResponse({
@@ -76,7 +72,6 @@ export class CouponService implements ICouponService {
         });
       }
 
-      // Check if coupon has expired
       if (coupon.expiryDate && new Date() > coupon.expiryDate) {
 
         return createResponse({
@@ -85,7 +80,6 @@ export class CouponService implements ICouponService {
         });
       }
 
-      // Check if coupon has reached max usage limit
       if (coupon.currentUsageCount >= coupon.maxUsageCount) {
 
         return createResponse({
@@ -94,7 +88,6 @@ export class CouponService implements ICouponService {
         });
       }
 
-      // Check if coupon is valid for this theater
       const isValidForTheater = coupon.theaterIds.some(
         (theater) => theater._id.toString() === theaterId.toString()
       );
@@ -308,7 +301,6 @@ export class CouponService implements ICouponService {
         (data.totalAmount * coupon.discountPercentage) / 100
       );
 
-      // Mark coupon as used
       const updatedCoupon = await this.couponRepository.markCouponAsUsed(
         coupon._id
       );
@@ -335,7 +327,6 @@ export class CouponService implements ICouponService {
       );
     }
   }
-// Add this method to your CouponService class
 async incrementCouponUsage(couponId: string): Promise<ApiResponse<void>> {
   try {
     if (!couponId) {
@@ -345,7 +336,6 @@ async incrementCouponUsage(couponId: string): Promise<ApiResponse<void>> {
       });
     }
 
-    // Convert string to ObjectId
     const objectId = new Types.ObjectId(couponId);
 
     // Check if coupon exists
@@ -357,7 +347,6 @@ async incrementCouponUsage(couponId: string): Promise<ApiResponse<void>> {
       });
     }
 
-    // Check if coupon can still be used (hasn't reached max limit)
     if (existingCoupon.currentUsageCount >= existingCoupon.maxUsageCount) {
       return createResponse({
         success: false,
@@ -365,7 +354,6 @@ async incrementCouponUsage(couponId: string): Promise<ApiResponse<void>> {
       });
     }
 
-    // Increment the usage count
     await this.couponRepository.incrementCouponUsage(objectId);
 
     return createResponse({
@@ -470,7 +458,6 @@ async incrementCouponUsage(couponId: string): Promise<ApiResponse<void>> {
       return { isValid: false, message: "Coupon usage limit reached" };
     }
 
-    // Changed to check single theaterId instead of array
     const hasValidTheater = coupon.theaterIds.some(
       (couponTheaterId) => couponTheaterId.toString() === theaterId.toString()
     );

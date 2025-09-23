@@ -1,4 +1,3 @@
-// routes/analytics.routes.ts
 import express from "express";
 import { AnalyticsController } from "../controllers/analytics.controller";
 
@@ -11,12 +10,10 @@ export class AnalyticsRoute {
   }
 
   private _setRoutes() {
-    // Main comprehensive analytics endpoint
     this._router.get("/comprehensive", (req, res) =>
       this._analyticsController.getComprehensiveAnalytics(req, res)
     );
 
-    // Revenue Analytics Routes
     this._router.get("/revenue", (req, res) =>
       this._analyticsController.getRevenueAnalytics(req, res)
     );
@@ -39,7 +36,6 @@ export class AnalyticsRoute {
       this._analyticsController.getMovieWiseRevenue(req, res)
     );
 
-    // Performance Metrics Routes
     this._router.get("/performance", (req, res) =>
       this._analyticsController.getPerformanceMetrics(req, res)
     );
@@ -56,7 +52,6 @@ export class AnalyticsRoute {
       this._analyticsController.getWeekdayWeekendComparison(req, res)
     );
 
-    // Movie Analytics Routes
     this._router.get("/movies", (req, res) =>
       this._analyticsController.getMovieAnalytics(req, res)
     );
@@ -86,7 +81,6 @@ export class AnalyticsRoute {
       this._analyticsController.getAdvanceBookingTrends(req, res)
     );
 
-    // Financial KPIs Routes
     this._router.get("/financial", (req, res) =>
       this._analyticsController.getFinancialKPIs(req, res)
     );
@@ -110,7 +104,6 @@ export class AnalyticsRoute {
       this._analyticsController.getRevenueGrowthRate(req, res)
     );
 
-    // Utility Routes
     this._router.get("/summary", (req, res) =>
       this._analyticsController.getAnalyticsSummary(req, res)
     );

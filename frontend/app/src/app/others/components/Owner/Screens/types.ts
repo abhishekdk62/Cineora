@@ -1,4 +1,3 @@
-// @ts-nocheck
 
 import { ReactNode } from 'react';
 import { ITheater } from '@/app/others/types';
@@ -19,7 +18,6 @@ export interface RowDef {
   price: number;
 }
 
-// SIMPLIFIED: Minimal aisle interfaces
 export interface VerticalAisle {
   id: string;
   position: number;
@@ -38,7 +36,6 @@ export interface ScreenTemplate {
   icon: ReactNode;
   capacity: string;
   layout: RowDef[];
-  // ADD THIS: aisles property for templates
   aisles?: {
     vertical: VerticalAisle[];
     horizontal: HorizontalAisle[];
@@ -59,7 +56,6 @@ export interface FormData {
         offset: number;
         seats: Seat[];
       }[];
-      // Aisle configuration
       aisles?: {
         vertical: VerticalAisle[];
         horizontal: HorizontalAisle[];
@@ -73,7 +69,7 @@ export interface ScreenFormModalProps {
   onClose: () => void;
   onSuccess: () => void;
   mode: 'create' | 'edit';
-  initialData?: IScreen | null; // FIXED: Allow null
+  initialData?: IScreen | null; 
 }
 
 export interface ValidationErrors {
@@ -103,7 +99,6 @@ export interface ManualSetupFormProps {
   onClose: () => void;
   mode: 'create' | 'edit';
   setSetupMode: (mode: 'quickstart' | 'manual') => void;
-  // Aisle props
   verticalAisles: VerticalAisle[];
   horizontalAisles: HorizontalAisle[];
   setVerticalAisles: React.Dispatch<React.SetStateAction<VerticalAisle[]>>;

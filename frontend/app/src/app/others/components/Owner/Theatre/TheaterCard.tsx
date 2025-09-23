@@ -14,6 +14,7 @@ import {
   Calendar,
   AlertCircle,
   ShieldCheck,
+  User,
 } from "lucide-react";
 import { ITheater } from "@/app/others/types";
 import { confirmAction } from "@/app/others/components/utils/ConfirmDialog";
@@ -39,6 +40,7 @@ interface TheaterCardProps {
   onDelete: (id: string) => void;
   onEdit: (theater: ITheater) => void;
   onView: (theater: ITheater) => void;
+  openAddStaffModal: (theater: ITheater) => void;
 }
 
 const TheaterCard: React.FC<TheaterCardProps> = ({
@@ -47,6 +49,7 @@ const TheaterCard: React.FC<TheaterCardProps> = ({
   onDelete,
   onEdit,
   onView,
+  openAddStaffModal
 }) => {
   const [showActions, setShowActions] = useState(false);
 
@@ -67,15 +70,15 @@ const TheaterCard: React.FC<TheaterCardProps> = ({
     setShowActions(false);
   };
 
-  const handleDelete =async () => {
-    const confirmed =await confirmAction({
+  const handleDelete = async () => {
+    const confirmed = await confirmAction({
       title: "Delete theater",
       message: "Do you want to permanently delete this theater?",
       confirmText: "Delete",
       cancelText: "Cancel",
     });
     if (!confirmed) {
-        setShowActions(false);
+      setShowActions(false);
       return
     }
     onDelete(theater._id);
@@ -87,20 +90,20 @@ const TheaterCard: React.FC<TheaterCardProps> = ({
     setShowActions(false);
   };
 
+
+
   return (
     <div className="bg-black/90 backdrop-blur-sm border border-gray-500/30 rounded-2xl p-6 hover:border-gray-400/50 transition-all duration-300 group">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div
-            className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-              theater.isActive ? "bg-green-500/20" : "bg-orange-500/20"
-            }`}
+            className={`w-12 h-12 rounded-xl flex items-center justify-center ${theater.isActive ? "bg-green-500/20" : "bg-orange-500/20"
+              }`}
           >
             <Building
-              className={`w-6 h-6 ${
-                theater.isActive ? "text-green-400" : "text-orange-400"
-              }`}
+              className={`w-6 h-6 ${theater.isActive ? "text-green-400" : "text-orange-400"
+                }`}
             />
           </div>
           <div>
@@ -109,21 +112,18 @@ const TheaterCard: React.FC<TheaterCardProps> = ({
             </h3>
             <div className="flex items-center gap-2">
               <div
-                className={`w-2 h-2 rounded-full ${
-                  theater.isActive ? "bg-green-400" : "bg-orange-400"
-                }`}
+                className={`w-2 h-2 rounded-full ${theater.isActive ? "bg-green-400" : "bg-orange-400"
+                  }`}
               />
               <span
-                className={`${lexendSmall.className} text-xs ${
-                  theater.isActive ? "text-green-400" : "text-orange-400"
-                }`}
+                className={`${lexendSmall.className} text-xs ${theater.isActive ? "text-green-400" : "text-orange-400"
+                  }`}
               >
                 {theater.isActive ? "Active" : "Inactive"}
               </span>
               <span
-                className={`${lexendSmall.className} text-xs flex gap-1 ${
-                  theater.isVerified ? "text-green-400" : "text-red-400"
-                }`}
+                className={`${lexendSmall.className} text-xs flex gap-1 ${theater.isVerified ? "text-green-400" : "text-red-400"
+                  }`}
               >
                 {theater.isVerified ? (
                   <ShieldCheck className="w-3 h-3" />
@@ -173,14 +173,24 @@ const TheaterCard: React.FC<TheaterCardProps> = ({
                   className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-white/10 rounded-lg transition-colors text-gray-300 hover:text-white"
                 >
                   <Power
-                    className={`w-4 h-4 ${
-                      theater.isActive ? "text-orange-400" : "text-green-400"
-                    }`}
+                    className={`w-4 h-4 ${theater.isActive ? "text-orange-400" : "text-green-400"
+                      }`}
                   />
                   <span className={`${lexendSmall.className} text-sm`}>
                     {theater.isActive ? "Deactivate" : "Activate"}
                   </span>
                 </button>
+          <button
+  onClick={() => openAddStaffModal(theater)} 
+  className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-white/10 rounded-lg transition-colors text-gray-300 hover:text-white"
+>
+  <User
+    className={`w-4 h-4 ${"text-green-400"}`}
+  />
+  <span className={`${lexendSmall.className} text-sm`}>
+    Add Staff
+  </span>
+</button>
 
                 <div className="border-t border-gray-500/30 my-2" />
 

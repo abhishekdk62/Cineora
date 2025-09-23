@@ -74,7 +74,6 @@ const SeatBox = ({
   );
 };
 
-// CORRECTED: Vertical aisle logic - position 14 means aisle at column 14
 const isVerticalAisle = (col: number, verticalAisles: Array<{ position: number; width: number }>) => {
   if (!verticalAisles || verticalAisles.length === 0) return false;
   return verticalAisles.some((aisle) => 
@@ -115,23 +114,19 @@ export default function SeatRow({
         }}
       >
         {Array.from({ length: maxCols }).map((_, colIndex) => {
-          // Check if this column is a vertical aisle (position 14)
           if (isVerticalAisle(colIndex, verticalAisles)) {
             return (
               <div
                 key={`aisle-${colIndex}`}
                 className="w-6 h-6"
-                // Empty space for vertical aisle
               />
             );
           }
 
-          // Empty space for offset
           if (colIndex < (row.offset || 0)) {
             return <div key={`offset-${colIndex}`} className="w-6 h-6" />;
           }
 
-          // Find the seat at this position
           const seatIndex = colIndex - (row.offset || 0);
           const seat = row.seats[seatIndex];
           
@@ -150,7 +145,6 @@ export default function SeatRow({
             );
           }
           
-          // Empty space for remaining columns
           return <div key={`empty-${colIndex}`} className="w-6 h-6" />;
         })}
       </div>

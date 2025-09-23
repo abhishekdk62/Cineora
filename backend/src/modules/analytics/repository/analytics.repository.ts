@@ -1,4 +1,3 @@
-// repository/analytics.repository.ts
 import mongoose, { ObjectId, PipelineStage, Types } from "mongoose";
 import Booking from "../../bookings/models/bookings.model";
 import MovieShowtime from "../../showtimes/models/showtimes.model";
@@ -21,6 +20,7 @@ import {
   IDiscountImpactData
 } from "../interfaces/analytics.repository.interface";
 import { IDateRange } from "../../adminAnalytics/dtos/dtos";
+import { FilterQuery } from "mongoose";
 
 export class AnalyticsRepository implements IAnalyticsRepository {
 
@@ -145,7 +145,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
   async getTheaterWiseRevenue(ownerId: string, dateRange?: IDateRange): Promise<ITheaterRevenueData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: any = {
+      const matchQuery: FilterQuery = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
@@ -188,7 +188,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
   async getScreenWiseRevenue(ownerId: string, dateRange?: IDateRange): Promise<IScreenRevenueData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: any = {
+      const matchQuery: FilterQuery = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
@@ -232,7 +232,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
   async getMovieWiseRevenue(ownerId: string, dateRange?: IDateRange): Promise<IMovieRevenueData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: any = {
+      const matchQuery: FilterQuery = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
@@ -273,10 +273,8 @@ export class AnalyticsRepository implements IAnalyticsRepository {
     }
   }
 
-  // Performance Metrics
   async getOverallOccupancy(ownerId: string, dateRange: IDateRange): Promise<IOccupancyData> {
     try {
-      // Get total available seats from showtimes
       const showtimes = await MovieShowtime.find({
         ownerId,
         showDate: { $gte: dateRange.start, $lte: dateRange.end }
@@ -284,7 +282,6 @@ export class AnalyticsRepository implements IAnalyticsRepository {
 
       const totalSeatsAvailable = showtimes.reduce((sum, showtime) => sum + showtime.totalSeats, 0);
 
-      // Get total booked seats from bookings
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
       const bookings = await Booking.find({
         theaterId: { $in: theaterIds },
@@ -309,7 +306,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
   async getAverageTicketPrice(ownerId: string, dateRange?: IDateRange): Promise<number> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: any = {
+      const matchQuery: FilterQuery = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
@@ -347,7 +344,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
   async getRevenuePerShow(ownerId: string, dateRange?: IDateRange): Promise<IRevenueData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: any = {
+      const matchQuery: FilterQuery = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
@@ -380,7 +377,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
   async getTimeSlotPerformance(ownerId: string, dateRange?: IDateRange): Promise<ITimeSlotData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: any = {
+      const matchQuery: FilterQuery = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
@@ -413,7 +410,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
   async getWeekdayWeekendComparison(ownerId: string, dateRange?: IDateRange): Promise<IRevenueData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: any = {
+      const matchQuery: FilterQuery = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
@@ -429,7 +426,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
           $addFields: {
             dayOfWeek: { $dayOfWeek: '$showDate' },
             isWeekend: {
-              $in: [{ $dayOfWeek: '$showDate' }, [1, 7]] // Sunday=1, Saturday=7
+              $in: [{ $dayOfWeek: '$showDate' }, [1, 7]] 
             }
           }
         },
@@ -450,11 +447,10 @@ export class AnalyticsRepository implements IAnalyticsRepository {
     }
   }
 
-  // Movie & Content Analytics
   async getTopPerformingMovies(ownerId: string, limit: number = 10, dateRange?: IDateRange): Promise<IMoviePerformanceData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: any = {
+      const matchQuery: FilterQuery = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
@@ -503,7 +499,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
   async getFormatPerformance(ownerId: string, dateRange?: IDateRange): Promise<IFormatPerformanceData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: any = {
+      const matchQuery: FilterQuery = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
@@ -544,7 +540,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
   async getLanguagePerformance(ownerId: string, dateRange?: IDateRange): Promise<IFormatPerformanceData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: any = {
+      const matchQuery: FilterQuery = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
@@ -585,7 +581,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
   async getMovieLifecycleTrends(ownerId: string, movieId: string, dateRange?: IDateRange): Promise<IRevenueData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: any = {
+      const matchQuery: FilterQuery = {
         theaterId: { $in: theaterIds },
         movieId: new mongoose.Types.ObjectId(movieId),
         paymentStatus: 'completed',
@@ -620,11 +616,10 @@ export class AnalyticsRepository implements IAnalyticsRepository {
     }
   }
 
-  // Customer Insights
   async getCustomerSatisfactionRatings(ownerId: string, dateRange?: IDateRange): Promise<ICustomerSatisfactionData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: any = {
+      const matchQuery: FilterQuery = {
         theaterId: { $in: theaterIds },
         reviewType: 'theater',
         status: 'active'
@@ -670,7 +665,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
   async getRepeatCustomerRate(ownerId: string, dateRange?: IDateRange): Promise<IRepeatCustomerData> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: any = {
+      const matchQuery: FilterQuery = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
@@ -716,7 +711,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
   async getAdvanceBookingTrends(ownerId: string, dateRange?: IDateRange): Promise<IAdvanceBookingData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: any = {
+      const matchQuery: FilterQuery = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
@@ -785,7 +780,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
   async getAverageSpendPerCustomer(ownerId: string, dateRange?: IDateRange): Promise<number> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: any = {
+      const matchQuery: FilterQuery = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
@@ -821,7 +816,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
   async getCancellationRate(ownerId: string, dateRange?: IDateRange): Promise<number> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: any = {
+      const matchQuery: FilterQuery = {
         theaterId: { $in: theaterIds }
       };
 
@@ -848,10 +843,8 @@ export class AnalyticsRepository implements IAnalyticsRepository {
     }
   }
 
-  // Financial KPIs
   async getPotentialVsActualRevenue(ownerId: string, dateRange: IDateRange): Promise<IPotentialRevenueData> {
     try {
-      // Get potential revenue from showtimes
       const showtimes = await MovieShowtime.find({
         ownerId,
         showDate: { $gte: dateRange.start, $lte: dateRange.end }
@@ -864,7 +857,6 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         }
       }
 
-      // Get actual revenue from bookings
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
       const actualRevenueResult = await Booking.aggregate([
         {
@@ -899,7 +891,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
   async getDynamicPricingImpact(ownerId: string, dateRange?: IDateRange): Promise<IDynamicPricingData> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: any = {
+      const matchQuery: FilterQuery = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
@@ -953,7 +945,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
   async getDiscountImpact(ownerId: string, dateRange?: IDateRange): Promise<IDiscountImpactData> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: any = {
+      const matchQuery: FilterQuery = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
@@ -1028,7 +1020,6 @@ export class AnalyticsRepository implements IAnalyticsRepository {
     try {
       const allTimeSlots = await this.getTimeSlotPerformance(ownerId, dateRange);
       
-      // Filter slots below threshold (assuming avgOccupancy as percentage)
       return allTimeSlots.filter(slot => slot.avgOccupancy < threshold);
     } catch (error) {
       throw new Error(`Failed to get low performing time slots: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -1048,7 +1039,6 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       if (period === 'monthly') {
         return await this.getMonthlyRevenueTrends(ownerId, 12);
       } else {
-        // For quarterly, we'll group by quarters
         const theaterIds = await this.getOwnerTheaterIds(ownerId);
         const startDate = new Date();
         startDate.setMonth(startDate.getMonth() - 12);

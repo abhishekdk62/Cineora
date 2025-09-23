@@ -1,4 +1,4 @@
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = string> {
   success: boolean;
   data?: T;
   message?: string;
@@ -15,7 +15,7 @@ export interface ApiResponse<T = any> {
     filters?: {
       applied: number;
     };
-    [key: string]: any;
+    [key: string]: string;
   };
   timestamp: string;
 }
@@ -37,7 +37,7 @@ export function createResponse<T>(params: {
     filters?: {
       applied: number;
     };
-    [key: string]: any;
+    [key: string]: string;
   };
 }): ApiResponse<T> {
   return {

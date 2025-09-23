@@ -20,7 +20,6 @@ export class CouponRepository implements ICouponRepository {
       );
     }
   }
-  // Add this method to your existing CouponRepository class
   async incrementCouponUsage(
     couponId: Types.ObjectId
   ): Promise<ICoupon | null> {
@@ -30,7 +29,7 @@ export class CouponRepository implements ICouponRepository {
         {
           $inc: { currentUsageCount: 1 },
         },
-        { new: true } // Return the updated document
+        { new: true } 
       );
     } catch (error) {
       throw new Error(
@@ -206,7 +205,7 @@ export class CouponRepository implements ICouponRepository {
         {
           $inc: { currentUsageCount: 1 },
           $set: {
-            isUsed: true, // This will be set to true when currentUsageCount >= maxUsageCount
+            isUsed: true, 
           },
         },
         { new: true }

@@ -1,4 +1,3 @@
-// LoadingModal.tsx - Animated Loading Modal
 import React, { useState, useEffect } from 'react';
 import { Check, CheckCircle } from 'lucide-react';
 
@@ -49,17 +48,14 @@ const LoadingModal: React.FC<LoadingModalProps> = ({
     let currentTime = 0;
 
     const updateProgress = () => {
-      // First 60% - slow progress
       if (currentTime < 4500) {
         const slowProgress = (currentTime / 4500) * 60;
         setProgress(slowProgress);
         
-        // Update step based on time
         if (currentTime < 2000) setCurrentStep(0);
         else if (currentTime < 4500) setCurrentStep(1);
         
       } 
-      // Last 40% - fast progress  
       else if (currentTime < 7500) {
         setCurrentStep(2);
         const fastProgress = 60 + ((currentTime - 4500) / 3000) * 40;

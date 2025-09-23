@@ -1,10 +1,12 @@
 import OWNER_KYC from "../../constants/ownerConstants/kycConstants";
+interface kycResponse{
 
+}
 export async function uploadKYCImage(
   file: File,
   folder: string,
   backendUrl: string = "http://localhost:5000/api"
-): Promise<any> {
+): Promise<kycResponse> {
   try {
     const formData = new FormData();
     formData.append("file", file);

@@ -216,8 +216,6 @@ const senderName=userMail.split('@')[0]
 
   async createSystemMessage(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      // This is typically called internally, not from frontend
-      // But keeping it for admin/system usage
       const { chatRoomId, systemMessageType, content, systemData } = req.body;
       console.log('leave data',req.body);
 
@@ -251,7 +249,6 @@ const senderName=userMail.split('@')[0]
     
     const errorMessage = error instanceof Error ? error.message : defaultMessage;
     
-    // Handle specific error types
     if (errorMessage.includes('not found')) {
       res.status(StatusCodes.NOT_FOUND).json(
         createResponse({

@@ -10,16 +10,32 @@ import { OAuth2Client } from "google-auth-library";
 import { OwnerRequestRepository } from "../../owner/repositories/ownerRequest.repository";
 import { IAuthService } from "../interfaces/auth.service.interface";
 import { ServiceResponse } from "../../../interfaces/interface";
-import { AuthErrorResponseDto, AuthSuccessResponseDto, CheckAuthProviderResponseDto, GoogleAuthResponseDto, GoogleUserDataDto, LoginResponseDto, RefreshTokenResponseDto, ResetPasswordWithOtpResponseDto, SendPasswordResetOtpResponseDto, TokenPairDto, UserDataDto, UserLookupResponseDto, VerifyPasswordResetOtpResponseDto } from "../dtos/dtos";
-
+import {
+  AuthErrorResponseDto,
+  AuthSuccessResponseDto,
+  CheckAuthProviderResponseDto,
+  GoogleAuthResponseDto,
+  GoogleUserDataDto,
+  LoginResponseDto,
+  RefreshTokenResponseDto,
+  ResetPasswordWithOtpResponseDto,
+  SendPasswordResetOtpResponseDto,
+  TokenPairDto,
+  UserDataDto,
+  UserLookupResponseDto,
+  VerifyPasswordResetOtpResponseDto,
+} from "../dtos/dtos";
+import { Staff } from "../../staff/model/staff.model";
+import { UserResponseDto } from "../../user/dtos/dto";
+import { UserInfo } from "os";
 interface LoginResponse {
   success: boolean;
   message: string;
   data?: {
-    user: any;
+    user: UserDataDto;
     accessToken: string;
     refreshToken: string;
-    role: "user" | "admin" | "owner";
+    role: "user" | "admin" | "owner"|'staff';
     redirectTo: string;
   };
 }
@@ -44,7 +60,6 @@ export class AuthService implements IAuthService {
 
   async login(email: string, password: string): Promise<LoginResponseDto> {
     try {
-      
       const admin = await this._adminRepo.findByEmail(email);
       if (admin) {
         const isValidPassword = await bcrypt.compare(password, admin.password);
@@ -131,8 +146,47 @@ export class AuthService implements IAuthService {
           },
         };
       }
+      const staff = await Staff.findOne({ email });
+      if (staff) {
+        const isValidPassword = await bcrypt.compare(password, staff.password);
 
-      const user = await this._userRepo.findUserByEmail(email);
+        if (!isValidPassword) {
+          return { success: false, message: "Invalid credentials" };
+        }
+
+        if (!staff.isActive) {
+          return {
+            success: false,
+            message: "Your account has been blocked. Please contact support.",
+          };
+        }
+
+        const { accessToken, refreshToken } = this.generateTokenPair(
+          staff,
+          "staff"
+        );
+
+        await this.storeRefreshToken(staff._id as string, refreshToken, "staff");
+
+        return {
+          success: true,
+          message: "Staff login successful",
+          data: {
+            user: {
+              id: staff._id as string,
+              firstName: staff.firstName,
+              lastName: staff.lastName,
+              email: staff.email,
+              role: "staff",
+            },
+            accessToken,
+            refreshToken,
+            role: "staff",
+            redirectTo: "/staff/dashboard",
+          },
+        };
+      }
+      const user = await this._userRepo.findByEmail(email);
       if (user) {
         const isValidPassword = await bcrypt.compare(password, user.password);
 
@@ -195,8 +249,8 @@ export class AuthService implements IAuthService {
     }
   }
 
-  generateTokenPair(user: any, role: string):TokenPairDto {
-    let payload: any = {
+  generateTokenPair(user: UserDataDto, role: string): TokenPairDto {
+    let payload = {
       email: user.email,
       role,
     };
@@ -206,7 +260,10 @@ export class AuthService implements IAuthService {
       payload.ownerId = user._id;
     } else if (role === "user") {
       payload.userId = user._id;
-    }
+     } else if (role === "staff") {
+    payload.staffId = user._id; 
+  }
+
 
     const accessToken = jwt.sign(payload, config.jwtAccessSecret, {
       expiresIn: "15m",
@@ -221,7 +278,10 @@ export class AuthService implements IAuthService {
     return { accessToken, refreshToken };
   }
 
-  async getUserByIdAndRole(userId: string, role: string) :Promise<UserLookupResponseDto>{
+  async getUserByIdAndRole(
+    userId: string,
+    role: string
+  ): Promise<UserLookupResponseDto> {
     try {
       let user;
 
@@ -264,6 +324,18 @@ export class AuthService implements IAuthService {
             };
           }
           break;
+      case "staff":
+        user = await Staff.findById(userId);
+        if (user) {
+          return {
+            _id: user._id,
+            email: user.email,
+            role: "staff",
+            name: `${user.firstName} ${user.lastName}`,
+            ownerName: null,
+          };
+        }
+        break;
 
         default:
           return null;
@@ -279,28 +351,31 @@ export class AuthService implements IAuthService {
   async storeRefreshToken(
     userId: string,
     refreshToken: string,
-    userType: "user" | "admin" | "owner"
-  ) :Promise<void>
-{
+    userType: "user" | "admin" | "owner" | "staff"
+  ): Promise<void> {
     const hashedToken = await bcrypt.hash(refreshToken, 10);
 
     if (userType === "user") {
-      await this._userRepo.updateUserRefreshToken(userId, hashedToken);
+      await this._userRepo.updateRefreshToken(userId, hashedToken);
     } else if (userType === "owner") {
       await this._ownerRepo.updateRefreshToken(userId, hashedToken);
     } else if (userType === "admin") {
       await this._adminRepo.updateRefreshToken(userId, hashedToken);
+    } else if (userType === "staff") {
+      await Staff.findByIdAndUpdate(userId, { refreshToken: hashedToken });
     }
   }
 
-  async sendPasswordResetOTP(email: string) :Promise<SendPasswordResetOtpResponseDto>{
+  async sendPasswordResetOTP(
+    email: string
+  ): Promise<SendPasswordResetOtpResponseDto> {
     try {
-      let user: any = null;
+      let user: UserDataDto = null;
       let userName = "User";
       let userType = "user";
       let otpType = "password_reset";
 
-      user = await this._userRepo.findUserByEmail(email);
+      user = await this._userRepo.findByEmail(email);
       if (user) {
         userName = user.username || "User";
         userType = "user";
@@ -393,7 +468,10 @@ export class AuthService implements IAuthService {
     }
   }
 
-  async verifyPasswordResetOtp(email: string, otp: string):Promise<VerifyPasswordResetOtpResponseDto> {
+  async verifyPasswordResetOtp(
+    email: string,
+    otp: string
+  ): Promise<VerifyPasswordResetOtpResponseDto> {
     try {
       let otpRecord = await this._otpRepo.findValidOTP(
         email,
@@ -431,7 +509,11 @@ export class AuthService implements IAuthService {
     }
   }
 
-  async resetPasswordWithOTP(email: string, otp: string, newPassword: string):Promise<ResetPasswordWithOtpResponseDto> {
+  async resetPasswordWithOTP(
+    email: string,
+    otp: string,
+    newPassword: string
+  ): Promise<ResetPasswordWithOtpResponseDto> {
     try {
       let otpRecord = await this._otpRepo.findValidOTP(
         email,
@@ -456,7 +538,7 @@ export class AuthService implements IAuthService {
         };
       }
 
-      let user: any = null;
+      let user = null;
       let updateResult = false;
 
       if (isOwner) {
@@ -477,7 +559,7 @@ export class AuthService implements IAuthService {
         );
         user = owner;
       } else {
-        const userRecord = await this._userRepo.findUserByEmail(email);
+        const userRecord = await this._userRepo.findByEmail(email);
         if (!userRecord) {
           return {
             success: false,
@@ -488,7 +570,7 @@ export class AuthService implements IAuthService {
         const saltRounds = config.bcryptRounds;
         const hashed = await bcrypt.hash(newPassword, saltRounds);
 
-        updateResult = await this._userRepo.updateUserPassword(
+        updateResult = await this._userRepo.updatePassword(
           userRecord._id.toString(),
           hashed
         );
@@ -530,8 +612,9 @@ export class AuthService implements IAuthService {
     }
   }
 
-  private async _verifyGoogleToken(credential: string): Promise<GoogleUserDataDto>
- {
+  private async _verifyGoogleToken(
+    credential: string
+  ): Promise<GoogleUserDataDto> {
     try {
       if (!config.googleClientId) {
         throw new Error("Google Client ID not configured");
@@ -614,9 +697,11 @@ export class AuthService implements IAuthService {
     }
   }
 
-  async refreshAccessToken(refreshToken: string): Promise<RefreshTokenResponseDto> {
+  async refreshAccessToken(
+    refreshToken: string
+  ): Promise<RefreshTokenResponseDto> {
     try {
-      const decoded = jwt.verify(refreshToken, config.jwtRefreshSecret) as any;
+      const decoded = jwt.verify(refreshToken, config.jwtRefreshSecret) ;
 
       if (decoded.tokenType !== "refresh") {
         return { success: false, message: "Invalid token type" };
@@ -631,7 +716,10 @@ export class AuthService implements IAuthService {
         user = await this._ownerRepo.findById(decoded.ownerId);
       } else if (userType === "admin") {
         user = await this._adminRepo.findById(decoded.adminId);
-      }
+      }    else if (userType === "staff") {
+      user = await Staff.findById(decoded.staffId);
+    }
+
 
       if (!user || !user.refreshToken) {
         return { success: false, message: "Invalid refresh token" };
@@ -665,14 +753,16 @@ export class AuthService implements IAuthService {
         },
       };
     } catch (error) {
-      console.error("❌ Refresh token error:", error);
+      console.error(" Refresh token error:", error);
       return { success: false, message: "Token refresh failed" };
     }
   }
 
-  private async _createGoogleUser(googleUserData: GoogleUserDataDto): Promise<any> {
+  private async _createGoogleUser(
+    googleUserData: GoogleUserDataDto
+  ): Promise<UserResponseDto> {
     try {
-      const existingUser = await this._userRepo.findUserByEmail(
+      const existingUser = await this._userRepo.findByEmail(
         googleUserData.email
       );
 
@@ -722,9 +812,9 @@ export class AuthService implements IAuthService {
   }
 
   private async _updateExistingGoogleUser(
-    user: any,
+    user,
     googleUserData: GoogleUserDataDto
-  ): Promise<any> {
+  ): Promise<UserResponseDto> {
     try {
       if (!user.googleId) {
         const updatedUser = await this._userRepo.linkGoogleAccount(
@@ -749,11 +839,14 @@ export class AuthService implements IAuthService {
 
         return updatedUser;
       } else {
-        const updatedUser = await this._userRepo.updateUserFromGoogle(user._id, {
-          firstName: googleUserData.name,
-          avatar: googleUserData.avatar,
-          isVerified: googleUserData.emailVerified,
-        });
+        const updatedUser = await this._userRepo.updateUserFromGoogle(
+          user._id,
+          {
+            firstName: googleUserData.name,
+            avatar: googleUserData.avatar,
+            isVerified: googleUserData.emailVerified,
+          }
+        );
 
         if (!updatedUser) {
           throw new Error("Failed to update user");
@@ -766,7 +859,7 @@ export class AuthService implements IAuthService {
     }
   }
 
-  private _sanitizeUserData(user: any): UserDataDto {
+  private _sanitizeUserData(user: UserInfo): UserDataDto {
     const { password, __v, ...sanitizedUser } = user.toObject
       ? user.toObject()
       : user;
@@ -785,15 +878,21 @@ export class AuthService implements IAuthService {
     };
   }
 
-  async logout(userId: string, userType: "user" | "admin" | "owner"):Promise<AuthSuccessResponseDto | AuthErrorResponseDto> {
+  async logout(
+    userId: string,
+    userType: "user" | "admin" | "owner"|'staff'
+  ): Promise<AuthSuccessResponseDto | AuthErrorResponseDto> {
     try {
       if (userType === "user") {
-        await this._userRepo.clearUserRefreshToken(userId);
+        await this._userRepo.clearRefreshToken(userId);
       } else if (userType === "owner") {
         await this._ownerRepo.clearRefreshToken(userId);
       } else if (userType === "admin") {
         await this._adminRepo.clearRefreshToken(userId);
-      }
+          } else if (userType === "staff") {
+      await Staff.findByIdAndUpdate(userId, { refreshToken: null });
+    }
+
 
       return { success: true, message: "Logged out successfully" };
     } catch (error) {
@@ -801,9 +900,11 @@ export class AuthService implements IAuthService {
     }
   }
 
-  async checkAuthProvider(email: string): Promise<CheckAuthProviderResponseDto> {
+  async checkAuthProvider(
+    email: string
+  ): Promise<CheckAuthProviderResponseDto> {
     try {
-      const user = await this._userRepo.findUserByEmail(email);
+      const user = await this._userRepo.findByEmail(email);
 
       if (!user) {
         return {

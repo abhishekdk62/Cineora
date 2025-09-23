@@ -511,7 +511,7 @@ export class OwnerRequestService implements IOwnerRequestService {
   }
 
   private async _checkEmailAvailability(email: string): Promise<{ isAvailable: boolean; message?: string }> {
-    const existingUser = await this.userRepository.findUserByEmail(email);
+    const existingUser = await this.userRepository.findByEmail(email);
     if (existingUser) {
       return { isAvailable: false, message: "This email is already registered." };
     }
@@ -668,8 +668,8 @@ export class OwnerRequestService implements IOwnerRequestService {
 
     if (sortBy) {
       result.requests.sort((a: IOwnerRequest, b: IOwnerRequest) => {
-        let aValue = (a as any)[sortBy];
-        let bValue = (b as any)[sortBy];
+        let aValue = (a as string)[sortBy];
+        let bValue = (b as string)[sortBy];
 
         if (sortBy.includes("Date") || sortBy.includes("At")) {
           aValue = new Date(aValue);

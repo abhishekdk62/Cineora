@@ -1,4 +1,3 @@
-// interfaces/analytics.service.interface.ts
 import { ServiceResponse } from "../../../interfaces/interface";
 import { IDateRange } from "../../adminAnalytics/dtos/dtos";
 
@@ -51,7 +50,6 @@ export interface IOperationalAnalyticsDTO {
   revenueGrowthRate: IGrowthRateDTO[];
 }
 
-// Individual DTO interfaces
 export interface IMonthlyRevenueDTO {
   period: {
     year: number;
@@ -302,12 +300,10 @@ export interface IAnalyticsSummaryDTO {
 }
 
 export interface IAnalyticsService {
-  // Main analytics methods
   getComprehensiveAnalytics(
     filters: IAnalyticsFilterDTO
   ): Promise<ServiceResponse<IComprehensiveAnalyticsDTO>>;
 
-  // Revenue Analytics
   getRevenueAnalytics(
     filters: IAnalyticsFilterDTO
   ): Promise<ServiceResponse<IRevenueAnalyticsDTO>>;
@@ -336,7 +332,6 @@ export interface IAnalyticsService {
     dateRange?: IDateRange
   ): Promise<ServiceResponse<IMovieRevenueDTO[]>>;
 
-  // Performance Metrics
   getPerformanceMetrics(
     filters: IAnalyticsFilterDTO
   ): Promise<ServiceResponse<IPerformanceMetricsDTO>>;
@@ -365,7 +360,6 @@ export interface IAnalyticsService {
     dateRange?: IDateRange
   ): Promise<ServiceResponse<IWeekdayWeekendDTO[]>>;
 
-  // Movie & Content Analytics
   getMovieAnalytics(
     filters: IAnalyticsFilterDTO
   ): Promise<ServiceResponse<IMovieAnalyticsDTO>>;
@@ -388,7 +382,6 @@ export interface IAnalyticsService {
     dateRange?: IDateRange
   ): Promise<ServiceResponse<IMovieLifecycleDTO[]>>;
 
-  // Customer Insights
   getCustomerInsights(
     filters: IAnalyticsFilterDTO
   ): Promise<ServiceResponse<ICustomerInsightsDTO>>;
@@ -413,7 +406,6 @@ export interface IAnalyticsService {
     dateRange?: IDateRange
   ): Promise<ServiceResponse<number>>;
 
-  // Financial KPIs
   getFinancialKPIs(
     filters: IAnalyticsFilterDTO
   ): Promise<ServiceResponse<IFinancialKPIsDTO>>;
@@ -438,7 +430,6 @@ export interface IAnalyticsService {
     months?: number
   ): Promise<ServiceResponse<ISeasonalPatternDTO[]>>;
 
-  // Operational Analytics
   getOperationalAnalytics(
     filters: IAnalyticsFilterDTO
   ): Promise<ServiceResponse<IOperationalAnalyticsDTO>>;
@@ -460,7 +451,6 @@ export interface IAnalyticsService {
     period: "monthly" | "quarterly"
   ): Promise<ServiceResponse<IGrowthRateDTO[]>>;
 
-  // Utility methods
   generateAnalyticsReport(
     filters: IAnalyticsFilterDTO
   ): Promise<ServiceResponse<string>>;

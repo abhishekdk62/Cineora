@@ -13,7 +13,7 @@ export interface ICoupon extends Document {
   minAmount:Number;
   maxUsageCount: number;
   currentUsageCount: number;
-  createdBy: Types.ObjectId; // Owner ID who created the coupon
+  createdBy: Types.ObjectId; 
   createdAt: Date;
   updatedAt: Date;
 }

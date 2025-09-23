@@ -1,4 +1,3 @@
-// services/analyticsApi.ts
 import ANALYTICS_ROUTES from "../../constants/commonConstants/analyticsConstants";
 import apiClient from "../../Utils/apiClient";
 import {
@@ -97,7 +96,6 @@ export const getMovieWiseRevenueApi = async (
   return response.data;
 };
 
-// Performance Metrics APIs
 export const getPerformanceMetricsApi = async (
   params?: ExtendedAnalyticsQuery
 ): Promise<PerformanceMetricsResponseDto> => {
@@ -133,7 +131,6 @@ export const getWeekdayWeekendComparisonApi = async (
   return response.data;
 };
 
-// Movie Analytics APIs
 export const getMovieAnalyticsApi = async (
   params?: ExtendedAnalyticsQuery
 ): Promise<MovieAnalyticsResponseDto> => {
@@ -171,7 +168,6 @@ export const getMovieLifecycleTrendsApi = async (
   return response.data;
 };
 
-// Customer Insights APIs
 export const getCustomerInsightsApi = async (
   params?: ExtendedAnalyticsQuery
 ): Promise<CustomerInsightsResponseDto> => {
@@ -200,7 +196,6 @@ export const getAdvanceBookingTrendsApi = async (
   return response.data;
 };
 
-// Financial KPIs APIs
 export const getFinancialKPIsApi = async (
   params?: ExtendedAnalyticsQuery
 ): Promise<FinancialKPIsResponseDto> => {
@@ -229,7 +224,6 @@ export const getDiscountImpactApi = async (
   return response.data;
 };
 
-// Operational Analytics APIs
 export const getOperationalAnalyticsApi = async (
   params?: ExtendedAnalyticsQuery
 ): Promise<OperationalAnalyticsResponseDto> => {
@@ -251,7 +245,6 @@ export const getRevenueGrowthRateApi = async (
   return response.data;
 };
 
-// Utility APIs
 export const getAnalyticsSummaryApi = async (
   params?: ExtendedAnalyticsQuery
 ): Promise<AnalyticsSummaryResponseDto> => {

@@ -1,4 +1,3 @@
-// components/analytics/common/LoadingCard.tsx
 import React from 'react';
 
 interface LoadingCardProps {

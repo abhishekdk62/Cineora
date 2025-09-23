@@ -8,10 +8,11 @@ import { setBookingData } from "@/app/others/redux/slices/bookingSlice";
 import { useDispatch } from "react-redux";
 import { CouponDetails } from "./Coupondetails";
 import { CouponData } from "@/app/others/types";
+import { AdvanceBookingDto } from "@/app/others/dtos/analytics.dto";
 const lexendMedium = Lexend({ weight: "400", subsets: ["latin"] });
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
 interface BookingSummaryProps {
-  data: any;
+  data: AdvanceBookingDto;
   onPayment: () => void;
   selectedCoupon?: CouponData;
   availableCoupons?: CouponData[];

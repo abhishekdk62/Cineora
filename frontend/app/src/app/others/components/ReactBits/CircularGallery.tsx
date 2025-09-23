@@ -1,4 +1,3 @@
-// @ts-nocheck
 
 import {
   Camera,
@@ -320,7 +319,7 @@ class Media {
     };
 
     img.onerror = (error) => {
-      console.error('❌ Poster failed to load:', this.image, error);
+      console.error(' Poster failed to load:', this.image, error);
       const canvas = document.createElement('canvas');
       canvas.width = 600;
       canvas.height = 900;
@@ -840,7 +839,7 @@ export default function CircularGallery({
         appRef.current = null;
       };
     } catch (error) {
-      console.error('❌ Error creating CircularGallery app:', error);
+      console.error(' Error creating CircularGallery app:', error);
     }
   }, [items, bend, textColor, borderRadius, font, scrollSpeed, scrollEase]);
 

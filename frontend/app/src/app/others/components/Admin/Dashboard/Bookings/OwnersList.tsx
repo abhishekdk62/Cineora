@@ -1,4 +1,3 @@
-// components/OwnersList.tsx
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Lexend } from "next/font/google";

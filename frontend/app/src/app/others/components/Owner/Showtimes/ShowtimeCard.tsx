@@ -1,4 +1,3 @@
-//@ts-nocheck
 "use client";
 import React from "react";
 import { Edit, Calendar, Clock, MapPin, Film, Monitor, Users, Eye, CircleX, CheckCircle } from "lucide-react";

@@ -29,7 +29,7 @@ export class ReviewController {
       
       const statusCode = result.success ? 201 : 400;
       res.status(statusCode).json(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({
         success: false,
         message: error.message || "Internal server error",
@@ -52,7 +52,7 @@ export class ReviewController {
       
       const statusCode = result.success ? 200 : 404;
       res.status(statusCode).json(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({
         success: false,
         message: error.message || "Internal server error",
@@ -74,7 +74,7 @@ export class ReviewController {
       
       const statusCode = result.success ? 200 : 404;
       res.status(statusCode).json(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({
         success: false,
         message: error.message || "Internal server error",
@@ -92,7 +92,7 @@ export class ReviewController {
       const result = await this._reviewService.getMovieReviews(movieId, page, limit);
       
       res.status(200).json(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({
         success: false,
         message: error.message || "Internal server error",
@@ -109,7 +109,7 @@ export class ReviewController {
       const result = await this._reviewService.getTheaterReviews(theaterId, page, limit);
       
       res.status(200).json(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({
         success: false,
         message: error.message || "Internal server error",
@@ -131,7 +131,7 @@ export class ReviewController {
       const result = await this._reviewService.getUserReviews(userId, page, limit);
       
       res.status(200).json(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({
         success: false,
         message: error.message || "Internal server error",
@@ -146,7 +146,7 @@ export class ReviewController {
       const result = await this._reviewService.getMovieRatingStats(movieId);
       
       res.status(200).json(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({
         success: false,
         message: error.message || "Internal server error",
@@ -161,7 +161,7 @@ export class ReviewController {
       const result = await this._reviewService.getTheaterRatingStats(theaterId);
       
       res.status(200).json(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({
         success: false,
         message: error.message || "Internal server error",
@@ -177,7 +177,7 @@ export class ReviewController {
       
       const statusCode = result.success ? 200 : 404;
       res.status(statusCode).json(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({
         success: false,
         message: error.message || "Internal server error",
@@ -193,7 +193,7 @@ export class ReviewController {
       
       const statusCode = result.success ? 200 : 404;
       res.status(statusCode).json(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({
         success: false,
         message: error.message || "Internal server error",

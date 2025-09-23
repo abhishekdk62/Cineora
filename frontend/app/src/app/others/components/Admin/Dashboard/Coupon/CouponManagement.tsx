@@ -1,4 +1,3 @@
-// components/admin/CouponManagement.tsx
 import { useState, useEffect, useCallback } from 'react';
 import { Ticket, Search, RefreshCw, AlertCircle } from 'lucide-react';
 import { getOwnerCoupons, toggleStatus } from '@/app/others/services/adminServices/couponService';
@@ -61,7 +60,7 @@ interface CouponStats {
 }
 
 interface CouponManagementProps {
-    lexend: any;
+    lexend: string;
 }
 
 const CouponManagement: React.FC<CouponManagementProps> = ({ lexend }) => {
@@ -105,7 +104,7 @@ const CouponManagement: React.FC<CouponManagementProps> = ({ lexend }) => {
             } else {
                 throw new Error(response.message || 'Failed to fetch coupons');
             }
-        } catch (err: any) {
+        } catch (error: unknown) {
             setError('Failed to fetch coupons. Please try again.');
             console.error('Error fetching coupons:', err);
         } finally {
@@ -179,7 +178,6 @@ const CouponManagement: React.FC<CouponManagementProps> = ({ lexend }) => {
             acc.total++;
 
             if (!coupon.isActive) {
-                // Disabled coupons don't count in other categories
             } else if (new Date(coupon.expiryDate) <= now) {
                 acc.expired++;
             } else if (coupon.currentUsageCount >= coupon.maxUsageCount) {
@@ -230,7 +228,7 @@ let val=!f
                 throw new Error('Failed to update coupon status');
             }
 toast.success('Status changed')
-        } catch (err: any) {
+        } catch (error: unknown) {
             setError('Failed to update coupon status. Please try again.');
             console.error('Error toggling coupon status:', err);
         } finally {
@@ -389,7 +387,7 @@ toast.success('Status changed')
 
                         <select
                             value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value as any)}
+                            onChange={(e) => setStatusFilter(e.target.value as string)}
                             className="px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white focus:border-yellow-500/50 focus:outline-none"
                             style={{ fontFamily: lexend.style.fontFamily }}
                         >

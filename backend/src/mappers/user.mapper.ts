@@ -28,7 +28,9 @@ export interface UserDto {
   updatedAt: Date;
   isActive: boolean;
 }
+export interface MessageDto{
 
+}
 export class UserMapper {
   static toDto(user: IUser): UserDto {
     return {

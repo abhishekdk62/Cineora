@@ -1,14 +1,16 @@
 
 import ADMIN_USER_BOOKINGS from "../../constants/adminConstants/bookingConstants";
 import apiClient from "../../Utils/apiClient";
+interface getBookingsForAdminDto{
 
+}
 export const getBookingsForAdmin = async (
   theaterId: string,
   startDate: string,
   endDate: string,
   page: number,
   limit: number
-): Promise<any> => {
+): Promise<getBookingsForAdminDto> => {
   const queryParams = new URLSearchParams({
     startDate,
     endDate,

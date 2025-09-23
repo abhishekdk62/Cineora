@@ -44,11 +44,10 @@ export class WalletService implements IWalletService {
   try {
     this._validateDebitWalletData(data);
 
-    // Force debit even if insufficient balance
     const wallet = await this.walletRepository.updateWalletBalanceAllowNegative(
       data.userId,
       data.userModel,
-      -data.amount  // Negative amount for debit
+      -data.amount 
     );
 
     if (!wallet) {

@@ -2,21 +2,31 @@ import { Request, Response, NextFunction } from "express";
 import * as jwt from "jsonwebtoken";
 import { config } from "../../../config";
 import { createResponse } from "../../../utils/createResponse";
-import { AuthService } from "../services/auth.service";
-import { UserRepository } from "../../user/repositories/user.repository";
-import { AdminRepository } from "../../admin/repositories/admin.repository";
-import { OwnerRepository } from "../../owner/repositories/owner.repository";
-import { OTPRepository } from "../../otp/repositories/otp.repository";
-import { EmailService } from "../../../services/email.service";
-import { OwnerRequestRepository } from "../../owner/repositories/ownerRequest.repository";
 
 declare global {
   namespace Express {
     interface Request {
-      user?: any;
-      admin?: any;
-      owner?: any;
-      userRole?: "user" | "admin" | "owner";
+      user?: {
+        id: string;
+        email: string;
+        role: string;
+      };
+      admin?: {
+        adminId: string;
+        email: string;
+        role: string;
+      };
+      owner?: {
+        ownerId: string;
+        email: string;
+        role: string;
+      };
+      staff?: {
+        staffId: string;
+        email: string;
+        role: string;
+      };
+      userRole?: "user" | "admin" | "owner" | "staff";
     }
   }
 }
@@ -38,10 +48,11 @@ export const authenticateToken = async (
       );
     }
     try {
-      const decoded: any = jwt.verify(accessToken, config.jwtAccessSecret);
+      const decoded = jwt.verify(accessToken, config.jwtAccessSecret);
+
       setUserFromDecoded(req, decoded);
       return next();
-    } catch (error: any) {
+    } catch (error: unknown) {
       return res.status(401).json(
         createResponse({
           success: false,
@@ -61,7 +72,7 @@ export const authenticateToken = async (
   }
 };
 
-function setUserFromDecoded(req: Request, decoded: any) {
+function setUserFromDecoded(req: Request, decoded) {
   switch (decoded.role) {
     case "admin":
       req.admin = {
@@ -84,6 +95,15 @@ function setUserFromDecoded(req: Request, decoded: any) {
         role: "user",
       };
       break;
+
+    case "staff":
+      req.staff = {
+        staffId: decoded.staffId,
+        email: decoded.email,
+        role: "staff",
+      };
+      break;
+
     default:
       throw new Error("Invalid token role");
   }
@@ -93,6 +113,7 @@ export const requireAdmin = (
   res: Response,
   next: NextFunction
 ) => {
+  
   if (req.admin.role !== "admin") {
     return res.status(403).json(
       createResponse({
@@ -103,6 +124,7 @@ export const requireAdmin = (
   }
   next();
 };
+
 export const requireOwner = (
   req: Request,
   res: Response,
@@ -133,6 +155,22 @@ export const requireUser = (
   }
   next();
 };
+export const requireStaff = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.staff || req.staff.role !== "staff") {
+    return res.status(403).json(
+      createResponse({
+        success: false,
+        message: "Staff access required.",
+      })
+    );
+  }
+  next();
+};
+
 export const requireAnyRole = (...roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.userRole || !roles.includes(req.userRole)) {

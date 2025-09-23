@@ -1,4 +1,3 @@
-//@ts-nocheck
 "use client";
 import React, { useState, useEffect } from "react";
 import { DollarSign, Calendar, Tag, Info, Percent, MapPin, X, Save } from "lucide-react";
@@ -46,7 +45,6 @@ const CouponForm: React.FC<CouponFormProps> = ({
     }
   };
 
-  // Validate form fields to enable/disable submit button
   useEffect(() => {
     const valid =
       name.trim().length > 0 &&

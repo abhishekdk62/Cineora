@@ -1,4 +1,3 @@
-// interfaces/inviteGroup.service.interface.ts
 import { IInviteGroup } from './inviteGroup.model.interface';
 import { 
   CreateInviteRequestDTO,

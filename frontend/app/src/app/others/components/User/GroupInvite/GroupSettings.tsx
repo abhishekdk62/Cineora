@@ -1,4 +1,3 @@
-// components/User/GroupInvite/GroupSettings.tsx
 import React from "react";
 import { Lexend } from "next/font/google";
 import { Settings, Star } from "lucide-react";

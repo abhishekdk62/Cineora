@@ -1,4 +1,3 @@
-// components/admin/analytics/AnalyticsTable.tsx
 import React from 'react';
 import { ChevronDown, ChevronUp, MoreVertical } from 'lucide-react';
 
@@ -8,7 +7,7 @@ interface TableColumn<T extends RowData> {
   key: keyof T;
   label: string;
   sortable?: boolean;
-  render?: (value: unknown, row: T) => React.ReactNode; // Changed from T[keyof T] to unknown
+  render?: (value: unknown, row: T) => React.ReactNode; 
   align?: 'left' | 'center' | 'right';
 }
 
@@ -23,7 +22,6 @@ interface AnalyticsTableProps<T extends RowData> {
   className?: string;
 }
 
-// Helper function to safely render unknown values
 const renderCellValue = (value: unknown): React.ReactNode => {
   if (value === null || value === undefined) {
     return '';
@@ -34,7 +32,6 @@ const renderCellValue = (value: unknown): React.ReactNode => {
   if (React.isValidElement(value)) {
     return value;
   }
-  // For objects, arrays, etc., convert to JSON string
   try {
     return JSON.stringify(value);
   } catch {

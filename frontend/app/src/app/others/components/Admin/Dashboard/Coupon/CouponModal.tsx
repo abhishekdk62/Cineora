@@ -1,4 +1,3 @@
-// components/admin/CouponModal.tsx
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { 
@@ -31,7 +30,7 @@ interface Coupon {
 
 interface CouponModalProps {
   coupon: Coupon;
-  lexend: any;
+  lexend: string;
   onClose: () => void;
   onToggleStatus: (couponId: string) => void;
   loading: boolean;

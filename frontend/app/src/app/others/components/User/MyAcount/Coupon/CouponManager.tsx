@@ -36,7 +36,6 @@ const CouponManager: React.FC = () => {
     fetchCoupons(page);
   }, [page]);
 
-  // Helper function to check if coupon is expired
   const isCouponExpired = (coupon: CouponResponseDto): boolean => {
     const now = new Date();
     const expiryDate = new Date(coupon.expiryDate);

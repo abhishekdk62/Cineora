@@ -45,7 +45,6 @@ export class WalletRepository implements IWalletRepository {
   amount: number
 ): Promise<IWallet | null> {
   try {
-    // This allows balance to go negative
     return await Wallet.findOneAndUpdate(
       { userId, userModel },
       { 

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { Filter, DollarSign, Wallet } from 'lucide-react';
 import { getTransactionDetailsOwner, getWalletOwner } from '@/app/others/services/ownerServices/walletServices';
@@ -23,7 +22,6 @@ const WalletManager: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
 
-  // Result Modal State
   const [showResultModal, setShowResultModal] = useState(false);
   const [resultType, setResultType] = useState<'success' | 'failure'>('success');
   const [resultMessage, setResultMessage] = useState('');
@@ -56,7 +54,6 @@ const WalletManager: React.FC = () => {
     }
   };
 
-  // Result Modal Handler
   const showPayoutResult = (
     type: 'success' | 'failure',
     message: string,

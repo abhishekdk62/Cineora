@@ -60,7 +60,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
           text: 'text-base',
           progress: 'h-2'
         };
-      default: // medium
+      default: 
         return {
           container: 'px-3 py-2',
           icon: 'w-4 h-4',

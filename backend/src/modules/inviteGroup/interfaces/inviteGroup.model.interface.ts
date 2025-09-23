@@ -1,4 +1,3 @@
-// interfaces/inviteGroup.model.interface.ts
 import { Document, Types } from 'mongoose';
 
 export interface IInviteGroup extends Document {
@@ -36,7 +35,6 @@ export interface IInviteGroup extends Document {
     role: 'host' | 'member';
   }>;
 
-  // ✅ Coupon Usage Details
   couponUsed?: {
     couponId?: Types.ObjectId;
     couponCode?: string;
@@ -47,7 +45,6 @@ export interface IInviteGroup extends Document {
     _id?: Types.ObjectId;
   };
 
-  // ✅ Price Breakdown Details
   priceBreakdown: {
     originalAmount: number;
     discountedSubtotal: number;

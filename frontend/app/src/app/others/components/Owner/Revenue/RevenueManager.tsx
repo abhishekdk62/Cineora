@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 import React, { useEffect, useState } from 'react';
 
@@ -27,7 +26,7 @@ export const RevenueManager: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   
   // Data state
-  const [allBookingsData, setAllBookingsData] = useState<any[]>([]);
+  const [allBookingsData, setAllBookingsData] = useState([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
 
   // Navigation handlers
@@ -40,7 +39,6 @@ export const RevenueManager: React.FC = () => {
   const handleBackToScreens = () => setSelectedScreen(null);
   const handleDateRangeChange = (newDateRange: DateRange) => setDateRange(newDateRange);
 
-  // Fetch all bookings data
   useEffect(() => {
     const fetchAllBookingsData = async () => {
       try {

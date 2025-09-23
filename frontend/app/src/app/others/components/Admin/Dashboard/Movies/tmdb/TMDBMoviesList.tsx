@@ -17,7 +17,6 @@ interface TMDBMovie {
   overview: string;
   poster_path: string;
   original_language: string;
-  // Optional additional fields you might need
   adult?: boolean;
   backdrop_path?: string | null;
   popularity?: number;

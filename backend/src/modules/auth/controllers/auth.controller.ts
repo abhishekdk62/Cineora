@@ -15,8 +15,9 @@ import { AUTH_MESSAGES } from "../../../utils/messages.constants";
 export class AuthController {
   constructor(private readonly _authService: IAuthService) {}
 
-  async login(req: Request, res: Response): Promise<any> {
+  async login(req: Request, res: Response): Promise<void> {
     try {
+      
       const loginData: LoginRequestDto = req.body;
 
       if (!loginData.email || !loginData.password) {
@@ -85,7 +86,7 @@ export class AuthController {
     }
   }
 
-  async sendPasswordResetOTP(req: Request, res: Response): Promise<any> {
+  async sendPasswordResetOTP(req: Request, res: Response): Promise<void> {
     try {
       const requestData: SendPasswordResetOtpRequestDto = req.body;
 
@@ -127,7 +128,7 @@ export class AuthController {
     }
   }
 
-  async verifyPasswordResetOtp(req: Request, res: Response): Promise<any> {
+  async verifyPasswordResetOtp(req: Request, res: Response): Promise<void> {
     try {
       const requestData: VerifyPasswordResetOtpRequestDto = req.body;
 
@@ -169,7 +170,7 @@ export class AuthController {
     }
   }
 
-  async resetPasswordWithOTP(req: Request, res: Response): Promise<any> {
+  async resetPasswordWithOTP(req: Request, res: Response): Promise<void> {
     try {
       const requestData: ResetPasswordRequestDto = req.body;
 
@@ -212,7 +213,7 @@ export class AuthController {
     }
   }
 
-  async googleAuthenticate(req: Request, res: Response): Promise<any> {
+  async googleAuthenticate(req: Request, res: Response): Promise<void> {
     try {
       const requestData: GoogleAuthRequestDto = req.body;
 
@@ -273,7 +274,7 @@ export class AuthController {
 
 
 
-  async logout(req: Request, res: Response): Promise<any> {
+  async logout(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user?.userId || req.user?.adminId || req.user?.ownerId;
       const userType = req.user?.role;
@@ -305,7 +306,7 @@ export class AuthController {
       );
     }
   }
-  getCurrentUser = async (req: Request, res: Response): Promise<any> => {
+  getCurrentUser = async (req: Request, res: Response): Promise<void> => {
     try {
       let userId: string | undefined;
       let userRole: string | undefined;

@@ -1,4 +1,3 @@
-// @ts-nocheck
 
 "use client";
 import * as XLSX from 'xlsx';
@@ -78,7 +77,6 @@ const handleExportExcel = () => {
   }
 
 const worksheetData = filteredBookings.map(booking => {
-  // Base booking data
   const baseData = {
     'Booking ID': booking.bookingId || 'N/A',
     'Customer Email': booking.userId?.email || booking.contactInfo?.email || 'N/A',
@@ -104,7 +102,6 @@ const worksheetData = filteredBookings.map(booking => {
     'Format': showtime.format || 'N/A'
   };
 
-  // Conditionally add coupon data only if it exists
   if (booking.couponUsed) {
     return {
       ...baseData,
@@ -116,7 +113,6 @@ const worksheetData = filteredBookings.map(booking => {
     };
   }
 
-  // If no coupon, add empty coupon fields for consistent columns
   return {
     ...baseData,
     'Coupon Used': 'No Coupon',
@@ -129,7 +125,6 @@ const worksheetData = filteredBookings.map(booking => {
 
 const worksheet = XLSX.utils.json_to_sheet(worksheetData);
 
-// Updated column widths including coupon columns
 const columnWidths = [
   { width: 20 }, // Booking ID
   { width: 25 }, // Customer Email

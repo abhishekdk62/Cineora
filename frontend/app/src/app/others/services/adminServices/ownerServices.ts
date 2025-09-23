@@ -11,8 +11,9 @@ import {
   RejectOwnerRequestDto,
   ToggleOwnerStatusResponseDto,
 } from '../../dtos/owner.dto';
+import { ParamsDto } from "./userService";
 
-const buildQuery = (params: Record<string, any>): string => {
+const buildQuery = (params: Record<string, ParamsDto>): string => {
   const searchParams = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== "" && value !== null) {

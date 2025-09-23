@@ -1,4 +1,3 @@
-//@ts-nocheck
 "use client";
 import React from "react";
 import { useState, useEffect } from "react";
@@ -39,7 +38,7 @@ export default function NavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showNotificationModal, setShowNotificationModal] = useState(false); // ✅ New state
+  const [showNotificationModal, setShowNotificationModal] = useState(false); 
   const [notifications, setNotifications] = useState<BackendNotification[]>([]);
   const [unreadNotifications, setUnreadNotifications] = useState<BackendNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);

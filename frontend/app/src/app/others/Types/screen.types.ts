@@ -44,19 +44,18 @@ export interface IScreen {
   updatedAt: Date;
 }
 
-// ADD THIS: New interface for aisle form data
 export interface IAisleFormData {
   vertical: {
     id: string;
-    position: string; // String for form input
-    width: string; // String for form input
+    position: string; 
+    width: string; 
     type: 'main' | 'side' | 'emergency';
     label?: string;
   }[];
   horizontal: {
     id: string;
-    afterRow: string; // String for form input
-    width: string; // String for form input
+    afterRow: string; 
+    width: string; 
     type: 'cross' | 'emergency';
     label?: string;
   }[];
@@ -71,7 +70,6 @@ export interface IScreenFormData {
     rows: string;
     seatsPerRow: string;
     totalSeats: string;
-    // ADD THIS: Optional aisle configuration in form
     aisles?: IAisleFormData;
   };
   isActive: boolean;
@@ -91,7 +89,6 @@ export interface IScreenFilters {
   limit?: number;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
-  // ADD THIS: Filter by aisle configuration
   hasAisles?: boolean;
 }
 
@@ -99,7 +96,6 @@ export interface IScreenLayoutFormData {
   rows: string;
   seatsPerRow: string;
   totalSeats: string;
-  // ADD THIS: Aisle configuration in layout form
   aisles?: IAisleFormData;
 }
 
@@ -109,11 +105,10 @@ export interface IFormErrors {
   rows?: string;
   seatsPerRow?: string;
   submit?: string;
-  // ADD THIS: Aisle-related validation errors
   aisles?: {
-    vertical?: { [key: string]: string }; // Indexed by aisle id
-    horizontal?: { [key: string]: string }; // Indexed by aisle id
-    general?: string; // General aisle configuration errors
+    vertical?: { [key: string]: string }; 
+    horizontal?: { [key: string]: string }; 
+    general?: string; 
   };
 }
 
@@ -125,7 +120,6 @@ export interface IScreenFormModalProps {
   initialData: IScreen | null;
 }
 
-// ADD THIS: New interface for aisle configuration modal
 export interface IAisleConfigModalProps {
   screen: IScreen;
   theater: ITheater | null;
@@ -133,7 +127,6 @@ export interface IAisleConfigModalProps {
   onSuccess: () => void;
 }
 
-// ADD THIS: Interface for aisle validation
 export interface IAisleValidation {
   isValid: boolean;
   errors: {
@@ -143,12 +136,11 @@ export interface IAisleValidation {
   };
 }
 
-// ADD THIS: Helper interface for aisle statistics
 export interface IAisleStats {
   totalVerticalAisles: number;
   totalHorizontalAisles: number;
   mainAisles: number;
   emergencyAisles: number;
-  totalAisleWidth: number; // Total space occupied by aisles
-  effectiveSeatingArea: number; // Remaining space after aisles
+  totalAisleWidth: number; 
+  effectiveSeatingArea: number; 
 }

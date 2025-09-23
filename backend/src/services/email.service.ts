@@ -1,5 +1,6 @@
 import * as nodemailer from "nodemailer";
 import { config } from "../config";
+import { bookingInfo, TicketResponseDto } from "../modules/tickets/dtos/dto";
 
 export class EmailService {
   private transporter;
@@ -870,7 +871,7 @@ export interface IEmailService {
   sendKYCSubmittedEmail(email: string, ownerName: string, requestId: string): Promise<boolean>;
   sendKYCRejectedEmail(email: string, ownerName: string, rejectionReason: string): Promise<boolean>;
   sendOwnerWelcomeEmail(email: string, ownerName: string, tempPassword: string): Promise<boolean>;
-  sendTicketsEmail(email: string, tickets: any[], bookingInfo: any): Promise<boolean>;
+  sendTicketsEmail(email: string, tickets: TicketResponseDto[], bookingInfo: bookingInfo): Promise<boolean>;
   sendEmailChangeSuccessNotification(newEmail: string, oldEmail: string): Promise<boolean>;
   sendPasswordChangeConfirmation(email: string, userName: string): Promise<boolean>;
 }

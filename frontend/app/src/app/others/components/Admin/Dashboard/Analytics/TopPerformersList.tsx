@@ -1,4 +1,3 @@
-// components/admin/analytics/TopPerformersList.tsx
 import React from 'react';
 import { Crown, TrendingUp, TrendingDown } from 'lucide-react';
 

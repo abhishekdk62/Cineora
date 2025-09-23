@@ -1,4 +1,3 @@
-//@ts-nocheck
 "use client";
 import React, { useEffect, useState } from "react";
 import { CouponResponseDto, GetCouponsQueryDto, GetCouponsResponseDto } from "@/app/others/dtos/coupon.dto";

@@ -30,7 +30,6 @@ export interface IReviewRepository {
     totalReviews: number;
     ratingDistribution: { [key: number]: number };
   }>;
-  // Add these methods to your existing IReviewRepository interface
 getBulkMovieRatings(movieIds: string[]): Promise<Array<{ 
   _id: string; 
   averageRating: number; 

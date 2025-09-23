@@ -1,11 +1,10 @@
-// interfaces/analytics.repository.interface.ts
 import { ObjectId, Types } from "mongoose";
 import { IDateRange } from "../../adminAnalytics/dtos/dtos";
 
 
 
 export interface IRevenueDTO {
-  _id: any;
+  _id: string;
   totalRevenue: number;
   totalBookings: number;
   avgTicketPrice?: number;
@@ -103,7 +102,6 @@ export interface IDiscountImpactDTO {
 }
 
 export interface IAnalyticsRepository {
-  // Revenue Analytics
   getMonthlyRevenueTrends(ownerId: string, months?: number): Promise<IRevenueDTO[]>;
   getWeeklyRevenue(ownerId: string, weeks?: number): Promise<IRevenueDTO[]>;
   getDailyRevenue(ownerId: string, days?: number): Promise<IRevenueDTO[]>;
@@ -111,7 +109,6 @@ export interface IAnalyticsRepository {
   getScreenWiseRevenue(ownerId: string, dateRange?: IDateRange): Promise<IScreenRevenueDTO[]>;
   getMovieWiseRevenue(ownerId: string, dateRange?: IDateRange): Promise<IMovieRevenueDTO[]>;
   
-  // Performance Metrics
   getOverallOccupancy(ownerId: string, dateRange: IDateRange): Promise<IOccupancyDTO>;
   getAverageTicketPrice(ownerId: string, dateRange?: IDateRange): Promise<number>;
   getRevenuePerScreen(ownerId: string, dateRange?: IDateRange): Promise<IScreenRevenueDTO[]>;
@@ -119,32 +116,27 @@ export interface IAnalyticsRepository {
   getTimeSlotPerformance(ownerId: string, dateRange?: IDateRange): Promise<ITimeSlotDTO[]>;
   getWeekdayWeekendComparison(ownerId: string, dateRange?: IDateRange): Promise<IRevenueDTO[]>;
   
-  // Movie & Content Analytics
   getTopPerformingMovies(ownerId: string, limit?: number, dateRange?: IDateRange): Promise<IMoviePerformanceDTO[]>;
   getFormatPerformance(ownerId: string, dateRange?: IDateRange): Promise<IFormatPerformanceDTO[]>;
   getLanguagePerformance(ownerId: string, dateRange?: IDateRange): Promise<IFormatPerformanceDTO[]>;
   getMovieLifecycleTrends(ownerId: string, movieId: string, dateRange?: IDateRange): Promise<IRevenueDTO[]>;
   
-  // Customer Insights
   getCustomerSatisfactionRatings(ownerId: string, dateRange?: IDateRange): Promise<ICustomerSatisfactionDTO[]>;
   getRepeatCustomerRate(ownerId: string, dateRange?: IDateRange): Promise<IRepeatCustomerDTO>;
   getAdvanceBookingTrends(ownerId: string, dateRange?: IDateRange): Promise<IAdvanceBookingDTO[]>;
   getAverageSpendPerCustomer(ownerId: string, dateRange?: IDateRange): Promise<number>;
   getCancellationRate(ownerId: string, dateRange?: IDateRange): Promise<number>;
   
-  // Financial KPIs
   getPotentialVsActualRevenue(ownerId: string, dateRange: IDateRange): Promise<IPotentialRevenueDTO>;
   getDynamicPricingImpact(ownerId: string, dateRange?: IDateRange): Promise<IDynamicPricingDTO>;
   getDiscountImpact(ownerId: string, dateRange?: IDateRange): Promise<IDiscountImpactDTO>;
   getPeakHourRevenue(ownerId: string, dateRange?: IDateRange): Promise<ITimeSlotDTO[]>;
   getSeasonalRevenuePatterns(ownerId: string, months?: number): Promise<IRevenueDTO[]>;
   
-  // Operational Analytics
   getShowUtilizationRate(ownerId: string, dateRange?: IDateRange): Promise<IRevenueDTO[]>;
   getLowPerformingTimeSlots(ownerId: string, threshold?: number, dateRange?: IDateRange): Promise<ITimeSlotDTO[]>;
   getTheaterEfficiencyScore(ownerId: string, dateRange?: IDateRange): Promise<ITheaterRevenueDTO[]>;
   getRevenueGrowthRate(ownerId: string, period: 'monthly' | 'quarterly'): Promise<IRevenueDTO[]>;
   
-  // Helper methods
   getOwnerTheaterIds(ownerId: string): Promise<Types.ObjectId[]>;
 }

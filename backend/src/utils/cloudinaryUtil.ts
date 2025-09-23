@@ -28,7 +28,7 @@ export const uploadToCloudinary = async (
   options: CloudinaryUploadOptions = {}
 ): Promise<CloudinaryUploadResult> => {
   try {
-    const uploadOptions: any = {
+    const uploadOptions: string = {
       folder: options.folder || 'uploads',
       type: 'authenticated', 
       resource_type: options.resource_type || 'image',
@@ -137,7 +137,7 @@ export const generateSignedUrl = (
       throw new Error('Public ID is required');
     }
 
-    const urlOptions: any = {
+    const urlOptions: string = {
       type: 'authenticated',
       sign_url: true,
       transformation: []

@@ -37,7 +37,7 @@ const GroupChatManager: React.FC = () => {
   const { socket, isConnected, joinChatRoom, leaveChatRoom } = useSocket();
 
   useEffect(() => {
-    const handleNewMessage = (event: any) => {
+    const handleNewMessage = (event: MessageItem) => {
       const messageData = event.detail;
       if (messageData.chatRoomId === selectedChatId && messageData.senderId !== String(id)) {
         const newMessage: MessageItem = {
@@ -58,7 +58,7 @@ const GroupChatManager: React.FC = () => {
       }
     };
 
-    const handleMessageEdited = (event: any) => {
+    const handleMessageEdited = (event: MessageItem) => {
       const { messageId, content, chatRoomId } = event.detail;
       if (chatRoomId === selectedChatId) {
         setMessages(prev =>
@@ -71,7 +71,7 @@ const GroupChatManager: React.FC = () => {
       }
     };
 
-    const handleMessageDeleted = (event: any) => {
+    const handleMessageDeleted = (event: MessageItem) => {
       const { messageId, chatRoomId } = event.detail;
       if (chatRoomId === selectedChatId) {
         setMessages(prev =>
@@ -95,7 +95,6 @@ const GroupChatManager: React.FC = () => {
     };
   }, [selectedChatId, id]);
 
-  // ADD CHAT ROOM JOIN/LEAVE LOGIC:
   useEffect(() => {
     if (selectedChatId && isConnected) {
       joinChatRoom(selectedChatId);
@@ -111,7 +110,7 @@ const GroupChatManager: React.FC = () => {
       try {
         const res = await getUserChatRooms();
         if (res.success && res.data) {
-          const rooms: ChatRoom[] = res.data.map((room: any) => ({
+          const rooms: ChatRoom[] = res.data.map((room: ChatRoom) => ({
             id: room._id,
             name: room.roomName,
             movieTitle: room.movieInfo.title,
@@ -145,7 +144,7 @@ const GroupChatManager: React.FC = () => {
       console.log("the messages are:", response);
 
       if (response.success && response.data && response.data.messages) {
-        const mappedMessages: MessageItem[] = response.data.messages.map((msg: any) => ({
+        const mappedMessages: MessageItem[] = response.data.messages.map((msg: MessageItem) => ({
           _id: msg._id,
           chatRoomId: msg.chatRoomId,
           content: msg.content,
@@ -155,13 +154,11 @@ const GroupChatManager: React.FC = () => {
           messageType: msg.messageType,
           senderId: msg.senderId,
           senderName: msg.senderName || "Unknown",
-          // 🔥 ADD THESE MISSING FIELDS:
-          systemData: msg.systemData, // Contains userId and username
-          systemMessageType: msg.systemMessageType, // USER_JOINED, USER_LEFT, etc.
+          systemData: msg.systemData, 
+          systemMessageType: msg.systemMessageType, 
           replyToMessageId: msg.replyToMessageId,
         }));
 
-        // Debug log to verify system messages are mapped correctly
         const systemMessages = mappedMessages.filter(m => m.messageType === 'SYSTEM');
         console.log("System messages found:", systemMessages);
         systemMessages.forEach(sm => {
@@ -211,7 +208,6 @@ const GroupChatManager: React.FC = () => {
         isDeleted: false,
         messageType: "TEXT",
         senderId: String(id),
-        //@ts-ignore
         senderName: email?.split("@")[0]
       };
 

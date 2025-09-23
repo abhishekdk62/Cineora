@@ -1,4 +1,3 @@
-// components/TabNavigation.tsx
 import React from 'react';
 
 interface TabNavigationProps {

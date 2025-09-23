@@ -1,4 +1,3 @@
-// PayoutModal.tsx - Complete with Confirmation and Loading
 import React, { useState, useEffect } from 'react';
 import { X, CreditCard, Banknote, Clock, Zap, Building2, Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -63,7 +62,6 @@ const PayoutModal: React.FC<PayoutModalProps> = ({
     }).format(amount);
   };
 
-  // Step 1: Show Custom Confirmation
   const handlePayout = async () => {
 
     setShowConfirmation(true);
@@ -94,11 +92,10 @@ const handleConfirmPayout = async () => {
   description: `Transfer ₹${payoutAmount} to your bank account`,
   image: '/logo.png',
   
-  handler: async (response: any) => {
+  handler: async (response) => {
     try {
       console.log('✅ User confirmed payout in Razorpay UI:', response);
       
-      // 🔥 Show loading modal AFTER Razorpay success
       setShowLoading(true);
       setIsProcessing(true);
       
@@ -109,7 +106,6 @@ const handleConfirmPayout = async () => {
         order_id: orderResponse.data.order_id
       });
 
-      // Hide loading modal
       setShowLoading(false);
       setIsProcessing(false);
 
@@ -126,7 +122,7 @@ const handleConfirmPayout = async () => {
         throw new Error(confirmResponse.message);
       }
     } catch (error: unknown) {
-      console.error('❌ Payout confirmation failed:', error);
+      console.error(' Payout confirmation failed:', error);
       setShowLoading(false);
       setIsProcessing(false);
       onShowResult(
@@ -141,7 +137,6 @@ const handleConfirmPayout = async () => {
     ondismiss: () => {
       console.log('User cancelled payout');
       setIsProcessing(false);
-      // Don't show loading modal if user cancels
     },
   },
   
@@ -173,7 +168,6 @@ const handleConfirmPayout = async () => {
 };
 
 
-  // Step 3: Handle Confirmation Cancel
   const handleConfirmationCancel = () => {
     setShowConfirmation(false);
   };

@@ -9,6 +9,7 @@ import { WalletController } from "../../wallet/dtos/controllers/wallet.controlle
 import { WalletTransactionController } from "../../walletTransaction/controllers/walletTransaction.controller";
 import { CouponController } from "../../coupons/controllers/coupons.controller";
 import { PaymentController } from "../../payment/controllers/payment.controller";
+import { StaffController } from "../../staff/controller/staff.controller";
 
 export class OwnerRoute {
   constructor(
@@ -23,6 +24,7 @@ export class OwnerRoute {
     private _walletTransactionController: WalletTransactionController,
     private _couponController: CouponController,
     private _paymentController: PaymentController,
+    private _staffController: StaffController
   ) {
     this._setRoutes();
   }
@@ -32,6 +34,9 @@ export class OwnerRoute {
     );
     this._router.post("/coupon", (req, res) =>
       this._couponController.createCoupon(req, res)
+    );
+    this._router.post("/create/staff", (req, res) =>
+      this._staffController.createStaff(req, res)
     );
     //! payout
     this._router.post("/payout/create-order", (req, res) =>
@@ -150,13 +155,13 @@ export class OwnerRoute {
     this._router.post("/screens/check-exists", (req, res) =>
       this._screenController.checkScreenExists(req, res)
     );
-      this._router.get("/bookings/by-owner", (req, res) =>
+    this._router.get("/bookings/by-owner", (req, res) =>
       this._bookingsController.getAllBookingsByOwnerIdForPanel(req, res)
     );
     this._router.get("/bookings/:showtimeId", (req, res) =>
       this._bookingsController.getBookingsByShowtimeId(req, res)
     );
-  
+
     this._router.get("/showtimes/:theaterId/:screenId", (req, res) =>
       this._showtimeController.getShowtimesByFilters(req, res)
     );

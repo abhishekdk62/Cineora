@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { cancelSingleTicket } from '@/app/others/services/userServices/ticketServices';
 import toast from 'react-hot-toast';
 import { TicketData } from './TicketsList';
+import { AdvanceBookingDto } from '@/app/others/dtos/analytics.dto';
 
 const lexendMedium = { className: "font-medium" };
 const lexendSmall = { className: "font-normal text-sm" };
@@ -11,7 +12,7 @@ const lexendSmall = { className: "font-normal text-sm" };
 interface SingleTicketCancellationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  booking: any;
+  booking: AdvanceBookingDto;
   onSuccess: () => void;
 }
 
@@ -26,7 +27,6 @@ const SingleTicketCancellationModal: React.FC<SingleTicketCancellationModalProps
 
   if (!isOpen) return null;
 
-  // Get all tickets for this booking
   const allTickets = booking.allTickets || [booking];
 
   const calculateSelectedAmount = () => {

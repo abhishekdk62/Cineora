@@ -3,13 +3,12 @@ import { X, Grid, Zap, Plus, Trash2 } from 'lucide-react';
 import { Lexend } from "next/font/google";
 import { LayoutPreview } from './LayoutPreview';
 import { RowConfiguration } from './RowConfiguration';
-import { AisleConfiguration } from './AisleConfiguration'; // ADD THIS IMPORT
+import { AisleConfiguration } from './AisleConfiguration';
 import { FormData, ManualSetupFormProps, RowDef } from './types';
 
 const lexendMedium = Lexend({ weight: "500", subsets: ["latin"] });
 const lexendSmall = Lexend({ weight: "400", subsets: ["latin"] });
 
-// ADD THESE INTERFACES
 interface VerticalAisle {
   id: string;
   position: number;
@@ -28,7 +27,6 @@ interface HorizontalAisle {
 
 
 
-// UPDATE THE COMPONENT TO ACCEPT AISLE PROPS
 export const ManualSetupForm: React.FC<ManualSetupFormProps> = ({
   formData,
   errors,
@@ -43,7 +41,6 @@ export const ManualSetupForm: React.FC<ManualSetupFormProps> = ({
   onClose,
   mode,
   setSetupMode,
-  // ADD THESE AISLE PROPS
   verticalAisles,
   horizontalAisles,
   setVerticalAisles,
@@ -170,7 +167,6 @@ export const ManualSetupForm: React.FC<ManualSetupFormProps> = ({
           setRowsDefs={setRowsDefs} 
         />
 
-        {/* ADD THIS: Aisle Configuration */}
         <AisleConfiguration
           verticalAisles={verticalAisles}
           horizontalAisles={horizontalAisles}
@@ -183,7 +179,7 @@ export const ManualSetupForm: React.FC<ManualSetupFormProps> = ({
         <LayoutPreview
           advancedLayoutJSON={advancedLayoutJSON} 
           maxCols={maxCols}
-          showAisles={true} // ADD THIS: Show aisles in preview
+          showAisles={true} 
         />
       </div>
 

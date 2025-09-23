@@ -1,4 +1,3 @@
-// components/admin/analytics/ChartContainer.tsx
 import React from 'react';
 import { BarChart3, TrendingUp, Download, RefreshCw } from 'lucide-react';
 

@@ -1,4 +1,3 @@
-//@ts-nocheck
 import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
 import { TicketData } from '../components/User/MyAcount/Tickets/TicketsList';
@@ -20,7 +19,6 @@ const calculatePriceWithTaxAndConvenience = (basePrice: number) => {
   return basePrice + tax + convenience;
 };
 
-// Helper functions to safely access nested data
 const getMovieData = (ticket: TicketData) => {
   return ticket.movie || ticket.movieId || {};
 };
@@ -51,16 +49,13 @@ export const generateTicketPDF = async ({
   const textColor = '#1f2937'; 
   const lightGray = '#f3f4f6'; 
 
-  // Get data using helper functions
   const movieData = getMovieData(ticket);
   const theaterData = getTheaterData(ticket);
   const screenData = getScreenData(ticket);
 
-  // Header background
   doc.setFillColor(99, 102, 241); 
   doc.rect(0, 0, pageWidth, 40, 'F');
 
-  // Header text
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(28);
   doc.setFont('helvetica', 'bold');
@@ -72,22 +67,18 @@ export const generateTicketPDF = async ({
 
   doc.setTextColor(31, 41, 55);
 
-  // Movie title with fallback
   doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
   doc.text(movieData.title || 'Unknown Movie', 20, 55);
 
-  // Booking ID with fallback
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(107, 114, 128);
   doc.text(`Booking ID: ${ticket.ticketId || 'N/A'}`, pageWidth - 80, 20);
 
-  // Side-by-side Theater Information and Seat Details
-  const leftX = 20; // Theater Info start x
-  const rightX = pageWidth / 2 + 10; // Seat Details start x, right side with padding
+  const leftX = 20; 
+  const rightX = pageWidth / 2 + 10; 
 
-  // Theater Information
   doc.setTextColor(31, 41, 55);
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
@@ -97,12 +88,10 @@ export const generateTicketPDF = async ({
   doc.setFontSize(11);
   let currentYTheater = 85;
   
-  // Handle theater name - could be from theater object or direct property
   const theaterName = theaterData.name || ticket.theater?.name || 'Unknown Theater';
   doc.text(`Theater: ${theaterName}`, leftX, currentYTheater);
   currentYTheater += 8;
   
-  // Handle screen name - could be from screen object or direct property
   const screenName = screenData.name || ticket.screen?.name || ticket.screenId || 'Unknown Screen';
   doc.text(`Screen: ${screenName}`, leftX, currentYTheater);
   currentYTheater += 8;
@@ -111,7 +100,6 @@ export const generateTicketPDF = async ({
   currentYTheater += 8;
   doc.text(`Time: ${formatTime(ticket.showTime)}`, leftX, currentYTheater);
 
-  // Seat Details
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.text('Seat Details', rightX, 75);
@@ -124,7 +112,6 @@ export const generateTicketPDF = async ({
   doc.text(`Seat Numbers: ${allSeats.join(', ')}`, rightX, currentYSeats);
   currentYSeats += 15;
 
-  // Start Price Breakdown below the lower of currentYTheater and currentYSeats
   const priceBreakdownStartY = Math.max(currentYTheater, currentYSeats);
 
   doc.setFontSize(14);
@@ -132,7 +119,7 @@ export const generateTicketPDF = async ({
   doc.text('Price Breakdown', leftX, priceBreakdownStartY);
   let currentY = priceBreakdownStartY + 10;
 
-  doc.setFillColor(243, 244, 246); // Light gray background for header row
+  doc.setFillColor(243, 244, 246); 
   doc.rect(20, currentY - 5, pageWidth - 40, 12, 'F');
 
   doc.setFontSize(10);
@@ -188,7 +175,6 @@ export const generateTicketPDF = async ({
   doc.text(`Rs.${Math.round(calculatedTotal)}`, 155, currentY + 2);
   currentY += 20;
 
-  // QR Code generation with proper error handling
   try {
     if (ticket.qrCode) {
       doc.setTextColor(31, 41, 55);
@@ -198,7 +184,7 @@ export const generateTicketPDF = async ({
       currentY += 10;
 
       const encodedData = encodeURIComponent(ticket.qrCode);
-      const verificationUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/common/verify-ticket/${encodedData}`;
+      const verificationUrl = encodedData
 
       const qrCodeDataURL = await QRCode.toDataURL(verificationUrl, {
         errorCorrectionLevel: 'H',
@@ -233,7 +219,6 @@ export const generateTicketPDF = async ({
     }
   }
 
-  // Ticket status indicator
   const statusX = pageWidth - 60;
   const statusY = 55;
 

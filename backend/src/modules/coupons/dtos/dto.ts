@@ -9,7 +9,7 @@ export interface CreateCouponDto {
   expiryDate: Date;
   maxUsageCount?: number;
   createdBy: Types.ObjectId;
-  theaterNames?: string[]; // For auto-generating description
+  theaterNames?: string[]; 
   minAmount:number;
 }
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Lexend } from "next/font/google";
-import { toast } from "react-hot-toast"; // or your toast library
+import { toast } from "react-hot-toast"; 
 import LoadingReviews from "./LoadingReviews";
 import ReviewsHeader from "./ReviewsHeader";
 import RatingOverview from "./RatingOverview";
@@ -67,7 +67,6 @@ export default function MovieReviews({ movieId, reviewsData, ratingStats }: Movi
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [reviews, setReviews] = useState<Review[]>([]);
 
-  // Edit modal state
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);

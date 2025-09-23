@@ -18,7 +18,6 @@ const ANALYTICS_MESSAGES = {
   REPORT_GENERATED_SUCCESS: "Analytics report generated successfully",
   DATA_EXPORTED_SUCCESS: "Analytics data exported successfully",
 
-  // Error messages
   AUTH_REQUIRED: "Authentication required",
   OWNER_ID_REQUIRED: "Owner ID is required",
   DATE_RANGE_REQUIRED: "Date range is required",
@@ -445,7 +444,6 @@ export class AnalyticsController {
     }
   }
 
-  // Performance Metrics endpoints
   async getPerformanceMetrics(req: Request, res: Response): Promise<void> {
     try {
       let ownerId = req.owner?.ownerId;
@@ -697,7 +695,6 @@ export class AnalyticsController {
     }
   }
 
-  // Movie Analytics endpoints
   async getMovieAnalytics(req: Request, res: Response): Promise<void> {
     try {
       let ownerId = req.owner?.ownerId;
@@ -1157,7 +1154,6 @@ export class AnalyticsController {
     }
   }
 
-  // Financial KPIs endpoints
   async getFinancialKPIs(req: Request, res: Response): Promise<void> {
     try {
       let ownerId = req.owner?.ownerId;
@@ -1363,7 +1359,6 @@ export class AnalyticsController {
     }
   }
 
-  // Operational Analytics endpoints
   async getOperationalAnalytics(req: Request, res: Response): Promise<void> {
     try {
       let ownerId = req.owner?.ownerId;
@@ -1538,7 +1533,6 @@ export class AnalyticsController {
     }
   }
 
-  // Utility endpoints
   async getAnalyticsSummary(req: Request, res: Response): Promise<void> {
     try {
       let ownerId = req.owner?.ownerId;
@@ -1709,7 +1703,6 @@ export class AnalyticsController {
     }
   }
 
-  // Private helper methods
   private buildAnalyticsFilters(
     req: Request,
     ownerId: string

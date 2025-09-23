@@ -67,12 +67,11 @@ export class TicketRepository implements ITicketRepository {
     }
   }
 
-  // Optional: Enhanced method to get tickets with more details for cancellation
   async findTicketsForCancellation(ticketIds: string[]): Promise<ITicket[]> {
     try {
       return await Ticket.find({
         _id: { $in: ticketIds },
-        status: { $in: ["confirmed"] }, // Only get confirmed tickets
+        status: { $in: ["confirmed"] }, 
       })
         .populate("userId", "firstName lastName email")
         .populate("movieId", "title duration")
@@ -89,21 +88,53 @@ export class TicketRepository implements ITicketRepository {
     }
   }
 
-  async markTicketAsUsed(ticketId: string): Promise<ITicket | null> {
-    try {
-      return await Ticket.findOneAndUpdate(
-        { ticketId },
-        { isUsed: true, usedAt: new Date() },
-        { new: true }
-      );
-    } catch (error) {
-      throw new Error(
-        `Failed to mark ticket as used: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
+async markTicketAsUsed(ticketId: string): Promise<ITicket> {
+  try {
+    const updatedTicket = await Ticket.findOneAndUpdate(
+      { ticketId },
+      { 
+        isUsed: true, 
+        usedAt: new Date(),
+        status: "used"
+      },
+      { new: true }
+    )
+    .populate("movieId", "title")
+    .populate("theaterId", "name")
+    .populate("screenId", "name")
+    .populate("userId", "firstName lastName email");
+
+    if (!updatedTicket) {
+      throw new Error("Ticket not found");
     }
+
+    return updatedTicket;
+  } catch (error) {
+    throw new Error(
+      `Failed to mark ticket as used: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
   }
+}
+
+async findTicketByTicketId(ticketId: string): Promise<ITicket | null> {
+  try {
+    return await Ticket.findOne({ ticketId })
+      .populate("bookingId" ,"selectedSeats bookingStatus")
+      .populate("userId", "firstName lastName email")
+      .populate("movieId", "title poster")
+      .populate("theaterId", "name location") 
+      .populate("screenId", "name");
+  } catch (error) {
+    throw new Error(
+      `Failed to find ticket by ticket ID: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
+  }
+}
+
 
   async deleteTicketById(ticketId: string): Promise<boolean> {
     try {
@@ -132,19 +163,6 @@ export class TicketRepository implements ITicketRepository {
     }
   }
 
-  async findTicketByTicketId(ticketId: string): Promise<ITicket | null> {
-    try {
-      return await Ticket.findOne({ ticketId })
-        .populate("bookingId")
-        .populate("userId");
-    } catch (error) {
-      throw new Error(
-        `Failed to find ticket by ticket ID: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
-    }
-  }
 
   async findTicketsByBookingId(bookingId: string): Promise<ITicket[]> {
     try {
@@ -204,7 +222,6 @@ export class TicketRepository implements ITicketRepository {
           preserveNullAndEmptyArrays: true,
         },
       },
-      // Add lookup for movie, theater, screen, coupon as before...
       {
         $lookup: {
           from: "movies",
@@ -256,7 +273,6 @@ export class TicketRepository implements ITicketRepository {
         },
       },
       { $unwind: { path: "$coupon", preserveNullAndEmptyArrays: true } },
-      // Add calculated field for show end time
       {
         $addFields: {
           showEndTime: {
@@ -274,7 +290,7 @@ export class TicketRepository implements ITicketRepository {
                 }
               },
               unit: "minute",
-              amount: { $ifNull: ["$movie.duration", 180] } // Default 3 hours if no duration
+              amount: { $ifNull: ["$movie.duration", 180] } 
             }
           },
           showStartTime: {
@@ -293,12 +309,10 @@ export class TicketRepository implements ITicketRepository {
       }
     ];
 
-    // Apply filtering based on type
     if (!types.includes("all")) {
       const matchConditions = [];
 
       if (types.includes("upcoming")) {
-        // Confirmed tickets with future start time
         matchConditions.push({
           $and: [
             { status: "confirmed" },
@@ -308,7 +322,6 @@ export class TicketRepository implements ITicketRepository {
       }
 
       if (types.includes("history")) {
-        // Confirmed/used tickets where show has ended (not cancelled)
         matchConditions.push({
           $and: [
             { status: { $in: ["confirmed", "used", "expired"] } },
@@ -318,7 +331,6 @@ export class TicketRepository implements ITicketRepository {
       }
 
       if (types.includes("cancelled")) {
-        // All cancelled tickets regardless of show time
         matchConditions.push({
           status: "cancelled"
         });

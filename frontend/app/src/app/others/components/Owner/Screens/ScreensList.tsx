@@ -1,4 +1,3 @@
-// @ts-nocheck
 
 import React, { useState, useEffect, useMemo } from "react";
 import { Monitor, Edit, Eye, Trash2, Power } from "lucide-react";

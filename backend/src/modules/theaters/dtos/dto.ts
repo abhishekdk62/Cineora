@@ -58,7 +58,7 @@ export interface TheaterPaginationDTO {
 }
 
 export interface TheaterListResponseDTO {
-  theaters: any[];
+  theaters: TheaterStatsDTO[];
   pagination: TheaterPaginationDTO;
 }
 

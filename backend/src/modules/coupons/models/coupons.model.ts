@@ -75,7 +75,6 @@ const CouponSchema = new Schema<ICoupon>({
   timestamps: true,
 });
 
-// Indexes for better performance
 CouponSchema.index({ uniqueId: 1 });
 CouponSchema.index({ theaterIds: 1 });
 CouponSchema.index({ createdBy: 1 });

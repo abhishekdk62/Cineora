@@ -19,8 +19,8 @@ export interface CreateBookingDto {
     name?: string;
     uniqueId?: string;
   };
-  paymentStatus?: any;
-  bookingStatus?: any;
+  paymentStatus?: string;
+  bookingStatus?: string;
   theaterId: string;
   screenId: string;
   showtimeId: string;

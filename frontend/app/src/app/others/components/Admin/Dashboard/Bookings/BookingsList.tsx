@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, Users, DollarSign, Search, Filter, Loader2 } from 'lucide-react';

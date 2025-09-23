@@ -1,4 +1,3 @@
-// components/admin/analytics/AnalyticsCard.tsx
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
 

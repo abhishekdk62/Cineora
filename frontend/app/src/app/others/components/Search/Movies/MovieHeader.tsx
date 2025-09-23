@@ -24,7 +24,7 @@ interface MovieHeaderProps {
   language: string;
   formatDuration: (minutes: number) => string;
   languageMap: { [key: string]: string };
-  ratingStats: RatingStats | null; // Add this line
+  ratingStats: RatingStats | null; 
 
 }
 const MovieRating = ({ ratingStats }: { ratingStats: RatingStats | null }) => {

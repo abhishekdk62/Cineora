@@ -1,4 +1,3 @@
-//@ts-nocheck
 'use client';
 
 import React, { useState } from 'react';
@@ -64,15 +63,12 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
     });
 
     return Object.entries(grouped).map(([seatType, ticketGroup]) => {
-      // Calculate base price for this seat type
       const basePrice = ticketGroup.reduce((sum, t) => sum + t.price, 0);
       
-      // Apply coupon discount if available (discount is applied before tax)
       const discountPercentage = ticket.coupon?.discountPercentage || 0;
       const discountAmount = (basePrice * discountPercentage) / 100;
       const discountedPrice = basePrice - discountAmount;
       
-      // Apply tax and convenience fee on the discounted amount
       const taxAmount = basePrice * 0.18;
       const convenienceAmount = basePrice * 0.05;
       const totalPrice = discountedPrice + taxAmount + convenienceAmount;
@@ -114,12 +110,10 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
     } else {
       const basePrice = ticket.price;
       
-      // Apply coupon discount if available
       const discountPercentage = ticket.coupon?.discountPercentage || 0;
       const discountAmount = (basePrice * discountPercentage) / 100;
       const discountedPrice = basePrice - discountAmount;
       
-      // Apply tax and convenience fee on the discounted amount
       const taxAmount = discountedPrice * 0.18;
       const convenienceAmount = discountedPrice * 0.05;
       const totalPrice = discountedPrice + taxAmount + convenienceAmount;

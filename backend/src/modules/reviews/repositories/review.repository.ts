@@ -80,7 +80,6 @@ export class ReviewRepository implements IReviewRepository {
       averageRating: ratingStats[0]?.averageRating || 0
     };
   }
-// Add these implementations to your ReviewRepository class
 async getBulkMovieRatings(movieIds: string[]): Promise<Array<{ 
   _id: string; 
   averageRating: number; 

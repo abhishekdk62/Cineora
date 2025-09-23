@@ -37,6 +37,7 @@ import {
   requireAdmin,
   requireUser,
   requireOwner,
+  requireStaff,
 } from "./modules/auth/middleware/auth.middleware";
 import { getSignedUrl } from "./utils/signCloudinaryUpload";
 import { AdminRoutes } from "./modules/admin/routes/admin.routes";
@@ -83,7 +84,7 @@ import { CouponController } from "./modules/coupons/controllers/coupons.controll
 import { CouponService } from "./modules/coupons/services/coupons.service";
 import { CouponRepository } from "./modules/coupons/repositories/coupons.repository";
 import { SocketService } from "./services/socket.service";
-import { Server as SocketIOServer } from 'socket.io';
+import { Server as SocketIOServer } from "socket.io";
 import { createServer } from "http";
 import { InviteGroupController } from "./modules/inviteGroup/controllers/inviteGroup.controller";
 import { InviteGroupService } from "./modules/inviteGroup/services/inviteGroup.service";
@@ -94,14 +95,14 @@ import { ChatRoomService } from "./modules/chatroom/services/chatroom.service";
 import { ChatMessageService } from "./modules/messages/services/messages.service";
 import { ChatRoomController } from "./modules/chatroom/controllers/chatroom.controller";
 import { ChatMessageController } from "./modules/messages/controllers/messages.controller";
-
+import { StaffController } from "./modules/staff/controller/staff.controller";
+import { StaffRoutes } from "./modules/staff/routes/staff.routes";
 
 export class App {
   private _app: Application;
-  private _server: any; 
-  private _io: SocketIOServer; 
-  private _socketService: SocketService; 
-
+  private _server: any;
+  private _io: SocketIOServer;
+  private _socketService: SocketService;
 
   constructor() {
     this._app = express();
@@ -111,21 +112,20 @@ export class App {
     this._setModuleRoutes();
     this._setErrorHandling();
   }
-    private _initializeServer() {
+  private _initializeServer() {
     this._server = createServer(this._app);
     this._io = new SocketIOServer(this._server, {
       cors: {
         origin: process.env.CORS_ALLOWED_ORIGIN || "http://localhost:3000",
         methods: ["GET", "POST"],
-        credentials: true
-      }
+        credentials: true,
+      },
     });
     this._socketService = new SocketService(this._io);
-    console.log('Socket.IO server initialized');
+    console.log("Socket.IO server initialized");
   }
 
   private _setMiddlewares() {
-    
     this._app.use(helmet());
     this._app.use(cookieParser());
     this._app.use(express.json({ limit: "10mb" }));
@@ -145,9 +145,6 @@ export class App {
   }
 
   private _setModuleRoutes() {
-
- 
-
     const emailService = new EmailService();
 
     const userRepo = new UserRepository();
@@ -164,17 +161,21 @@ export class App {
     const paymentRepo = new PaymentRepository();
     const favoriteRepo = new FavoriteRepository();
     const reviewRepo = new ReviewRepository();
-    const inviteGroupRepo=new InviteGroupRepository();
-    const chatRoomRepo=new ChatRoomRepository()
-    const chatMessageRepo=new ChatMessageRepository()
+    const inviteGroupRepo = new InviteGroupRepository();
+    const chatRoomRepo = new ChatRoomRepository();
+    const chatMessageRepo = new ChatMessageRepository();
     const couponRepo = new CouponRepository();
     const analyticsRepository = new AnalyticsRepository();
     const adminAnalyticsRepository = new AdminAnalyticsRepository();
     const notificationRepo = new NotificationRepository();
     const walletTransactionRepo = new WalletTransactionRepository();
     const bookingRepo = new BookingRepository();
-    const chatRoomService=new ChatRoomService(chatRoomRepo)
-    const chatMessageService=new ChatMessageService(chatMessageRepo,chatRoomRepo,this._socketService)
+    const chatRoomService = new ChatRoomService(chatRoomRepo);
+    const chatMessageService = new ChatMessageService(
+      chatMessageRepo,
+      chatRoomRepo,
+      this._socketService
+    );
     const userService = new UserService(
       userRepo,
       ownerRepo,
@@ -200,9 +201,20 @@ export class App {
     const theaterService = new TheaterService(theaterRepo, emailService);
     const screenService = new ScreenService(screenRepo, theaterRepo);
     const ticketService = new TicketService(ticketRepo, emailService);
-    const paymentService = new PaymentService(paymentRepo,walletRepo,walletTransactionRepo);
-    const showtimeService = new ShowtimeService(showtimeRepo,this._socketService);
-    const bookingService = new BookingService(bookingRepo,showtimeService,showtimeRepo);
+    const paymentService = new PaymentService(
+      paymentRepo,
+      walletRepo,
+      walletTransactionRepo
+    );
+    const showtimeService = new ShowtimeService(
+      showtimeRepo,
+      this._socketService
+    );
+    const bookingService = new BookingService(
+      bookingRepo,
+      showtimeService,
+      showtimeRepo
+    );
     const walletService = new WalletService(walletRepo);
     const notificationService = new NotificationService(notificationRepo);
     const notificationScheduler = new NotificationScheduler(
@@ -237,8 +249,8 @@ export class App {
       ownerRequestService
     );
     const screenController = new ScreenController(screenService);
-    const chatRoomController=new ChatRoomController(chatRoomService)
-    const chatMessageController=new ChatMessageController(chatMessageService)
+    const chatRoomController = new ChatRoomController(chatRoomService);
+    const chatMessageController = new ChatMessageController(chatMessageService);
 
     const ticketController = new TicketController(
       ticketService,
@@ -267,6 +279,7 @@ export class App {
       screenService,
       reviewService
     );
+
     const moviesController = new MoviesController(movieService, reviewService);
     const authController = new AuthController(authService);
     const walletController = new WalletController(
@@ -276,7 +289,11 @@ export class App {
     const notificationController = new NotificationController(
       notificationService
     );
-    const inviteGroupService=new InviteGroupService(inviteGroupRepo,this._socketService,showtimeService)
+    const inviteGroupService = new InviteGroupService(
+      inviteGroupRepo,
+      this._socketService,
+      showtimeService
+    );
     const paymentController = new PaymentController(
       paymentService,
       notificationService
@@ -289,9 +306,10 @@ export class App {
     const adminAnalyticsController = new AdminAnalyticsController(
       adminAnalyticsService
     );
+    const staffController = new StaffController();
     const reviewController = new ReviewController(reviewService);
     const couponController = new CouponController(couponService);
-    const inviteGroupController=new InviteGroupController(inviteGroupService)
+    const inviteGroupController = new InviteGroupController(inviteGroupService);
     const favoriteController = new MovieFavoriteController(favoriteService);
     const analyticsRoutes = new AnalyticsRoute(
       express.Router(),
@@ -331,7 +349,7 @@ export class App {
       couponController,
       inviteGroupController,
       chatMessageController,
-      chatRoomController,
+      chatRoomController
     );
 
     const ownerRoutes = new OwnerMainRoute(
@@ -344,9 +362,11 @@ export class App {
       bookingController,
       walletController,
       walletTransactionController,
-couponController,
-paymentController
+      couponController,
+      paymentController,
+      staffController
     );
+    const staffRoutes=new StaffRoutes(express.Router(),ticketController,staffController)
 
     const ownerReqRoutes = new OwnerRequestRoute(
       express.Router(),
@@ -369,6 +389,7 @@ paymentController
     );
 
     this._app.use("/api/auth", authRoutes.getRouter());
+    this._app.use("/api/staff",authenticateToken,requireStaff, staffRoutes.getRouter());
     this._app.use(
       "/api/users",
       authenticateToken,

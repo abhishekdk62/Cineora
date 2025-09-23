@@ -1,4 +1,5 @@
 import { Server as SocketIOServer } from 'socket.io';
+import { MessageDto, UserDto } from '../mappers/user.mapper';
 
 export class SocketService {
   private io: SocketIOServer;
@@ -9,7 +10,6 @@ export class SocketService {
     this.io.on('connection', (socket) => {
       console.log('🔗 New client connected:', socket.id);
       
-      // Existing seat booking events
       socket.on('join-showtime', (showtimeId) => {
         socket.join(showtimeId);
         console.log(`✅ Client ${socket.id} joined room: ${showtimeId}`);
@@ -24,7 +24,7 @@ export class SocketService {
  
       
       socket.on('disconnect', () => {
-        console.log('❌ Client disconnected:', socket.id);
+        console.log(' Client disconnected:', socket.id);
       });
     });
   }
@@ -68,7 +68,6 @@ export class SocketService {
 emitParticipantLeft(inviteId: string, participantData: any): void {
   console.log(`🔊 [SOCKET] emitParticipantLeft called for ${inviteId}:`, participantData);
   
-  // ✅ USE EXACT SAME STRUCTURE AS participant_joined
   const eventData = {
     inviteId: participantData.inviteId,
     availableSlots: participantData.availableSlots,
@@ -132,14 +131,14 @@ emitParticipantLeft(inviteId: string, participantData: any): void {
 
 // Add these new emit methods to your existing SocketService class
 
-emitNewMessage(chatRoomId: string, messageData: any): void {
+emitNewMessage(chatRoomId: string, messageData: MessageDto): void {
   console.log('🚀 Broadcasting new message to chat room:', chatRoomId);
   console.log('📊 Clients in chat room:', this.io.sockets.adapter.rooms.get(`chat-${chatRoomId}`)?.size || 0);
   
   this.io.to(`chat-${chatRoomId}`).emit('new-message', messageData);
 }
 
-emitMessageEdit(chatRoomId: string, messageData: any): void {
+emitMessageEdit(chatRoomId: string, messageData: ): void {
   console.log('🚀 Broadcasting message edit to chat room:', chatRoomId);
   
   this.io.to(`chat-${chatRoomId}`).emit('message-edited', {
@@ -158,13 +157,13 @@ emitMessageDelete(chatRoomId: string, messageId: string): void {
   });
 }
 
-emitUserJoinedChat(chatRoomId: string, userData: any): void {
+emitUserJoinedChat(chatRoomId: string, userData: UserDto): void {
   console.log('🚀 Broadcasting user joined chat:', chatRoomId);
   
   this.io.to(`chat-${chatRoomId}`).emit('user-joined-chat', userData);
 }
 
-emitUserLeftChat(chatRoomId: string, userData: any): void {
+emitUserLeftChat(chatRoomId: string, userData: UserDto): void {
   console.log('🚀 Broadcasting user left chat:', chatRoomId);
   
   this.io.to(`chat-${chatRoomId}`).emit('user-left-chat', userData);

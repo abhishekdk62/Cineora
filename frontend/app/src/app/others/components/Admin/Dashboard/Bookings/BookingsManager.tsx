@@ -1,4 +1,3 @@
-// BookingsManager.tsx
 "use client";
 import React, { useState } from 'react';
 import { Lexend } from "next/font/google";
@@ -47,7 +46,6 @@ interface Theater {
   isVerified: boolean;
 }
 
-// Enhanced Breadcrumb Component
 const NavigationBreadcrumb: React.FC<{
   items: {
     label: string;
@@ -109,7 +107,6 @@ export const BookingsManager: React.FC = () => {
     setSelectedTheater(null);
   };
 
-  // Get the appropriate icon for the current view
   const getCurrentIcon = () => {
     if (!selectedOwner) return DollarSign;
     if (!selectedTheater) return Building;
@@ -118,7 +115,6 @@ export const BookingsManager: React.FC = () => {
 
   const CurrentIcon = getCurrentIcon();
 
-  // Breadcrumb items configuration
   const breadcrumbItems = [
     { 
       label: 'Bookings Management', 

@@ -1,4 +1,3 @@
-// components/EmptyState.tsx
 import React from 'react';
 
 interface EmptyStateProps {

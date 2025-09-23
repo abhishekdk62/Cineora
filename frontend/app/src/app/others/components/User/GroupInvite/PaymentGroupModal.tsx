@@ -10,9 +10,9 @@ import { createChatRoom } from "@/app/others/services/userServices/chatServices"
 interface PaymentModalProps {
   totalAmount: number;
   onClose: () => void;
-  hostBookingData: any; // ✅ Host booking data
-  inviteData: any; // ✅ Invite creation data
-  onCreateInvite: (data: any) => Promise<any>; // ✅ Invite creation function
+  hostBookingData: any; 
+  inviteData: any; 
+  onCreateInvite: (data: any) => Promise<any>; 
 }
 
 declare global {
@@ -81,7 +81,7 @@ export const PaymentGroupModal: React.FC<PaymentModalProps> = ({
 
     try {
       const orderResponse = await createRazorpayOrder({
-        amount: totalAmount * 100, // ✅ Host's portion only
+        amount: totalAmount * 100, 
         currency: 'INR'
       });
 
@@ -93,7 +93,7 @@ export const PaymentGroupModal: React.FC<PaymentModalProps> = ({
 
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: totalAmount * 100, // ✅ Host's portion only
+        amount: totalAmount * 100,
         currency: 'INR',
         name: 'Movie Tickets - Group Host',
         description: `Group Movie Ticket Booking - ${hostBookingData.movieTitle}`,
@@ -193,7 +193,7 @@ console.log('created room',createRoom);
           contact: hostBookingData.contactInfo?.phone || '',
         },
         theme: {
-          color: '#8B5CF6', // Purple theme for group bookings
+          color: '#8B5CF6',
         },
         modal: {
           ondismiss: () => {
@@ -288,7 +288,7 @@ console.log(createRoom);
       toast.success('Group invite created and wallet payment successful! 🎉');
       router.push(`/booking/success?type=group&inviteId=${inviteResult.data?._id || inviteResult.data?.inviteId}`);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Wallet group payment failed:', error);
 
       if (error.response?.data?.message === 'Insufficient balance') {

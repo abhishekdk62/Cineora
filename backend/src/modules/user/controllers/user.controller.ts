@@ -43,7 +43,6 @@ export class UserController {
   async signup(req: Request, res: Response): Promise<void> {
     try {
       const userData: SignupDto = req.body;
-      
       const validationError = this._validateSignupData(userData);
       if (validationError) {
         res.status(StatusCodes.BAD_REQUEST).json(createResponse({

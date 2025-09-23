@@ -1,10 +1,9 @@
-// hooks/useCountdown.ts
 import { useState, useEffect } from 'react';
 
 interface CountdownResult {
   timeLeft: string;
   isExpired: boolean;
-  progress: number; // 0-100 percentage
+  progress: number; 
 }
 
 export const useCountdown = (createdAt: string, durationHours: number = 3): CountdownResult => {
@@ -15,7 +14,7 @@ export const useCountdown = (createdAt: string, durationHours: number = 3): Coun
   useEffect(() => {
     const calculateTimeLeft = () => {
       const createdTime = new Date(createdAt).getTime();
-      const expiryTime = createdTime + (durationHours * 60 * 60 * 1000); // 3 hours in milliseconds
+      const expiryTime = createdTime + (durationHours * 60 * 60 * 1000); 
       const now = new Date().getTime();
       const difference = expiryTime - now;
 
@@ -26,12 +25,10 @@ export const useCountdown = (createdAt: string, durationHours: number = 3): Coun
         return;
       }
 
-      // Calculate remaining time
       const hours = Math.floor(difference / (1000 * 60 * 60));
       const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((difference % (1000 * 60)) / 1000);
 
-      // Format time string
       if (hours > 0) {
         setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
       } else if (minutes > 0) {
@@ -40,7 +37,6 @@ export const useCountdown = (createdAt: string, durationHours: number = 3): Coun
         setTimeLeft(`${seconds}s`);
       }
 
-      // Calculate progress (100% at start, 0% at expiry)
       const totalDuration = durationHours * 60 * 60 * 1000;
       const elapsed = now - createdTime;
       const progressPercent = Math.max(0, Math.min(100, ((totalDuration - elapsed) / totalDuration) * 100));
@@ -49,10 +45,8 @@ export const useCountdown = (createdAt: string, durationHours: number = 3): Coun
       setIsExpired(false);
     };
 
-    // Calculate immediately
     calculateTimeLeft();
 
-    // Update every second
     const timer = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(timer);

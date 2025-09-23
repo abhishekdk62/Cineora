@@ -375,7 +375,7 @@ export class CouponController {
 
     const validateDto: ValidateCouponDto = {
       uniqueId,
-      theaterId: new Types.ObjectId(theaterId), // Single theater ID, not array
+      theaterId: new Types.ObjectId(theaterId), 
       totalAmount,
       userId: new Types.ObjectId(userId),
     };

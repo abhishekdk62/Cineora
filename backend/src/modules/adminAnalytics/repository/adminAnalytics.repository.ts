@@ -1,4 +1,4 @@
-import mongoose, { PipelineStage, Types } from "mongoose";
+import mongoose, { FilterQuery, PipelineStage, Types } from "mongoose";
 import { IAnalyticsRepository } from "../interfaces/adminAnalytics.repository.interface";
 import Booking from "../../bookings/models/bookings.model";
 import MovieShowtime from "../../showtimes/models/showtimes.model";
@@ -9,11 +9,12 @@ import {User} from '../../user/models/user.model'
 import {Owner} from '../../owner/models/owner.model'
 import {Theater} from '../../theaters/models/theater.model'
 import { IDateRange } from "../dtos/dtos";
+import { ShowtimeListResponseDTO } from "../../showtimes/dtos/dto";
 
 export class AdminAnalyticsRepository implements IAnalyticsRepository {
 
-  private buildDateMatch(dateRange: IDateRange): any {
-    const match: any = {};
+  private buildDateMatch(dateRange: IDateRange): ShowtimeListResponseDTO {
+    const match: FilterQuery = {};
     if (dateRange.startDate) {
       match.$gte = new Date(dateRange.startDate);
     }
@@ -23,7 +24,6 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
     return Object.keys(match).length > 0 ? match : { $gte: new Date(0) };
   }
 
-  // Platform-wide aggregations
   async getAggregateRevenue(dateRange: IDateRange): Promise<number> {
     try {
       const result = await Booking.aggregate([
@@ -103,7 +103,7 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
         }
       ]);
 
-      return (result[0]?.avgOccupancy || 0) * 100; // Return as percentage
+      return (result[0]?.avgOccupancy || 0) * 100; 
     } catch (error) {
       throw new Error(`Failed to get aggregate occupancy: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -144,7 +144,6 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
     }
   }
 
-  // Revenue breakdowns
   async getRevenuePerTheater(dateRange: IDateRange): Promise<Array<{theaterId: Types.ObjectId; theaterName: string; revenue: number; bookings: number; occupancy: number}>> {
     try {
       const result = await Booking.aggregate([
@@ -439,7 +438,6 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
     }
   }
 
-  // Customer analytics
   async getCustomerStats(dateRange: IDateRange): Promise<{totalCustomers: number; newCustomers: number; retentionRate: number; avgBookingsPerCustomer: number}> {
     try {
       const [totalCustomers, newCustomers, bookingStats] = await Promise.all([
@@ -559,10 +557,7 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
     }
   }
 
-  // Continue with other methods...
   async getCustomerAcquisition(dateRange: IDateRange): Promise<Array<{source: string; count: number}>> {
-    // Implementation would depend on how you track customer acquisition sources
-    // For now, returning mock data structure
     return [
       { source: "Organic Search", count: 0 },
       { source: "Social Media", count: 0 },
@@ -623,7 +618,6 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
     }
   }
 
-  // Financial KPIs
   async getFinancialKPIs(dateRange: IDateRange): Promise<{
     totalRevenue: number; 
     totalRefunds: number; 
@@ -682,7 +676,7 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
             totalDiscounts: 1,
             totalConvenienceFees: 1,
             totalTaxes: 1,
-            platformCommission: { $multiply: ["$totalRevenue", 0.1] }, // Assuming 10% commission
+            platformCommission: { $multiply: ["$totalRevenue", 0.1] }, 
             avgTicketPrice: {
               $cond: {
                 if: { $gt: ["$confirmedBookings", 0] },
@@ -708,10 +702,7 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
     }
   }
 
-  // Growth rates - simplified implementation
   async getGrowthRates(dateRange: IDateRange): Promise<{monthlyGrowthRate: number; quarterlyGrowthRate: number; yearlyGrowthRate: number}> {
-    // This would require comparing current period with previous periods
-    // Returning placeholder for now
     return {
       monthlyGrowthRate: 0,
       quarterlyGrowthRate: 0,
@@ -719,7 +710,6 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
     };
   }
 
-  // Additional methods can be implemented following similar patterns...
   
   async getMoviePerformance(dateRange: IDateRange): Promise<Array<{movieId: Types.ObjectId; movieName: string; totalBookings: number; avgRating: number; format: string; language: string}>> {
     try {
@@ -791,33 +781,27 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
     }
   }
 
-  // Placeholder implementations for remaining methods
   async getTopPerformingMovies(dateRange: IDateRange, limit: number): Promise<Array<{movieId: Types.ObjectId; movieName: string; revenue: number; bookings: number}>> {
     return this.getRevenuePerMovie(dateRange).then(movies => movies.slice(0, limit));
   }
 
   async getMovieFormatPerformance(dateRange: IDateRange): Promise<Array<{format: string; bookings: number; revenue: number}>> {
-    // Implementation similar to other aggregations
     return [];
   }
 
   async getMovieLanguagePerformance(dateRange: IDateRange): Promise<Array<{language: string; bookings: number; revenue: number}>> {
-    // Implementation similar to other aggregations
     return [];
   }
 
   async getShowtimePerformance(dateRange: IDateRange): Promise<Array<{showtimeId: Types.ObjectId; occupancy: number; revenue: number; showTime: string}>> {
-    // Implementation
     return [];
   }
 
   async getTimeSlotPerformance(dateRange: IDateRange): Promise<Array<{timeSlot: string; bookings: number; avgOccupancy: number}>> {
-    // Implementation
     return [];
   }
 
   async getWeekdayWeekendComparison(dateRange: IDateRange): Promise<{weekday: {bookings: number; revenue: number}; weekend: {bookings: number; revenue: number}}> {
-    // Implementation
     return {
       weekday: { bookings: 0, revenue: 0 },
       weekend: { bookings: 0, revenue: 0 }
@@ -825,17 +809,14 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
   }
 
   async getSeasonalTrends(dateRange: IDateRange): Promise<Array<{period: string; bookings: number; revenue: number}>> {
-    // Implementation
     return [];
   }
 
   async getCancellationRates(dateRange: IDateRange): Promise<{cancellationRate: number; refundAmount: number}> {
-    // Implementation
     return { cancellationRate: 0, refundAmount: 0 };
   }
 
   async getPaymentAnalytics(dateRange: IDateRange): Promise<{successRate: number; failureRate: number; avgProcessingTime: number}> {
-    // Implementation
     return { successRate: 0, failureRate: 0, avgProcessingTime: 0 };
   }
 }

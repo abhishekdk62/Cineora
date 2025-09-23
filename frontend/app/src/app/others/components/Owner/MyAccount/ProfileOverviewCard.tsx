@@ -1,4 +1,3 @@
-//@ts-nocheck
 import React from "react";
 import { Lexend } from "next/font/google";
 import { User } from "lucide-react";
