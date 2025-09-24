@@ -8,7 +8,7 @@ export const useSocket = () => {
 
   useEffect(() => {
     if (!socket) {
-      const serverUrl = process.env.NEXT_PUBLIC_API_BASE_URL_SOCKET || 'http://localhost:5000';
+      const serverUrl = process.env.NEXT_PUBLIC_API_BASE_URL_SOCKET_PROD || 'http://localhost:5000';
       console.log('🔗 Creating socket connection to:', serverUrl);
       
       socket = io(serverUrl, {

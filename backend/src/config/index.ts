@@ -12,7 +12,7 @@ export const config = {
   googleClientId: process.env.GOOGLE_CLIENT_ID!,
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET!,
   bcryptRounds: Number(process.env.BCRYPT_ROUNDS) || 10,
-  clientUrl: process.env.CLIENT_URL || "http://localhost:3000",
+  clientUrl: process.env.CLIENT_URL_PROD || "http://localhost:3000",
   email: {
     host: process.env.EMAIL_HOST || "smtp.gmail.com",
     port: Number(process.env.EMAIL_PORT) || 465,
@@ -23,7 +23,7 @@ export const config = {
     },
   },
   otpExpiry: 5 * 60 * 1000,
-  corsOrigin: process.env.CLIENT_URL || "http://localhost:3000",
+  corsOrigin: process.env.CLIENT_URL_PROD || "http://localhost:3000",
   rateLimitWindowMs: 15 * 60 * 1000,
   rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX) || 100,
   qrCodeSecret:process.env.QR_VERIFICATION_SECRET,
