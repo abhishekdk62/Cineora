@@ -1,0 +1,193 @@
+{
+  "version": 3,
+  "pages404": true,
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin-allow-popups"
+        },
+        {
+          "key": "Cross-Origin-Embedder-Policy",
+          "value": "unsafe-none"
+        }
+      ],
+      "regex": "^(?:/(.*))(?:/)?$"
+    }
+  ],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/book/group/[showtimeId]",
+      "regex": "^/book/group/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPshowtimeId": "nxtPshowtimeId"
+      },
+      "namedRegex": "^/book/group/(?<nxtPshowtimeId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/book/payment/[showtimeId]",
+      "regex": "^/book/payment/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPshowtimeId": "nxtPshowtimeId"
+      },
+      "namedRegex": "^/book/payment/(?<nxtPshowtimeId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/book/tickets/[showtimeId]",
+      "regex": "^/book/tickets/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPshowtimeId": "nxtPshowtimeId"
+      },
+      "namedRegex": "^/book/tickets/(?<nxtPshowtimeId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/book/[id]",
+      "regex": "^/book/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/book/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/search/movies/[id]",
+      "regex": "^/search/movies/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/search/movies/(?<nxtPid>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/admin/dashboard",
+      "regex": "^/admin/dashboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/dashboard(?:/)?$"
+    },
+    {
+      "page": "/booking/failed",
+      "regex": "^/booking/failed(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/booking/failed(?:/)?$"
+    },
+    {
+      "page": "/booking/success",
+      "regex": "^/booking/success(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/booking/success(?:/)?$"
+    },
+    {
+      "page": "/forgot-password",
+      "regex": "^/forgot\\-password(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/forgot\\-password(?:/)?$"
+    },
+    {
+      "page": "/icon.ico",
+      "regex": "^/icon\\.ico(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/icon\\.ico(?:/)?$"
+    },
+    {
+      "page": "/invites",
+      "regex": "^/invites(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/invites(?:/)?$"
+    },
+    {
+      "page": "/login",
+      "regex": "^/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/login(?:/)?$"
+    },
+    {
+      "page": "/owner",
+      "regex": "^/owner(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/owner(?:/)?$"
+    },
+    {
+      "page": "/owner/dashboard",
+      "regex": "^/owner/dashboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/owner/dashboard(?:/)?$"
+    },
+    {
+      "page": "/search/movies",
+      "regex": "^/search/movies(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/search/movies(?:/)?$"
+    },
+    {
+      "page": "/search/theaters",
+      "regex": "^/search/theaters(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/search/theaters(?:/)?$"
+    },
+    {
+      "page": "/signup",
+      "regex": "^/signup(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/signup(?:/)?$"
+    },
+    {
+      "page": "/staff",
+      "regex": "^/staff(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/staff(?:/)?$"
+    },
+    {
+      "page": "/user/account",
+      "regex": "^/user/account(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/user/account(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "RSC",
+    "varyHeader": "RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch",
+    "prefetchHeader": "Next-Router-Prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSuffix": ".prefetch.rsc",
+    "prefetchSegmentHeader": "Next-Router-Segment-Prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments"
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

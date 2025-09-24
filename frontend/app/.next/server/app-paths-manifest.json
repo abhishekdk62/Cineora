@@ -1,0 +1,23 @@
+{
+  "/icon.ico/route": "app/icon.ico/route.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/book/group/[showtimeId]/page": "app/book/group/[showtimeId]/page.js",
+  "/book/[id]/page": "app/book/[id]/page.js",
+  "/book/payment/[showtimeId]/page": "app/book/payment/[showtimeId]/page.js",
+  "/admin/dashboard/page": "app/admin/dashboard/page.js",
+  "/forgot-password/page": "app/forgot-password/page.js",
+  "/book/tickets/[showtimeId]/page": "app/book/tickets/[showtimeId]/page.js",
+  "/booking/failed/page": "app/booking/failed/page.js",
+  "/booking/success/page": "app/booking/success/page.js",
+  "/invites/page": "app/invites/page.js",
+  "/login/page": "app/login/page.js",
+  "/owner/dashboard/page": "app/owner/dashboard/page.js",
+  "/page": "app/page.js",
+  "/search/movies/page": "app/search/movies/page.js",
+  "/signup/page": "app/signup/page.js",
+  "/search/movies/[id]/page": "app/search/movies/[id]/page.js",
+  "/staff/page": "app/staff/page.js",
+  "/owner/page": "app/owner/page.js",
+  "/user/account/page": "app/user/account/page.js",
+  "/search/theaters/page": "app/search/theaters/page.js"
+}
