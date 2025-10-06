@@ -1,54 +1,71 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, Eye, Users } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface SelectionSummaryProps {
   selectedSeats: string[];
   totalAmount: number;
   lexendMediumClassName: string;
   lexendSmallClassName: string;
-    onCreateGroupInvite?: () => void; 
+  onCreateGroupInvite?: () => void;
 
   lexendBoldClassName: string;
   onProceed: () => void;
   getSeatPrice: (seatId: string) => number;
   getSeatType: (seatId: string) => string;
+  showtimeDatas: any
 }
 
 export default function SelectionSummary({
-  selectedSeats, 
-  totalAmount, 
-  lexendMediumClassName, 
-  lexendSmallClassName, 
+  selectedSeats,
+  totalAmount,
+  lexendMediumClassName,
+  lexendSmallClassName,
   onCreateGroupInvite,
-  lexendBoldClassName, 
+  lexendBoldClassName,
   onProceed,
   getSeatPrice,
-  getSeatType
+  getSeatType,
+  showtimeDatas
 }: SelectionSummaryProps) {
   const [showDetails, setShowDetails] = useState(false);
+  const [isBeforeSixHours, setIsBeforeSixHours] = useState(false);
+const handleBeforeSix=()=>{
+  toast.error('You cant create an invite request within 6 hours of showtime ')
+}
+  useEffect(() => {
+    if (!showtimeDatas?.showDate || !showtimeDatas?.showTime) return;
+    const showDateTime = new Date(showtimeDatas.showDate);
+    const [hours, minutes] = showtimeDatas.showTime.split(":").map(Number);
+    showDateTime.setHours(hours, minutes, 0, 0);
+    const sixHoursBefore = new Date(showDateTime.getTime() - 6 * 60 * 60 * 1000);
+    const now = new Date();
+    setIsBeforeSixHours(now < sixHoursBefore);
 
+  }, [showtimeDatas])
   const getSeatBreakdown = () => {
+    const [showTime, setShoTime] = useState()
     const breakdown: Record<string, { seats: string[], price: number, count: number, seatType: string }> = {};
-    
+
     selectedSeats.forEach(seatId => {
       const seatType = getSeatType(seatId) || 'General';
       const price = getSeatPrice(seatId);
-      
+
       const key = `${seatType}-${price}`;
-      
+
       if (!breakdown[key]) {
-        breakdown[key] = { 
-          seats: [], 
-          price, 
-          count: 0, 
-          seatType 
+        breakdown[key] = {
+          seats: [],
+          price,
+          count: 0,
+          seatType
         };
       }
-      
+
       breakdown[key].seats.push(seatId);
       breakdown[key].count += 1;
     });
-    
+
     return breakdown;
   };
 
@@ -83,8 +100,8 @@ export default function SelectionSummary({
         >
           <Eye className="w-4 h-4" />
           See Details
-          {showDetails ? 
-            <ChevronUp className="w-4 h-4" /> : 
+          {showDetails ?
+            <ChevronUp className="w-4 h-4" /> :
             <ChevronDown className="w-4 h-4" />
           }
         </button>
@@ -96,25 +113,25 @@ export default function SelectionSummary({
           <h4 className={`${lexendMediumClassName} text-white text-sm mb-3`}>
             Price Breakdown
           </h4>
-          
+
           {Object.entries(seatBreakdown).map(([key, details]) => (
             <div key={key} className="flex items-center justify-between py-2 border-b border-gray-600/20 last:border-b-0">
               <div className="flex items-center gap-3">
                 {/* Color indicator based on seat type */}
-                <div 
+                <div
                   className="w-3 h-3 rounded-full border"
                   style={{
-                    backgroundColor: details.seatType === 'VIP' ? '#EAB308' : 
-                                   details.seatType === 'Premium' ? '#9333EA' : '#06B6D4',
-                    borderColor: details.seatType === 'VIP' ? '#CA8A04' : 
-                               details.seatType === 'Premium' ? '#7C3AED' : '#0891B2'
+                    backgroundColor: details.seatType === 'VIP' ? '#EAB308' :
+                      details.seatType === 'Premium' ? '#9333EA' : '#06B6D4',
+                    borderColor: details.seatType === 'VIP' ? '#CA8A04' :
+                      details.seatType === 'Premium' ? '#7C3AED' : '#0891B2'
                   }}
                 />
                 <span className={`${lexendSmallClassName} text-gray-300 text-sm`}>
                   {details.seatType} (₹{details.price})
                 </span>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <span className={`${lexendSmallClassName} text-gray-400 text-sm`}>
                   {details.count} × ₹{details.price}
@@ -125,7 +142,7 @@ export default function SelectionSummary({
               </div>
             </div>
           ))}
-          
+
           {/* Total Line */}
           <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-500/30">
             <span className={`${lexendMediumClassName} text-white text-base font-semibold`}>
@@ -137,24 +154,33 @@ export default function SelectionSummary({
           </div>
         </div>
       )}
-        <div className="flex gap-3">
-      {/* {onCreateGroupInvite&&selectedSeats.length>1 && (
-        <button
-          onClick={onCreateGroupInvite}
-          className={`${lexendMediumClassName} flex-1 border border-purple-500 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20 hover:text-purple-200 font-medium py-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center gap-2`}
-        >
-          <Users className="w-5 h-5" />
-          Create Group Invite
-        </button>
-      )} */}
+      <div className="flex gap-3">
+        {onCreateGroupInvite && selectedSeats.length > 1 &&isBeforeSixHours&& (
+          <button
+            onClick={onCreateGroupInvite}
+            className={`${lexendMediumClassName} flex-1 border border-purple-500 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20 hover:text-purple-200 font-medium py-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center gap-2`}
+          >
+            <Users className="w-5 h-5" />
+            Create Group Invite
+          </button>
+        )}
+        {onCreateGroupInvite && selectedSeats.length > 1&&!isBeforeSixHours && (
+          <button
+            onClick={handleBeforeSix}
+            className={`${lexendMediumClassName} flex-1 border border-black bg-gray-700 text-black  font-medium py-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center gap-2`}
+          >
+            <Users className="w-5 h-5" />
+            Create Group Invite
+          </button>
+        )}
 
-      <button
-        onClick={onProceed}
-        className={`${lexendMediumClassName} ${onCreateGroupInvite ? 'flex-1' : 'w-full'} border bg-white text-black hover:bg-gradient-to-tr hover:from-violet-300 hover:to-yellow-100 font-medium py-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02]`}
-      >
-        Book Now
-      </button>
-    </div>
+        <button
+          onClick={onProceed}
+          className={`${lexendMediumClassName} ${onCreateGroupInvite ? 'flex-1' : 'w-full'} border bg-white text-black hover:bg-gradient-to-tr hover:from-violet-300 hover:to-yellow-100 font-medium py-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02]`}
+        >
+          Book Now
+        </button>
+      </div>
 
     </div>
   );

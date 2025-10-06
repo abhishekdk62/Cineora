@@ -1,6 +1,7 @@
 export const AUTH_MESSAGES = {
   EMAIL_PASSWORD_REQUIRED: "Email and password are required",
   INVALID_EMAIL: "Please enter a valid email address",
+  INVALID_PASSWORD: "Invalid Password",
   EMAIL_REQUIRED: "Email is required",
   OTP_REQUIRED: "Email and otp required",
   OTP_VERIFIED: "Otp verified successfully",
@@ -316,4 +317,8 @@ export const INVITE_GROUP_MESSAGES = {
   INVALID_INVITE_ID: 'Invalid invite ID format',
   INVALID_USER_ID: 'Invalid user ID format',
   INVALID_FILTERS: 'Invalid filter parameters'
+} as const;
+export const STAFF_MESSAGES = {
+  EMAIL_ALREADY_IN_USE: 'Email already in use',
+  CREATED_SUCCESSFULLY:'Staff created succusfully'
 } as const;

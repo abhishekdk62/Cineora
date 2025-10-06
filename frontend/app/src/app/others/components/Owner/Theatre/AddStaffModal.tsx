@@ -34,11 +34,23 @@ interface Staff {
 interface AddStaffModalProps {
   onClose: () => void;
   onSuccess: (staff: Staff) => void;
-  selectedTheater: Theater; 
+  selectedTheater: Theater;
+}
+
+interface FormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  theaterId: string;
 }
 
 interface ValidationErrors {
-  [key: string]: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  password?: string;
+  general?: string;
 }
 
 const AddStaffModal: React.FC<AddStaffModalProps> = ({
@@ -48,82 +60,207 @@ const AddStaffModal: React.FC<AddStaffModalProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
+  const [touched, setTouched] = useState<Record<keyof FormData, boolean>>({
+    firstName: false,
+    lastName: false,
+    email: false,
+    password: false,
+    theaterId: false,
+  });
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     firstName: "",
     lastName: "",
     email: "",
     password: "",
-    theaterId: selectedTheater._id, 
+    theaterId: selectedTheater._id,
   });
 
-  const validateForm = (): boolean => {
-    const newErrors: ValidationErrors = {};
+  // Validation rules
+  const validateField = (name: keyof FormData, value: string): string | undefined => {
+    switch (name) {
+      case 'firstName':
+        if (!value.trim()) {
+          return "First name is required";
+        }
+        if (value.trim().length < 2) {
+          return "First name must be at least 2 characters";
+        }
+        if (!/^[a-zA-Z\s]+$/.test(value.trim())) {
+          return "First name can only contain letters and spaces";
+        }
+        break;
 
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = "First name is required";
-    }
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = "Last name is required";
-    }
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email";
-    }
-    if (!formData.password.trim()) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
+      case 'lastName':
+        if (!value.trim()) {
+          return "Last name is required";
+        }
+        if (value.trim().length < 2) {
+          return "Last name must be at least 2 characters";
+        }
+        if (!/^[a-zA-Z\s]+$/.test(value.trim())) {
+          return "Last name can only contain letters and spaces";
+        }
+        break;
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+      case 'email':
+        if (!value.trim()) {
+          return "Email is required";
+        }
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(value.trim())) {
+          return "Please enter a valid email address";
+        }
+        break;
+
+      case 'password':
+        if (!value.trim()) {
+          return "Password is required";
+        }
+        if (value.length < 6) {
+          return "Password must be at least 6 characters long";
+        }
+       
+        break;
+
+      default:
+        return undefined;
+    }
+    return undefined;
   };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  // Validate entire form
+  const validateForm = (): ValidationErrors => {
+    const newErrors: ValidationErrors = {};
+    
+    (Object.keys(formData) as Array<keyof FormData>).forEach((key) => {
+      if (key !== 'theaterId') {
+        const error = validateField(key, formData[key]);
+        if (error) {
+          newErrors[key] = error;
+        }
+      }
+    });
+
+    return newErrors;
+  };
+
+  // Handle input change with real-time validation
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    const fieldName = name as keyof FormData;
 
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
-
+    // Update form data
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [fieldName]: value,
+    }));
+
+    // Real-time validation only if field has been touched
+    if (touched[fieldName]) {
+      const fieldError = validateField(fieldName, value);
+      setErrors((prev) => ({
+        ...prev,
+        [fieldName]: fieldError,
+        general: undefined, // Clear general error when user starts typing
+      }));
+    }
+  };
+
+  // Handle field blur (when user leaves field)
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const fieldName = name as keyof FormData;
+
+    // Mark field as touched
+    setTouched((prev) => ({
+      ...prev,
+      [fieldName]: true,
+    }));
+
+    // Validate the field
+    const fieldError = validateField(fieldName, value);
+    setErrors((prev) => ({
+      ...prev,
+      [fieldName]: fieldError,
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Enhanced form submission with comprehensive error handling
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    // Mark all fields as touched
+    setTouched({
+      firstName: true,
+      lastName: true,
+      email: true,
+      password: true,
+      theaterId: true,
+    });
 
-    if (!validateForm()) return;
+    // Validate entire form
+    const formErrors = validateForm();
+    
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
+      toast.error("Please fix the validation errors before submitting");
+      return;
+    }
 
+    // Clear any existing errors
+    setErrors({});
     setIsLoading(true);
 
     try {
-      const result = await createStaff(formData)
-      console.log(result);
-      toast.success('Staff created succusfully')
-      onSuccess(result.data.staff)
-    } catch (error) {
-      console.error("Error adding staff:", error);
-      toast.error("Something went wrong. Please try again.");
+      const result = await createStaff(formData);
+      
+      if (result && result.data && result.data.staff) {
+        toast.success("Staff member created successfully!");
+        onSuccess(result.data.staff);
+        onClose();
+      } else {
+        throw new Error("Invalid response from server");
+      }
+    } catch (error: any) {
+      console.error("Error creating staff:", error);
+      
+      // Handle specific error cases
+      if (error?.status === 409 || error?.response?.status === 409) {
+        setErrors({ email: "This email is already in use" });
+        toast.error("Email already in use");
+      } else if (error?.status === 400 || error?.response?.status === 400) {
+        // Handle validation errors from server
+        if (error?.response?.data?.message) {
+          setErrors({ general: error.response.data.message });
+          toast.error(error.response.data.message);
+        } else {
+          setErrors({ general: "Invalid form data. Please check your inputs." });
+          toast.error("Invalid form data. Please check your inputs.");
+        }
+      } else if (error?.status === 500 || error?.response?.status === 500) {
+        setErrors({ general: "Server error. Please try again later." });
+        toast.error("Server error. Please try again later.");
+      } else if (error?.message) {
+        setErrors({ general: error.message });
+        toast.error(error.message);
+      } else {
+        setErrors({ general: "Something went wrong. Please try again." });
+        toast.error("Something went wrong. Please try again.");
+      }
     } finally {
-      onClose()
       setIsLoading(false);
     }
   };
 
-  const isFormValid = () => {
-    return (
-      formData.firstName.trim() &&
-      formData.lastName.trim() &&
-      formData.email.trim() &&
-      formData.password.trim()
-    );
+  // Check if form is valid
+  const isFormValid = (): boolean => {
+    const formErrors = validateForm();
+    return Object.keys(formErrors).length === 0 && 
+           formData.firstName.trim() !== "" &&
+           formData.lastName.trim() !== "" &&
+           formData.email.trim() !== "" &&
+           formData.password.trim() !== "";
   };
 
   return (
@@ -170,11 +307,20 @@ const AddStaffModal: React.FC<AddStaffModalProps> = ({
                 </div>
               </div>
             </div>
+
+            {/* General Error Message */}
+            {errors.general && (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 mb-4">
+                <p className={`${lexendRegular.className} text-red-400 text-sm`}>
+                  {errors.general}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Form Content */}
           <div className="flex-1 overflow-y-auto px-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
               <div className="grid grid-cols-2 gap-4">
                 {/* First Name */}
                 <div>
@@ -188,8 +334,10 @@ const AddStaffModal: React.FC<AddStaffModalProps> = ({
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleInputChange}
-                      className={`${lexendRegular.className} w-full pl-11 pr-4 py-3 bg-white/5 border ${errors.firstName ? 'border-red-500' : 'border-gray-500/30'
-                        } rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-white/50 transition-all duration-300`}
+                      onBlur={handleBlur}
+                      className={`${lexendRegular.className} w-full pl-11 pr-4 py-3 bg-white/5 border ${
+                        errors.firstName ? 'border-red-500' : 'border-gray-500/30'
+                      } rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-white/50 transition-all duration-300`}
                       placeholder="First name"
                     />
                   </div>
@@ -212,8 +360,10 @@ const AddStaffModal: React.FC<AddStaffModalProps> = ({
                       name="lastName"
                       value={formData.lastName}
                       onChange={handleInputChange}
-                      className={`${lexendRegular.className} w-full pl-11 pr-4 py-3 bg-white/5 border ${errors.lastName ? 'border-red-500' : 'border-gray-500/30'
-                        } rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-white/50 transition-all duration-300`}
+                      onBlur={handleBlur}
+                      className={`${lexendRegular.className} w-full pl-11 pr-4 py-3 bg-white/5 border ${
+                        errors.lastName ? 'border-red-500' : 'border-gray-500/30'
+                      } rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-white/50 transition-all duration-300`}
                       placeholder="Last name"
                     />
                   </div>
@@ -237,8 +387,10 @@ const AddStaffModal: React.FC<AddStaffModalProps> = ({
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className={`${lexendRegular.className} w-full pl-11 pr-4 py-3 bg-white/5 border ${errors.email ? 'border-red-500' : 'border-gray-500/30'
-                      } rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-white/50 transition-all duration-300`}
+                    onBlur={handleBlur}
+                    className={`${lexendRegular.className} w-full pl-11 pr-4 py-3 bg-white/5 border ${
+                      errors.email ? 'border-red-500' : 'border-gray-500/30'
+                    } rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-white/50 transition-all duration-300`}
                     placeholder="staff@example.com"
                   />
                 </div>
@@ -261,8 +413,10 @@ const AddStaffModal: React.FC<AddStaffModalProps> = ({
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    className={`${lexendRegular.className} w-full pl-11 pr-4 py-3 bg-white/5 border ${errors.password ? 'border-red-500' : 'border-gray-500/30'
-                      } rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-white/50 transition-all duration-300`}
+                    onBlur={handleBlur}
+                    className={`${lexendRegular.className} w-full pl-11 pr-4 py-3 bg-white/5 border ${
+                      errors.password ? 'border-red-500' : 'border-gray-500/30'
+                    } rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-white/50 transition-all duration-300`}
                     placeholder="Enter password"
                   />
                 </div>
@@ -271,6 +425,9 @@ const AddStaffModal: React.FC<AddStaffModalProps> = ({
                     {errors.password}
                   </p>
                 )}
+                <p className={`${lexendRegular.className} text-xs text-gray-500 mt-1`}>
+                  Password must be at least 8 characters 
+                </p>
               </div>
             </form>
           </div>
@@ -281,7 +438,8 @@ const AddStaffModal: React.FC<AddStaffModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className={`${lexendMedium.className} flex-1 py-3 rounded-xl border border-gray-500/30 text-gray-300 hover:bg-white/10 transition-all duration-300 font-medium`}
+                disabled={isLoading}
+                className={`${lexendMedium.className} flex-1 py-3 rounded-xl border border-gray-500/30 text-gray-300 hover:bg-white/10 transition-all duration-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 Cancel
               </button>
@@ -293,7 +451,7 @@ const AddStaffModal: React.FC<AddStaffModalProps> = ({
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Adding Staff...
+                    Creating Staff...
                   </>
                 ) : (
                   "Add Staff Member"

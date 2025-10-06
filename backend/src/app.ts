@@ -97,6 +97,9 @@ import { ChatRoomController } from "./modules/chatroom/controllers/chatroom.cont
 import { ChatMessageController } from "./modules/messages/controllers/messages.controller";
 import { StaffController } from "./modules/staff/controller/staff.controller";
 import { StaffRoutes } from "./modules/staff/routes/staff.routes";
+import { RedisService } from "./services/redis.service";
+import { StaffService } from "./modules/staff/services/staff.service";
+import { StaffRepository } from "./modules/staff/repositories/staff.repositories";
 
 export class App {
   private _app: Application;
@@ -215,6 +218,7 @@ export class App {
       showtimeService,
       showtimeRepo
     );
+    // const redisService=new RedisService()
     const walletService = new WalletService(walletRepo);
     const notificationService = new NotificationService(notificationRepo);
     const notificationScheduler = new NotificationScheduler(
@@ -231,7 +235,8 @@ export class App {
       ownerRepo,
       otpRepo,
       emailService,
-      ownerRequestRepo
+      ownerRequestRepo,
+      // redisService
     );
     const analyticsService = new AnalyticsService(analyticsRepository);
     const adminAnalyticsService = new AdminAnalyticsService(
@@ -279,7 +284,7 @@ export class App {
       screenService,
       reviewService
     );
-
+const staffRepo=new StaffRepository()
     const moviesController = new MoviesController(movieService, reviewService);
     const authController = new AuthController(authService);
     const walletController = new WalletController(
@@ -289,6 +294,7 @@ export class App {
     const notificationController = new NotificationController(
       notificationService
     );
+    const staffService=new StaffService(staffRepo,userRepo,ownerRepo,ownerRequestRepo)
     const inviteGroupService = new InviteGroupService(
       inviteGroupRepo,
       this._socketService,
@@ -306,7 +312,7 @@ export class App {
     const adminAnalyticsController = new AdminAnalyticsController(
       adminAnalyticsService
     );
-    const staffController = new StaffController();
+    const staffController = new StaffController(staffService);
     const reviewController = new ReviewController(reviewService);
     const couponController = new CouponController(couponService);
     const inviteGroupController = new InviteGroupController(inviteGroupService);
@@ -331,7 +337,8 @@ export class App {
       walletController,
       walletTransactionController,
       couponController,
-      bookingController
+      bookingController,
+      staffController
     );
 
     const userRoutes = new UserRoutes(

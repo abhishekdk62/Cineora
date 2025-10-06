@@ -59,14 +59,11 @@ export default function SignUp() {
       const username = data.username || data.email.split("@")[0];
 
       const signupData = {
-        username,
         email: data.email,
         password: data.password,
-        firstName: data.firstName,
-        lastName: data.lastName,
+        username,
         language: "en",
       };
-
       const result = await signup(signupData);
 
       if (result.success) {

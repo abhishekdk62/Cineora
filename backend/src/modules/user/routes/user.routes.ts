@@ -93,17 +93,14 @@ export class UserRoutes {
       this._inviteGroupController.createInviteGroup(req, res)
     );
 
-    // Get available invites for user to join
     this._router.get("/invite-groups/available", (req, res) =>
       this._inviteGroupController.getAvailableInvites(req, res)
     );
 
-    // Get user's created invite groups
     this._router.get("/invite-groups/my-invites", (req, res) =>
       this._inviteGroupController.getUserInviteGroups(req, res)
     );
 
-    // Get specific invite group details
     this._router.get("/invite-groups/:inviteId", (req, res) =>
       this._inviteGroupController.getInviteGroupById(req, res)
     );

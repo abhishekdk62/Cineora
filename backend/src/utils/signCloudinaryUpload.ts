@@ -180,4 +180,53 @@ export const getSignedUrl = async (req, res) => {
   }
 };
 
+export const getDisplayableImageUrl = (
+  publicId: string,
+  options: {
+    width?: number;
+    height?: number;
+    crop?: string;
+    quality?: string | number;
+  } = {}
+): string | null => {
+  try {
+    if (!publicId) {
+      console.error('Public ID is required');
+      return null;
+    }
+
+    // Generate signed URL for authenticated images
+    const urlOptions: any = {
+      type: 'authenticated', // Important: matches your upload type
+      sign_url: true,       // Creates the signature for access
+      secure: true,         // Always use HTTPS
+      transformation: []
+    };
+
+    // Add transformations if provided
+    if (options.width || options.height) {
+      urlOptions.transformation.push({
+        width: options.width || 200,
+        height: options.height || 200,
+        crop: options.crop || 'fill'
+      });
+    }
+
+    if (options.quality) {
+      urlOptions.transformation.push({
+        quality: options.quality
+      });
+    }
+
+    const signedUrl = cloudinary.url(publicId, urlOptions);
+    console.log(`Generated signed URL for ${publicId}`);
+    
+    return signedUrl;
+
+  } catch (error) {
+    console.error('Error generating displayable URL:', error);
+    return null;
+  }
+};
+
 export default cloudinary;

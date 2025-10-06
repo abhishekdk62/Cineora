@@ -114,7 +114,7 @@ const MyAccount: React.FC = () => {
       
       // Set the profile state
       setProfile(profileData);
-      setDocs(response); 
+      setDocs(profileData); 
       
       console.log('Profile Data:', profileData);
       

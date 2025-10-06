@@ -24,7 +24,7 @@ export class OwnerRoute {
     private _walletTransactionController: WalletTransactionController,
     private _couponController: CouponController,
     private _paymentController: PaymentController,
-    private _staffController: StaffController
+    private _staffController: StaffController,
   ) {
     this._setRoutes();
   }
@@ -164,6 +164,13 @@ export class OwnerRoute {
 
     this._router.get("/showtimes/:theaterId/:screenId", (req, res) =>
       this._showtimeController.getShowtimesByFilters(req, res)
+    );
+
+    this._router.get("/staff", (req, res) =>
+      this._staffController.getAllStaffsPaginated(req, res)
+    );
+    this._router.patch("/staff/:staffId", (req, res) =>
+      this._staffController.toggleStaffStatus(req, res)
     );
   }
   public getRouter() {

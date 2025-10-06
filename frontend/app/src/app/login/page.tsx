@@ -43,14 +43,14 @@ export default function LoginPage() {
 
     try {
       const resultAction = await dispatch(loginUser({ email, password }));
-      
+
 
       if (loginUser.fulfilled.match(resultAction)) {
         const userData = resultAction.payload;
-        
+
         redirectBasedOnRole(userData.role);
-       console.log('the user data',userData);
-       
+        console.log('the user data', userData);
+
       }
     } catch (err: unknown) {
       console.error("Login error:", err);
@@ -60,7 +60,7 @@ export default function LoginPage() {
     dispatch(clearError());
 
     try {
-      
+
       const resultAction = await dispatch(googleLogin(credentialResponse));
 
       if (googleLogin.fulfilled.match(resultAction)) {
@@ -82,11 +82,10 @@ export default function LoginPage() {
       router.push("/admin/dashboard");
     } else if (userRole === "owner") {
       router.push("/owner/dashboard");
-    } else if(userRole=='staff') {
+    } else if (userRole == 'staff') {
       router.push("/staff");
     }
-    else
-    {
+    else {
       router.push("/");
 
     }
@@ -133,7 +132,7 @@ export default function LoginPage() {
 
           <div className="mt-6 text-center">
             <button
-              onClick={handleGuestLogin} 
+              onClick={handleGuestLogin}
               className="w-full py-2 px-4 rounded-xl bg-gray-700 hover:bg-gray-600 text-white font-medium transition"
             >
               Continue as Guest

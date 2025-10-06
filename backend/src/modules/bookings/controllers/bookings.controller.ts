@@ -42,7 +42,7 @@ export class BookingController {
     try {
       const bookingDto: CreateBookingDto = this._mapBodyToCreateBookingDto(
         req.body
-      );
+      );      
       const userId = this._extractAuthenticatedUserId(req);
 
       if (!userId) {

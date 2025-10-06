@@ -28,6 +28,7 @@ import {
 import { Staff } from "../../staff/model/staff.model";
 import { UserResponseDto } from "../../user/dtos/dto";
 import { UserInfo } from "os";
+import { RedisService } from "../../../services/redis.service";
 interface LoginResponse {
   success: boolean;
   message: string;
@@ -35,7 +36,7 @@ interface LoginResponse {
     user: UserDataDto;
     accessToken: string;
     refreshToken: string;
-    role: "user" | "admin" | "owner"|'staff';
+    role: "user" | "admin" | "owner" | "staff";
     redirectTo: string;
   };
 }
@@ -49,7 +50,8 @@ export class AuthService implements IAuthService {
     private readonly _ownerRepo: OwnerRepository,
     private readonly _otpRepo: OTPRepository,
     private readonly _emailService: EmailService,
-    private readonly _ownerRequestRepo: OwnerRequestRepository
+    private readonly _ownerRequestRepo: OwnerRequestRepository,
+    private readonly _redisService?: RedisService
   ) {
     this._googleClient = new OAuth2Client(config.googleClientId);
   }
@@ -64,7 +66,7 @@ export class AuthService implements IAuthService {
       if (admin) {
         const isValidPassword = await bcrypt.compare(password, admin.password);
         if (!isValidPassword) {
-          return { success: false, message: "Invalid credentials" };
+          return { success: false, message: "Invalid Password" };
         }
 
         const { accessToken, refreshToken } = this.generateTokenPair(
@@ -100,7 +102,7 @@ export class AuthService implements IAuthService {
         const isValidPassword = await bcrypt.compare(password, owner.password);
 
         if (!isValidPassword) {
-          return { success: false, message: "Invalid credentials" };
+          return { success: false, message: "Invalid Password" };
         }
 
         if (!owner.isActive) {
@@ -151,7 +153,7 @@ export class AuthService implements IAuthService {
         const isValidPassword = await bcrypt.compare(password, staff.password);
 
         if (!isValidPassword) {
-          return { success: false, message: "Invalid credentials" };
+          return { success: false, message: "Invalid Password" };
         }
 
         if (!staff.isActive) {
@@ -166,7 +168,11 @@ export class AuthService implements IAuthService {
           "staff"
         );
 
-        await this.storeRefreshToken(staff._id as string, refreshToken, "staff");
+        await this.storeRefreshToken(
+          staff._id as string,
+          refreshToken,
+          "staff"
+        );
 
         return {
           success: true,
@@ -191,7 +197,7 @@ export class AuthService implements IAuthService {
         const isValidPassword = await bcrypt.compare(password, user.password);
 
         if (!isValidPassword) {
-          return { success: false, message: "Invalid credentials" };
+          return { success: false, message: "Invalid Password" };
         }
 
         if (!user.isVerified) {
@@ -241,7 +247,7 @@ export class AuthService implements IAuthService {
 
       return {
         success: false,
-        message: "No account found with this email address",
+        message: "Account not found please signup",
       };
     } catch (error) {
       console.error("Login error:", error);
@@ -260,13 +266,12 @@ export class AuthService implements IAuthService {
       payload.ownerId = user._id;
     } else if (role === "user") {
       payload.userId = user._id;
-     } else if (role === "staff") {
-    payload.staffId = user._id; 
-  }
-
+    } else if (role === "staff") {
+      payload.staffId = user._id;
+    }
 
     const accessToken = jwt.sign(payload, config.jwtAccessSecret, {
-      expiresIn: "15m",
+      expiresIn: "15d",
     });
 
     const refreshToken = jwt.sign(
@@ -287,7 +292,7 @@ export class AuthService implements IAuthService {
 
       switch (role) {
         case "user":
-          user = await this._userRepo.findUserById(userId);
+          user = await this._userRepo.findById(userId);
           if (user) {
             return {
               _id: user._id,
@@ -324,18 +329,18 @@ export class AuthService implements IAuthService {
             };
           }
           break;
-      case "staff":
-        user = await Staff.findById(userId);
-        if (user) {
-          return {
-            _id: user._id,
-            email: user.email,
-            role: "staff",
-            name: `${user.firstName} ${user.lastName}`,
-            ownerName: null,
-          };
-        }
-        break;
+        case "staff":
+          user = await Staff.findById(userId);
+          if (user) {
+            return {
+              _id: user._id,
+              email: user.email,
+              role: "staff",
+              name: `${user.firstName} ${user.lastName}`,
+              ownerName: null,
+            };
+          }
+          break;
 
         default:
           return null;
@@ -701,7 +706,14 @@ export class AuthService implements IAuthService {
     refreshToken: string
   ): Promise<RefreshTokenResponseDto> {
     try {
-      const decoded = jwt.verify(refreshToken, config.jwtRefreshSecret) ;
+      // const isBlacklisted = await this._redisService.isRefreshTokenBlacklisted(
+      //   refreshToken
+      // );
+      // if (isBlacklisted) {
+      //   return { success: false, message: "Token has been revoked" };
+      // }
+
+      const decoded = jwt.verify(refreshToken, config.jwtRefreshSecret);
 
       if (decoded.tokenType !== "refresh") {
         return { success: false, message: "Invalid token type" };
@@ -711,15 +723,14 @@ export class AuthService implements IAuthService {
       let userType = decoded.role;
 
       if (userType === "user") {
-        user = await this._userRepo.findUserById(decoded.userId);
+        user = await this._userRepo.findById(decoded.userId);
       } else if (userType === "owner") {
         user = await this._ownerRepo.findById(decoded.ownerId);
       } else if (userType === "admin") {
         user = await this._adminRepo.findById(decoded.adminId);
-      }    else if (userType === "staff") {
-      user = await Staff.findById(decoded.staffId);
-    }
-
+      } else if (userType === "staff") {
+        user = await Staff.findById(decoded.staffId);
+      }
 
       if (!user || !user.refreshToken) {
         return { success: false, message: "Invalid refresh token" };
@@ -880,19 +891,23 @@ export class AuthService implements IAuthService {
 
   async logout(
     userId: string,
-    userType: "user" | "admin" | "owner"|'staff'
+    userType: "user" | "admin" | "owner" | "staff",
+    refreshToken?: string 
   ): Promise<AuthSuccessResponseDto | AuthErrorResponseDto> {
     try {
+      // if (refreshToken) {
+      //   await this._redisService.blacklistRefreshToken(refreshToken);
+      // }
+
       if (userType === "user") {
         await this._userRepo.clearRefreshToken(userId);
       } else if (userType === "owner") {
         await this._ownerRepo.clearRefreshToken(userId);
       } else if (userType === "admin") {
         await this._adminRepo.clearRefreshToken(userId);
-          } else if (userType === "staff") {
-      await Staff.findByIdAndUpdate(userId, { refreshToken: null });
-    }
-
+      } else if (userType === "staff") {
+        await Staff.findByIdAndUpdate(userId, { refreshToken: null });
+      }
 
       return { success: true, message: "Logged out successfully" };
     } catch (error) {

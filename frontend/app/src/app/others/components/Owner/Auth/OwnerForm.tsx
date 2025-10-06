@@ -370,7 +370,7 @@ export default function OwnerKYCForm() {
             <p className={`${lexendSmall.className} text-gray-200 mb-2`}>
               Request ID:
             </p>
-            <p className="text-white font-mono text-lg">{requestId}</p>
+            <p className="text-white font-mono text-lg">{"OWN-REQ"+requestId.slice(0,5)}</p>
           </div>
 
           <div

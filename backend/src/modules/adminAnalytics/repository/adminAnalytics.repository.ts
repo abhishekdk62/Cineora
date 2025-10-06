@@ -47,6 +47,39 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
       throw new Error(`Failed to get aggregate revenue: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
+  async getAdminAnalyticData(dateRange: IDateRange): Promise<number> {
+    try {
+   
+      const bookings=await Booking.find().populate('theaterId').populate('movieId').populate('screenId').populate('showtimeId')
+      
+      return bookings;
+    } catch (error) {
+      throw new Error(`Failed to get aggregate revenue: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+  async getAggregateRevenue(dateRange: IDateRange): Promise<number> {
+    try {
+      const result = await Booking.aggregate([
+        {
+          $match: {
+            createdAt: this.buildDateMatch(dateRange),
+            bookingStatus: "confirmed",
+            paymentStatus: "completed"
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            totalRevenue: { $sum: "$priceDetails.total" }
+          }
+        }
+      ]);
+
+      return result[0]?.totalRevenue || 0;
+    } catch (error) {
+      throw new Error(`Failed to get aggregate revenue: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
 
   async getAggregateBookings(dateRange: IDateRange): Promise<number> {
     try {

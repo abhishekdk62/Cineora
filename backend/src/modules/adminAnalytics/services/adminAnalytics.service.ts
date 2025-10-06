@@ -606,6 +606,22 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     }
   }
 
+  async getAdminAnalyticData(filter: IDateRange): Promise<ServiceResponse<ShowtimeValidationResult>> {
+    try {
+      const analyData = await this.analyticsRepository.getAdminAnalyticData(filter);
+      return {
+        success: true,
+        message: "Time slot performance retrieved successfully",
+        data:  analyData 
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Failed to get time slot performance",
+        data: null
+      };
+    }
+  }
   async getTimeSlotPerformance(filter: IDateRange): Promise<ServiceResponse<ShowtimeValidationResult>> {
     try {
       const timeSlotData = await this.analyticsRepository.getTimeSlotPerformance(filter);

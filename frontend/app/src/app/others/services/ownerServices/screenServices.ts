@@ -5,7 +5,6 @@ import {
   CreateScreenResponseDto,
   GetScreensByTheaterIdResponseDto,
   GetScreensStatsOwnerResponseDto,
-  
   DeleteScreenResponseDto,
   GetScreenResponseDto
 } from '../../dtos/screen.dto';

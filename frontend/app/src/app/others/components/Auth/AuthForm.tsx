@@ -39,22 +39,33 @@ const Form: React.FC<AuthFormProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-const {
-  register,
-  handleSubmit,
-  formState: { errors },
-} = useForm<LoginFormData | SignupFormData>({
-  resolver: zodResolver(isSignup ? signupSchema : loginSchema)
-});
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData | SignupFormData>({
+    resolver: zodResolver(isSignup ? signupSchema : loginSchema)
+  });
 
 
-  const handleFormSubmit = (data: {email:string;password:string;confirmPassword?:string}) => {
-    onSubmit({
-      email: data.email,
-      password: data.password,
-      confirmPassword: isSignup ? data.confirmPassword : undefined,
-    });
+  const handleFormSubmit = (data: LoginFormData | SignupFormData) => {
+    if (isSignup) {
+      const signupData = data as SignupFormData;
+      onSubmit({
+        email: signupData.email,
+        password: signupData.password,
+        confirmPassword: signupData.confirmPassword,
+        username: signupData.username,
+      });
+    } else {
+      const loginData = data as LoginFormData;
+      onSubmit({
+        email: loginData.email,
+        password: loginData.password,
+      });
+    }
   };
+
 
   const handleGoogleSuccess = async (credentialResponse: GoogleCredentialResponse) => {
     try {
@@ -69,6 +80,38 @@ const {
   return (
     <div>
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+
+
+
+
+
+        {isSignup && (
+          <div>
+            <label
+              htmlFor="username"
+              className={`${lexendSmall.className} block text-sm font-medium text-gray-200 mb-2`}
+            >
+              Username:
+            </label>
+            <div className="relative">
+              <input
+                id="username"
+                type={"text"}
+                {...register('username')}
+                className={`${lexendSmall.className} w-full px-4 py-3 bg-white/10 border ${errors.confirmPassword ? 'border-red-400' : 'border-white/20'
+                  } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent backdrop-blur-sm pr-12`}
+                placeholder="Enter your username"
+              />
+            </div>
+            {errors.username && (  // ❌ Was missing this error display
+              <p className={`${lexendSmall.className} text-red-400 text-sm mt-1`}>
+                {errors.username?.message}
+              </p>
+            )}
+
+          </div>
+
+        )}
         <div>
           <label
             htmlFor="email"
@@ -78,7 +121,6 @@ const {
           </label>
           <input
             id="email"
-            type="email"
             {...register('email')}
             className={`${lexendSmall.className} w-full px-4 py-3 bg-white/10 border ${errors.email ? 'border-red-400' : 'border-white/20'
               } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent backdrop-blur-sm`}
@@ -150,7 +192,7 @@ const {
                 id="confirmpassword"
                 type={showConfirmPassword ? "text" : "password"}
                 {...register('confirmPassword')}
-                className={`${lexendSmall.className} w-full px-4 py-3 bg-white/10 border ${errors.confirmPassword ? 'border-red-400' : 'border-white/20' 
+                className={`${lexendSmall.className} w-full px-4 py-3 bg-white/10 border ${errors.confirmPassword ? 'border-red-400' : 'border-white/20'
                   } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent backdrop-blur-sm pr-12`}
                 placeholder="Confirm your password"
               />
@@ -162,11 +204,11 @@ const {
                 {showConfirmPassword ? <EyeClosed className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
-        {errors.confirmPassword && (
-  <p className={`${lexendSmall.className} text-red-400 text-sm mt-1`}>
-    {errors.confirmPassword?.message}
-  </p>
-)}
+            {errors.confirmPassword && (
+              <p className={`${lexendSmall.className} text-red-400 text-sm mt-1`}>
+                {errors.confirmPassword?.message}
+              </p>
+            )}
 
           </div>
         )}

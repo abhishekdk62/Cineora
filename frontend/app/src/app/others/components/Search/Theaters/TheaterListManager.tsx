@@ -137,10 +137,10 @@ const TheaterListManager: React.FC<TheaterListManagerProps> = ({
 
         <div className="mb-8 flex  items-center justify-between">
           <div>
-            <h1 className={`${lexendMedium.className} text-3xl text-white mb-2`}>
+            <h1 className={`${lexendMedium.className} sm:text-3xl text-xl text-white mb-2`}>
               Theaters
             </h1>
-            <p className={`${lexendSmall.className} text-gray-400`}>
+            <p className={`${lexendSmall.className} hidden sm:block text-gray-400`}>
               Find theaters near you and book your favorite movies
             </p>
           </div>

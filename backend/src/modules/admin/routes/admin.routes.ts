@@ -10,6 +10,7 @@ import { WalletController } from "../../wallet/dtos/controllers/wallet.controlle
 import { WalletTransactionController } from "../../walletTransaction/controllers/walletTransaction.controller";
 import { CouponController } from "../../coupons/controllers/coupons.controller";
 import { BookingController } from "../../bookings/controllers/bookings.controller";
+import { StaffController } from "../../staff/controller/staff.controller";
 
 export class AdminRoutes {
   constructor(
@@ -24,7 +25,8 @@ export class AdminRoutes {
     private _walletController: WalletController,
     private _walletTransactionController: WalletTransactionController,
     private _couponController: CouponController,
-    private _bookingsController: BookingController
+    private _bookingsController: BookingController,
+    private _staffController:StaffController
   ) {
     this._setRoutes();
   }
@@ -170,6 +172,13 @@ export class AdminRoutes {
 
     this._router.patch("/owners/requests/:requestId/reject", (req, res) =>
       this._ownerRequestController.rejectOwnerRequest(req, res)
+    );
+ 
+    this._router.get("/staff", (req, res) =>
+      this._staffController.getAllStaffsPaginated(req, res)
+    );
+    this._router.patch("/staff/:staffId", (req, res) =>
+      this._staffController.toggleStaffStatus(req, res)
     );
   }
 

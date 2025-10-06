@@ -129,7 +129,6 @@ emitParticipantLeft(inviteId: string, participantData: any): void {
   //!chat soket funcs
 
 
-// Add these new emit methods to your existing SocketService class
 
 emitNewMessage(chatRoomId: string, messageData: MessageDto): void {
   console.log('🚀 Broadcasting new message to chat room:', chatRoomId);
@@ -138,7 +137,7 @@ emitNewMessage(chatRoomId: string, messageData: MessageDto): void {
   this.io.to(`chat-${chatRoomId}`).emit('new-message', messageData);
 }
 
-emitMessageEdit(chatRoomId: string, messageData: ): void {
+emitMessageEdit(chatRoomId: string, messageData:any ): void {
   console.log('🚀 Broadcasting message edit to chat room:', chatRoomId);
   
   this.io.to(`chat-${chatRoomId}`).emit('message-edited', {

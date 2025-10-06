@@ -1,5 +1,6 @@
 import React from "react";
 import { Lexend } from "next/font/google";
+
 import {
   Film,
   Users,
@@ -11,6 +12,7 @@ import {
   Menu,
   LogOut,
   Wallet,
+  TrafficCone,
 } from "lucide-react";
 import { logoutUser } from "@/app/others/redux/slices/authSlice";
 import { useDispatch } from "react-redux";
@@ -52,6 +54,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: "wallet", label: "Wallet", icon: Wallet },
     { id: "bookings", label: "Bookings", icon: Calendar, count: 89 },
     { id: "coupon", label: "Coupons", icon: Ticket, count: 5 },
+    { id: "staff", label: "Staffs", icon: TrafficCone, count: 5 },
   ];
 
   const dispatch = useDispatch<AppDispatch>();

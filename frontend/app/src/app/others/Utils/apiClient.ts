@@ -2,7 +2,12 @@ import axios from "axios";
 import AUTH_ROUTES from "../constants/authConstants/authConstants";
 
 const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL_PROD,
+  
+  baseURL:
+    process.env.NEXT_PUBLIC_NODE_ENV == "dev"
+      ? process.env.NEXT_PUBLIC_API_BASE_URL
+      : process.env.NEXT_PUBLIC_API_BASE_URL_PROD,
+
   headers: {
     "Content-Type": "application/json",
   },
@@ -39,15 +44,16 @@ apiClient.interceptors.response.use(
     }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
-      
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
-        }).then(() => {
-          return apiClient(originalRequest);
-        }).catch((err) => {
-          return Promise.reject(err);
-        });
+        })
+          .then(() => {
+            return apiClient(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
       }
 
       originalRequest._retry = true;
@@ -55,15 +61,14 @@ apiClient.interceptors.response.use(
 
       try {
         const refreshResponse = await apiClient.post(AUTH_ROUTES.REFRESH);
-        
+
         processQueue(null);
-        
+
         return apiClient(originalRequest);
-        
       } catch (refreshError) {
-        console.error(' Refresh failed:', refreshError);
+        console.error(" Refresh failed:", refreshError);
         processQueue(refreshError);
-        
+
         window.location.href = "/login";
         return Promise.reject(refreshError);
       }
@@ -72,7 +77,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       window.location.href = "/login";
     }
-    
+
     return Promise.reject(error);
   }
 );

@@ -1,18 +1,21 @@
 import OWNER_KYC from "../../constants/ownerConstants/kycConstants";
-interface kycResponse{
-
-}
+import apiClient from "../../Utils/apiClient";
+interface kycResponse {}
 export async function uploadKYCImage(
   file: File,
   folder: string,
-  backendUrl: string = "http://localhost:5000/api"
+  backendUrl: string
 ): Promise<kycResponse> {
   try {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("folder", folder);
 
-    const uploadUrl = `${backendUrl}${OWNER_KYC.UPLOAD}`;
+    const uploadUrl = `${
+      process.env.NEXT_PUBLIC_NODE_ENV == "dev"
+        ? process.env.NEXT_PUBLIC_API_BASE_URL
+        : process.env.NEXT_PUBLIC_API_BASE_URL_PROD
+    }${OWNER_KYC.UPLOAD}`;
 
     const response = await fetch(uploadUrl, {
       method: "POST",

@@ -29,7 +29,7 @@ export class ScreenService implements IScreenService {
       this._validateCreateScreenData(screenData);
       const theaterIdString =        screenData.theater!._id.toString() || screenData?.theaterId;
 
-      const theater = await this.theaterRepository.getTheaterById(
+      const theater = await this.theaterRepository.findById(
         theaterIdString
       );
       if (!theater?.isVerified) {

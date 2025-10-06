@@ -9,27 +9,26 @@ const lexendSmall = Lexend({
   subsets: ["latin"],
 });
 
-
-export type LocationOption={
-  value:"current" | "mumbai" | "delhi" | "bangalore" | "chennai" | "hyderabad" | "pune" | "kolkata" | "ahmedabad" | "kochi" | "jaipur"
-  label:string;
-  coordinates?:[number,number]
-  icon:LucideIcon;
-
+export type LocationOption = {
+  value: "current" | "mumbai" | "delhi" | "bangalore" | "chennai" | "hyderabad" | "pune" | "kolkata" | "ahmedabad" | "kochi" | "jaipur"
+  label: string;
+  coordinates?: [number, number]
+  icon: LucideIcon;
 }
+
 interface LocationDropdownProps {
   selectedLocation: LocationOption;
   onLocationChange: (location: LocationOption) => void;
 }
 
-const locationOptions:LocationOption[] = [
+const locationOptions: LocationOption[] = [
   { 
     value: "current", 
     label: "Current Location", 
     icon: Navigation 
   },
   { 
-    value: "mumbai" , 
+    value: "mumbai", 
     label: "Mumbai", 
     coordinates: [72.8777, 19.0760], 
     icon: MapPin 
@@ -47,31 +46,31 @@ const locationOptions:LocationOption[] = [
     icon: MapPin 
   },
   { 
-    value: "chennai" , 
+    value: "chennai", 
     label: "Chennai", 
     coordinates: [80.2707, 13.0827], 
     icon: MapPin 
   },
   { 
-    value: "hyderabad" , 
+    value: "hyderabad", 
     label: "Hyderabad", 
     coordinates: [78.4867, 17.3850], 
     icon: MapPin 
   },
   { 
-    value: "pune" , 
+    value: "pune", 
     label: "Pune", 
     coordinates: [73.8567, 18.5204], 
     icon: MapPin 
   },
   { 
-    value: "kolkata" , 
+    value: "kolkata", 
     label: "Kolkata", 
     coordinates: [88.3639, 22.5726], 
     icon: MapPin 
   },
   { 
-    value: "ahmedabad" , 
+    value: "ahmedabad", 
     label: "Ahmedabad", 
     coordinates: [72.5714, 23.0225], 
     icon: MapPin 
@@ -83,7 +82,7 @@ const locationOptions:LocationOption[] = [
     icon: MapPin 
   },
   { 
-    value: "jaipur" , 
+    value: "jaipur", 
     label: "Jaipur", 
     coordinates: [75.7873, 26.9124], 
     icon: MapPin 
@@ -96,7 +95,7 @@ const LocationDropdown: React.FC<LocationDropdownProps> = ({ selectedLocation, o
   const currentOption = locationOptions.find(option => option.value === selectedLocation.value);
 
   return (
-    <div className="relative">
+    <div className="relative scale-50 sm:scale-100 origin-left">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`${lexendSmall.className} flex items-center gap-1.5 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all duration-300 min-w-[120px] justify-between text-sm`}
@@ -116,7 +115,7 @@ const LocationDropdown: React.FC<LocationDropdownProps> = ({ selectedLocation, o
           />
           
           <div className="absolute top-full mt-1 w-full bg-gray-900/95 border border-white/20 rounded-lg backdrop-blur-sm z-20 overflow-hidden max-h-52 overflow-y-auto">
-            {locationOptions.map((option:LocationOption) => (
+            {locationOptions.map((option: LocationOption) => (
               <button
                 key={option.value}
                 onClick={() => {

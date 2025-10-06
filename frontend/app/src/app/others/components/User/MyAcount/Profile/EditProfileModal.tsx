@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef } from "react";
@@ -18,18 +17,19 @@ import {
   MapPin,
   Globe,
   Loader2,
-  Crop as CropIcon,
   Check,
 } from "lucide-react";
 import { updateProfile } from "@/app/others/services/userServices/userServices";
 import { IUser } from "./MyAccountContent";
 import dynamic from "next/dynamic";
+
 const MapLocationPicker = dynamic(() => import('../../../Leaflet/MapLocationPicker'), {
   ssr: false,
   loading: () => <div className="w-full h-64 bg-gray-800 rounded-xl flex items-center justify-center">
     <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
   </div>
 });
+
 const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
 const lexendSmall = { className: "font-normal text-sm" };
@@ -119,10 +119,45 @@ async function canvasPreview(
   ctx.restore();
 }
 
+// Reverse geocoding function using Nominatim API
+const reverseGeocode = async (lat: number, lng: number) => {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,
+      {
+        headers: {
+          'User-Agent': 'CineoraApp/1.0'
+        }
+      }
+    );
+    
+    if (!response.ok) {
+      throw new Error('Geocoding failed');
+    }
+    
+    const data = await response.json();
+    
+    if (data && data.address) {
+      const address = data.address;
+      return {
+        city: address.city || address.town || address.village || address.municipality || '',
+        state: address.state || address.region || address.province || '',
+        country: address.country || ''
+      };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Reverse geocoding error:', error);
+    return null;
+  }
+}; 
+
 /* ---------- component ---------- */
 const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps) => {
   /* ----- state ----- */
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeocodingLoading, setIsGeocodingLoading] = useState(false);
   const [formData, setFormData] = useState<EditFormData>({
     firstName: user.firstName ?? "",
     lastName: user.lastName ?? "",
@@ -138,6 +173,8 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
     profilePicture: user.profilePicture ?? "",
   });
 
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
   const [showCropModal, setShowCropModal] = useState(false);
   const [imgSrc, setImgSrc] = useState('');
   const [crop, setCrop] = useState<Crop>();
@@ -150,6 +187,11 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
   ) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: "" }));
+    }
   };
 
   const updateFormData = (updates: Partial<EditFormData>) => {
@@ -225,33 +267,87 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
     }
   };
 
-  /* ----- validation ----- */
-  const validate = (d: EditFormData): string => {
-    if (!d.firstName.trim()) return "First name is required";
-    if (!d.lastName.trim()) return "Last name is required";
-    if (!d.dateOfBirth) return "Date of birth is required";
-    if (!d.gender) return "Please select a gender";
-    if (!d.phone.trim()) return "Phone number is required";
-    if (!d.locationCity.trim()) return "City is required";
-    if (!d.locationState.trim()) return "State is required";
-    return "";
+  /* ----- simple validation ----- */
+  const validate = () => {
+    const newErrors: { [key: string]: string } = {};
+
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = "First name is required";
+    }
+
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = "Last name is required";
+    }
+
+    if (!formData.dateOfBirth) {
+      newErrors.dateOfBirth = "Date of birth is required";
+    }
+
+    if (!formData.gender) {
+      newErrors.gender = "Please select a gender";
+    }
+
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Phone number is required";
+    }
+
+    if (!formData.locationCity.trim()) {
+      newErrors.locationCity = "City is required";
+    }
+
+    if (!formData.locationState.trim()) {
+      newErrors.locationState = "State is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const isFormValid = !validate(formData);
-
-  const handleMapLocationSelect = (lat: number, lng: number) => {
+  const handleMapLocationSelect = async (lat: number, lng: number) => {
+    // Update location coordinates immediately
     updateFormData({
       location: {
         type: "Point",
         coordinates: [lng, lat], 
       },
     });
-  };
+
+    // Start reverse geocoding to get city and state
+    setIsGeocodingLoading(true);
+    
+    try {
+      const locationData = await reverseGeocode(lat, lng);
+      
+      if (locationData && (locationData.city || locationData.state)) {
+        // Auto-fill city and state if found
+        updateFormData({
+          locationCity: locationData.city || formData.locationCity,
+          locationState: locationData.state || formData.locationState,
+        });
+        
+        // Clear any existing errors for these fields since they're now filled
+        setErrors(prev => {
+          const newErrors = { ...prev };
+          if (locationData.city) delete newErrors.locationCity;
+          if (locationData.state) delete newErrors.locationState;
+          return newErrors;
+        });
+        
+        toast.success(`Location updated: ${locationData.city}, ${locationData.state}`);
+      } else {
+        toast.warning("Location selected, but couldn't auto-detect city/state. Please fill manually.");
+      }
+    } catch (error) {
+      console.error('Error getting location details:', error);
+      toast.warning("Location selected, but couldn't auto-detect city/state. Please fill manually.");
+    } finally {
+      setIsGeocodingLoading(false);
+    }
+  }; 
 
   const onSave = async () => {
-    const errMsg = validate(formData);
-    if (errMsg) {
-      toast.error(errMsg);
+    if (!validate()) {
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -262,7 +358,7 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
       if (onDataUpdate) await onDataUpdate(); 
       onClose();
 
-    } catch (err: unknown) {
+    } catch (err: any) {
       if (err.response?.statusText?.includes('Payload Too Large')) {
         toast.error('Image size too large');
         return;
@@ -309,8 +405,8 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
               <div className="relative inline-block">
                 <img
                   src={
-                    formData.profilePicture ||
-                    user.profilePicture ||
+                    formData.profilePictureUrl ||
+                    user.profilePictureUrl ||
                     "/api/placeholder/150/150"
                   }
                   alt="Profile"
@@ -339,7 +435,7 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
                   Personal Details
                 </h3>
 
-                <label className={`${lexendSmall.className} text-sm text-gray-200`}>
+                <label className={`${lexendSmall.className} text-sm text-gray-200 block`}>
                   First Name
                   <input
                     type="text"
@@ -347,12 +443,16 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
                     value={formData.firstName}
                     onChange={onInput}
                     placeholder="Enter your first name"
-                    maxLength={50}
-                    className={`${lexendMedium.className} mt-2 w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm`}
+                    className={`${lexendMedium.className} mt-2 w-full px-4 py-3 bg-white/10 border rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:border-transparent backdrop-blur-sm ${
+                      errors.firstName ? 'border-red-500 focus:ring-red-500' : 'border-white/20 focus:ring-blue-500'
+                    }`}
                   />
+                  {errors.firstName && (
+                    <span className="text-red-400 text-xs mt-1 block">{errors.firstName}</span>
+                  )}
                 </label>
 
-                <label className={`${lexendSmall.className} text-sm text-gray-200`}>
+                <label className={`${lexendSmall.className} text-sm text-gray-200 block`}>
                   Last Name
                   <input
                     type="text"
@@ -360,35 +460,49 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
                     value={formData.lastName}
                     onChange={onInput}
                     placeholder="Enter your last name"
-                    maxLength={50}
-                    className={`${lexendMedium.className} mt-2 w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm`}
+                    className={`${lexendMedium.className} mt-2 w-full px-4 py-3 bg-white/10 border rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:border-transparent backdrop-blur-sm ${
+                      errors.lastName ? 'border-red-500 focus:ring-red-500' : 'border-white/20 focus:ring-blue-500'
+                    }`}
                   />
+                  {errors.lastName && (
+                    <span className="text-red-400 text-xs mt-1 block">{errors.lastName}</span>
+                  )}
                 </label>
 
-                <label className={`${lexendSmall.className} text-sm text-gray-200`}>
+                <label className={`${lexendSmall.className} text-sm text-gray-200 block`}>
                   Date of Birth
                   <input
                     type="date"
                     name="dateOfBirth"
                     value={formData.dateOfBirth}
                     onChange={onInput}
-                    className={`${lexendMedium.className} mt-2 w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm`}
+                    className={`${lexendMedium.className} mt-2 w-full px-4 py-3 bg-white/10 border rounded-lg text-white focus:ring-2 focus:border-transparent backdrop-blur-sm ${
+                      errors.dateOfBirth ? 'border-red-500 focus:ring-red-500' : 'border-white/20 focus:ring-blue-500'
+                    }`}
                   />
+                  {errors.dateOfBirth && (
+                    <span className="text-red-400 text-xs mt-1 block">{errors.dateOfBirth}</span>
+                  )}
                 </label>
 
-                <label className={`${lexendSmall.className} text-sm text-gray-200`}>
+                <label className={`${lexendSmall.className} text-sm text-gray-200 block`}>
                   Gender
                   <select
                     name="gender"
                     value={formData.gender}
                     onChange={onInput}
-                    className={`${lexendMedium.className} mt-2 w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm`}
+                    className={`${lexendMedium.className} mt-2 w-full px-4 py-3 bg-white/10 border rounded-lg text-white focus:ring-2 focus:border-transparent backdrop-blur-sm ${
+                      errors.gender ? 'border-red-500 focus:ring-red-500' : 'border-white/20 focus:ring-blue-500'
+                    }`}
                   >
                     <option value="" className="bg-gray-800">Select Gender</option>
                     <option value="male" className="bg-gray-800">Male</option>
                     <option value="female" className="bg-gray-800">Female</option>
                     <option value="other" className="bg-gray-800">Other</option>
                   </select>
+                  {errors.gender && (
+                    <span className="text-red-400 text-xs mt-1 block">{errors.gender}</span>
+                  )}
                 </label>
               </div>
 
@@ -398,7 +512,7 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
                   Contact & Location
                 </h3>
 
-                <label className={`${lexendSmall.className} text-sm text-gray-200`}>
+                <label className={`${lexendSmall.className} text-sm text-gray-200 block`}>
                   <Phone className="w-4 h-4 inline mr-2" />
                   Phone Number
                   <input
@@ -407,37 +521,64 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
                     value={formData.phone}
                     onChange={onInput}
                     placeholder="Enter your phone number"
-                    className={`${lexendMedium.className} mt-2 w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm`}
+                    className={`${lexendMedium.className} mt-2 w-full px-4 py-3 bg-white/10 border rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:border-transparent backdrop-blur-sm ${
+                      errors.phone ? 'border-red-500 focus:ring-red-500' : 'border-white/20 focus:ring-blue-500'
+                    }`}
                   />
+                  {errors.phone && (
+                    <span className="text-red-400 text-xs mt-1 block">{errors.phone}</span>
+                  )}
                 </label>
 
-                <label className={`${lexendSmall.className} text-sm text-gray-200`}>
+                <label className={`${lexendSmall.className} text-sm text-gray-200 block`}>
                   <MapPin className="w-4 h-4 inline mr-2" />
                   City
-                  <input
-                    type="text"
-                    name="locationCity"
-                    value={formData.locationCity}
-                    onChange={onInput}
-                    placeholder="Enter your city"
-                    className={`${lexendMedium.className} mt-2 w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm`}
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="locationCity"
+                      value={formData.locationCity}
+                      onChange={onInput}
+                      placeholder="Enter your city"
+                      disabled={isGeocodingLoading}
+                      className={`${lexendMedium.className} mt-2 w-full px-4 py-3 bg-white/10 border rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:border-transparent backdrop-blur-sm ${
+                        errors.locationCity ? 'border-red-500 focus:ring-red-500' : 'border-white/20 focus:ring-blue-500'
+                      } ${isGeocodingLoading ? 'opacity-50' : ''}`}
+                    />
+                    {isGeocodingLoading && (
+                      <Loader2 className="absolute right-3 top-5 w-4 h-4 animate-spin text-gray-400" />
+                    )}
+                  </div>
+                  {errors.locationCity && (
+                    <span className="text-red-400 text-xs mt-1 block">{errors.locationCity}</span>
+                  )}
                 </label>
 
-                <label className={`${lexendSmall.className} text-sm text-gray-200`}>
+                <label className={`${lexendSmall.className} text-sm text-gray-200 block`}>
                   <MapPin className="w-4 h-4 inline mr-2" />
                   State
-                  <input
-                    type="text"
-                    name="locationState"
-                    value={formData.locationState}
-                    onChange={onInput}
-                    placeholder="Enter your state"
-                    className={`${lexendMedium.className} mt-2 w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm`}
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="locationState"
+                      value={formData.locationState}
+                      onChange={onInput}
+                      placeholder="Enter your state"
+                      disabled={isGeocodingLoading}
+                      className={`${lexendMedium.className} mt-2 w-full px-4 py-3 bg-white/10 border rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:border-transparent backdrop-blur-sm ${
+                        errors.locationState ? 'border-red-500 focus:ring-red-500' : 'border-white/20 focus:ring-blue-500'
+                      } ${isGeocodingLoading ? 'opacity-50' : ''}`}
+                    />
+                    {isGeocodingLoading && (
+                      <Loader2 className="absolute right-3 top-5 w-4 h-4 animate-spin text-gray-400" />
+                    )}
+                  </div>
+                  {errors.locationState && (
+                    <span className="text-red-400 text-xs mt-1 block">{errors.locationState}</span>
+                  )}
                 </label>
 
-                <label className={`${lexendSmall.className} text-sm text-gray-200`}>
+                <label className={`${lexendSmall.className} text-sm text-gray-200 block`}>
                   <Globe className="w-4 h-4 inline mr-2" />
                   Preferred Language
                   <select
@@ -456,36 +597,40 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
               </div>
             </div>
 
-            {/* ✅ Fixed map section */}
-            {formData.location && (
-              <div className="space-y-4">
-                <h3 className={`${lexendBold.className} text-lg text-white border-b border-white/10 pb-2`}>
-                  Location on Map
-                </h3>
-                <MapLocationPicker
-                  onLocationSelect={handleMapLocationSelect}
-                  initialPosition={[
-                    formData.location.coordinates[1] || 28.7041,
-                    formData.location.coordinates[0] || 77.1025  
-                  ]}
-                />
-              </div>
-            )}
+            {/* Map section */}
+            <div className="space-y-4">
+              <h3 className={`${lexendBold.className} text-lg text-white border-b border-white/10 pb-2 flex items-center gap-2`}>
+                Location on Map
+                {isGeocodingLoading && (
+                  <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+                )}
+              </h3>
+              <p className={`${lexendSmall.className} text-gray-400 mb-4`}>
+                Click on the map to select your location. City and state will be auto-filled.
+              </p>
+              <MapLocationPicker
+                onLocationSelect={handleMapLocationSelect}
+                initialPosition={[
+                  formData.location?.coordinates[1] || 28.7041,
+                  formData.location?.coordinates[0] || 77.1025  
+                ]}
+              />
+            </div>
           </div>
 
           {/* footer */}
           <div className="flex items-center justify-end gap-4 p-6 border-t border-white/10">
             <button
               onClick={onClose}
-              className={`${lexendMedium.className} px-6 py-3 bg-white text-black hover:bg-white/5 border hover:text-white hover:border-gray-400 rounded-lg  transition-all`}
+              className={`${lexendMedium.className} px-6 py-3 bg-white text-black hover:bg-white/5 border hover:text-white hover:border-gray-400 rounded-lg transition-all`}
             >
               Cancel
             </button>
 
             <button
               onClick={onSave}
-              disabled={isLoading || !isFormValid}
-              className={`${lexendMedium.className} px-6 py-3  bg-white text-black hover:bg-white/5 border  hover:text-white rounded-lg shadow-lg transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed`}
+              disabled={isLoading || isGeocodingLoading}
+              className={`${lexendMedium.className} px-6 py-3 bg-white text-black hover:bg-white/5 border hover:text-white rounded-lg shadow-lg transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {isLoading ? (
                 <>
@@ -500,7 +645,7 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
         </div>
       </div>
 
-      {/* Crop Modal */}
+      {/* Crop Modal - same as before */}
       {showCropModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-black/90 backdrop-blur-sm" />
@@ -522,7 +667,6 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
               </button>
             </div>
 
-            {/* crop content */}
             <div className="p-6">
               <div className="flex justify-center mb-6">
                 <ReactCrop
@@ -544,7 +688,6 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
                 </ReactCrop>
               </div>
 
-              {/* crop buttons */}
               <div className="flex items-center justify-end gap-4">
                 <button
                   onClick={() => setShowCropModal(false)}
@@ -563,7 +706,6 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
             </div>
           </div>
 
-          {/* Hidden canvas for processing */}
           <canvas
             ref={previewCanvasRef}
             style={{ display: 'none' }}

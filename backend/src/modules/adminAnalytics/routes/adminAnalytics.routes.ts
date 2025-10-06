@@ -75,6 +75,9 @@ export class AdminAnalyticsRoute {
     this._router.get("/financial", 
       (req, res) => this._analyticsController.getFinancialKPIs(req, res)
     );
+    this._router.get("/data/analytics", 
+      (req, res) => this._analyticsController.getAdminAnalyticData(req, res)
+    );
 
     this._router.get("/growth", 
       (req, res) => this._analyticsController.getGrowthRates(req, res)

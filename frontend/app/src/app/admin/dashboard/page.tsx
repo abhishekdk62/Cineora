@@ -14,6 +14,8 @@ import BookingsManager from "@/app/others/components/Admin/Dashboard/Bookings/Bo
 import AnalyticsManager from "@/app/others/components/Admin/Dashboard/Analytics/AnalyticsManager";
 import AdminWalletManager from "@/app/others/components/Admin/Dashboard/Wallet/AdminWalletManager";
 import CouponManagement from "@/app/others/components/Admin/Dashboard/Coupon/CouponManagement";
+import StaffManager from "@/app/others/components/Admin/Dashboard/Staff/StaffManager";
+import AdminAnalyticsDashboard from "@/app/others/components/Admin/Dashboard/File";
 
 const lexend = Lexend({
   weight: "500",
@@ -42,9 +44,11 @@ const AdminDashboard = () => {
       case 'wallet':
         return <AdminWalletManager />
       case 'analytics':
-        return <AnalyticsManager />
+        return <AdminAnalyticsDashboard />
       case 'coupon':
-        return <CouponManagement lexend={lexend}  />
+        return <CouponManagement lexend={lexend} />
+      case 'staff':
+        return <StaffManager />
       default:
         return (
           <div className="flex items-center justify-center h-96">

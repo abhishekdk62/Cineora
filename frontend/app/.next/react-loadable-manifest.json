@@ -1,79 +1,40 @@
 {
   "..\\node_modules\\jspdf\\dist\\jspdf.es.min.js -> canvg": {
-    "id": 34137,
+    "id": "..\\node_modules\\jspdf\\dist\\jspdf.es.min.js -> canvg",
     "files": [
-      "static/chunks/bc98253f.7800797fe71672ff.js",
-      "static/chunks/2121.f37ba7a8db786cdf.js"
+      "static/chunks/_app-pages-browser_node_modules_canvg_lib_index_es_js.js"
     ]
   },
   "..\\node_modules\\jspdf\\dist\\jspdf.es.min.js -> dompurify": {
-    "id": 10822,
+    "id": "..\\node_modules\\jspdf\\dist\\jspdf.es.min.js -> dompurify",
     "files": [
-      "static/chunks/822.d1eebe7df2d8fc0a.js"
+      "static/chunks/_app-pages-browser_node_modules_dompurify_dist_purify_es_mjs.js"
     ]
   },
   "..\\node_modules\\jspdf\\dist\\jspdf.es.min.js -> html2canvas": {
-    "id": 52699,
+    "id": "..\\node_modules\\jspdf\\dist\\jspdf.es.min.js -> html2canvas",
     "files": [
-      "static/chunks/ad2866b8.d24ec0a5e084098f.js"
+      "static/chunks/_app-pages-browser_node_modules_html2canvas_dist_html2canvas_js.js"
     ]
   },
-  "..\\node_modules\\next\\dist\\client\\index.js -> ../pages/_app": {
-    "id": 90472,
+  "..\\node_modules\\next\\dist\\client\\dev\\hot-reloader\\app\\use-websocket.js -> @vercel/turbopack-ecmascript-runtime/browser/dev/hmr-client/hmr-client.ts": {
+    "id": "..\\node_modules\\next\\dist\\client\\dev\\hot-reloader\\app\\use-websocket.js -> @vercel/turbopack-ecmascript-runtime/browser/dev/hmr-client/hmr-client.ts",
     "files": [
-      "static/chunks/472.2c08b965bd9148e2.js"
-    ]
-  },
-  "..\\node_modules\\next\\dist\\client\\index.js -> ../pages/_error": {
-    "id": 99341,
-    "files": [
-      "static/chunks/9341.8181fde8cccea77c.js"
-    ]
-  },
-  "..\\node_modules\\qr-scanner\\qr-scanner.min.js -> ./qr-scanner-worker.min.js": {
-    "id": 52403,
-    "files": [
-      "static/chunks/2403.6ddef6d701695097.js"
-    ]
-  },
-  "app\\others\\components\\Admin\\Dashboard\\Owners\\TheaterModal.tsx -> ../../../../components/Leaflet/MapLocationPicker": {
-    "id": 70683,
-    "files": [
-      "static/css/1de76be520b4de19.css",
-      "static/chunks/d0deef33.793296b533c20cfa.js",
-      "static/chunks/683.9e6c047cfba0870f.js"
-    ]
-  },
-  "app\\others\\components\\Owner\\Theatre\\LocationFields.tsx -> ../../Leaflet/MapLocationPicker": {
-    "id": 70683,
-    "files": [
-      "static/css/1de76be520b4de19.css",
-      "static/chunks/d0deef33.793296b533c20cfa.js",
-      "static/chunks/683.9e6c047cfba0870f.js"
-    ]
-  },
-  "app\\others\\components\\Owner\\Theatre\\TheaterViewModal.tsx -> ../../Leaflet/MapLocationPicker": {
-    "id": 70683,
-    "files": [
-      "static/css/1de76be520b4de19.css",
-      "static/chunks/d0deef33.793296b533c20cfa.js",
-      "static/chunks/683.9e6c047cfba0870f.js"
+      "static/chunks/_app-pages-browser_node_modules_next_dist_client_dev_noop-turbopack-hmr_js.js"
     ]
   },
   "app\\others\\components\\User\\MyAcount\\Profile\\EditProfileModal.tsx -> ../../../Leaflet/MapLocationPicker": {
-    "id": 70683,
+    "id": "app\\others\\components\\User\\MyAcount\\Profile\\EditProfileModal.tsx -> ../../../Leaflet/MapLocationPicker",
     "files": [
-      "static/css/1de76be520b4de19.css",
-      "static/chunks/d0deef33.793296b533c20cfa.js",
-      "static/chunks/683.9e6c047cfba0870f.js"
+      "static/css/_app-pages-browser_src_app_others_components_Leaflet_MapLocationPicker_tsx.css",
+      "static/chunks/_app-pages-browser_src_app_others_components_Leaflet_MapLocationPicker_tsx.js"
     ]
   },
   "app\\others\\components\\User\\MyAcount\\Profile\\MyAccountContent.tsx -> ../../../Leaflet/MapLocationPicker": {
-    "id": 70683,
+    "id": "app\\others\\components\\User\\MyAcount\\Profile\\MyAccountContent.tsx -> ../../../Leaflet/MapLocationPicker",
     "files": [
-      "static/css/1de76be520b4de19.css",
-      "static/chunks/d0deef33.793296b533c20cfa.js",
-      "static/chunks/683.9e6c047cfba0870f.js"
+      "static/css/_app-pages-browser_src_app_others_components_Leaflet_MapLocationPicker_tsx.css",
+      "static/chunks/_app-pages-browser_src_app_others_components_Leaflet_MapLocationPicker_tsx.js"
     ]
   }
 }
