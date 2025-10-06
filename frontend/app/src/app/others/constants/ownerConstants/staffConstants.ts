@@ -3,6 +3,8 @@ const OWNER_STAFF = {
   CREATE: '/owner/create/staff' as const,
   VERIFY_TICKET: '/staff/verify-ticket' as const,
   GET_DETAILS: '/staff/details' as const,
+  GET_STAFF: '/owner/staff' as const,
+  TOGGLE_STAFF:(staffid:string) =>`/owner/staff/${staffid}` as const,
 };
 
 export default OWNER_STAFF;

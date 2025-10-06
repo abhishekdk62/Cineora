@@ -87,7 +87,7 @@ export interface SignupFormData {
   confirmPassword?: string;
   firstName: string;
   lastName: string;
-  username?: string; 
+  username: string; 
 }
  export interface UnifiedBookingEntity {
   _id: string;

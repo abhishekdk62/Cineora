@@ -12,6 +12,12 @@ export const signupSchema = z
         "Email cannot contain consecutive underscores"
       )
       .regex(/^\S+$/, "Email cannot contain spaces"),
+    username: z
+      .string()
+      .min(4, "Username must be at least 4 characters")
+      .max(20, "Username cannot exceed 20 characters")
+      .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores")
+      .regex(/^[a-zA-Z]/, "Username must start with a letter"),
     password: z
       .string()
       .min(6, "Password must be at least 6 characters")

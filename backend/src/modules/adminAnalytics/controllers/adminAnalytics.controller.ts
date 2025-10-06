@@ -457,6 +457,34 @@ export class AdminAnalyticsController {
       this.handleError(res, error);
     }
   }
+  async getAdminAnalyticData(req: Request, res: Response): Promise<void> {
+    try {
+      const dateRange = this.buildDateRangeFromRequest(req);
+      
+      const result = await this.analyticsService.getAdminAnalyticData(dateRange);
+      
+      if (result.success) {
+        res.status(StatusCodes.OK).json(
+          createResponse({
+            success: true,
+            message: result.message || ANALYTICS_MESSAGES.FINANCIAL_KPIS_SUCCESS,
+            data: result.data
+          })
+        );
+        
+      } else {
+        res.status(StatusCodes.BAD_REQUEST).json(
+          createResponse({
+            success: false,
+            message: result.message || ANALYTICS_MESSAGES.FINANCIAL_KPIS_FAILED
+          })
+        );
+      }
+    } catch (error) {
+      this.handleError(res, error);
+    }
+  }
+
 
   async getGrowthRates(req: Request, res: Response): Promise<void> {
     try {

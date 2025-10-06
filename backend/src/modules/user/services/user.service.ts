@@ -27,6 +27,7 @@ import {
 } from "../../../utils/cloudinaryUtil";
 import { UserDto, UserMapper } from "../../../mappers/user.mapper";
 import { IUser } from "../interfaces/user.model.interface";
+import { getDisplayableImageUrl } from "../../../utils/signCloudinaryUpload";
 
 export class UserService implements IUserService {
   constructor(
@@ -195,7 +196,7 @@ export class UserService implements IUserService {
 
   async getUserProfile(id: string): Promise<ApiResponse<any>> {
     try {
-      const user = await this.userRepository.findUserById(id);
+      const user = await this.userRepository.findById(id);
 
       if (!user) {
         return createResponse({
@@ -208,19 +209,26 @@ export class UserService implements IUserService {
 
       let profilePicUrl = null;
       if (user.profilePicture && !user.profilePicture.startsWith("http")) {
-        profilePicUrl = generateSignedUrl(user.profilePicture, {
+        profilePicUrl = getDisplayableImageUrl(user.profilePicture, {
           width: 200,
           height: 200,
           crop: "fill",
         });
+      } else if (
+        user.profilePicture &&
+        user.profilePicture.startsWith("http")
+      ) {
+        profilePicUrl = user.profilePicture;
       }
-
       let userDto = UserMapper.toDto(user);
-
+      const enhancedUserDto = {
+        ...userDto,
+        profilePictureUrl: profilePicUrl, // Use the result from getDisplayableImageUrl
+      };
       return createResponse({
         success: true,
         message: "Profile fetched successfully",
-        data: userDto,
+        data: enhancedUserDto,
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Something went wrong");
@@ -264,10 +272,7 @@ export class UserService implements IUserService {
         }
       }
 
-      const updatedUser = await this.userRepository.update(
-        id,
-        updateData
-      );
+      const updatedUser = await this.userRepository.update(id, updateData);
 
       if (!updatedUser) {
         return createResponse({
@@ -291,7 +296,7 @@ export class UserService implements IUserService {
     maxDistance: number = 5000
   ): Promise<ApiResponse<UserResponseDto[]>> {
     try {
-      const user = await this.userRepository.findUserById(userId);
+      const user = await this.userRepository.findById(userId);
 
       if (!user || !user.location.coordinates) {
         return createResponse({
@@ -361,10 +366,7 @@ export class UserService implements IUserService {
       }
 
       const hash = await bcrypt.hash(newPassword, config.bcryptRounds);
-      const updated = await this.userRepository.updatePassword(
-        userId,
-        hash
-      );
+      const updated = await this.userRepository.updatePassword(userId, hash);
 
       if (!updated) {
         return createResponse({
@@ -605,10 +607,7 @@ export class UserService implements IUserService {
           Number(limit)
         );
       } else {
-        result = await this.userRepository.findAll(
-          Number(page),
-          Number(limit)
-        );
+        result = await this.userRepository.findAll(Number(page), Number(limit));
       }
 
       if (search) {
@@ -691,7 +690,7 @@ export class UserService implements IUserService {
         });
       }
 
-      const user = await this.userRepository.findUserById(userId);
+      const user = await this.userRepository.findById(userId);
 
       if (!user) {
         return createResponse({

@@ -11,7 +11,7 @@ const page = () => {
     const [activeTab, setActiveTab] = useState<'account' | 'scanner'>('account');
 
     return (
-        // <RouteGuard allowedRoles={['staff']}>
+        <RouteGuard allowedRoles={['staff']}>
         <div className="relative min-h-screen bg-black">
             <div className="fixed top-9 inset-0 z-0">
                 <Prism
@@ -38,7 +38,7 @@ const page = () => {
                 <Staff activeTab={activeTab} />
             </div>
         </div>
-        // </RouteGuard>
+         </RouteGuard>
     );
 };
 

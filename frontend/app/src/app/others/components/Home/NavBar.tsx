@@ -54,17 +54,14 @@ export default function NavBar() {
 
   const getUnreadNotifications = async () => {
     try {
-      
       const data = await getAllUserNotifications()
-
       setUnreadNotifications(data.data.notifications)
       setUnreadCount(data.data.unreadCount)
     } catch (error) {
       console.log(error);
-
-
     }
   }
+  
   const getAllNotifications = async () => {
     try {
       const data = await getFullUserNotifications()
@@ -72,16 +69,13 @@ export default function NavBar() {
       setUnreadCount(data.data.unreadCount)
     } catch (error) {
       console.log(error);
-
-
     }
   }
 
   useEffect(() => {
     if (isAuthenticated) {
       getAllNotifications()
-getUnreadNotifications()
-
+      getUnreadNotifications()
     }
   }, [isAuthenticated]);
 
@@ -99,29 +93,23 @@ getUnreadNotifications()
 
   const handleNotificationClick = async (notification: {notificationId:string}) => {
     try {
-      
       const data = await markNotificationAsSeen(notification.notificationId)
       console.log(data);
-    
       setUnreadCount(unreadCount-1)
       let notif = notifications.filter((n, i) => n.notificationId != notification.notificationId)
       setNotifications(notif)
     } catch (error) {
       console.log(error);
-
     }
   };
 
-  const markAllAsRead =async () => {
+  const markAllAsRead = async () => {
     try {
       setUnreadNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-      let data=await markAllNotificationAsSeen()
-    setUnreadCount(0);
-
+      let data = await markAllNotificationAsSeen()
+      setUnreadCount(0);
     } catch (error) {
       console.log(error);
-      
-      
     }
   };
 
@@ -129,7 +117,6 @@ getUnreadNotifications()
     setShowNotifications(false);
     setShowNotificationModal(true);
   };
-
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -151,13 +138,14 @@ getUnreadNotifications()
   return (
     <>
       <nav className="relative z-50 border-b border-gray-800/50 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-3 sm:py-4">
             <div className="flex items-center">
               <NavLogo />
             </div>
 
-            <div className="hidden md:flex items-center space-x-8">
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-6 lg:space-x-8">
               <NavLinks
                 onAccountClick={handleClickAcc}
               />
@@ -181,45 +169,61 @@ getUnreadNotifications()
               />
             </div>
 
-            <div className="md:hidden flex items-center gap-4">
+            {/* Mobile Navigation */}
+            <div className="md:hidden flex items-center gap-2 sm:gap-4">
               {mounted && isAuthenticated && (
-                <NotificationBell
-                  notifications={unreadNotifications}
-                  unreadCount={unreadCount}
-                  showNotifications={showNotifications}
-                  onToggle={() => setShowNotifications(!showNotifications)}
-                  onMarkAllRead={markAllAsRead}
-                  onNotificationClick={handleNotificationClick}
-                  onViewAll={handleViewAllNotifications} 
-                  isMobile={true}
-                />
+                <div className="relative">
+                  <NotificationBell
+                    notifications={unreadNotifications}
+                    unreadCount={unreadCount}
+                    showNotifications={showNotifications}
+                    onToggle={() => setShowNotifications(!showNotifications)}
+                    onMarkAllRead={markAllAsRead}
+                    onNotificationClick={handleNotificationClick}
+                    onViewAll={handleViewAllNotifications} 
+                    isMobile={true}
+                  />
+                </div>
               )}
 
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-gray-300 hover:text-white"
+                className="text-gray-300 hover:text-white p-1 sm:p-2 transition-colors"
+                aria-label="Toggle menu"
               >
-                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                {isMenuOpen ? (
+                  <X size={20} className="sm:hidden" />
+                ) : (
+                  <Menu size={20} className="sm:hidden" />
+                )}
+                {isMenuOpen ? (
+                  <X size={24} className="hidden sm:block md:hidden" />
+                ) : (
+                  <Menu size={24} className="hidden sm:block md:hidden" />
+                )}
               </button>
             </div>
           </div>
 
+          {/* Mobile Menu Dropdown */}
           {isMenuOpen && (
-            <div className="md:hidden border-t border-gray-800/50 py-4">
-              <div className="flex flex-col space-y-4">
+            <div className="md:hidden border-t border-gray-800/50 py-3 sm:py-4 bg-black/95 backdrop-blur-md">
+              <div className="flex flex-col space-y-3 sm:space-y-4 px-1 sm:px-2">
                 <NavLinks
                   onAccountClick={handleClickAcc}
                   isMobile={true}
                   onMobileClose={() => setIsMenuOpen(false)}
                 />
 
-                <AuthButtons
-                  mounted={mounted}
-                  isAuthenticated={isAuthenticated}
-                  onLogout={handleLogout}
-                  isMobile={true}
-                  onMobileClose={() => setIsMenuOpen(false)}
-                />
+                <div className="pt-2 sm:pt-3 border-t border-gray-800/30">
+                  <AuthButtons
+                    mounted={mounted}
+                    isAuthenticated={isAuthenticated}
+                    onLogout={handleLogout}
+                    isMobile={true}
+                    onMobileClose={() => setIsMenuOpen(false)}
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -227,13 +231,11 @@ getUnreadNotifications()
       </nav>
 
       <NotificationModal
-                  unreadNotifications={unreadNotifications}
-
+        unreadNotifications={unreadNotifications}
         isOpen={showNotificationModal}
         onClose={() => setShowNotificationModal(false)}
         notifications={notifications}
         onMarkAllRead={markAllAsRead}
-   
       />
     </>
   );

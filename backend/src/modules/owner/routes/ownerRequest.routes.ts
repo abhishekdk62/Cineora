@@ -17,7 +17,7 @@ export class OwnerRoute {
     this._router.post('/verify-otp',(req,res)=>this._ownerRequestController.verifyOTP(req,res))
     this._router.post('/submit-kyc',(req,res)=>this._ownerRequestController.submitKYC(req,res))
     this._router.get('/request-status/:requestId',(req,res)=>this._ownerRequestController.getRequestStatus(req,res))
-    this._router.post('/_upload',this._upload.single('file'),(req,res)=>this._ownerRequestController.uploadFile(req,res))
+    this._router.post('/upload',this._upload.single('file'),(req,res)=>this._ownerRequestController.uploadFile(req,res))
 
   }
     public getRouter() {

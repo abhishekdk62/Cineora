@@ -166,7 +166,7 @@ const MyAccountContent = ({
   {/* Centered round avatar */}
   <div className="relative mb-6 mt-16"> {/* Added top margin to avoid overlap with button */}
     <img
-      src={userData.profilePicture || "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"}
+      src={userData.profilePictureUrl || "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"}
       alt={userData.username}
       className="w-32 h-32 rounded-full object-cover border-4 border-gray-600/30 shadow-lg"
     />

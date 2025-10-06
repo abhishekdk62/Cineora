@@ -61,7 +61,8 @@ export interface IAuthService {
 
   logout(
     userId: string,
-    userType: "user" | "admin" | "owner"
+    userType: "user" | "admin" | "owner",
+    refreshToken:string
   ): Promise<AuthSuccessResponseDto | AuthErrorResponseDto>;
 
   checkAuthProvider(

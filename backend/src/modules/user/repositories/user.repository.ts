@@ -3,7 +3,6 @@ import { IUserRepository } from "../interfaces/user.repository.interface";
 import { User } from "../models/user.model";
 
 export class UserRepository implements IUserRepository {
-  
   async create(userData: Partial<IUser>): Promise<IUser> {
     const user = new User(userData);
     return user.save();
@@ -16,7 +15,7 @@ export class UserRepository implements IUserRepository {
   async findByEmail(userEmail: string): Promise<IUser | null> {
     return User.findOne({ email: userEmail }).exec();
   }
- 
+
   async findUserByUsername(username: string): Promise<IUser | null> {
     return User.findOne({ username }).exec();
   }
@@ -26,11 +25,17 @@ export class UserRepository implements IUserRepository {
   }
 
   async verifyUserEmail(userEmail: string): Promise<boolean> {
-    const result = await User.updateOne({ email: userEmail }, { isVerified: true });
+    const result = await User.updateOne(
+      { email: userEmail },
+      { isVerified: true }
+    );
     return result.modifiedCount > 0;
   }
 
-  async update(userId: string, updateData: Partial<IUser>): Promise<IUser | null> {
+  async update(
+    userId: string,
+    updateData: Partial<IUser>
+  ): Promise<IUser | null> {
     return User.findByIdAndUpdate(
       userId,
       { ...updateData, lastActive: new Date() },
@@ -48,7 +53,10 @@ export class UserRepository implements IUserRepository {
     return result.modifiedCount > 0;
   }
 
-  async updatePassword(userId: string, hashedPassword: string): Promise<boolean> {
+  async updatePassword(
+    userId: string,
+    hashedPassword: string
+  ): Promise<boolean> {
     const result = await User.updateOne(
       { _id: userId },
       {
@@ -67,7 +75,7 @@ export class UserRepository implements IUserRepository {
   async toggleStatus(userId: string): Promise<IUser | null> {
     const user = await User.findById(userId);
     if (!user) {
-      throw new Error('User not found');
+      throw new Error("User not found");
     }
     user.isActive = !user.isActive;
     return await user.save();
@@ -84,7 +92,10 @@ export class UserRepository implements IUserRepository {
     return result.modifiedCount > 0;
   }
 
-  async findNearbyUsers(coordinates: [number, number], maxDistance: number): Promise<IUser[]> {
+  async findNearbyUsers(
+    coordinates: [number, number],
+    maxDistance: number
+  ): Promise<IUser[]> {
     return User.find({
       coordinates: {
         $near: {
@@ -92,7 +103,7 @@ export class UserRepository implements IUserRepository {
             type: "Point",
             coordinates: coordinates,
           },
-          $maxDistance: maxDistance, 
+          $maxDistance: maxDistance,
         },
       },
       isActive: true,
@@ -114,53 +125,64 @@ export class UserRepository implements IUserRepository {
       .exec();
   }
 
-  async findAll(page: number = 1, limit: number = 10): Promise<{ users: IUser[], total: number }> {
+  async findAll(
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{ users: IUser[]; total: number }> {
     const skipCount = (page - 1) * limit;
-    
+
     const [users, total] = await Promise.all([
       User.find({})
-        .select('-password')
+        .select("-password")
         .sort({ joinedAt: -1 })
         .skip(skipCount)
         .limit(limit)
         .lean(),
-      User.countDocuments({})
+      User.countDocuments({}),
     ]);
 
     return { users, total };
   }
 
-  async findByStatus(status: string, page: number = 1, limit: number = 10): Promise<{ users: IUser[], total: number }> {
+  async findByStatus(
+    status: string,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{ users: IUser[]; total: number }> {
     const skipCount = (page - 1) * limit;
-    
+
     const [users, total] = await Promise.all([
-      User.find({ 
-        isActive: status === 'active'
+      User.find({
+        isActive: status === "active",
       })
-        .select('-password')
+        .select("-password")
         .sort({ joinedAt: -1 })
         .skip(skipCount)
         .limit(limit)
         .lean(),
-      User.countDocuments({ 
-        isActive: status === 'active'
-      })
+      User.countDocuments({
+        isActive: status === "active",
+      }),
     ]);
 
     return { users, total };
   }
 
-  async findUsersByVerification(isVerified: boolean, page: number = 1, limit: number = 10): Promise<{ users: IUser[], total: number }> {
+  async findUsersByVerification(
+    isVerified: boolean,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{ users: IUser[]; total: number }> {
     const skipCount = (page - 1) * limit;
-    
+
     const [users, total] = await Promise.all([
       User.find({ isVerified })
-        .select('-password')
+        .select("-password")
         .sort({ joinedAt: -1 })
         .skip(skipCount)
         .limit(limit)
         .lean(),
-      User.countDocuments({ isVerified })
+      User.countDocuments({ isVerified }),
     ]);
 
     return { users, total };
@@ -170,50 +192,57 @@ export class UserRepository implements IUserRepository {
     return User.findOne({ googleId }).exec();
   }
 
-  async findUserByGoogleIdOrEmail(googleId: string, email: string): Promise<IUser | null> {
+  async findUserByGoogleIdOrEmail(
+    googleId: string,
+    email: string
+  ): Promise<IUser | null> {
     return User.findOne({
       $or: [
         { googleId: googleId },
-        { email: { $regex: `^${email}$`, $options: "i" } }
-      ]
+        { email: { $regex: `^${email}$`, $options: "i" } },
+      ],
     }).exec();
   }
 
-  async updateRefreshToken(userId: string, hashedRefreshToken: string): Promise<IUser | null> {
+  async updateRefreshToken(
+    userId: string,
+    hashedRefreshToken: string
+  ): Promise<IUser | null> {
     return await User.findByIdAndUpdate(
       userId,
-      { 
+      {
         refreshToken: hashedRefreshToken,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       { new: true }
     );
   }
 
   async clearRefreshToken(userId: string): Promise<IUser | null> {
-    return await User.findByIdAndUpdate(
-      userId,
-      { 
-        $unset: { refreshToken: 1 },
-        updatedAt: new Date()
-      }
-    );
+    return await User.findByIdAndUpdate(userId, {
+      $unset: { refreshToken: 1 },
+      updatedAt: new Date(),
+    });
   }
 
   async createGoogleUser(userData: Partial<IUser>): Promise<IUser> {
     const user = new User({
       ...userData,
-      authProvider: 'google',
-      isVerified: true, 
-      xpPoints: 100, 
+      authProvider: "google",
+      isVerified: true,
+      xpPoints: 100,
       joinedAt: new Date(),
       lastActive: new Date(),
-      isActive: true
+      isActive: true,
     });
     return user.save();
   }
 
-  async linkGoogleAccount(userId: string, googleId: string, googleData: Partial<IUser>): Promise<IUser | null> {
+  async linkGoogleAccount(
+    userId: string,
+    googleId: string,
+    googleData: Partial<IUser>
+  ): Promise<IUser | null> {
     return User.findByIdAndUpdate(
       userId,
       {
@@ -223,19 +252,26 @@ export class UserRepository implements IUserRepository {
         lastActive: new Date(),
       },
       { new: true, runValidators: true }
-    ).select("-password").exec();
+    )
+      .select("-password")
+      .exec();
   }
 
-  async updateUserFromGoogle(userId: string, googleData: Partial<IUser>): Promise<IUser | null> {
+  async updateUserFromGoogle(
+    userId: string,
+    googleData: Partial<IUser>
+  ): Promise<IUser | null> {
     return User.findByIdAndUpdate(
       userId,
       {
         name: googleData.firstName,
         avatar: googleData.avatar,
         lastActive: new Date(),
-        ...(googleData.isVerified && { isVerified: true })
+        ...(googleData.isVerified && { isVerified: true }),
       },
       { new: true, runValidators: true }
-    ).select("-password").exec();
+    )
+      .select("-password")
+      .exec();
   }
 }

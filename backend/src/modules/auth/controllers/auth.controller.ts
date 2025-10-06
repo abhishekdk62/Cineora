@@ -17,9 +17,7 @@ export class AuthController {
 
   async login(req: Request, res: Response): Promise<void> {
     try {
-      
       const loginData: LoginRequestDto = req.body;
-
       if (!loginData.email || !loginData.password) {
         return res.status(StatusCodes.BAD_REQUEST).json(
           createResponse({
@@ -28,7 +26,6 @@ export class AuthController {
           })
         );
       }
-
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(loginData.email)) {
         return res.status(StatusCodes.BAD_REQUEST).json(
@@ -57,7 +54,7 @@ export class AuthController {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
-        maxAge: 15 * 60 * 1000,
+        maxAge: 15 * 60 * 10000,
       });
 
       res.cookie("refreshToken", result.data.refreshToken, {
@@ -85,7 +82,6 @@ export class AuthController {
       );
     }
   }
-
   async sendPasswordResetOTP(req: Request, res: Response): Promise<void> {
     try {
       const requestData: SendPasswordResetOtpRequestDto = req.body;
@@ -127,7 +123,6 @@ export class AuthController {
       );
     }
   }
-
   async verifyPasswordResetOtp(req: Request, res: Response): Promise<void> {
     try {
       const requestData: VerifyPasswordResetOtpRequestDto = req.body;
@@ -169,7 +164,6 @@ export class AuthController {
       );
     }
   }
-
   async resetPasswordWithOTP(req: Request, res: Response): Promise<void> {
     try {
       const requestData: ResetPasswordRequestDto = req.body;
@@ -212,7 +206,6 @@ export class AuthController {
       );
     }
   }
-
   async googleAuthenticate(req: Request, res: Response): Promise<void> {
     try {
       const requestData: GoogleAuthRequestDto = req.body;
@@ -271,9 +264,6 @@ export class AuthController {
       );
     }
   }
-
-
-
   async logout(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user?.userId || req.user?.adminId || req.user?.ownerId;

@@ -492,10 +492,7 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
               <Download className="w-4 h-4" />
               {downloadingPdf ? 'Generating PDF...' : 'Download PDF'}
             </button>
-            <button className={`${lexendMedium.className} flex items-center gap-2 px-6 py-3 border border-gray-500/30 text-white rounded-xl hover:bg-white/10 transition-colors`}>
-              <Share2 className="w-4 h-4" />
-              Share Ticket
-            </button>
+        
           </div>
         </div>
       </div>

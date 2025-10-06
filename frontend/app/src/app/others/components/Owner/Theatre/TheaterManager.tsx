@@ -215,7 +215,7 @@ const handleAddStaff = (newStaff) => {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className={`${lexendBold.className} text-3xl text-white mb-2`}>
-            Th002eater Management
+            Theater Management
           </h1>
           <p className={`${lexendSmall.className} text-gray-400`}>
             Manage your cinema theaters and their settings

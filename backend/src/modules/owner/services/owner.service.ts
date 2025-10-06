@@ -38,6 +38,8 @@ export class OwnerService implements IOwnerService {
       const profileData = this._transformOwnerProfileData(owner);
       
       const ownerDto = OwnerMapper.toDto(profileData);
+      console.log(ownerDto);
+      
       
       return {
         success: true,

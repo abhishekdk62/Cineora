@@ -794,6 +794,7 @@ console.log('seat-update',data);
                         onProceed={handleProceedToPayment}
                         getSeatPrice={getSeatPrice}
                         getSeatType={getSeatType}
+                        showtimeDatas={showtimeData}
                       />
                     )}
                   </>

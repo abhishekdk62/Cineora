@@ -1,11 +1,10 @@
 import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
 import { TicketData } from '../components/User/MyAcount/Tickets/TicketsList';
-import { Seat } from '../components/Owner/Screens/types';
 
 interface PDFTicketData {
   ticket: TicketData;
-  seatGroups: Seat[];
+  seatGroups: any[];
   totalAmount: number;
   totalSeats: number;
   allSeats: string[];
@@ -13,10 +12,19 @@ interface PDFTicketData {
   formatTime: (timeString: string) => string;
 }
 
-const calculatePriceWithTaxAndConvenience = (basePrice: number) => {
-  const tax = basePrice * 0.18; 
-  const convenience = basePrice * 0.05; 
-  return basePrice + tax + convenience;
+const calculatePriceWithTaxAndConvenience = (basePrice: number, discountPercentage: number = 0) => {
+  const discountAmount = (basePrice * discountPercentage) / 100;
+  const discountedPrice = basePrice - discountAmount;
+  const tax = discountedPrice * 0.18; 
+  const convenience = discountedPrice * 0.05; 
+  return {
+    basePrice,
+    discountAmount,
+    discountedPrice,
+    tax,
+    convenience,
+    total: discountedPrice + tax + convenience
+  };
 };
 
 const getMovieData = (ticket: TicketData) => {
@@ -31,15 +39,77 @@ const getScreenData = (ticket: TicketData) => {
   return ticket.screen || ticket.screenId || {};
 };
 
+// Function to group tickets by seat type and calculate pricing
+const processTicketData = (ticket: TicketData) => {
+  const discountPercentage = ticket.coupon?.discountPercentage || 0;
+  
+  if (ticket.allTickets && ticket.allTickets.length > 0) {
+    // Group tickets by seat type
+    const grouped = ticket.allTickets.reduce((acc, singleTicket) => {
+      const key = singleTicket.seatType;
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(singleTicket);
+      return acc;
+    }, {} as { [key: string]: TicketData[] });
+
+    // Convert grouped data to the format expected by PDF
+    const seatGroups = Object.entries(grouped).map(([seatType, tickets]) => {
+      const basePrice = tickets.reduce((sum, t) => sum + (t.price || 0), 0);
+      const pricing = calculatePriceWithTaxAndConvenience(basePrice, discountPercentage);
+      
+      return {
+        seatType,
+        count: tickets.length,
+        price: tickets[0]?.price || 0, // Individual seat price
+        basePrice: pricing.basePrice,
+        discountAmount: pricing.discountAmount,
+        discountedPrice: pricing.discountedPrice,
+        taxAmount: pricing.tax,
+        convenienceAmount: pricing.convenience,
+        totalPrice: pricing.total,
+        seats: tickets.map(t => `${t.seatRow}${t.seatNumber}`)
+      };
+    });
+
+    const totalAmount = seatGroups.reduce((sum, group) => sum + group.totalPrice, 0);
+    const totalSeats = seatGroups.reduce((sum, group) => sum + group.count, 0);
+    const allSeats = seatGroups.flatMap(group => group.seats);
+
+    return { seatGroups, totalAmount, totalSeats, allSeats };
+  } else {
+    // Single ticket case
+    const basePrice = ticket.price || 0;
+    const pricing = calculatePriceWithTaxAndConvenience(basePrice, discountPercentage);
+    
+    const seatGroups = [{
+      seatType: ticket.seatType || 'Standard',
+      count: 1,
+      price: basePrice,
+      basePrice: pricing.basePrice,
+      discountAmount: pricing.discountAmount,
+      discountedPrice: pricing.discountedPrice,
+      taxAmount: pricing.tax,
+      convenienceAmount: pricing.convenience,
+      totalPrice: pricing.total,
+      seats: [`${ticket.seatRow}${ticket.seatNumber}`]
+    }];
+
+    return {
+      seatGroups,
+      totalAmount: pricing.total,
+      totalSeats: 1,
+      allSeats: [`${ticket.seatRow}${ticket.seatNumber}`]
+    };
+  }
+};
+
 export const generateTicketPDF = async ({
   ticket,
-  seatGroups,
-  totalAmount,
-  totalSeats,
-  allSeats,
   formatDate,
   formatTime
-}: PDFTicketData) => {
+}: Omit<PDFTicketData, 'seatGroups' | 'totalAmount' | 'totalSeats' | 'allSeats'>) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -49,10 +119,14 @@ export const generateTicketPDF = async ({
   const textColor = '#1f2937'; 
   const lightGray = '#f3f4f6'; 
 
+  // Process ticket data to get proper grouping and pricing
+  const { seatGroups, totalAmount, totalSeats, allSeats } = processTicketData(ticket);
+
   const movieData = getMovieData(ticket);
   const theaterData = getTheaterData(ticket);
   const screenData = getScreenData(ticket);
 
+  // Header
   doc.setFillColor(99, 102, 241); 
   doc.rect(0, 0, pageWidth, 40, 'F');
 
@@ -67,10 +141,12 @@ export const generateTicketPDF = async ({
 
   doc.setTextColor(31, 41, 55);
 
+  // Movie title
   doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
   doc.text(movieData.title || 'Unknown Movie', 20, 55);
 
+  // Booking ID
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(107, 114, 128);
@@ -79,6 +155,7 @@ export const generateTicketPDF = async ({
   const leftX = 20; 
   const rightX = pageWidth / 2 + 10; 
 
+  // Theater Information
   doc.setTextColor(31, 41, 55);
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
@@ -100,6 +177,7 @@ export const generateTicketPDF = async ({
   currentYTheater += 8;
   doc.text(`Time: ${formatTime(ticket.showTime)}`, leftX, currentYTheater);
 
+  // Seat Details
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.text('Seat Details', rightX, 75);
@@ -114,11 +192,13 @@ export const generateTicketPDF = async ({
 
   const priceBreakdownStartY = Math.max(currentYTheater, currentYSeats);
 
+  // Price Breakdown
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.text('Price Breakdown', leftX, priceBreakdownStartY);
   let currentY = priceBreakdownStartY + 10;
 
+  // Table header
   doc.setFillColor(243, 244, 246); 
   doc.rect(20, currentY - 5, pageWidth - 40, 12, 'F');
 
@@ -130,8 +210,8 @@ export const generateTicketPDF = async ({
   doc.text('Total', 155, currentY + 2);
   currentY += 15;
 
+  // Price breakdown rows
   doc.setFont('helvetica', 'normal');
-  let calculatedTotal = 0;
 
   seatGroups.forEach((group, index) => {
     if (index % 2 === 0) {
@@ -139,32 +219,39 @@ export const generateTicketPDF = async ({
       doc.rect(20, currentY - 5, pageWidth - 40, 10, 'F');
     }
 
-    const priceWithExtras = calculatePriceWithTaxAndConvenience(group.price);
-    const groupTotal = priceWithExtras * group.count;
-    calculatedTotal += groupTotal;
-
     doc.text(group.seatType || 'Standard', 25, currentY + 1);
     doc.text(group.count.toString(), 85, currentY + 1);
     doc.text(`Rs.${group.price || 0}`, 115, currentY + 1);
-    doc.text(`Rs.${Math.round(groupTotal)}`, 155, currentY + 1);
+    doc.text(`Rs.${Math.round(group.totalPrice)}`, 155, currentY + 1);
     currentY += 10;
   });
 
+  // Price summary
   currentY += 5;
   doc.setFontSize(9);
   doc.setTextColor(107, 114, 128);
 
-  const subtotal = seatGroups.reduce((sum, group) => sum + ((group.price || 0) * group.count), 0);
-  const totalTax = subtotal * 0.18;
-  const totalConvenience = subtotal * 0.05;
+  const subtotal = seatGroups.reduce((sum, group) => sum + group.basePrice, 0);
+  const totalDiscount = seatGroups.reduce((sum, group) => sum + group.discountAmount, 0);
+  const totalTax = seatGroups.reduce((sum, group) => sum + group.taxAmount, 0);
+  const totalConvenience = seatGroups.reduce((sum, group) => sum + group.convenienceAmount, 0);
 
-  doc.text(`Subtotal: Rs.${subtotal}`, 115, currentY);
+  doc.text(`Subtotal: Rs.${Math.round(subtotal)}`, 115, currentY);
   currentY += 8;
+  
+  if (totalDiscount > 0) {
+    doc.setTextColor(34, 197, 94); // Green for discount
+    doc.text(`Discount (${ticket.coupon?.discountPercentage || 0}%): -Rs.${Math.round(totalDiscount)}`, 115, currentY);
+    currentY += 8;
+    doc.setTextColor(107, 114, 128); // Reset color
+  }
+  
   doc.text(`Tax (18%): Rs.${Math.round(totalTax)}`, 115, currentY);
   currentY += 8;
   doc.text(`Convenience Fee (5%): Rs.${Math.round(totalConvenience)}`, 115, currentY);
   currentY += 10;
 
+  // Total amount
   doc.setFillColor(99, 102, 241);
   doc.rect(20, currentY - 5, pageWidth - 40, 12, 'F');
 
@@ -172,9 +259,10 @@ export const generateTicketPDF = async ({
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
   doc.text('TOTAL AMOUNT', 25, currentY + 2);
-  doc.text(`Rs.${Math.round(calculatedTotal)}`, 155, currentY + 2);
+  doc.text(`Rs.${Math.round(totalAmount)}`, 155, currentY + 2);
   currentY += 20;
 
+  // QR Code section
   try {
     if (ticket.qrCode) {
       doc.setTextColor(31, 41, 55);
@@ -184,7 +272,7 @@ export const generateTicketPDF = async ({
       currentY += 10;
 
       const encodedData = encodeURIComponent(ticket.qrCode);
-      const verificationUrl = encodedData
+      const verificationUrl = encodedData;
 
       const qrCodeDataURL = await QRCode.toDataURL(verificationUrl, {
         errorCorrectionLevel: 'H',
@@ -219,6 +307,7 @@ export const generateTicketPDF = async ({
     }
   }
 
+  // Status badge
   const statusX = pageWidth - 60;
   const statusY = 55;
 
@@ -237,6 +326,7 @@ export const generateTicketPDF = async ({
   doc.setFont('helvetica', 'bold');
   doc.text(ticketStatus.toUpperCase(), statusX + 2, statusY + 1);
 
+  // Save the PDF
   const movieTitle = movieData.title || 'Unknown_Movie';
   const ticketId = ticket.ticketId || 'Unknown_ID';
   const fileName = `Cineora_Ticket_${ticketId}_${movieTitle.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;

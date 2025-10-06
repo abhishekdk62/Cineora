@@ -13,6 +13,7 @@ import AnalyticsManager from "@/app/others/components/Owner/Analytics/AnalyticsM
 import { RevenueManager } from "@/app/others/components/Owner/Revenue/RevenueManager";
 import WalletManager from "@/app/others/components/Owner/Wallet/WalletManager";
 import CouponsManager from "@/app/others/components/Owner/Coupons/CouponsManager";
+import OwnerStaffManager from "@/app/others/components/Owner/Staff/StaffManager";
 const OwnerManager = () => {
   const [activeTab, setActiveTab] = useState("theaters");
   const renderContent = () => {
@@ -23,6 +24,8 @@ const OwnerManager = () => {
         return <ScreensManager />;
       case "shows":
         return <ShowtimesManager lexendMedium={lexendMedium} lexendSmall={lexendSmall} />;
+      case "staff":
+        return <OwnerStaffManager lexendMedium={lexendMedium} lexendSmall={lexendSmall} />;
       case "bookings":
         return <BookingsManager lexendMedium={lexendMedium} lexendSmall={lexendSmall} />;
       case "wallet":
