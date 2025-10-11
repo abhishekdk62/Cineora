@@ -6,9 +6,11 @@ frontend/app/node_modules/
 
 # ===== Environment files =====
 backend/.env
+backend/logs
 frontend/.env
 frontend/app/.env
 frontend/app/.env.local
+.vscode
 
 # ===== Build outputs =====
 dist/
