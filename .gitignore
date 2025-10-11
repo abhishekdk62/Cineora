@@ -10,7 +10,8 @@ backend/logs
 frontend/.env
 frontend/app/.env
 frontend/app/.env.local
-!.env.example         
+!frontend/.env.example
+    
 
 .vscode
 
