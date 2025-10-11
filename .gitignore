@@ -10,6 +10,8 @@ backend/logs
 frontend/.env
 frontend/app/.env
 frontend/app/.env.local
+!.env.example         
+
 .vscode
 
 # ===== Build outputs =====
