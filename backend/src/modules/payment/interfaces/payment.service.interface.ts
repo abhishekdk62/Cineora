@@ -15,6 +15,10 @@ export interface IPaymentService {
   verifyRazorpayPayment(paymentData: VerifyRazorpayPaymentDTO): Promise<ServiceResponse>;
   processPaymentCallback(paymentId: string, gatewayResponse: PaymentCallbackDTO): Promise<ServiceResponse>;
   getPaymentById(paymentId: string): Promise<ServiceResponse>;
+    getLatestPaymentData(
+    userId: string
+  ): Promise<ServiceResponse>;
+
   getUserPayments(userId: string): Promise<ServiceResponse>;
   refundPayment(paymentId: string, refundAmount: number, refundReason: string): Promise<ServiceResponse>;
   getPaymentsByBooking(bookingId: string): Promise<ServiceResponse>;

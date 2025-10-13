@@ -56,6 +56,7 @@ export class TicketRepository implements ITicketRepository {
         .populate("userId")
         .populate("movieId")
         .populate("theaterId")
+        .populate('couponId')
         .populate("screenId")
         .populate("showtimeId");
     } catch (error) {

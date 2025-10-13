@@ -17,6 +17,7 @@ export interface ITicketService {
   createTicketsFromRows(data: CreateTicketFromRowsDto): Promise<ApiResponse<ITicket[]>>;
   createTicketsFromBooking(data: CreateTicketFromBookingDto): Promise<ApiResponse<ITicket[]>>;
   cancelTicket(data: CancelTicketDto): Promise<ApiResponse<any>>;
+  getTicketByIds(id: string[]);
   verifyTicket(encryptedData: string, staffId: string): Promise<ApiResponse<any>> 
   cancelSingleTicket(data: CancelSingleTicketDto): Promise<ApiResponse<RefundCalculationDto>>
   getTicketById(ticketId: string): Promise<ApiResponse<TicketResponseDto>>;

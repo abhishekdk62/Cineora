@@ -52,9 +52,11 @@ export class PaymentController {
 
   async createRazorpayOrder(req: Request, res: Response): Promise<void> {
     try {
+      const userId=req.user.id
       const orderData: CreateRazorpayOrderDTO = {
         amount: req.body.amount,
         currency: req.body.currency || "INR",
+        userId
       };
 
       const result = await this._paymentService.createRazorpayOrder(orderData);
@@ -95,6 +97,8 @@ export class PaymentController {
       };
 
       const result = await this._paymentService.verifyRazorpayPayment(verificationData);
+
+      
 
       if (result.data && result.data.userId) {
         const notificationData = {
@@ -157,9 +161,6 @@ export class PaymentController {
       );
     }
   }
-  
-
- 
 
   async getPaymentById(req: Request, res: Response): Promise<void> {
     try {

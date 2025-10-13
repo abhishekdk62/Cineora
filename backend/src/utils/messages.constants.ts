@@ -20,6 +20,8 @@ export const AUTH_MESSAGES = {
 };
 export const BOOKING_MESSAGES = {
     BOOKINGS_RETRIEVED_SUCCESS: "Theater bookings retrieved successfully",
+    NO_TRANSACTION_ID: "Confirmation ID is required to complete the booking",
+    INVALID_TRANSACTION_ID: "Invalid Confirmation ID",
   THEATER_ID_REQUIRED: "Theater ID is required",
   INVALID_THEATER_ID: "Invalid theater ID format"
 ,
@@ -178,6 +180,8 @@ export const USER_MESSAGES = {
   USER_NOT_FOUND: "User not found",
   OTP_REQUIRED: "Email and OTP are required",
   EMAIL_REQUIRED: "Email is required",
+  INVALID_EMAIL:'Invalid email format',
+  PASS_TOO_SMALL:'Password must be at least 8 characters long',
   PASSWORD_REQUIRED: "Password is required",
   PASSWORDS_REQUIRED: "Old password and new password are required",
   NEW_PASSWORD_REQUIRED: "New password is required",

@@ -242,6 +242,7 @@ export class App {
     const adminAnalyticsService = new AdminAnalyticsService(
       adminAnalyticsRepository
     );
+    
     const reviewService = new ReviewService(reviewRepo);
     const couponService = new CouponService(couponRepo);
     const userController = new UserController(
@@ -276,7 +277,7 @@ export class App {
       notificationService,
       notificationScheduler,
       theaterService,
-      couponService
+      paymentService,
     );
     const showtimeController = new ShowtimeController(showtimeService);
     const theaterController = new TheaterController(

@@ -101,11 +101,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose
               razorpay_order_id: response.razorpay_order_id,
               razorpay_signature: response.razorpay_signature,
               bookingData: bookingDatasRedux
-            });
+            }); 
 
             if (verifyResponse.success) {
-              const bookingResult = await bookTicket(bookingDatasRedux);
-              console.log('Booking successful:', bookingResult.data);
+              const bookingResult = await bookTicket(bookingDatasRedux,orderId);
 
               router.push(`/booking/success`);
             } else {
@@ -172,17 +171,17 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose
   async function handleWalletPayment() {
     try {
 
-      console.log('booking data as redux',bookingDatasRedux);
+const idempotencyKey = `${bookingDatasRedux.userId}_${Date.now()}_${crypto.randomUUID()}`;
 
-      console.log(bookingDatasRedux);
+      console.log('idempotencyKey',idempotencyKey);
       
       setIsProcessing(true);
-      console.log('ronaldos wallet',bookingDatasRedux.totalAmount);
-      const data = await walletBook(bookingDatasRedux.totalAmount, 'User')
-      console.log(data.data);
-      const res = await bookTicket(bookingDatasRedux);
+      const data = await walletBook(bookingDatasRedux.totalAmount, 'User',idempotencyKey)
+      // console.log('messi booked',data);
+      let walletTransactionId=data.walletTransactionDetails.data.transactionId
+      
+      const res = await bookTicket(bookingDatasRedux,idempotencyKey);
 
-      console.log(res.data);
       router.push('/booking/success');
     } catch (error: unknown) {
       console.log(error);

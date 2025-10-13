@@ -1,96 +1,79 @@
-import mongoose, { Schema } from "mongoose";
-import { IPayment, ITransactionDetails } from "../interfaces/payment.model.interface";
+// models/payment.model.ts
+import { Schema, model, Document, Types } from 'mongoose';
 
-const TransactionDetailsSchema = new Schema<ITransactionDetails>({
-  gatewayTransactionId: {
-    type: String,
-  },
-  gatewayResponse: {
-    type: Schema.Types.Mixed,
-  },
-  failureReason: {
-    type: String,
-  },
-  processingTime: {
-    type: Number, 
-  },
-});
+// Interface for TypeScript
+export interface IPayment extends Document {
+  _id: Types.ObjectId;
+  paymentId: string;
+  userId: Types.ObjectId;
+  bookingId?: Types.ObjectId | null;
+  amount: number;
+  currency: string;
+  status: 'pending' | 'completed' | 'failed' | 'refunded';
+  
+  // Razorpay details
+  razorpayOrderId: string;
+  razorpayPaymentId?: string;
+  razorpaySignature?: string;
+  
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-const PaymentSchema = new Schema<IPayment>({
-  paymentId: {
-    type: String,
-    required: true,
-    unique: true,
+// Schema
+const paymentSchema = new Schema<IPayment>(
+  {
+    paymentId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    bookingId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Booking',
+      default: null,
+    },
+    amount: {
+      type: Number,
+      required: true,
+    },
+    currency: {
+      type: String,
+      default: 'INR',
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'completed', 'failed', 'refunded'],
+      default: 'pending',
+    },
+    
+    // ✅ Simple Razorpay fields
+    razorpayOrderId: {
+      type: String,
+      required: true,
+    },
+    razorpayPaymentId: {
+      type: String,
+      default: null,
+    },
+    razorpaySignature: {
+      type: String,
+      default: null,
+    },
   },
-  bookingId: {
-    type: Schema.Types.ObjectId,
-    ref: "Booking",
-    required: true,
-  },
-  userId: {
-    type: Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
-  
-  amount: {
-    type: Number,
-    required: true,
-    min: 0,
-  },
-  currency: {
-    type: String,
-    required: true,
-    default: "INR",
-  },
-  paymentMethod: {
-    type: String,
-    enum: ["upi", "card", "netbanking", "wallet"],
-    required: true,
-  },
-  paymentGateway: {
-    type: String,
-    enum: ["razorpay", "stripe", "paytm", "phonepe"],
-    required: true,
-  },
-  
-  status: {
-    type: String,
-    enum: ["pending", "processing", "completed", "failed", "cancelled", "refunded"],
-    default: "pending",
-  },
-  transactionDetails: {
-    type: TransactionDetailsSchema,
-  },
-  
-  refundAmount: {
-    type: Number,
-    min: 0,
-  },
-  refundDate: {
-    type: Date,
-  },
-  refundReason: {
-    type: String,
-  },
-  refundTransactionId: {
-    type: String,
-  },
-  
-  initiatedAt: {
-    type: Date,
-    default: Date.now,
-  },
-  completedAt: {
-    type: Date,
-  },
-}, {
-  timestamps: true,
-});
+  {
+    timestamps: true, // Auto creates createdAt and updatedAt
+  }
+);
 
-PaymentSchema.index({ paymentId: 1 });
-PaymentSchema.index({ userId: 1, status: 1 });
-PaymentSchema.index({ bookingId: 1 });
-PaymentSchema.index({ status: 1, initiatedAt: -1 });
+// Create index for faster queries
+paymentSchema.index({ razorpayOrderId: 1 });
+paymentSchema.index({ userId: 1, status: 1 });
+paymentSchema.index({ razorpayPaymentId: 1 });
 
-export default mongoose.model<IPayment>("Payment", PaymentSchema);
+export default model<IPayment>('Payment', paymentSchema);

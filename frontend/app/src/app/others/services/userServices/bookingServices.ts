@@ -7,13 +7,16 @@ import {
   WalletBookResponseDto
 } from '../../dtos/booking.dto';
 
-export const bookTicket = async (bookingDatasRedux: ShowtimeData): Promise<BookTicketResponseDto> => {
-  const response = await apiClient.post(USER_BOOKING_ROUTES.CREATE_BOOKING, bookingDatasRedux);
+export const bookTicket = async (bookingDatasRedux: ShowtimeData,walletTransactionId:string): Promise<BookTicketResponseDto> => {
+  console.log('transction id is bokd',walletTransactionId
+  );
+  
+  const response = await apiClient.post(USER_BOOKING_ROUTES.CREATE_BOOKING, {...bookingDatasRedux,walletTransactionId});
   return response.data;
 };
 
-export const walletBook = async (amount: number, userModel: string): Promise<WalletBookResponseDto> => {
-  const requestData: WalletBookRequestDto = { amount, userModel };
-  const response = await apiClient.post(USER_BOOKING_ROUTES.WALLET_DEBIT, requestData);
+export const walletBook = async (amount: number, userModel: string,idempotencyKey:string): Promise<WalletBookResponseDto> => {
+  const requestData: WalletBookRequestDto = { amount, userModel,idempotencyKey };
+  const response = await apiClient.post(USER_BOOKING_ROUTES.WALLET_DEBIT, {...requestData,isBooking:true});
   return response.data;
 };

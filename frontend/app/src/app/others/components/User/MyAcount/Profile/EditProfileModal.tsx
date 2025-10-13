@@ -611,8 +611,8 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
               <MapLocationPicker
                 onLocationSelect={handleMapLocationSelect}
                 initialPosition={[
-                  formData.location?.coordinates[1] || 28.7041,
-                  formData.location?.coordinates[0] || 77.1025  
+                  formData?.location?.coordinates?.[1] || 28.7041,
+                  formData?.location?.coordinates?.[0] || 77.1025  
                 ]}
               />
             </div>

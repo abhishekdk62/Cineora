@@ -3,6 +3,7 @@ import { ITicket } from './ticket.model.interface';
 export interface IReadTicketRepository {
   findTicketById(ticketId: string): Promise<ITicket | null>;
   findTicketByTicketId(ticketId: string): Promise<ITicket | null>;
+  findTicketsByIds(ticketIds: string[]): Promise<ITicket[]>;
   findTicketsByBookingId(bookingId: string): Promise<ITicket[]>;
   findTicketsByUserId(userId: string): Promise<ITicket[]>;
   findTicketsByUserIdPaginated(

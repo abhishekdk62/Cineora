@@ -732,12 +732,7 @@ export class UserService implements IUserService {
       return "User with this email already exists";
     }
 
-    const existingUsername = await this.userRepository.findUserByUsername(
-      username
-    );
-    if (existingUsername && existingUsername.isVerified) {
-      return "Username already taken";
-    }
+   
 
     return null;
   }

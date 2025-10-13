@@ -10,6 +10,7 @@ export interface CreateWalletTransactionDto {
   referenceId?: string;
   movieId?: string;
   theaterId?: string;
+  idempotencyKey?:string
 }
 
 export interface UpdateWalletTransactionStatusDto {

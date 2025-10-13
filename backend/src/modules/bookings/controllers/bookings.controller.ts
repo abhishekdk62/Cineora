@@ -21,6 +21,8 @@ import { CreateWalletDto, CreditWalletDto } from "../../wallet/dtos/dto";
 import { ICouponService } from "../../coupons/interfaces/coupons.service.interface";
 import mongoose from "mongoose";
 import { bookingInfo } from "../../tickets/dtos/dto";
+import { IPaymentService } from "../../payment/interfaces/payment.service.interface";
+import redis from "../../../config/redis.config";
 
 export class BookingController {
   constructor(
@@ -32,7 +34,7 @@ export class BookingController {
     private readonly notificationService: INotificationService,
     private readonly notificationScheduler: NotificationScheduler,
     private readonly theaterService: ITheaterService,
-    private readonly couponService: ICouponService
+    private readonly paymentService: IPaymentService
   ) {}
 
   async createBooking(
@@ -42,8 +44,60 @@ export class BookingController {
     try {
       const bookingDto: CreateBookingDto = this._mapBodyToCreateBookingDto(
         req.body
-      );      
+      );
       const userId = this._extractAuthenticatedUserId(req);
+      const { walletTransactionId } = req.body;
+
+      if (!walletTransactionId) {
+        return this._sendErrorResponse(
+          res,
+          400,
+          BOOKING_MESSAGES.NO_TRANSACTION_ID
+        );
+      }
+
+      const walletData = await redis.get(
+        `wallet_idempotency:${walletTransactionId}`
+      );
+
+      if (walletData) {
+        const wallet = JSON.parse(walletData);
+
+        if (wallet.userId !== userId) {
+          return this._sendErrorResponse(
+            res,
+            400,
+            "Unauthorized - Wallet transaction mismatch"
+          );
+        }
+        console.log("wallet idem", wallet);
+
+        await redis.del(`wallet_idempotency:${walletTransactionId}`);
+      } else {
+        const orderData = await redis.get(
+          `razorpay_order:${walletTransactionId}`
+        );
+
+        if (!orderData) {
+          return this._sendErrorResponse(
+            res,
+            400,
+            "Invalid or expired order ID"
+          );
+        }
+        const order = JSON.parse(orderData);
+        if (order.userId !== userId) {
+          return this._sendErrorResponse(
+            res,
+            403,
+            "Unauthorized - Order belongs to different user"
+          );
+        }
+        if (order.amount !== bookingDto.totalAmount) {
+          return this._sendErrorResponse(res, 400, "Order amount mismatch");
+        }
+        await redis.del(`razorpay_order:${walletTransactionId}`);
+      }
 
       if (!userId) {
         return this._sendErrorResponse(
@@ -428,11 +482,15 @@ export class BookingController {
     return body as CreateBookingDto;
   }
 
-  private _mapBodyToUpdatePaymentStatusDto(body: UpdatePaymentStatusDto): UpdatePaymentStatusDto {
+  private _mapBodyToUpdatePaymentStatusDto(
+    body: UpdatePaymentStatusDto
+  ): UpdatePaymentStatusDto {
     return body as UpdatePaymentStatusDto;
   }
 
-  private _mapParamsToBookingParams(params: BookingParamsDto): BookingParamsDto {
+  private _mapParamsToBookingParams(
+    params: BookingParamsDto
+  ): BookingParamsDto {
     return params as BookingParamsDto;
   }
 
@@ -473,7 +531,7 @@ export class BookingController {
           const seatPricing = bookingDto.seatPricing[index];
           return {
             rowLabel: seatPricing.rowLabel,
-            seatsSelected: [parseInt(seatNumber.replace(/[A-Z]/g, ""), 10)], 
+            seatsSelected: [parseInt(seatNumber.replace(/[A-Z]/g, ""), 10)],
             seatType: seatPricing.seatType,
             pricePerSeat: seatPricing.finalPrice,
           };

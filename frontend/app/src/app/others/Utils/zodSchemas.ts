@@ -83,7 +83,7 @@ export const screenSchema = z.object({
     .number()
     .min(1, "Total seats must be greater than 0")
     .max(5000, "Maximum 5000 total seats allowed"),
-  features: z.array(z.string()).optional(),
+  features: z.array(z.string()).default([]), // ✅ Use default instead of optional
   screenType: z.string().min(1, "Screen type is required"),
   layout: z.object({
     rows: z.number().min(1, "At least one row is required"),
@@ -106,45 +106,33 @@ export const screenSchema = z.object({
         )
         .min(1, "At least one row is required"),
 
-      aisles: z
-        .object({
-          vertical: z
-            .array(
-              z.object({
-                id: z.string(),
-                position: z
-                  .number()
-                  .min(1, "Aisle position must be at least 1"),
-                width: z
-                  .number()
-                  .min(1, "Aisle width must be at least 1")
-                  .max(2, "Aisle width cannot exceed 2 units"),
-              })
-            )
-            .optional()
-            .default([]),
+      aisles: z.object({
+        vertical: z.array(
+          z.object({
+            id: z.string(),
+            position: z.number().min(1, "Aisle position must be at least 1"),
+            width: z
+              .number()
+              .min(1, "Aisle width must be at least 1")
+              .max(2, "Aisle width cannot exceed 2 units"),
+          })
+        ).default([]), // ✅ Remove .optional() - just use .default()
 
-          horizontal: z
-            .array(
-              z.object({
-                id: z.string(),
-                afterRow: z
-                  .number()
-                  .min(0, "Aisle afterRow must be at least 0"),
-                width: z
-                  .number()
-                  .min(1, "Aisle width must be at least 1")
-                  .max(2, "Aisle width cannot exceed 2 units"),
-              })
-            )
-            .optional()
-            .default([]),
-        })
-        .optional()
-        .default({ vertical: [], horizontal: [] }),
+        horizontal: z.array(
+          z.object({
+            id: z.string(),
+            afterRow: z.number().min(0, "Aisle afterRow must be at least 0"),
+            width: z
+              .number()
+              .min(1, "Aisle width must be at least 1")
+              .max(2, "Aisle width cannot exceed 2 units"),
+          })
+        ).default([]), // ✅ Remove .optional() - just use .default()
+      }).default({ vertical: [], horizontal: [] }), // ✅ Remove .optional()
     }),
   }),
 });
+
 
 export const showtimeSchema = z
   .object({

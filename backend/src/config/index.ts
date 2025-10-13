@@ -4,6 +4,10 @@ dotenv.config();
 
 export const config = {
   serverPort: Number(process.env.SERVER_PORT) || 5000,
+  redisHost: process.env.redisHost,
+  redisPort: process.env.redisPort,
+  redisPassword: process.env.redisPassword,
+
   nodeEnv: process.env.NODE_ENV || "development",
   mongoUri: process.env.MONGO_URI || "mongodb://localhost:27017/mydb",
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || "sdhfjsdhfuwye",
@@ -26,11 +30,9 @@ export const config = {
   corsOrigin: process.env.CLIENT_URL || "http://localhost:3000",
   rateLimitWindowMs: 15 * 60 * 1000,
   rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX) || 100,
-  qrCodeSecret:process.env.QR_VERIFICATION_SECRET,
+  qrCodeSecret: process.env.QR_VERIFICATION_SECRET,
   maxFileSize: Number(process.env.MAX_FILE_SIZE) || 5000000,
   allowedFileTypes: ["image/jpeg", "image/jpg", "image/png", "image/gif"],
-  razorpayKeyId:process.env.RAZORPAY_KEY_ID,
-  razorpaySecret:process.env.RAZORPAY_KEY_SECRET
+  razorpayKeyId: process.env.RAZORPAY_KEY_ID,
+  razorpaySecret: process.env.RAZORPAY_KEY_SECRET,
 };
-
-

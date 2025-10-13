@@ -73,9 +73,32 @@ export class TicketController {
     res: Response
   ): Promise<void> {
     try {
+const { ticketIds}=req.body
+  const tickets=await this.ticketService.getTicketByIds(ticketIds)
 
+if (!tickets?.data || tickets.data.length === 0) {
+  throw new Error("No tickets found for the given IDs");
+}
 
-      const { ticketIds, totalAmount } = req.body; 
+const total = tickets.data.reduce((total, ticket) => {
+  let basePrice = ticket.price;
+
+  // ✅ Apply coupon discount only if it exists and has discountPercentage
+  if (ticket.couponId && ticket.couponId.discountPercentage) {
+    const discount = (basePrice * ticket.couponId.discountPercentage) / 100;
+    basePrice -= discount;
+  }
+
+  const tax = ticket.price * 0.18;
+  const convenience = ticket.price * 0.05;
+  const totalTicketPrice = basePrice + tax + convenience;
+
+  return total + totalTicketPrice;
+}, 0);
+
+const totalAmount = Number(total.toFixed(2));
+
+     
       const userId = req.user?.id;
 
       if (!userId) {
@@ -532,9 +555,11 @@ export class TicketController {
 
   async cancelTicket(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const { bookingId, amount } = req.query;
+      const { bookingId } = req.query;
       const userId = req.user?.id;
-
+      const booking= await this.bookingService.getBookingById(bookingId)
+      
+let amount=booking.data.priceDetails.total
       if (!userId) {
         res.status(StatusCodes.UNAUTHORIZED).json(
           createResponse({
@@ -559,12 +584,15 @@ export class TicketController {
         return;
       }
 
+
+
       const amountNumber = this.parseAmount(amount);
       const cancelDto: CancelTicketDto = {
         bookingId: bookingId as string,
         userId,
         amount: amountNumber,
       };
+
 
       const result = await this.ticketService.cancelTicket(cancelDto);
 
