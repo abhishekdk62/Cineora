@@ -43,6 +43,8 @@ export default function SignUp() {
   const [error, setError] = useState("");
   const [otpLoading, setOtpLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(120);
+  const [canResend, setCanResend] = useState(false);
 
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -67,18 +69,24 @@ export default function SignUp() {
       const result = await signup(signupData);
 
       if (result.success) {
+        setTimeLeft(120);
+
         setEmail(data.email);
         setStep("otp");
         console.log("Signup successful, moving to OTP step");
       }
     } catch (err: unknown) {
-        if (err instanceof Error) {
-
+      if (err instanceof Error) {
+        if (err.message.includes('Request failed with status code')) {
+          setError(err.response.data.message)
+        } else {
           setError(
             err?.message
           );
-          console.error("Signup error:", err);
+
         }
+        console.error("Signup error:", err);
+      }
     } finally {
       setLoading(false);
     }
@@ -120,15 +128,17 @@ export default function SignUp() {
       const result = await resendOTP(email);
 
       if (result.success) {
+        setTimeLeft(120);
+
         console.log("OTP resent successfully:", result.message);
       } else {
         setError(result.message);
       }
     } catch (err: unknown) {
-        if (err instanceof Error) {
+      if (err instanceof Error) {
 
-      setError(err.message || "Failed to resend OTP. Please try again.");
-        }
+        setError(err.message || "Failed to resend OTP. Please try again.");
+      }
       console.error("Resend OTP error:", err);
     } finally {
       setResendLoading(false);
@@ -214,6 +224,11 @@ export default function SignUp() {
               lexend={lexend}
               lexendSmall={lexendSmall}
               resendLoading={resendLoading}
+              timeLeft={timeLeft}
+              setTimeLeft={setTimeLeft}
+              canResend={canResend}
+              setCanResend={setCanResend}
+
             />
           </div>
         )}

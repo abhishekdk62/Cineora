@@ -12,6 +12,10 @@ const WalletSchema = new Schema<IWallet>({
     required: true,
     enum: ['User', 'Owner','Admin'],
   },
+  isVerified:{
+    type:Boolean,
+    default:true
+  },
   balance: {
     type: Number,
     required: true,

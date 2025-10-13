@@ -13,6 +13,17 @@ export interface IPaymentRepository {
   updatePaymentStatus(paymentId: string, statusUpdate: PaymentStatusUpdateDTO): Promise<IPayment>;
   createPaymentRefund(paymentId: string, refundData: RefundPaymentDTO): Promise<IPayment>;
   deletePaymentById(paymentId: string): Promise<boolean>;
+  createPaymentRecord(paymentData: {
+    paymentId: string;
+    userId: string;
+    amount: number;
+    currency: string;
+    razorpayOrderId: string;
+  }): Promise<IPayment>;
+
+  getLatestVerifiedPayment(
+    userId: string
+  ): Promise<IPayment | null>;
 
   getPaymentById(paymentId: string): Promise<IPayment | null>;
   getPaymentByPaymentId(paymentId: string): Promise<IPayment | null>;

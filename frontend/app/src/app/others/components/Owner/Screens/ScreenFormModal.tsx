@@ -94,77 +94,77 @@ const ScreenFormModal: React.FC<ScreenFormModalProps> = ({
     return rowsDefs.reduce((total, row) => total + row.seatCount, 0);
   }, [rowsDefs]);
 
-const convertScreenLayoutToRowsDefs = (screen: IScreen): RowDef[] => {
-  if (!screen.layout?.advancedLayout?.rows) return [];
+  const convertScreenLayoutToRowsDefs = (screen: IScreen): RowDef[] => {
+    if (!screen.layout?.advancedLayout?.rows) return [];
 
-  return screen.layout.advancedLayout.rows.map((row: string, index: number) => {
-    const seats = Array.isArray(row.seats) ? row.seats : [];
-    
-    let seatType = "Normal";
-    let seatPrice = 150;
-    
-    if (seats.length > 0) {
-      const firstSeat = seats;
-      if (firstSeat && typeof firstSeat === 'object') {
-        seatType = firstSeat.type || "Normal";
-        seatPrice = firstSeat.price || 150;
+    return screen.layout.advancedLayout.rows.map((row: string, index: number) => {
+      const seats = Array.isArray(row.seats) ? row.seats : [];
+
+      let seatType = "Normal";
+      let seatPrice = 150;
+
+      if (seats.length > 0) {
+        const firstSeat = seats;
+        if (firstSeat && typeof firstSeat === 'object') {
+          seatType = firstSeat.type || "Normal";
+          seatPrice = firstSeat.price || 150;
+        }
       }
-    }
-    
-    if (seatType === "Normal" && row.type) {
-      seatType = row.type;
-    }
-    if (seatPrice === 150 && row.price) {
-      seatPrice = row.price;
-    }
-    
-    return {
-      rowLabel: row.rowLabel || String.fromCharCode(65 + index), 
-      seatCount: seats.length,
-      offset: row.offset || 0,
-      type: seatType,
-      price: seatPrice,
-    };
-  });
-};
 
+      if (seatType === "Normal" && row.type) {
+        seatType = row.type;
+      }
+      if (seatPrice === 150 && row.price) {
+        seatPrice = row.price;
+      }
 
-useEffect(() => {
-  if (mode === "edit" && initialData) {
-    const existingRowsDefs = convertScreenLayoutToRowsDefs(initialData);
-    setRowsDefs(existingRowsDefs);
-
-    const existingAisles = initialData.layout?.advancedLayout?.aisles;
-    if (existingAisles) {
-      setVerticalAisles(existingAisles.vertical);
-      setHorizontalAisles(existingAisles.horizontal);
-    } else {
-      setVerticalAisles([]);
-      setHorizontalAisles([]);
-    }
-
-    const baseAdvancedLayout = initialData.layout?.advancedLayout || { rows: [] };
-    
-    setFormData({
-      name: initialData.name || "",
-      features: initialData.features || [],
-      screenType: initialData.screenType || "Standard",
-      totalSeats: initialData.totalSeats || 0,
-      layout: {
-        rows: initialData.layout?.rows || 0,
-        seatsPerRow: initialData.layout?.seatsPerRow || 0,
-        advancedLayout: {
-          ...baseAdvancedLayout,
-          aisles: baseAdvancedLayout.aisles || {
-            vertical: [],
-            horizontal: []
-          }
-        },
-      },
+      return {
+        rowLabel: row.rowLabel || String.fromCharCode(65 + index),
+        seatCount: seats.length,
+        offset: row.offset || 0,
+        type: seatType,
+        price: seatPrice,
+      };
     });
-    setSetupMode("manual");
-  }
-}, [mode, initialData]);
+  };
+
+
+  useEffect(() => {
+    if (mode === "edit" && initialData) {
+      const existingRowsDefs = convertScreenLayoutToRowsDefs(initialData);
+      setRowsDefs(existingRowsDefs);
+
+      const existingAisles = initialData.layout?.advancedLayout?.aisles;
+      if (existingAisles) {
+        setVerticalAisles(existingAisles.vertical);
+        setHorizontalAisles(existingAisles.horizontal);
+      } else {
+        setVerticalAisles([]);
+        setHorizontalAisles([]);
+      }
+
+      const baseAdvancedLayout = initialData.layout?.advancedLayout || { rows: [] };
+
+      setFormData({
+        name: initialData.name || "",
+        features: initialData.features || [],
+        screenType: initialData.screenType || "Standard",
+        totalSeats: initialData.totalSeats || 0,
+        layout: {
+          rows: initialData.layout?.rows || 0,
+          seatsPerRow: initialData.layout?.seatsPerRow || 0,
+          advancedLayout: {
+            ...baseAdvancedLayout,
+            aisles: baseAdvancedLayout.aisles || {
+              vertical: [],
+              horizontal: []
+            }
+          },
+        },
+      });
+      setSetupMode("manual");
+    }
+  }, [mode, initialData]);
 
   useEffect(() => {
     setFormData((prev) => ({
@@ -196,7 +196,7 @@ useEffect(() => {
   const applyTemplate = (templateIndex: number) => {
     const template = screenTemplates[templateIndex];
     setRowsDefs(template.layout);
-    
+
     if (template.aisles) {
       setVerticalAisles(template.aisles.vertical || []);
       setHorizontalAisles(template.aisles.horizontal || []);
@@ -204,7 +204,7 @@ useEffect(() => {
       setVerticalAisles([]);
       setHorizontalAisles([]);
     }
-    
+
     setSetupMode("manual");
 
     if (!formData.name.trim()) {
@@ -215,63 +215,61 @@ useEffect(() => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    try {
-      const validatedData = screenSchema.parse(formData);
+  // Simple manual validation
+  if (!formData.name.trim()) {
+    toast.error("Screen name is required");
+    return;
+  }
 
-      setIsLoading(true);
-      setErrors({});
+  if (!formData.screenType.trim()) {
+    toast.error("Screen type is required");
+    return;
+  }
 
-      if (mode === "create") {
-        console.log({...validatedData, theater});
-        await createScreen({ ...validatedData, theater });
-        onSuccess();
-        toast.success("Screen created successfully");
-      } else if (mode === "edit" && initialData?._id) {
-        console.log(initialData._id, {
-          name: validatedData.name,
-          totalSeats: validatedData.totalSeats,
-          features: validatedData.features,
-          screenType: validatedData.screenType,
-          layout: validatedData.layout,
-        });
-    
-        await editScreenOwner(initialData._id, {
-          name: validatedData.name,
-          totalSeats: validatedData.totalSeats,
-          features: validatedData.features,
-          screenType: validatedData.screenType,
-          layout: validatedData.layout,
-        });
-        onSuccess();
-        toast.success("Screen updated successfully");
-      }
-    } catch (error: string) {
-      if (error.errors) {
-        const newErrors: ValidationErrors = {};
+  if (formData.totalSeats === 0 || rowsDefs.length === 0) {
+    toast.error("Please configure screen layout");
+    return;
+  }
 
-        error.errors.forEach((err: string) => {
-          const path = err.path.join('.');
-          newErrors[path] = err.message;
-        });
+  // Validation passed - proceed with API call
+  setIsLoading(true);
 
-        setErrors(newErrors);
-        toast.error("Please fix the validation errors");
-        return;
-      } else {
-        console.error("Error saving screen:", error);
-        const errorMessage =
-          error?.response?.data?.message || "Network error. Please try again.";
-        setErrors({ submit: errorMessage });
-        toast.error(errorMessage);
-      }
-    } finally {
-      onClose();
-      setIsLoading(false);
+  try {
+    if (mode === "create") {
+      await createScreen({ ...formData, theater });
+      onSuccess();
+      toast.success("Screen created successfully");
+      onClose(); // ✅ Close only on success
+    } else if (mode === "edit" && initialData?._id) {
+      await editScreenOwner(initialData._id, {
+        name: formData.name,
+        totalSeats: formData.totalSeats,
+        features: formData.features,
+        screenType: formData.screenType,
+        layout: formData.layout,
+      });
+      onSuccess();
+      toast.success("Screen updated successfully");
+      onClose(); // ✅ Close only on success
     }
-  };
+  } catch (error: any) {
+    console.error("Error saving screen:", error);
+    
+    const errorMessage =
+      error?.response?.data?.message || 
+      error?.message || 
+      "Network error. Please try again.";
+    
+    toast.error(errorMessage);
+    // Modal stays open for retry
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const isFormValid = () => {
     return (

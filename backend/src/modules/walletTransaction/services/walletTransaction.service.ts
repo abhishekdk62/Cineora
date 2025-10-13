@@ -15,7 +15,6 @@ export class WalletTransactionService implements IWalletTransactionService {
   ): Promise<ApiResponse<IWalletTransaction>> {
     try {
       this._validateCreateWalletTransactionData(data);
-
       const transactionData = this._prepareWalletTransactionData(data);
       const transaction = await this.walletTransactionRepository.createWalletTransaction(transactionData);
 
@@ -26,6 +25,18 @@ export class WalletTransactionService implements IWalletTransactionService {
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Failed to create wallet transaction");
+    }
+  }
+
+  async getRecentTransaction(userId:string)
+  {
+    try {
+      const transaction=await this.walletTransactionRepository.findRecentWalletTransaction(userId)
+      return transaction
+    } catch (error) {
+      return this._handleServiceError(error, "Failed to get user wallet transaction");
+
+      
     }
   }
 

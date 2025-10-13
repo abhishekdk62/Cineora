@@ -10,9 +10,9 @@ import { createChatRoom } from "@/app/others/services/userServices/chatServices"
 interface PaymentModalProps {
   totalAmount: number;
   onClose: () => void;
-  hostBookingData: any; 
-  inviteData: any; 
-  onCreateInvite: (data: any) => Promise<any>; 
+  hostBookingData: any;
+  inviteData: any;
+  onCreateInvite: (data: any) => Promise<any>;
 }
 
 declare global {
@@ -81,7 +81,7 @@ export const PaymentGroupModal: React.FC<PaymentModalProps> = ({
 
     try {
       const orderResponse = await createRazorpayOrder({
-        amount: totalAmount * 100, 
+        amount: totalAmount * 100,
         currency: 'INR'
       });
 
@@ -131,12 +131,12 @@ export const PaymentGroupModal: React.FC<PaymentModalProps> = ({
               const bookingResult = await bookTicket({
                 ...updatedBookingData,
                 isInvited: true
-              });
+              }, orderId);
 
               console.log('kkkoopsdf', bookingResult);
 
               console.log('Host ticks:', bookingResult.data.tickets[0]._id);
-              let ticketId = bookingResult.data.data.tickets[0]._id
+              let ticketId = bookingResult.data.tickets[0]._id
               console.log('tickss', ticketId);
 
               toast.success('Group invite created and host payment successful! 🎉');
@@ -147,32 +147,32 @@ export const PaymentGroupModal: React.FC<PaymentModalProps> = ({
               console.log('Invite created successfully:', inviteResult);
 
 
-let inviteId=inviteResult.data.inviteId
-let inviteGroupId=inviteResult.data._id
-let roomName=hostBookingData.movieTitle
-let movieId=hostBookingData.movieId
-let theaterId=hostBookingData.theaterId
-let screenId=hostBookingData.screenId
-let showDate=hostBookingData.showDate
-let showTime=hostBookingData.showTime
-let createdBy=hostBookingData.userId
-let expiresAt = hostBookingData.showDate.substring(0, 10) + "T" + hostBookingData.showDetails.endTime + ":00.000Z";
+              let inviteId = inviteResult.data.inviteId
+              let inviteGroupId = inviteResult.data._id
+              let roomName = hostBookingData.movieTitle
+              let movieId = hostBookingData.movieId
+              let theaterId = hostBookingData.theaterId
+              let screenId = hostBookingData.screenId
+              let showDate = hostBookingData.showDate
+              let showTime = hostBookingData.showTime
+              let createdBy = hostBookingData.userId
+              let expiresAt = hostBookingData.showDate.substring(0, 10) + "T" + hostBookingData.showDetails.endTime + ":00.000Z";
 
-const createRoomData = {
-  inviteGroupId,
-  inviteId,
-  roomName,
-  movieId,
-  theaterId,
-  screenId,
-  showDate,
-  showTime,
-  createdBy,
-  expiresAt
-};
+              const createRoomData = {
+                inviteGroupId,
+                inviteId,
+                roomName,
+                movieId,
+                theaterId,
+                screenId,
+                showDate,
+                showTime,
+                createdBy,
+                expiresAt
+              };
 
-const createRoom = await createChatRoom(createRoomData);
-console.log('created room',createRoom);
+              const createRoom = await createChatRoom(createRoomData);
+              console.log('created room', createRoom);
 
               router.push(`/booking/success?type=group&inviteId=${inviteResult.data?._id || inviteResult.data?.inviteId}`);
 
@@ -231,12 +231,15 @@ console.log('created room',createRoom);
 
   async function handleWalletPayment() {
     try {
+const idempotencyKey = `${hostBookingData.userId}_${Date.now()}_${crypto.randomUUID()}`;
 
-      console.log('hoiii',hostBookingData);
       setIsProcessing(true);
 
+      console.log('idempotencyKey',idempotencyKey);
 
-      const walletData = await walletBook(totalAmount, 'User');
+      const walletData = await walletBook(totalAmount, 'User',idempotencyKey);
+      let walletTransactionId = walletData.walletTransactionDetails.data.transactionId
+
 
       const updatedBookingData = {
         ...hostBookingData,
@@ -249,8 +252,9 @@ console.log('created room',createRoom);
 
       const bookingResult = await bookTicket({
         ...updatedBookingData,
-        isInvited: true
-      });
+        isInvited: true,
+
+      }, idempotencyKey);
 
 
       let ticketId = bookingResult.data.tickets[0]._id
@@ -258,32 +262,32 @@ console.log('created room',createRoom);
       const inviteResult = await onCreateInvite(inviteData);
 
 
-let inviteId=inviteResult.data.inviteId
-let inviteGroupId=inviteResult.data._id
-let roomName=hostBookingData.movieTitle
-let movieId=hostBookingData.movieId
-let theaterId=hostBookingData.theaterId
-let screenId=hostBookingData.screenId
-let showDate=hostBookingData.showDate
-let showTime=hostBookingData.showTime
-let createdBy=hostBookingData.userId
-let expiresAt = hostBookingData.showDate.substring(0, 10) + "T" + hostBookingData.showDetails.endTime + ":00.000Z";
+      let inviteId = inviteResult.data.inviteId
+      let inviteGroupId = inviteResult.data._id
+      let roomName = hostBookingData.movieTitle
+      let movieId = hostBookingData.movieId
+      let theaterId = hostBookingData.theaterId
+      let screenId = hostBookingData.screenId
+      let showDate = hostBookingData.showDate
+      let showTime = hostBookingData.showTime
+      let createdBy = hostBookingData.userId
+      let expiresAt = hostBookingData.showDate.substring(0, 10) + "T" + hostBookingData.showDetails.endTime + ":00.000Z";
 
-const createRoomData = {
-  inviteGroupId,
-  inviteId,
-  roomName,
-  movieId,
-  theaterId,
-  screenId,
-  showDate,
-  showTime,
-  createdBy,
-  expiresAt
-};
+      const createRoomData = {
+        inviteGroupId,
+        inviteId,
+        roomName,
+        movieId,
+        theaterId,
+        screenId,
+        showDate,
+        showTime,
+        createdBy,
+        expiresAt
+      };
 
-const createRoom = await createChatRoom(createRoomData);
-console.log(createRoom);
+      const createRoom = await createChatRoom(createRoomData);
+      console.log(createRoom);
 
       toast.success('Group invite created and wallet payment successful! 🎉');
       router.push(`/booking/success?type=group&inviteId=${inviteResult.data?._id || inviteResult.data?.inviteId}`);

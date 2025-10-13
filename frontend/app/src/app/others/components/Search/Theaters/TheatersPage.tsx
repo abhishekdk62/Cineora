@@ -21,7 +21,7 @@ const TheatersPage: React.FC = () => {
   const [scrollLoading, setScrollLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [userLocation, setUserLocation] = useState<{latitude: string, longitude:string}>();
+  const [userLocation, setUserLocation] = useState<{ latitude: string, longitude: string }>();
   const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
   const [currentFilters, setCurrentFilters] = useState({});
   const [selectedTheaterForReview, setSelectedTheaterForReview] = useState('')
@@ -29,7 +29,7 @@ const TheatersPage: React.FC = () => {
   const [theaterReviewsData, setTheaterReviewsData] = useState(null);
   const [theaterRatingStats, setTheaterRatingStats] = useState(null);
 
-  function handleClickReview(theaterId:string) {
+  function handleClickReview(theaterId: string) {
     setShowReviewModal(true)
     setSelectedTheaterForReview(theaterId)
     getTheaterReviewStatsFunc(theaterId)
@@ -37,9 +37,9 @@ const TheatersPage: React.FC = () => {
   }
 
   const itemsPerPage = 2;
-  
 
-  const getTheaterReviewStatsFunc = async (theaterId:string) => {
+
+  const getTheaterReviewStatsFunc = async (theaterId: string) => {
     try {
       const data = await getTheaterReviewStats(theaterId)
       console.log('stats');
@@ -54,7 +54,7 @@ const TheatersPage: React.FC = () => {
     }
 
   }
-  const getTheaterRevies = async (theaterId:string) => {
+  const getTheaterRevies = async (theaterId: string) => {
     try {
       const data = await getTheaterRatingApi(theaterId)
       setTheaterReviewsData(data.data);
@@ -202,7 +202,7 @@ const TheatersPage: React.FC = () => {
     loadTheaters(searchTerm, sortBy, 1, selectedFacilities, true);
   }, []);
 
-    const handleCloseReviewModal = () => {
+  const handleCloseReviewModal = () => {
     setShowReviewModal(false);
     setSelectedTheaterForReview('');
     setTheaterReviewsData(null);

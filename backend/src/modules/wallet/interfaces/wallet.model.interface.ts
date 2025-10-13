@@ -4,6 +4,7 @@ export interface IWallet extends Document {
   _id?:string;
   userId: mongoose.Types.ObjectId;
   userModel: 'User' | 'Owner'|'Admin';
+  isVerified:boolean,
   balance: number;
   currency: string;
   status: 'active' | 'frozen' | 'closed';

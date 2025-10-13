@@ -74,8 +74,8 @@ const SingleTicketCancellationModal: React.FC<SingleTicketCancellationModalProps
     try {
       setCancelling(true);
       const totalAmount = calculateSelectedAmount();
-
-      await cancelSingleTicket(selectedTickets, totalAmount);
+alert(totalAmount)
+      await cancelSingleTicket(selectedTickets);
 
       toast.success(`${selectedTickets.length} ticket(s) cancelled successfully`);
       onSuccess();

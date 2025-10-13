@@ -1,7 +1,8 @@
 {
   "/icon.ico/route": "app/icon.ico/route.js",
+  "/invites/page": "app/invites/page.js",
+  "/booking/success/page": "app/booking/success/page.js",
+  "/search/movies/page": "app/search/movies/page.js",
   "/page": "app/page.js",
-  "/user/account/page": "app/user/account/page.js",
-  "/search/theaters/page": "app/search/theaters/page.js",
-  "/invites/page": "app/invites/page.js"
+  "/booking/failed/page": "app/booking/failed/page.js"
 }

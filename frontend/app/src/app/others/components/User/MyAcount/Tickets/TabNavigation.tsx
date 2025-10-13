@@ -48,7 +48,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
           {label}
         </p>
         
-        {count > 0 && (
+        {/* {count > 0 && (
           <span className={`px-2 py-1 rounded-full text-xs transition-colors duration-200 ${
             activeTab === key
               ? ' text-white  '
@@ -56,7 +56,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
           }`}>
             {count}
           </span>
-        )}
+        )} */}
       </div>
       
       {/* Underline for active tab */}

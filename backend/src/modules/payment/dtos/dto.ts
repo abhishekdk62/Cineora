@@ -52,6 +52,7 @@ export interface PaymentCallbackDTO {
 export interface CreateRazorpayOrderDTO {
   amount: number;
   currency?: string;
+  userId:string
 }
 
 export interface VerifyRazorpayPaymentDTO {

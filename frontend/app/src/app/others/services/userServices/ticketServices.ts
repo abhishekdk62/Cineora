@@ -22,22 +22,20 @@ export const getTicketsApi = async (
 
 export const cancelTicket = async (
   bookingId: string,
-  amount: number
 ): Promise<CancelTicketResponseDto> => {
   const result = await apiClient.delete(USER_TICKETS.CANCEL, {
-    params: { bookingId, amount },
+    params: { bookingId },
   });
   return result.data;
 };
 export const cancelSingleTicket = async (
   ticketIds: string[],
-  totalAmount: number,
+  
 ): Promise<CancelTicketResponseDto> => {
   console.log('calledddd');
   
   const result = await apiClient.post(USER_TICKETS.CANCEL_SINGLE, {
-    ticketIds,
-    totalAmount
+    ticketIds
   });
   return result.data;
 };

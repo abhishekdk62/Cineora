@@ -111,7 +111,12 @@ export const PaymentModalInvt: React.FC<PaymentModalProps> = ({ totalAmount, onC
               bookingData: null
             });
             if (verifyResponse.success) {
-              const bookingResult = await bookTicket({ ...bookingDatasRedux, isInvited: true });
+
+
+
+
+              
+              const bookingResult = await bookTicket({ ...bookingDatasRedux, isInvited: true },orderId);
               console.log('Booking successful:', bookingResult.data);
 
               const response = await confirmJoinInviteGroup({ inviteId, totalAmount, ticketId: bookingResult.data.tickets[0]._id })
@@ -193,11 +198,15 @@ toast.success('Joined this invite group plaese open the chat box.')
     try {
 
       console.log('haha', inviteId);
+const idempotencyKey = `${bookingDatasRedux.userId}_${Date.now()}_${crypto.randomUUID()}`;
 
+      console.log('idempotencyKey',idempotencyKey);
 
       setIsProcessing(true);
-      const data = await walletBook(totalAmount, 'User')
-      const res = await bookTicket({ ...bookingDatasRedux, isInvited: true });
+      const data = await walletBook(totalAmount, 'User',idempotencyKey)
+      let walletTransactionId=data.walletTransactionDetails.data.transactionId
+
+      const res = await bookTicket({ ...bookingDatasRedux, isInvited: true },idempotencyKey);
       const response = await confirmJoinInviteGroup({ inviteId, totalAmount, ticketId: res.data.tickets[0]._id })
 
       const dat = await getChatRoomByInvite(inviteId)

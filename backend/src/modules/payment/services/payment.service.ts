@@ -6,6 +6,7 @@ import Razorpay from "razorpay";
 import crypto from "crypto";
 import mongoose, { Types } from "mongoose";
 import { config } from "../../../config";
+
 import {
   InitiatePaymentDTO,
   PaymentCallbackDTO,
@@ -20,6 +21,7 @@ import {
 import { IWalletRepository } from "../../wallet/interfaces/wallet.repository.interface";
 import { IWalletTransaction } from "../../walletTransaction/interfaces/walletTransaction.model.interface";
 import { IWalletTransactionRepository } from "../../walletTransaction/interfaces/walletTransaction.repository.interface";
+import redis from "../../../config/redis.config";
 
 export class PaymentService implements IPaymentService {
   private readonly _razorpay: Razorpay;
@@ -92,8 +94,28 @@ export class PaymentService implements IPaymentService {
         currency: orderData.currency || "INR",
         receipt: `receipt_${Date.now()}`,
       };
+    const paymentId = this._generatePaymentId();
+    
+    
+    const order = await this._razorpay.orders.create(options);
+        await redis.setex(
+      `razorpay_order:${order.id}`,
+      120, 
+      JSON.stringify({
+        userId: orderData.userId,
+        amount: orderData.amount / 100,
+        orderId: order.id,
+        createdAt: Date.now()
+      })
+    );
 
-      const order = await this._razorpay.orders.create(options);
+    await this._paymentRepository.createPaymentRecord({
+      paymentId: paymentId,
+      userId: orderData.userId,
+      amount: orderData.amount / 100, 
+      currency: orderData.currency || "INR",
+      razorpayOrderId: order.id, 
+    });
 
       return {
         success: true,
@@ -623,6 +645,54 @@ razorpay_payment_id?description= `Cash withdrawnn ₹${amount} to your bank acco
       };
     }
   }
+async getLatestPaymentData(
+  userId: string,
+): Promise<ServiceResponse> {
+  try {
+    if (!userId) {
+      throw new Error("User ID, payment ID and signature are required");
+    }
+
+    const payment = await this._paymentRepository.getLatestVerifiedPayment(
+      userId,
+
+    );
+
+    if (!payment) {
+      return {
+        success: false,
+        message: "Payment not found or not verified",
+        data: null,
+      };
+    }
+
+    // Check if already used for booking
+    if (payment.bookingId) {
+      return {
+        success: false,
+        message: "Payment already used for another booking",
+        data: null,
+      };
+    }
+
+    return {
+      success: true,
+      message: "Payment verified",
+      data: {
+        razorpayOrderId: payment.razorpayOrderId,
+        amount: payment.amount,
+        status: payment.status,
+        isUsed: !!payment.bookingId,
+      },
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to get payment",
+      data: null,
+    };
+  }
+}
 
   private _generatePaymentId(): string {
     return `PAY${Date.now()}${Math.random()

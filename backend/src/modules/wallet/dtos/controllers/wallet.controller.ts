@@ -6,6 +6,7 @@ import { StatusCodes } from "../../../../utils/statuscodes";
 import { WALLET_MESSAGES } from "../../../../utils/messages.constants";
 import { createResponse } from "../../../../utils/createResponse";
 import { IWallet } from "../../interfaces/wallet.model.interface";
+import redis from "../../../../config/redis.config";
 
 interface AuthenticatedRequest extends Request {
   user?: { id: string; role?: string };
@@ -104,7 +105,18 @@ export class WalletController {
   async debitWallet(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const userId = req.user?.id;
-      const { amount, userModel } = req.body;
+      const { amount, userModel ,idempotencyKey} = req.body;
+const isBooking=req.body.isBooking
+    if (idempotencyKey ) {
+      await redis.setex(
+        `wallet_idempotency:${idempotencyKey}`,
+        120, 
+        JSON.stringify({
+          userId,
+          idempotencyKey
+        })
+      );
+    }
 
       if (!userId) {
         res.status(StatusCodes.UNAUTHORIZED).json(createResponse({
@@ -121,9 +133,24 @@ export class WalletController {
       };
 
       const result = await this.walletService.debitWallet(debitDto);
+      let walletTransactionDetails=null
+      if(isBooking)
+      {
+        let wallet=await this.walletService.getWalletDetails(userId,'User')
+
+        
+         walletTransactionDetails=await this.walletTransactionService.createWalletTransaction({userId,userModel:'User',walletId:wallet.data._id,type:'debit',amount,category:'booking',description:`${amount} deducted from your wallet for booking`})
+      }
+       
+const response = {
+  ...result,
+  ...(walletTransactionDetails && { walletTransactionDetails })
+};
+
 
       if (result.success) {
-        res.status(StatusCodes.OK).json(result);
+       res.status(StatusCodes.OK).json(response);
+
       } else {
         res.status(StatusCodes.BAD_REQUEST).json(result);
       }

@@ -188,4 +188,51 @@ export class PaymentRepository implements IPaymentRepository {
       throw new Error(`Error fetching refundable payments: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
+async createPaymentRecord(paymentData: {
+  paymentId: string;
+  userId: string;
+  amount: number;
+  currency: string;
+  razorpayOrderId: string;
+}): Promise<IPayment> {
+  try {
+    const payment = await Payment.create({
+      paymentId: paymentData.paymentId,
+      userId: paymentData.userId,
+      amount: paymentData.amount,
+      currency: paymentData.currency,
+      status: 'pending',
+      razorpayOrderId: paymentData.razorpayOrderId,
+    });
+
+    if (!payment) {
+      throw new Error("Failed to create payment record");
+    }
+
+    return payment;
+  } catch (error) {
+    throw new Error(`Error creating payment: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// ✅ Get latest verified payment
+async getLatestVerifiedPayment(
+  userId: string,
+
+): Promise<IPayment | null> {
+  try {
+    const payment = await Payment.findOne({
+      userId
+    })
+    .sort({ createdAt: -1 })
+    .populate('userId', 'firstName lastName email');
+
+    return payment;
+  } catch (error) {
+    throw new Error(`Error fetching payment: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+
+
 }

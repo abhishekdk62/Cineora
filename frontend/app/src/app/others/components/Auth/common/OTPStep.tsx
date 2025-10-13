@@ -10,8 +10,13 @@ export default function OTPStep({
   error,
   onSubmit,
   onResend,
-  
-  resendLoading = false, 
+  timeLeft,
+  setTimeLeft,
+  canResend,
+  setCanResend,
+
+
+  resendLoading = false,
 }: {
   email: string;
   otp: string;
@@ -21,19 +26,17 @@ export default function OTPStep({
   onSubmit: (e: React.FormEvent) => void;
   onResend: () => void;
 
-  resendLoading?: boolean; 
+  resendLoading?: boolean;
 }) {
   const inputs = useRef<HTMLInputElement[]>([]);
-  
-  const [timeLeft, setTimeLeft] = useState(120); 
-  const [canResend, setCanResend] = useState(false);
+
 
   useEffect(() => {
     if (timeLeft > 0) {
       const timer = setTimeout(() => {
         setTimeLeft(timeLeft - 1);
       }, 1000);
-      
+
       return () => clearTimeout(timer);
     } else {
       setCanResend(true);
@@ -61,11 +64,11 @@ export default function OTPStep({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, idx: number) => {
     if (e.key === "Backspace") {
       e.preventDefault();
-      
+
       const newOtp = otp.split("");
       newOtp[idx] = "";
       setOtp(newOtp.join(""));
-      
+
       if (!e.currentTarget.value && inputs.current[idx - 1]) {
         inputs.current[idx - 1].focus();
       }
@@ -73,7 +76,7 @@ export default function OTPStep({
   };
 
   const handleResend = () => {
-    if (canResend && !resendLoading) { 
+    if (canResend && !resendLoading) {
       onResend();
       setTimeLeft(120);
       setCanResend(false);
@@ -90,7 +93,7 @@ export default function OTPStep({
           OTP sent to <span className="text-blue-400">{email}</span>
         </p>
       </div>
-      
+
       <form onSubmit={onSubmit} className="space-y-6">
         <div className="flex justify-between space-x-2">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -106,7 +109,7 @@ export default function OTPStep({
               ref={el => {
                 if (el) inputs.current[i] = el;
               }}
-              disabled={loading} 
+              disabled={loading}
             />
           ))}
         </div>
@@ -120,9 +123,8 @@ export default function OTPStep({
         <button
           type="submit"
           disabled={loading || otp.length !== 6}
-          className={`w-full px-8 py-3 bg-white text-black rounded-full disabled:bg-gray-600/50 disabled:cursor-not-allowed transition-all duration-200 ${
-            loading ? 'animate-pulse' : 'hover:bg-gray-100'
-          }`}
+          className={`w-full px-8 py-3 bg-white text-black rounded-full disabled:bg-gray-600/50 disabled:cursor-not-allowed transition-all duration-200 ${loading ? 'animate-pulse' : 'hover:bg-gray-100'
+            }`}
         >
           {loading ? (
             <div className="flex items-center justify-center">

@@ -188,11 +188,11 @@ const MoviesManager: React.FC = () => {
   const handleEditMovie = async (movieData: Movie) => {
     if (!editingMovie) return;
     try {
-      const response = await updateMovie(editingMovie._id, movieData);
+      const response = await updateMovie(editingMovie?._id, movieData);
       toast.success("Movie updated successfully!");
       setMovies((prev) =>
         prev.map((m) => {
-          if (m._id === editingMovie._id) {
+          if (m?._id === editingMovie?._id) {
             return { ...m, ...movieData, updatedAt: new Date() };
           }
         })
@@ -246,7 +246,7 @@ const MoviesManager: React.FC = () => {
 
   const handleToggleStatus = async (movie: MovieResponseDto) => {
     try {
-      const willDisable = movie.isActive;
+      const willDisable = movie?.isActive;
       const verb = willDisable ? "disable" : "activate";
       const capitalVerb = verb[0].toUpperCase() + verb.slice(1);
 
@@ -281,8 +281,8 @@ const MoviesManager: React.FC = () => {
 
     const viewFiltered =
       activeView === "current"
-        ? moviesToShow.filter((m) => m.isActive)
-        : moviesToShow.filter((m) => !m.isActive);
+        ? moviesToShow.filter((m) => m?.isActive)
+        : moviesToShow.filter((m) => !m?.isActive);
 
     if (!hasActiveFilters) {
       const startIndex = (currentPage - 1) * itemsPerPage;
@@ -293,8 +293,8 @@ const MoviesManager: React.FC = () => {
     return viewFiltered;
   };
 
-  const currentMovies = movies.filter((m) => m.isActive);
-  const expiredMovies = movies.filter((m) => !m.isActive);
+  const currentMovies = movies.filter((m) => m?.isActive);
+  const expiredMovies = movies.filter((m) => !m?.isActive);
 
   return (
     <React.Fragment>

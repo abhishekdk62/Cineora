@@ -1,8 +1,19 @@
 import { IMovieShowtime } from "../interfaces/showtimes.model.interfaces";
 import MovieShowtime from "../models/showtimes.model";
 import mongoose, { FilterQuery, Types } from "mongoose";
-import { IShowtimeReadRepository, IShowtimeWriteRepository, IShowtimeRepository } from "../interfaces/showtimes.repository.interface";
-import { CreateShowtimeDTO, UpdateShowtimeDTO, ShowtimeFilters, PaginatedShowtimeResult, SeatBookingDTO, SeatReleaseDTO } from "../dtos/dto";
+import {
+  IShowtimeReadRepository,
+  IShowtimeWriteRepository,
+  IShowtimeRepository,
+} from "../interfaces/showtimes.repository.interface";
+import {
+  CreateShowtimeDTO,
+  UpdateShowtimeDTO,
+  ShowtimeFilters,
+  PaginatedShowtimeResult,
+  SeatBookingDTO,
+  SeatReleaseDTO,
+} from "../dtos/dto";
 import { TheaterListResponseDTO } from "../../theaters/dtos/dto";
 
 export class ShowtimeRepository implements IShowtimeRepository {
@@ -48,7 +59,9 @@ export class ShowtimeRepository implements IShowtimeRepository {
       session.startTransaction();
 
       try {
-        const showtime = await MovieShowtime.findById(showtimeId).session(session);
+        const showtime = await MovieShowtime.findById(showtimeId).session(
+          session
+        );
         if (!showtime) {
           throw new Error("Showtime not found");
         }
@@ -56,12 +69,16 @@ export class ShowtimeRepository implements IShowtimeRepository {
         const unavailableSeats = new Set([
           ...showtime.bookedSeats,
           ...showtime.blockedSeats
-            .filter(block => new Date() < block.expiresAt) 
-            .map(block => block.seatId)
+            .filter((block) => new Date() < block.expiresAt)
+            .map((block) => block.seatId),
         ]);
 
-        const availableSeats = seatNumbers.filter(seat => !unavailableSeats.has(seat));
-        const failedSeats = seatNumbers.filter(seat => unavailableSeats.has(seat));
+        const availableSeats = seatNumbers.filter(
+          (seat) => !unavailableSeats.has(seat)
+        );
+        const failedSeats = seatNumbers.filter((seat) =>
+          unavailableSeats.has(seat)
+        );
 
         if (availableSeats.length === 0) {
           await session.abortTransaction();
@@ -72,7 +89,7 @@ export class ShowtimeRepository implements IShowtimeRepository {
           };
         }
 
-        const seatBlocks = availableSeats.map(seatId => ({
+        const seatBlocks = availableSeats.map((seatId) => ({
           seatId,
           userId,
           sessionId,
@@ -86,27 +103,25 @@ export class ShowtimeRepository implements IShowtimeRepository {
           showtimeId,
           {
             $push: {
-              blockedSeats: { $each: seatBlocks }
-            }
+              blockedSeats: { $each: seatBlocks },
+            },
           },
           { session }
         );
 
         await session.commitTransaction();
-        
+
         return {
           success: true,
           heldSeats: availableSeats,
           failedSeats,
         };
-
       } catch (error) {
         await session.abortTransaction();
         throw error;
       } finally {
         await session.endSession();
       }
-
     } catch (error) {
       console.error("Error holding seats:", error);
       return {
@@ -131,7 +146,7 @@ export class ShowtimeRepository implements IShowtimeRepository {
 
       try {
         const blockFilter: any = {};
-        
+
         if (filter.seatNumbers?.length) {
           blockFilter.seatId = { $in: filter.seatNumbers };
         }
@@ -142,17 +157,25 @@ export class ShowtimeRepository implements IShowtimeRepository {
           blockFilter.userId = filter.userId;
         }
 
-        const showtime = await MovieShowtime.findById(showtimeId).session(session);
+        const showtime = await MovieShowtime.findById(showtimeId).session(
+          session
+        );
         if (!showtime) {
           throw new Error("Showtime not found");
         }
 
         const seatsToRelease = showtime.blockedSeats
-          .filter(block => {
-            if (filter.seatNumbers?.length && !filter.seatNumbers.includes(block.seatId)) {
+          .filter((block) => {
+            if (
+              filter.seatNumbers?.length &&
+              !filter.seatNumbers.includes(block.seatId)
+            ) {
               return false;
             }
-            if (filter.inviteGroupId && block.inviteGroupId !== filter.inviteGroupId) {
+            if (
+              filter.inviteGroupId &&
+              block.inviteGroupId !== filter.inviteGroupId
+            ) {
               return false;
             }
             if (filter.userId && block.userId !== filter.userId) {
@@ -160,32 +183,30 @@ export class ShowtimeRepository implements IShowtimeRepository {
             }
             return true;
           })
-          .map(block => block.seatId);
+          .map((block) => block.seatId);
 
         await MovieShowtime.findByIdAndUpdate(
           showtimeId,
           {
             $pull: {
-              blockedSeats: blockFilter
-            }
+              blockedSeats: blockFilter,
+            },
           },
           { session }
         );
 
         await session.commitTransaction();
-        
+
         return {
           success: true,
           releasedSeats: seatsToRelease,
         };
-
       } catch (error) {
         await session.abortTransaction();
         throw error;
       } finally {
         await session.endSession();
       }
-
     } catch (error) {
       console.error("Error releasing held seats:", error);
       return {
@@ -204,9 +225,8 @@ export class ShowtimeRepository implements IShowtimeRepository {
 
       const now = new Date();
       return showtime.blockedSeats
-        .filter(block => block.expiresAt > now)
-        .map(block => block.seatId);
-
+        .filter((block) => block.expiresAt > now)
+        .map((block) => block.seatId);
     } catch (error) {
       console.error("Error getting held seats:", error);
       return [];
@@ -326,7 +346,9 @@ export class ShowtimeRepository implements IShowtimeRepository {
     updateData: UpdateShowtimeDTO
   ): Promise<IMovieShowtime | null> {
     try {
-      return await MovieShowtime.findByIdAndUpdate(showtimeId, updateData, { new: true });
+      return await MovieShowtime.findByIdAndUpdate(showtimeId, updateData, {
+        new: true,
+      });
     } catch (error) {
       console.error("Error updating showtime by id:", error);
       throw error;
@@ -382,11 +404,11 @@ export class ShowtimeRepository implements IShowtimeRepository {
         showtimeId,
         {
           $pull: {
-            bookedSeats: { $in: seatIds }
+            bookedSeats: { $in: seatIds },
           },
           $inc: {
-            availableSeats: seatIds.length
-          }
+            availableSeats: seatIds.length,
+          },
         },
         { new: true }
       );
@@ -394,13 +416,13 @@ export class ShowtimeRepository implements IShowtimeRepository {
       for (const seatId of seatIds) {
         const rowLabel = seatId.charAt(0);
         await MovieShowtime.findOneAndUpdate(
-          { 
+          {
             _id: showtimeId,
-            'rowPricing.rowLabel': rowLabel 
+            "rowPricing.rowLabel": rowLabel,
           },
           {
-            $pull: { 'rowPricing.$.bookedSeats': seatId },
-            $inc: { 'rowPricing.$.availableSeats': 1 }
+            $pull: { "rowPricing.$.bookedSeats": seatId },
+            $inc: { "rowPricing.$.availableSeats": 1 },
           }
         );
       }
@@ -504,22 +526,37 @@ export class ShowtimeRepository implements IShowtimeRepository {
     } catch (error) {
       console.error("Error updating showtime status:", error);
       throw error;
-    } 
+    }
   }
 
-  async bookShowtimeSeats(showtimeId: string, seatIds: string[]): Promise<boolean> {
+  async bookShowtimeSeats(
+    showtimeId: string,
+    seatIds: string[]
+  ): Promise<boolean> {
     try {
-      const result = await MovieShowtime.findByIdAndUpdate(showtimeId, {
-        $push: { bookedSeats: { $each: seatIds } },
-        $pull: { blockedSeats: { seatId: { $in: seatIds } } },
-        $inc: { availableSeats: -seatIds.length },
-      });
+      const result = await MovieShowtime.findOneAndUpdate(
+        {
+          _id: showtimeId,
+          bookedSeats: { $nin: seatIds }, // Only update if seats NOT already booked
+        },
+
+        {
+          $push: { bookedSeats: { $each: seatIds } },
+          $pull: { blockedSeats: { seatId: { $in: seatIds } } },
+          $inc: { availableSeats: -seatIds.length },
+        }
+      );
 
       if (result) {
         const updatePromises = seatIds.map((seatId) => {
           const rowLabel = seatId[0];
           return MovieShowtime.updateOne(
-            { _id: showtimeId, "rowPricing.rowLabel": rowLabel },
+            {
+              _id: showtimeId,
+              "rowPricing.rowLabel": rowLabel,
+
+              "rowPricing.bookedSeats": { $nin: [seatId] }, // ✅ ADD THIS CHECK
+            },
             {
               $push: { "rowPricing.$.bookedSeats": seatId },
               $inc: { "rowPricing.$.availableSeats": -1 },
@@ -528,7 +565,6 @@ export class ShowtimeRepository implements IShowtimeRepository {
         });
 
         await Promise.all(updatePromises);
-        
       }
 
       return result !== null;
@@ -553,7 +589,10 @@ export class ShowtimeRepository implements IShowtimeRepository {
 
       return existing !== null;
     } catch (error) {
-      console.error("Error checking showtime exists by screen and time:", error);
+      console.error(
+        "Error checking showtime exists by screen and time:",
+        error
+      );
       throw error;
     }
   }
@@ -618,7 +657,7 @@ export class ShowtimeRepository implements IShowtimeRepository {
     try {
       const skipCount = (page - 1) * limit;
       const query: FilterQuery = {};
-      
+
       if (filters.theaterId) {
         query.theaterId = new Types.ObjectId(filters.theaterId);
       }
@@ -626,7 +665,9 @@ export class ShowtimeRepository implements IShowtimeRepository {
         query.movieId = new Types.ObjectId(filters.movieId);
       }
       if (filters.date) {
-        const { startOfDay, endOfDay } = this._getDayBounds(new Date(filters.date));
+        const { startOfDay, endOfDay } = this._getDayBounds(
+          new Date(filters.date)
+        );
         query.showDate = { $gte: startOfDay, $lte: endOfDay };
       }
 

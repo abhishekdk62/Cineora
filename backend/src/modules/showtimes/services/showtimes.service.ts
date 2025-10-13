@@ -743,12 +743,13 @@ console.log('failedSeats seats',holdResult.failedSeats);
         seatIds
       );
 
-      if (!result) {
-        return {
-          success: false,
-          message: "Failed to book seats",
-        };
-      }
+         if (!result) {
+      return {
+        success: false,
+        message: "Seats already booked or showtime not found",  // ✅ This means race condition blocked it
+      };
+    }
+
 
       this.socketService.emitSeatUpdate(showtimeId, seatIds);
       return {
