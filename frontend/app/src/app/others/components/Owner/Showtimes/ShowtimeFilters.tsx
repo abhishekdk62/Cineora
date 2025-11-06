@@ -26,16 +26,7 @@ const ShowtimeFilters: React.FC<ShowtimeFiltersProps> = ({
 
   return (
     <div className="flex items-center gap-4">
-      {/* TIME FILTER - This should be the first dropdown */}
-      <select
-        value={timeFilter}
-        onChange={(e) => onTimeFilterChange(e.target.value)}
-        className={selectClassName}
-      >
-        <option value="all">All Times</option>
-        <option value="upcoming">Upcoming</option>
-        <option value="past">Past</option>
-      </select>
+    
       
       <select
         value={groupBy}

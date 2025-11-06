@@ -17,71 +17,17 @@
       "static/css/app/page.css",
       "static/chunks/app/page.js"
     ],
-    "/search/movies/page": [
+    "/owner/dashboard/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/css/app/search/movies/page.css",
-      "static/chunks/app/search/movies/page.js"
-    ],
-    "/booking/success/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/booking/success/page.css",
-      "static/chunks/app/booking/success/page.js"
-    ],
-    "/search/movies/[id]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/search/movies/[id]/page.css",
-      "static/chunks/app/search/movies/[id]/page.js"
-    ],
-    "/book/[id]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/book/[id]/page.css",
-      "static/chunks/app/book/[id]/page.js"
-    ],
-    "/book/tickets/[showtimeId]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/book/tickets/[showtimeId]/page.css",
-      "static/chunks/app/book/tickets/[showtimeId]/page.js"
+      "static/css/app/owner/dashboard/page.css",
+      "static/chunks/app/owner/dashboard/page.js"
     ],
     "/login/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/css/app/login/page.css",
       "static/chunks/app/login/page.js"
-    ],
-    "/book/payment/[showtimeId]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/book/payment/[showtimeId]/page.css",
-      "static/chunks/app/book/payment/[showtimeId]/page.js"
-    ],
-    "/booking/failed/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/booking/failed/page.css",
-      "static/chunks/app/booking/failed/page.js"
-    ],
-    "/search/theaters/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/search/theaters/page.css",
-      "static/chunks/app/search/theaters/page.js"
-    ],
-    "/invites/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/invites/page.css",
-      "static/chunks/app/invites/page.js"
-    ],
-    "/book/group/[showtimeId]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/book/group/[showtimeId]/page.css",
-      "static/chunks/app/book/group/[showtimeId]/page.js"
     ]
   }
 }

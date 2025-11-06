@@ -13,13 +13,23 @@ import { ShowTimeData } from "../../types";
 
 export const getShowTimesOwner = async (params?: GetShowTimesOwnerParamsDto): Promise<GetShowTimesOwnerResponseDto> => {
   let url = OWNER_SHOWTIME.BASE;
-  if (params?.page && params?.limit) {
-    const queryParams = new URLSearchParams({
-      page: params.page.toString(),
-      limit: params.limit.toString()
-    });
-    url += `?${queryParams}`;
+   if (params) {
+    const queryParams = new URLSearchParams();
+    if (params.page) {
+      queryParams.append('page', params.page.toString());
+    }
+    if (params.limit) {
+      queryParams.append('limit', params.limit.toString());
+    }
+    if (params.filter) {
+      queryParams.append('filter', params.filter);
+    }
+    const queryString = queryParams.toString();
+    if (queryString) {
+      url += `?${queryString}`;
+    }
   }
+
   const result = await apiClient.get(url);
   return result.data;
 };

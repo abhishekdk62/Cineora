@@ -100,7 +100,6 @@ const MyInviteCard: React.FC<Props> = ({
                   {invite.movieId?.title || 'Unknown Movie'}
                 </h3>
                 
-                {/* Status Badge */}
                 {isCancelled ? (
                   <div className="flex items-center gap-1 px-2 py-1 bg-red-500/20 border border-red-500/30 rounded-lg">
                     <Ban className="w-3 h-3 text-red-400" />
@@ -191,10 +190,7 @@ const MyInviteCard: React.FC<Props> = ({
                   style={{ width: `${Math.max(5, progressPercentage)}%` }}
                 />
               </div>
-              {/* ✅ DEBUG DISPLAY */}
-              <div className="text-xs text-yellow-300 mt-1">
-                DEBUG: Available={currentAvailableSlots}, Joined={joinedCount}, Progress={progressPercentage}%
-              </div>
+          
             </div>
           )}
 

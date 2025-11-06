@@ -1,8 +1,6 @@
 {
   "/icon.ico/route": "app/icon.ico/route.js",
-  "/invites/page": "app/invites/page.js",
-  "/booking/success/page": "app/booking/success/page.js",
-  "/search/movies/page": "app/search/movies/page.js",
   "/page": "app/page.js",
-  "/booking/failed/page": "app/booking/failed/page.js"
+  "/owner/dashboard/page": "app/owner/dashboard/page.js",
+  "/login/page": "app/login/page.js"
 }

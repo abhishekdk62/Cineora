@@ -14,11 +14,38 @@ interface ShowtimeCardProps {
 }
 
 const ShowtimeCard: React.FC<ShowtimeCardProps> = ({
+  showtimeFilter,
   showtime,
   onEdit,
   onView,
   onToggleStatus,
 }) => {
+  const isEditable = () => {
+    const now = new Date();
+    const showDate = new Date(showtime.showDate);
+    const [hours, minutes] = showtime.showTime.split(':');
+    const showDateTime = new Date(showDate);
+    showDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+    if (showDateTime < now) {
+      return { canEdit: false, reason: "Cannot edit past showtimes" };
+    }
+
+    const hasBookings = (showtime.totalSeats - showtime.availableSeats) > 0;
+    if (hasBookings) {
+      return { canEdit: false, reason: "Cannot edit showtimes with bookings" };
+    }
+
+    const hoursUntilShow = (showDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+    if (hoursUntilShow < 24) {
+      return { canEdit: false, reason: "Cannot edit within 24 hours of showtime" };
+    }
+
+    return { canEdit: true, reason: "" };
+  };
+
+  const { canEdit, reason } = isEditable();
+
   const getMovieName = (movieId: string) => {
     if (typeof movieId === "object" && movieId?.title) return movieId.title;
     return typeof movieId === "string" ? movieId : "Unknown Movie";
@@ -154,13 +181,35 @@ const ShowtimeCard: React.FC<ShowtimeCardProps> = ({
           )}
         </div>
         <div className="flex flex-col gap-2">
-          <button
-            onClick={() => onEdit(showtime)}
-            className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
-            title="Edit Showtime"
-          >
-            <Edit className="w-4 h-4" />
-          </button>
+          {/* Edit Button - Enabled */}
+          {showtimeFilter === 'upcoming' && canEdit && (
+            <button
+              onClick={() => onEdit(showtime)}
+              className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
+              title="Edit Showtime"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Edit Button - Disabled */}
+          {showtimeFilter === 'upcoming' && !canEdit && (
+            <div className="relative group">
+              <button
+                disabled
+                className="p-2 text-gray-600 bg-gray-800/50 rounded-lg cursor-not-allowed opacity-50"
+              >
+                <Edit className="w-4 h-4" />
+              </button>
+              {/* ✅ Tooltip BELOW button */}
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 hidden group-hover:block w-48 bg-gray-900 text-white text-xs rounded-lg p-2 z-10 whitespace-normal">
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45"></div>
+                {reason}
+              </div>
+            </div>
+          )}
+
+          {/* View Button */}
           <button
             onClick={() => onView(showtime)}
             className="p-2 text-green-400 hover:bg-green-500/20 rounded-lg transition-colors"
@@ -168,21 +217,41 @@ const ShowtimeCard: React.FC<ShowtimeCardProps> = ({
           >
             <Eye className="w-4 h-4" />
           </button>
-          <button
-            onClick={() => onToggleStatus(showtime._id, showtime.isActive)}
-            className={`p-2 rounded-lg transition-colors ${showtime.isActive
-                ? "text-red-400 hover:bg-red-500/20"
-                : "text-green-400 hover:bg-green-500/20"
-              }`}
-            title={showtime.isActive ? "Deactivate Showtime" : "Activate Showtime"}
-          >
-            {showtime.isActive ? (
-              <CircleX className="w-4 h-4" />
-            ) : (
-              <CheckCircle className="w-4 h-4" />
-            )}
-          </button>
+
+          {/* Toggle Status - Enabled */}
+          {showtimeFilter === 'upcoming' && canEdit && (
+            <button
+              onClick={() => onToggleStatus(showtime._id, showtime.isActive)}
+              className={`p-2 rounded-lg transition-colors ${showtime.isActive
+                  ? "text-red-400 hover:bg-red-500/20"
+                  : "text-green-400 hover:bg-green-500/20"
+                }`}
+              title={showtime.isActive ? "Deactivate Showtime" : "Activate Showtime"}
+            >
+              {showtime.isActive ? <CircleX className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+            </button>
+          )}
+
+          {/* Toggle Status - Disabled */}
+          {showtimeFilter === 'upcoming' && !canEdit && (
+            <div className="relative group">
+              <button
+                disabled
+                className="p-2 text-gray-600 bg-gray-800/50 rounded-lg cursor-not-allowed opacity-50"
+              >
+                {showtime.isActive ? <CircleX className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+              </button>
+              {/* ✅ Tooltip BELOW button */}
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 hidden group-hover:block w-48 bg-gray-900 text-white text-xs rounded-lg p-2 z-10 whitespace-normal">
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45"></div>
+                {reason}
+              </div>
+            </div>
+          )}
         </div>
+
+
+
       </div>
     </div>
   );

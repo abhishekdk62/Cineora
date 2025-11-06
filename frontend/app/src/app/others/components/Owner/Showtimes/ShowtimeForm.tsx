@@ -349,7 +349,7 @@ const ShowtimeForm: React.FC<ShowtimeFormProps> = ({
               type="button"
               onClick={() => setIsTheaterModalOpen(true)}
               className="flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-xl border border-gray-500/30 transition-colors text-left"
-              disabled={mode === "view" || mode === "edit"}
+              disabled={mode === "view" }
             >
               <Building className="w-6 h-6 text-blue-400" />
               <div className="flex-1 min-w-0">
@@ -363,7 +363,7 @@ const ShowtimeForm: React.FC<ShowtimeFormProps> = ({
               type="button"
               onClick={() => setIsMovieModalOpen(true)}
               className="flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-xl border border-gray-500/30 transition-colors text-left"
-              disabled={mode === "view" || mode === "edit"}
+              disabled={mode === "view" }
             >
               <Film className="w-6 h-6 text-green-400" />
               <div className="flex-1 min-w-0">
@@ -376,7 +376,7 @@ const ShowtimeForm: React.FC<ShowtimeFormProps> = ({
             <button
               type="button"
               onClick={() => setIsScreenModalOpen(true)}
-              disabled={!selectedTheater || mode === "view" || mode === "edit"}
+              disabled={!selectedTheater || mode === "view"}
               className="flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-xl border border-gray-500/30 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Monitor className="w-6 h-6 text-purple-400" />

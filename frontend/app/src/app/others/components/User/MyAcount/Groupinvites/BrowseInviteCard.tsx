@@ -16,6 +16,7 @@ import { confirmAction } from "../../../utils/ConfirmDialog";
 import { cancelSingleTicket } from "@/app/others/services/userServices/ticketServices";
 import { createSystemMessage, getChatRoomByInvite, leaveChatRoom } from "@/app/others/services/userServices/chatServices";
 import { RootState } from "@/app/others/redux/store";
+import GroupEtiquetteModal from "./GroupEtiquetteModal";
 
 const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
@@ -38,12 +39,13 @@ const BrowseInviteCard: React.FC<Props> = ({ invite, onJoin, onRefresh }) => {
 
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
+const [showEtiquetteModal, setShowEtiquetteModal] = useState(false);
 
   const isCompleted = invite.status === 'completed' || invite.availableSlots === 0;
   const isExpired = isTimerExpired || new Date() > new Date(invite.expiresAt);
   const isDisabled = isCompleted || isExpired;
-    const id = useSelector((state: RootState) => state?.auth?.user?.id) 
-    const email = useSelector((state: RootState) => state?.auth?.user?.email) 
+  const id = useSelector((state: RootState) => state?.auth?.user?.id)
+  const email = useSelector((state: RootState) => state?.auth?.user?.email)
 
   const handleExitGroup = async () => {
     if (isExpired) {
@@ -76,23 +78,12 @@ const BrowseInviteCard: React.FC<Props> = ({ invite, onJoin, onRefresh }) => {
       }
 
       const res = await cancelSingleTicket([ticketId], amount);
-                    const dat = await getChatRoomByInvite(invite.inviteId)
-      console.log('getChatRoomByInvite',dat);
-      
-      const resp=await leaveChatRoom({chatRoomId:dat.data.inviteGroupId,userId:id}) 
+      const dat = await getChatRoomByInvite(invite.inviteId)
+      const resp = await leaveChatRoom({ chatRoomId: dat.data.inviteGroupId, userId: id })
       console.log(res);
       console.log(resp);
 
-const chated=await createSystemMessage({chatRoomId:dat.data._id,systemMessageType:'USER_LEFT',content:'User Left ',systemData:{userId:id,username:email?.split('@')[0]}})
-console.log('checked',chated);
-
-
-
-
-
-
-
-
+      const chated = await createSystemMessage({ chatRoomId: dat.data._id, systemMessageType: 'USER_LEFT', content: 'User Left ', systemData: { userId: id, username: email?.split('@')[0] } })
       toast.success('Exited from this group');
       onRefresh();
 
@@ -188,6 +179,11 @@ console.log('checked',chated);
       toast.error('This group invite has expired!');
       return;
     }
+      setShowEtiquetteModal(true);
+  }
+  const handleEtiquetteAgree = () => {
+  setShowEtiquetteModal(false);
+
 
     const bookingData = {
       userId: user?.id || user?.userId || user?._id,
@@ -563,8 +559,16 @@ console.log('checked',chated);
           {showPaymentModal && (
             <PaymentModalInvt totalAmount={seatInfo?.actualPriceForJoiner} onClose={handleClose} inviteId={slectedInvite} />
           )}
+          <GroupEtiquetteModal  // ✅ CORRECT - Inside the condition
+  isOpen={showEtiquetteModal}
+  onClose={() => setShowEtiquetteModal(false)}
+  onProceed={handleEtiquetteAgree}
+/>
+
         </>
       )}
+     
+
     </>
   );
 };
