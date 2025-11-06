@@ -18,6 +18,7 @@ interface ShowtimeGridProps {
 }
 
 const ShowtimeGrid: React.FC<ShowtimeGridProps> = ({
+  showtimeFilter,
   groupedShowtimes,
   groupBy,
   collapsedGroups,
@@ -71,6 +72,7 @@ const ShowtimeGrid: React.FC<ShowtimeGridProps> = ({
               <div className="space-y-4">
                 {groupShowtimes.map((showtime) => (
                   <ShowtimeCard
+                  showtimeFilter={showtimeFilter}
                     key={showtime._id}
                     showtime={showtime}
                     onEdit={onEdit}

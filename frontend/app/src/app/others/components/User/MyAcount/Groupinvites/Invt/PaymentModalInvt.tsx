@@ -197,7 +197,6 @@ toast.success('Joined this invite group plaese open the chat box.')
   async function handleWalletPayment() {
     try {
 
-      console.log('haha', inviteId);
 const idempotencyKey = `${bookingDatasRedux.userId}_${Date.now()}_${crypto.randomUUID()}`;
 
       console.log('idempotencyKey',idempotencyKey);

@@ -18,6 +18,7 @@ interface ShowtimeListProps {
 }
 
 const ShowtimeList: React.FC<ShowtimeListProps> = ({
+  showtimeFilter,
   showtimes,
   onEdit,
   onRefresh,
@@ -222,6 +223,7 @@ const ShowtimeList: React.FC<ShowtimeListProps> = ({
       </div>
       
       <ShowtimeGrid
+      showtimeFilter={showtimeFilter}
         groupedShowtimes={groupedShowtimes}
         groupBy={groupBy}
         collapsedGroups={collapsedGroups}
