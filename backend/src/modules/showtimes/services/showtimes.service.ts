@@ -70,7 +70,6 @@ export class ShowtimeService implements IShowtimeService {
   async holdSeatsForGroup(
     showtimeId: string,
     holdData: SeatHoldDTO
-
   ): Promise<ServiceResponse<{ heldSeats: string[]; failedSeats: string[] }>> {
     try {
       if (!showtimeId || !holdData.seatNumbers?.length) {
@@ -108,8 +107,8 @@ export class ShowtimeService implements IShowtimeService {
       }
 
       this._scheduleAutoRelease(showtimeId, holdData.inviteGroupId, expiresAt);
-console.log('hold seats',holdResult.heldSeats);
-console.log('failedSeats seats',holdResult.failedSeats);
+      console.log("hold seats", holdResult.heldSeats);
+      console.log("failedSeats seats", holdResult.failedSeats);
 
       return {
         success: true,
@@ -182,7 +181,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
   async getHeldSeats(showtimeId: string): Promise<ServiceResponse<string[]>> {
     try {
       const heldSeats = await this.showtimeRepository.getHeldSeats(showtimeId);
-      
+
       return {
         success: true,
         message: "Successfully retrieved held seats",
@@ -203,7 +202,7 @@ console.log('failedSeats seats',holdResult.failedSeats);
     expiresAt: Date
   ): void {
     const timeoutMs = expiresAt.getTime() - Date.now();
-    
+
     if (timeoutMs > 0) {
       setTimeout(async () => {
         try {
@@ -527,7 +526,8 @@ console.log('failedSeats seats',holdResult.failedSeats);
   async getShowtimesByOwnerIdPaginated(
     ownerId: string,
     page: number,
-    limit: number
+    limit: number,
+    filter?: "upcoming" | "past"
   ): Promise<ServiceResponse<{ items: IMovieShowtime[]; total: number }>> {
     try {
       if (!ownerId) {
@@ -542,14 +542,16 @@ console.log('failedSeats seats',holdResult.failedSeats);
         limit
       );
       const skip = (validPage - 1) * validLimit;
+      console.log(filter);
 
       const [showtimes, total] = await Promise.all([
         this.showtimeRepository.getShowtimesByOwnerIdPaginated(
           ownerId,
           skip,
-          validLimit
+          validLimit,
+          filter
         ),
-        this.showtimeRepository.countShowtimesByOwnerId(ownerId),
+        this.showtimeRepository.countShowtimesByOwnerId(ownerId, filter),
       ]);
 
       return {
@@ -707,10 +709,10 @@ console.log('failedSeats seats',holdResult.failedSeats);
           message: "Failed to release seats",
         };
       }
-      console.log('function started for socket seat cancel');
-      
+      console.log("function started for socket seat cancel");
+
       this.socketService.emitSeatCancellation(showtimeId, seatIds);
-      console.log('function ended for socket seat cancel');
+      console.log("function ended for socket seat cancel");
 
       return {
         success: true,
@@ -743,13 +745,12 @@ console.log('failedSeats seats',holdResult.failedSeats);
         seatIds
       );
 
-         if (!result) {
-      return {
-        success: false,
-        message: "Seats already booked or showtime not found",  // ✅ This means race condition blocked it
-      };
-    }
-
+      if (!result) {
+        return {
+          success: false,
+          message: "Seats already booked or showtime not found", // ✅ This means race condition blocked it
+        };
+      }
 
       this.socketService.emitSeatUpdate(showtimeId, seatIds);
       return {
@@ -976,34 +977,38 @@ console.log('failedSeats seats',holdResult.failedSeats);
 
     return { isValid: true, message: "" };
   }
+private async _processBulkShowtimeCreation(
+  showtimeList: CreateShowtimeDTO[],
+  ownerId: string
+): Promise<{
+  created: number;
+  skipped: number;
+  createdDocs: IMovieShowtime[];
+  errors: string[];
+}> {
+  let created = 0;
+  let skipped = 0;
+  let createdDocs: IMovieShowtime[] = [];
+  const errors: string[] = [];
 
-  private async _processBulkShowtimeCreation(
-    showtimeList: CreateShowtimeDTO[],
-    ownerId: string
-  ): Promise<{
-    created: number;
-    skipped: number;
-    createdDocs: IMovieShowtime[];
-    errors: string[];
-  }> {
-    let created = 0;
-    let skipped = 0;
-    let createdDocs: IMovieShowtime[] = [];
-    const errors: string[] = [];
-
-    for (const st of showtimeList) {
-      const result = await this.createShowtime(st, ownerId);
-      if (result.success && result.data) {
-        created++;
-        createdDocs.push(result.data);
-      } else {
-        skipped++;
-        errors.push(result.message);
-      }
+  for (const st of showtimeList) {
+    const result = await this.createShowtime(st, ownerId);
+    
+    if (result.success && result.data) {
+      created++;
+      createdDocs.push(result.data);
+    } else {
+      skipped++;
+      
+      // ✅ Format error with date and time
+      const formattedDate = this._formatDate(st.showDate);
+      const errorMessage = `${formattedDate} at ${st.showTime}: ${result.message}`;
+      errors.push(errorMessage);
     }
-
-    return { created, skipped, createdDocs, errors };
   }
+
+  return { created, skipped, createdDocs, errors };
+}
 
   private async _checkShowtimeOverlap(
     showtimeData: CreateShowtimeDTO
@@ -1035,6 +1040,14 @@ console.log('failedSeats seats',holdResult.failedSeats);
 
     return { hasOverlap: false, message: "" };
   }
+private _formatDate(date: string | Date): string {
+  const d = new Date(date);
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  });
+}
 
   private _prepareShowtimeCreateData(
     showtimeData: CreateShowtimeDTO
