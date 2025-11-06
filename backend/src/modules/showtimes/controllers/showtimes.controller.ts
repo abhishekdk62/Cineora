@@ -204,7 +204,7 @@ export class ShowtimeController {
         return;
       }
 
-      const { page, limit } = req.query;
+      const { page, limit,filter } = req.query;
 
       if (page && limit) {
         const paginationQuery: PaginationQueryDto = {
@@ -215,7 +215,8 @@ export class ShowtimeController {
         const result = await this._showtimeService.getShowtimesByOwnerIdPaginated(
           ownerId,
           paginationQuery.page,
-          paginationQuery.limit
+          paginationQuery.limit,
+          filter
         );
 
         res.status(StatusCodes.OK).json(

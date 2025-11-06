@@ -275,24 +275,150 @@ export class ShowtimeRepository implements IShowtimeRepository {
     }
   }
 
-  async getShowtimesByOwnerIdPaginated(
-    ownerId: string,
-    skip: number,
-    limit: number
-  ): Promise<IMovieShowtime[]> {
-    try {
-      return await MovieShowtime.find({ ownerId })
-        .skip(skip)
-        .limit(limit)
-        .populate("movieId")
-        .populate("theaterId")
-        .populate("screenId")
-        .sort({ createdAt: 1 });
-    } catch (error) {
-      console.error("Error finding showtimes by owner id paginated:", error);
-      throw error;
+async getShowtimesByOwnerIdPaginated(
+  ownerId: string,
+  skip: number,
+  limit: number,
+  filter?: "upcoming" | "past"
+): Promise<IMovieShowtime[]> {
+  try {
+    let query: any = { ownerId };
+
+    const now = new Date();
+    const nowUTC = new Date(
+      Date.UTC(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        now.getHours(),
+        now.getMinutes(),
+        now.getSeconds()
+      )
+    );
+
+    // Apply filter using full datetime comparison
+    if (filter === "upcoming") {
+      query.$expr = {
+        $gte: [
+          {
+            $dateFromString: {
+              dateString: {
+                $concat: [
+                  { $dateToString: { date: "$showDate", format: "%Y-%m-%d" } },
+                  "T",
+                  "$showTime",
+                ],
+              },
+            },
+          },
+          nowUTC,
+        ],
+      };
+    } else if (filter === "past") {
+      query.$expr = {
+        $lt: [
+          {
+            $dateFromString: {
+              dateString: {
+                $concat: [
+                  { $dateToString: { date: "$showDate", format: "%Y-%m-%d" } },
+                  "T",
+                  "$showTime",
+                ],
+              },
+            },
+          },
+          nowUTC,
+        ],
+      };
     }
+
+    console.log("Filter:", filter);
+    console.log("Query:", JSON.stringify(query, null, 2));
+
+    const results = await MovieShowtime.find(query)
+      .skip(skip)
+      .limit(limit)
+      .populate("movieId")
+      .populate("theaterId")
+      .populate("screenId")
+      .sort({
+        showDate: filter === "past" ? -1 : 1,
+        showTime: filter === "past" ? -1 : 1,
+      });
+
+    console.log(`✅ Found ${results.length} ${filter || "all"} showtimes`);
+    return results;
+  } catch (error) {
+    console.error("❌ Error finding showtimes by owner id paginated:", error);
+    throw error;
   }
+}
+
+async countShowtimesByOwnerId(
+  ownerId: string,
+  filter?: "upcoming" | "past"
+): Promise<number> {
+  try {
+    let query: any = { ownerId };
+
+    const now = new Date();
+    const nowUTC = new Date(
+      Date.UTC(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        now.getHours(),
+        now.getMinutes(),
+        now.getSeconds()
+      )
+    );
+
+    if (filter === "upcoming") {
+      query.$expr = {
+        $gte: [
+          {
+            $dateFromString: {
+              dateString: {
+                $concat: [
+                  { $dateToString: { date: "$showDate", format: "%Y-%m-%d" } },
+                  "T",
+                  "$showTime",
+                ],
+              },
+            },
+          },
+          nowUTC,
+        ],
+      };
+    } else if (filter === "past") {
+      query.$expr = {
+        $lt: [
+          {
+            $dateFromString: {
+              dateString: {
+                $concat: [
+                  { $dateToString: { date: "$showDate", format: "%Y-%m-%d" } },
+                  "T",
+                  "$showTime",
+                ],
+              },
+            },
+          },
+          nowUTC,
+        ],
+      };
+    }
+
+    const count = await MovieShowtime.countDocuments(query);
+    console.log(`📊 Count for ${filter || "all"} showtimes:`, count);
+    return count;
+  } catch (error) {
+    console.error("❌ Error counting showtimes by owner id:", error);
+    throw error;
+  }
+}
+
 
   async getShowtimesByFilters(filters: {
     theaterId: string;
@@ -301,6 +427,8 @@ export class ShowtimeRepository implements IShowtimeRepository {
     endDate: Date;
   }): Promise<IMovieShowtime[]> {
     try {
+      let query: any = { ownerId };
+
       return await MovieShowtime.find({
         theaterId: filters.theaterId,
         screenId: filters.screenId,
@@ -320,14 +448,7 @@ export class ShowtimeRepository implements IShowtimeRepository {
     }
   }
 
-  async countShowtimesByOwnerId(ownerId: string): Promise<number> {
-    try {
-      return await MovieShowtime.countDocuments({ ownerId });
-    } catch (error) {
-      console.error("Error counting showtimes by owner id:", error);
-      throw error;
-    }
-  }
+
 
   async getShowtimesByOwnerId(ownerId: string): Promise<IMovieShowtime[]> {
     try {
