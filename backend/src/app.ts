@@ -406,7 +406,7 @@ export class App {
     );
     this._app.use("/api/health", (req, res) => {
       res.status(200).json({ message: "done", time: new Date() });
-    });
+    }); 
     this._app.use("/api/auth", authRoutes.getRouter());
     this._app.use(
       "/api/staff",
