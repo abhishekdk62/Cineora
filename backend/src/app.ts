@@ -235,14 +235,14 @@ export class App {
       ownerRepo,
       otpRepo,
       emailService,
-      ownerRequestRepo,
+      ownerRequestRepo
       // redisService
     );
     const analyticsService = new AnalyticsService(analyticsRepository);
     const adminAnalyticsService = new AdminAnalyticsService(
       adminAnalyticsRepository
     );
-    
+
     const reviewService = new ReviewService(reviewRepo);
     const couponService = new CouponService(couponRepo);
     const userController = new UserController(
@@ -277,7 +277,7 @@ export class App {
       notificationService,
       notificationScheduler,
       theaterService,
-      paymentService,
+      paymentService
     );
     const showtimeController = new ShowtimeController(showtimeService);
     const theaterController = new TheaterController(
@@ -285,7 +285,7 @@ export class App {
       screenService,
       reviewService
     );
-const staffRepo=new StaffRepository()
+    const staffRepo = new StaffRepository();
     const moviesController = new MoviesController(movieService, reviewService);
     const authController = new AuthController(authService);
     const walletController = new WalletController(
@@ -295,7 +295,12 @@ const staffRepo=new StaffRepository()
     const notificationController = new NotificationController(
       notificationService
     );
-    const staffService=new StaffService(staffRepo,userRepo,ownerRepo,ownerRequestRepo)
+    const staffService = new StaffService(
+      staffRepo,
+      userRepo,
+      ownerRepo,
+      ownerRequestRepo
+    );
     const inviteGroupService = new InviteGroupService(
       inviteGroupRepo,
       this._socketService,
@@ -374,7 +379,11 @@ const staffRepo=new StaffRepository()
       paymentController,
       staffController
     );
-    const staffRoutes=new StaffRoutes(express.Router(),ticketController,staffController)
+    const staffRoutes = new StaffRoutes(
+      express.Router(),
+      ticketController,
+      staffController
+    );
 
     const ownerReqRoutes = new OwnerRequestRoute(
       express.Router(),
@@ -395,9 +404,16 @@ const staffRepo=new StaffRepository()
       authController,
       userController
     );
-
+    this._app.use("/api/health", (req, res) => {
+      res.status(200).json({ message: "done", time: new Date() });
+    });
     this._app.use("/api/auth", authRoutes.getRouter());
-    this._app.use("/api/staff",authenticateToken,requireStaff, staffRoutes.getRouter());
+    this._app.use(
+      "/api/staff",
+      authenticateToken,
+      requireStaff,
+      staffRoutes.getRouter()
+    );
     this._app.use(
       "/api/users",
       authenticateToken,

@@ -60,6 +60,8 @@ export class ChatRoomController {
         data: chatRooms
       });
     } catch (error) {
+      console.log(error);
+      
       res.status(500).json({
         success: false,
         message: 'Failed to get user chat rooms',

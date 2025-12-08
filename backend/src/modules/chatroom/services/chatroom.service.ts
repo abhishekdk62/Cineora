@@ -36,9 +36,11 @@ export class ChatRoomService implements IChatRoomService {
     return chatRooms.map((room) => this.transformToResponseDto(room));
   }
 
-  async joinChatRoom(data: AddParticipantDto,userId:string): Promise<ChatRoomResponseDto> {
-    
-    const chatRoom = await this.chatRoomRepository.addParticipant(data,userId);
+  async joinChatRoom(
+    data: AddParticipantDto,
+    userId: string
+  ): Promise<ChatRoomResponseDto> {
+    const chatRoom = await this.chatRoomRepository.addParticipant(data, userId);
     if (!chatRoom) {
       throw new Error("Chat room not found");
     }
@@ -66,48 +68,49 @@ export class ChatRoomService implements IChatRoomService {
   }
 
   private transformToResponseDto(chatRoom: IChatRoom): ChatRoomResponseDto {
+    console.log(chatRoom);
+  
     return {
       _id: chatRoom._id.toString(),
       inviteGroupId: chatRoom.inviteGroupId.toString(),
       inviteId: chatRoom.inviteId,
       roomName: chatRoom.roomName,
-      roomType: chatRoom.roomType, 
+      roomType: chatRoom.roomType,
       isActive: chatRoom.isActive,
-
-      movieInfo: {
-        _id:
-          (chatRoom.movieId as string)._id?.toString() ||
-          chatRoom.movieId.toString(),
-        title: (chatRoom.movieId as string).title || "Unknown Movie",
-        poster: (chatRoom.movieId as string).poster || "",
-      },
+  
+      // ✅ Using optional chaining - cleaner approach
+      movieInfo: chatRoom.movieId ? {
+        _id: (chatRoom.movieId as any)?._id?.toString() ?? chatRoom.movieId.toString(),
+        title: (chatRoom.movieId as any)?.title ?? "Unknown Movie",
+        poster: (chatRoom.movieId as any)?.poster ?? "",
+      } : null,
+  
       theaterInfo: {
-        _id:
-          (chatRoom.theaterId as string)._id?.toString() ||
-          chatRoom.theaterId.toString(),
-        name: (chatRoom.theaterId as string).name || "Unknown Theater",
+        _id: (chatRoom.theaterId as any)?._id?.toString() ?? chatRoom.theaterId.toString(),
+        name: (chatRoom.theaterId as any)?.name ?? "Unknown Theater",
       },
+  
       showDate: chatRoom.showDate,
       showTime: chatRoom.showTime,
-
-      participants: (chatRoom.participants as string[]).map((p) => ({
-        _id: p._id?.toString() || p.toString(),
-        username: p.username || "Unknown User",
+  
+      participants: (chatRoom.participants as any[])?.map((p) => ({
+        _id: p?._id?.toString() ?? p.toString(),
+        username: p?.username ?? "Unknown User",
         seatAssigned: undefined,
-      })),
-      participantCount: chatRoom.participants.length,
-
+      })) ?? [],
+      
+      participantCount: chatRoom.participants?.length ?? 0,
+  
       createdBy: {
-        _id:
-          (chatRoom.createdBy as string)._id?.toString() ||
-          chatRoom.createdBy.toString(),
-        username: (chatRoom.createdBy as string).username || "Unknown User",
+        _id: (chatRoom.createdBy as any)?._id?.toString() ?? chatRoom.createdBy.toString(),
+        username: (chatRoom.createdBy as any)?.username ?? "Unknown User",
       },
-
+  
       createdAt: chatRoom.createdAt,
       updatedAt: chatRoom.updatedAt,
       lastMessageAt: chatRoom.lastMessageAt,
       expiresAt: chatRoom.expiresAt,
     };
   }
+  
 }
