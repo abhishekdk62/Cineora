@@ -22,7 +22,7 @@ import { ICouponService } from "../../coupons/interfaces/coupons.service.interfa
 import mongoose from "mongoose";
 import { bookingInfo } from "../../tickets/dtos/dto";
 import { IPaymentService } from "../../payment/interfaces/payment.service.interface";
-import redis from "../../../config/redis.config";
+// import redis from "../../../config/redis.config";
 
 export class BookingController {
   constructor(
@@ -56,47 +56,47 @@ export class BookingController {
         );
       }
 
-      const walletData = await redis.get(
-        `wallet_idempotency:${walletTransactionId}`
-      );
+      // const walletData = await redis.get(
+      //   `wallet_idempotency:${walletTransactionId}`
+      // );
 
-      if (walletData) {
-        const wallet = JSON.parse(walletData);
+      // if (walletData) {
+      //   const wallet = JSON.parse(walletData);
 
-        if (wallet.userId !== userId) {
-          return this._sendErrorResponse(
-            res,
-            400,
-            "Unauthorized - Wallet transaction mismatch"
-          );
-        }
-        console.log("wallet idem", wallet);
+      //   if (wallet.userId !== userId) {
+      //     return this._sendErrorResponse(
+      //       res,
+      //       400,
+      //       "Unauthorized - Wallet transaction mismatch"
+      //     );
+      //   }
+      //   console.log("wallet idem", wallet);
 
-        await redis.del(`wallet_idempotency:${walletTransactionId}`);
-      } else {
-        const orderData = await redis.get(
-          `razorpay_order:${walletTransactionId}`
-        );
+      //   await redis.del(`wallet_idempotency:${walletTransactionId}`);
+      // } else {
+      //   const orderData = await redis.get(
+      //     `razorpay_order:${walletTransactionId}`
+      //   );
 
-        if (!orderData) {
-          return this._sendErrorResponse(
-            res,
-            400,
-            "Invalid or expired order ID"
-          );
-        }
-        const order = JSON.parse(orderData);
-        if (order.userId !== userId) {
-          return this._sendErrorResponse(
-            res,
-            403,
-            "Unauthorized - Order belongs to different user"
-          );
-        }
-        if (order.amount !== bookingDto.totalAmount) {
-          return this._sendErrorResponse(res, 400, "Order amount mismatch");
-        }
-        await redis.del(`razorpay_order:${walletTransactionId}`);
+        // if (!orderData) {
+        //   return this._sendErrorResponse(
+        //     res,
+        //     400,
+        //     "Invalid or expired order ID"
+        //   );
+        // }
+        // const order = JSON.parse(orderData);
+        // if (order.userId !== userId) {
+        //   return this._sendErrorResponse(
+        //     res,
+        //     403,
+        //     "Unauthorized - Order belongs to different user"
+        //   );
+        // }
+        // if (order.amount !== bookingDto.totalAmount) {
+        //   return this._sendErrorResponse(res, 400, "Order amount mismatch");
+        // }
+        // await redis.del(`razorpay_order:${walletTransactionId}`);
       }
 
       if (!userId) {

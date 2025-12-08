@@ -97,7 +97,7 @@ import { ChatRoomController } from "./modules/chatroom/controllers/chatroom.cont
 import { ChatMessageController } from "./modules/messages/controllers/messages.controller";
 import { StaffController } from "./modules/staff/controller/staff.controller";
 import { StaffRoutes } from "./modules/staff/routes/staff.routes";
-import { RedisService } from "./services/redis.service";
+// import { RedisService } from "./services/redis.service";
 import { StaffService } from "./modules/staff/services/staff.service";
 import { StaffRepository } from "./modules/staff/repositories/staff.repositories";
 

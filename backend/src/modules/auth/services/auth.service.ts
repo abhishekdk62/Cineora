@@ -28,7 +28,7 @@ import {
 import { Staff } from "../../staff/model/staff.model";
 import { UserResponseDto } from "../../user/dtos/dto";
 import { UserInfo } from "os";
-import { RedisService } from "../../../services/redis.service";
+// import { RedisService } from "../../../services/redis.service";
 interface LoginResponse {
   success: boolean;
   message: string;
@@ -51,7 +51,7 @@ export class AuthService implements IAuthService {
     private readonly _otpRepo: OTPRepository,
     private readonly _emailService: EmailService,
     private readonly _ownerRequestRepo: OwnerRequestRepository,
-    private readonly _redisService?: RedisService
+    // private readonly _redisService?: RedisService
   ) {
     this._googleClient = new OAuth2Client(config.googleClientId);
   }

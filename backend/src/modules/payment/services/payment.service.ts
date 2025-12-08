@@ -21,7 +21,7 @@ import {
 import { IWalletRepository } from "../../wallet/interfaces/wallet.repository.interface";
 import { IWalletTransaction } from "../../walletTransaction/interfaces/walletTransaction.model.interface";
 import { IWalletTransactionRepository } from "../../walletTransaction/interfaces/walletTransaction.repository.interface";
-import redis from "../../../config/redis.config";
+// import redis from "../../../config/redis.config";
 
 export class PaymentService implements IPaymentService {
   private readonly _razorpay: Razorpay;
@@ -98,16 +98,16 @@ export class PaymentService implements IPaymentService {
     
     
     const order = await this._razorpay.orders.create(options);
-        await redis.setex(
-      `razorpay_order:${order.id}`,
-      120, 
-      JSON.stringify({
-        userId: orderData.userId,
-        amount: orderData.amount / 100,
-        orderId: order.id,
-        createdAt: Date.now()
-      })
-    );
+    //     await redis.setex(
+    //   `razorpay_order:${order.id}`,
+    //   120, 
+    //   JSON.stringify({
+    //     userId: orderData.userId,
+    //     amount: orderData.amount / 100,
+    //     orderId: order.id,
+    //     createdAt: Date.now()
+    //   })
+    // );
 
     await this._paymentRepository.createPaymentRecord({
       paymentId: paymentId,
