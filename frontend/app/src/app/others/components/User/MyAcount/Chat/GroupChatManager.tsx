@@ -109,6 +109,8 @@ const GroupChatManager: React.FC = () => {
     const fetchUserChatRooms = async () => {
       try {
         const res = await getUserChatRooms();
+        console.log('room',res);
+        
         if (res.success && res.data) {
           const rooms: ChatRoom[] = res.data.map((room: ChatRoom) => ({
             id: room._id,
@@ -124,7 +126,10 @@ const GroupChatManager: React.FC = () => {
         } else {
           setChatRooms([]);
         }
-      } catch {
+      } catch(err) {
+        console.log(err);
+        
+
         setChatRooms([]);
       }
     };
