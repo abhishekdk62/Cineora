@@ -97,7 +97,7 @@ export class BookingController {
         //   return this._sendErrorResponse(res, 400, "Order amount mismatch");
         // }
         // await redis.del(`razorpay_order:${walletTransactionId}`);
-      }
+      // }
 
       if (!userId) {
         return this._sendErrorResponse(
