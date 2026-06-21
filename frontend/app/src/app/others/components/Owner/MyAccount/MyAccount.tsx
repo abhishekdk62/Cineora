@@ -5,6 +5,8 @@ import { Lexend } from "next/font/google";
 import {
   getOwnerProfile,
 } from "@/app/others/services/ownerServices/ownerServices";
+import { OwnerResponseDto } from "@/app/others/dtos/owner.dto";
+import { getApiErrorMessage } from "@/app/others/types/common.types";
 import toast from "react-hot-toast";
 import LoadingState from "./LoadingState";
 import ErrorState from "./ErrorState";
@@ -46,6 +48,27 @@ export interface UserProfile {
   createdAt: string;
   updatedAt: string;
 }
+
+const mapOwnerToUserProfile = (data: OwnerResponseDto): UserProfile => ({
+  _id: data._id,
+  ownerName: data.ownerName,
+  phone: data.phone,
+  email: data.email,
+  aadhaar: data.aadhaar,
+  pan: data.pan,
+  accountHolder: data.accountHolder ?? "",
+  bankName: data.bankName ?? "",
+  accountNumber: data.accountNumber ?? "",
+  ifsc: data.ifsc ?? "",
+  aadhaarUrl: data.aadhaarUrl,
+  panUrl: data.panUrl,
+  ownerPhotoUrl: data.ownerPhotoUrl ?? "",
+  isActive: data.isActive,
+  isVerified: data.isVerified,
+  lastLogin: data.lastLogin ? String(data.lastLogin) : "",
+  createdAt: String(data.createdAt),
+  updatedAt: String(data.updatedAt),
+});
 
 export interface PersonalDetails {
   ownerName: string;
@@ -100,23 +123,20 @@ const MyAccount: React.FC = () => {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [docs, setDocs] = useState([])
 
   async function getOwnerDetails() {
     try {
       setLoading(true);
       const response = await getOwnerProfile();
-      
-      console.log('Full API Response:', response);
-      console.log('Response data:', response.data);
-      
       const profileData = response.data;
-      
-      // Set the profile state
-      setProfile(profileData);
-      setDocs(profileData); 
-      
-      console.log('Profile Data:', profileData);
+
+      if (!profileData) {
+        toast.error("No profile data found");
+        return;
+      }
+
+      const mappedProfile = mapOwnerToUserProfile(profileData);
+      setProfile(mappedProfile);
       
       // Map bank details
       setBankDetails({
@@ -143,7 +163,7 @@ const MyAccount: React.FC = () => {
       
     } catch (error) {
       console.error("Error fetching owner profile:", error);
-      toast.error("Failed to load profile data");
+      toast.error(getApiErrorMessage(error, "Failed to load profile data"));
     } finally {
       setLoading(false);
     }
@@ -177,10 +197,7 @@ const MyAccount: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <ProfileOverviewCard 
-            profile={profile}
-            docs={docs}
-          />
+          <ProfileOverviewCard profile={profile} />
 
           <div className="lg:col-span-2 space-y-6">
             <PersonalDetailsSection
@@ -228,7 +245,6 @@ const MyAccount: React.FC = () => {
         <KYCModal
           show={showKYCModal}
           onClose={() => setShowKYCModal(false)}
-          docs={docs}
           profile={profile}
         />
       </div>

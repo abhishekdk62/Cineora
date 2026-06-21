@@ -11,6 +11,7 @@ import AddMoneyModal from './AddMoneyModal';
 import toast from 'react-hot-toast';
 import { createRazorpayOrder, verifyRazorpayPayment } from '@/app/others/services/userServices/paypalServices';
 import FailureStep from './FailureStep';
+import type { WalletTransactionResponseDto } from '@/app/others/dtos/wallet.dto';
 
 
 const lexendBold = { className: "font-bold" };
@@ -58,9 +59,20 @@ const WalletPage: React.FC = () => {
         console.log('Wallet data:', walletResult.data);
         const transactionResult = await getTransactionDetails();
         console.log('Transaction data:', transactionResult);
+        const rawTransactions = (transactionResult.data || []) as WalletTransactionResponseDto[];
         setWalletData({
           balance: walletResult.data?.balance || 0,
-          transactions: transactionResult.data || []
+          transactions: rawTransactions.map((tx) => ({
+            _id: tx._id,
+            type: tx.type,
+            amount: tx.amount,
+            description: tx.description,
+            createdAt: String(tx.createdAt),
+            status: tx.status,
+            category: tx.category,
+            transactionId: tx.transactionId,
+            referenceId: tx.referenceId,
+          })),
         });
         setLoading(false);
       } catch (error) {
@@ -205,12 +217,12 @@ const WalletPage: React.FC = () => {
 
       const razorpayInstance = new window.Razorpay(options);
 
-      razorpayInstance.on('payment.failed', function (response: {error:unknown;}) {
+      razorpayInstance.on('payment.failed', function (response: { error: { description?: string } }) {
         isPaymentProcessing = true;
         console.error('Payment failed:', response.error);
         razorpayInstance.close();
 
-        const errorMessage = response.error.description || 'Payment failed';
+        const errorMessage = response.error?.description || 'Payment failed';
         toast.error(errorMessage);
         setShowAddMoneyModal(false)
         setIsProcessing(false);

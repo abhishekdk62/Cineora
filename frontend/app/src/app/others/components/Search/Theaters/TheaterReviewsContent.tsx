@@ -15,7 +15,7 @@ const lexendMedium = Lexend({
   subsets: ["latin"],
 });
 
-interface Review {
+export interface Review {
   _id: string;
   bookingId: string;
   createdAt: string;
@@ -36,7 +36,7 @@ interface Review {
   };
 }
 
-interface ReviewsData {
+export interface ReviewsData {
   averageRating: number;
   limit: number;
   page: number;
@@ -45,7 +45,7 @@ interface ReviewsData {
   totalPages: number;
 }
 
-interface RatingStats {
+export interface RatingStats {
   averageRating: number;
   totalReviews: number;
   ratingDistribution: { [key: number]: number };

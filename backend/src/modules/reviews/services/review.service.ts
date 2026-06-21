@@ -1,15 +1,18 @@
 import { IReviewRepository } from "../interfaces/review.repository.interface";
 import { IReviewService } from "../interfaces/review.service.interface";
+import { AddReviewDto, UpdateReviewDto, ReviewsListResponseDto, RatingStatsDto } from "../dtos/dtos";
+import { IReview } from "../interfaces/review.model.interface";
+import { getErrorMessage } from "../../../utils/errorUtil";
 
 export class ReviewService implements IReviewService {
   constructor(private readonly _reviewRepo: IReviewRepository) {}
   async addReview(
     userId: string,
-    reviewData: ReviewResponseDto
+    reviewData: AddReviewDto
   ): Promise<{
     success: boolean;
     message?: string;
-    data?: ReviewResponseDto;
+    data?: IReview;
   }> {
     try {
       const hasReviewed = await this._reviewRepo.hasUserReviewed(
@@ -39,7 +42,7 @@ export class ReviewService implements IReviewService {
     } catch (error: unknown) {
       return {
         success: false,
-        message: error.message || "Failed to add review",
+        message: getErrorMessage(error),
       };
     }
   }
@@ -48,11 +51,11 @@ export class ReviewService implements IReviewService {
   async updateReview(
     reviewId: string,
     userId: string,
-    reviewData: ReviewResponseDto
+    reviewData: UpdateReviewDto
   ): Promise<{
     success: boolean;
     message?: string;
-    data?: ReviewResponseDto;
+    data?: IReview;
   }> {
     try {
       const updated = await this._reviewRepo.updateReview(reviewId, reviewData);
@@ -72,7 +75,7 @@ export class ReviewService implements IReviewService {
     } catch (error: unknown) {
       return {
         success: false,
-        message: error.message || "Failed to update review",
+        message: getErrorMessage(error),
       };
     }
   }
@@ -101,7 +104,7 @@ export class ReviewService implements IReviewService {
     } catch (error: unknown) {
       return {
         success: false,
-        message: error.message || "Failed to delete review",
+        message: getErrorMessage(error) || "Failed to delete review",
       };
     }
   }
@@ -113,7 +116,7 @@ export class ReviewService implements IReviewService {
     limit: number = 10
   ): Promise<{
     success: boolean;
-    data?: ReviewResponseDto;
+    data?: ReviewsListResponseDto["data"];
     message?: string;
   }> {
     try {
@@ -130,12 +133,13 @@ export class ReviewService implements IReviewService {
           page,
           limit,
           totalPages: Math.ceil(result.total / limit),
+          averageRating: (result as { averageRating?: number }).averageRating ?? 0,
         },
       };
     } catch (error: unknown) {
       return {
         success: false,
-        message: error.message || "Failed to get movie reviews",
+        message: getErrorMessage(error) || "Failed to get movie reviews",
       };
     }
   }
@@ -197,7 +201,7 @@ async getBulkTheaterRatings(theaterIds: string[]): Promise<{
     limit: number = 10
   ): Promise<{
     success: boolean;
-    data?: ReviewResponseDto;
+    data?: ReviewsListResponseDto["data"];
     message?: string;
   }> {
     try {
@@ -214,12 +218,13 @@ async getBulkTheaterRatings(theaterIds: string[]): Promise<{
           page,
           limit,
           totalPages: Math.ceil(result.total / limit),
+          averageRating: (result as { averageRating?: number }).averageRating ?? 0,
         },
       };
     } catch (error: unknown) {
       return {
         success: false,
-        message: error.message || "Failed to get theater reviews",
+        message: getErrorMessage(error) || "Failed to get theater reviews",
       };
     }
   }
@@ -230,7 +235,7 @@ async getBulkTheaterRatings(theaterIds: string[]): Promise<{
     limit: number = 10
   ): Promise<{
     success: boolean;
-    data?: ReviewResponseDto;
+    data?: ReviewsListResponseDto["data"];
     message?: string;
   }> {
     try {
@@ -243,19 +248,20 @@ async getBulkTheaterRatings(theaterIds: string[]): Promise<{
           page,
           limit,
           totalPages: Math.ceil(result.total / limit),
+          averageRating: (result as { averageRating?: number }).averageRating ?? 0,
         },
       };
     } catch (error: unknown) {
       return {
         success: false,
-        message: error.message || "Failed to get user reviews",
+        message: getErrorMessage(error) || "Failed to get user reviews",
       };
     }
   }
 
   async getMovieRatingStats(movieId: string): Promise<{
     success: boolean;
-    data?: ReviewResponseDto;
+    data?: RatingStatsDto;
   }> {
     try {
       const stats = await this._reviewRepo.getMovieRatingStats(movieId);
@@ -273,7 +279,7 @@ async getBulkTheaterRatings(theaterIds: string[]): Promise<{
 
   async getTheaterRatingStats(theaterId: string): Promise<{
     success: boolean;
-    data?: ReviewResponseDto;
+    data?: RatingStatsDto;
   }> {
     try {
       const stats = await this._reviewRepo.getTheaterRatingStats(theaterId);
@@ -310,7 +316,7 @@ async getBulkTheaterRatings(theaterIds: string[]): Promise<{
     } catch (error: unknown) {
       return {
         success: false,
-        message: error.message || "Failed to mark as helpful",
+        message: getErrorMessage(error) || "Failed to mark as helpful",
       };
     }
   }
@@ -336,7 +342,7 @@ async getBulkTheaterRatings(theaterIds: string[]): Promise<{
     } catch (error: unknown) {
       return {
         success: false,
-        message: error.message || "Failed to report review",
+        message: getErrorMessage(error) || "Failed to report review",
       };
     }
   }

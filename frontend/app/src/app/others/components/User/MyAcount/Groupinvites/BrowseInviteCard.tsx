@@ -38,7 +38,7 @@ const BrowseInviteCard: React.FC<Props> = ({ invite, onJoin, onRefresh }) => {
   const [isTimerExpired, setIsTimerExpired] = useState(false);
 
   const dispatch = useDispatch();
-  const user = useSelector((state) => state.auth.user);
+  const user = useSelector((state: RootState) => state.auth.user);
 const [showEtiquetteModal, setShowEtiquetteModal] = useState(false);
 
   const isCompleted = invite.status === 'completed' || invite.availableSlots === 0;
@@ -68,8 +68,11 @@ const [showEtiquetteModal, setShowEtiquetteModal] = useState(false);
       const response = await leaveInviteGroup(invite.inviteId);
       console.log('left the shit', response);
 
-      let amount = response.data.removedParticipant.amount;
-      let ticketId = response.data.removedParticipant.ticketId;
+      const leaveData = response.data as {
+        removedParticipant: { amount?: number; ticketId?: string };
+      };
+      const amount = leaveData.removedParticipant.amount;
+      const ticketId = leaveData.removedParticipant.ticketId;
 
       if (!ticketId || !amount) {
         console.error(' Missing ticket data:', { ticketId, amount });
@@ -77,9 +80,12 @@ const [showEtiquetteModal, setShowEtiquetteModal] = useState(false);
         return;
       }
 
-      const res = await cancelSingleTicket([ticketId], amount);
-      const dat = await getChatRoomByInvite(invite.inviteId)
-      const resp = await leaveChatRoom({ chatRoomId: dat.data.inviteGroupId, userId: id })
+      const res = await cancelSingleTicket([ticketId]);
+      const dat = await getChatRoomByInvite(invite.inviteId);
+      const resp = await leaveChatRoom({
+        chatRoomId: dat.data.inviteGroupId as string,
+        userId: id ?? '',
+      });
       console.log(res);
       console.log(resp);
 
@@ -109,10 +115,10 @@ const [showEtiquetteModal, setShowEtiquetteModal] = useState(false);
   const joinedCount = invite.totalSlotsRequested - currentAvailableSlots;
   const progressPercentage = Math.round((joinedCount / invite.totalSlotsRequested) * 100);
 
-  const getOccupiedSeatsFromCurrent = (participants: string[]) => {
+  const getOccupiedSeatsFromCurrent = (participants: GroupInvite['participants']) => {
     return participants
-      .filter(p => p.role !== 'host')
-      .map(p => p.seatAssigned);
+      .filter((p) => p.role !== 'host')
+      .map((p) => p.seatAssigned);
   };
 
   const occupiedSeats = getOccupiedSeatsFromCurrent(currentParticipants);
@@ -185,8 +191,14 @@ const [showEtiquetteModal, setShowEtiquetteModal] = useState(false);
   setShowEtiquetteModal(false);
 
 
+    const nextSeat = seatInfo.nextSeat;
+    if (!nextSeat) {
+      toast.error('No seats available');
+      return;
+    }
+
     const bookingData = {
-      userId: user?.id || user?.userId || user?._id,
+      userId: user?.id,
       movieId: invite.movieId._id,
       theaterId: invite.theaterId._id,
       screenId: invite.screenId._id,
@@ -197,20 +209,26 @@ const [showEtiquetteModal, setShowEtiquetteModal] = useState(false);
         discountPercentage: invite.couponUsed.discountPercentage,
         name: invite.couponUsed.couponName,
         uniqueId: invite.couponUsed.couponCode,
+        maxUsageCount: 0,
+        isActive: true,
       } : undefined,
 
-      paymentStatus: 'pending',
-      bookingStatus: 'pending',
+      paymentStatus: 'pending' as const,
+      bookingStatus: 'pending' as const,
 
-      selectedSeats: [seatInfo.nextSeat.seatNumber],
+      selectedSeats: [nextSeat.seatNumber],
       selectedSeatIds: [],
+      selectedRows: [],
+      selectedRowIds: [],
 
       seatPricing: [{
-        rowId: seatInfo?.nextSeat?._id,
-        seatType: seatInfo?.nextSeat?.seatType as "VIP" | "Premium" | "Normal",
-        basePrice: seatInfo?.priceBreakdown?.originalPrice,
-        finalPrice: seatInfo?.priceBreakdown?.discountedPrice,
-        rowLabel: seatInfo?.nextSeat?.seatRow,
+        rowId: nextSeat._id ?? nextSeat.seatRow ?? "",
+        seatType: (nextSeat.seatType ?? "Normal") as "VIP" | "Premium" | "Normal",
+        basePrice: seatInfo.priceBreakdown.originalPrice,
+        finalPrice: seatInfo.priceBreakdown.discountedPrice,
+        rowLabel: nextSeat.seatRow ?? "",
+        seatsSelected: [nextSeat.seatNumber],
+        seatCount: 1,
       }],
 
       priceDetails: {
@@ -223,15 +241,17 @@ const [showEtiquetteModal, setShowEtiquetteModal] = useState(false);
 
       totalAmount: seatInfo.priceBreakdown.finalAmount,
       amount: seatInfo.priceBreakdown.finalAmount,
+      tax: seatInfo.priceBreakdown.tax,
 
       showDate: invite.showDate,
       showTime: invite.showTime,
 
       contactInfo: {
         email: user?.email || "",
+        phone: "",
       },
 
-      paymentMethod: "",
+      paymentMethod: "" as const,
 
       movieTitle: invite.movieId.title,
       theaterName: invite.theaterId.name,
@@ -242,9 +262,7 @@ const [showEtiquetteModal, setShowEtiquetteModal] = useState(false);
   };
 
   const isUserParticipant = currentParticipants.some(participant =>
-    participant.userId === user.id ||
-    participant.userId === user._id ||
-    participant.userId === user.userId
+    participant.userId === user?.id
   );
 
   const handleClose = () => {

@@ -21,6 +21,8 @@ const ADMIN_ANALYTICS_ROUTES = {
 
   FINANCIAL: '/admin/analytics/financial' as const,
 
+  DATA_ANALYTICS: '/admin/analytics/data/analytics' as const,
+
   GROWTH: '/admin/analytics/growth' as const,
 
   OPERATIONAL: '/admin/analytics/operational' as const,

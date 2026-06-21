@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { Request, Response } from "express";
 import { IAdminAnalyticsService } from "../interfaces/adminAnalytics.service.interface";
 import { ANALYTICS_MESSAGES } from "../../../utils/messages.constants";
@@ -16,7 +17,7 @@ export class AdminAnalyticsController {
   }
 
   private handleError(res: Response, error: unknown): void {
-    const errorMessage = error instanceof Error ? error.message : "Internal Server Error";
+    const errorMessage = error instanceof Error ? getErrorMessage(error) : "Internal Server Error";
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
       createResponse({
         success: false,
@@ -25,7 +26,7 @@ export class AdminAnalyticsController {
     );
   }
 
-  async getComprehensiveAnalytics(req: Request, res: Response): Promise<void> {
+  async getComprehensiveAnalytics(req: Request, res: Response) {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
       
@@ -52,7 +53,7 @@ export class AdminAnalyticsController {
     }
   }
 
-  async getRevenueAnalytics(req: Request, res: Response): Promise<void> {
+  async getRevenueAnalytics(req: Request, res: Response) {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
       
@@ -79,7 +80,7 @@ export class AdminAnalyticsController {
     }
   }
 
-  async getMonthlyRevenueTrends(req: Request, res: Response): Promise<void> {
+  async getMonthlyRevenueTrends(req: Request, res: Response) {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
       
@@ -106,7 +107,7 @@ export class AdminAnalyticsController {
     }
   }
 
-  async getDailyRevenueTrends(req: Request, res: Response): Promise<void> {
+  async getDailyRevenueTrends(req: Request, res: Response) {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
       
@@ -133,7 +134,7 @@ export class AdminAnalyticsController {
     }
   }
 
-  async getTheaterWiseRevenue(req: Request, res: Response): Promise<void> {
+  async getTheaterWiseRevenue(req: Request, res: Response) {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
       
@@ -160,7 +161,7 @@ export class AdminAnalyticsController {
     }
   }
 
-  async getOwnerWiseRevenue(req: Request, res: Response): Promise<void> {
+  async getOwnerWiseRevenue(req: Request, res: Response) {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
       
@@ -187,7 +188,7 @@ export class AdminAnalyticsController {
     }
   }
 
-  async getMovieWiseRevenue(req: Request, res: Response): Promise<void> {
+  async getMovieWiseRevenue(req: Request, res: Response) {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
       
@@ -214,7 +215,7 @@ export class AdminAnalyticsController {
     }
   }
 
-  async getPerformanceMetrics(req: Request, res: Response): Promise<void> {
+  async getPerformanceMetrics(req: Request, res: Response) {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
       
@@ -241,7 +242,7 @@ export class AdminAnalyticsController {
     }
   }
 
-  async getOccupancyAnalytics(req: Request, res: Response): Promise<void> {
+  async getOccupancyAnalytics(req: Request, res: Response) {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
       
@@ -268,7 +269,7 @@ export class AdminAnalyticsController {
     }
   }
 
-  async getTimeSlotPerformance(req: Request, res: Response): Promise<void> {
+  async getTimeSlotPerformance(req: Request, res: Response) {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
       
@@ -295,7 +296,7 @@ export class AdminAnalyticsController {
     }
   }
 
-  async getCustomerInsights(req: Request, res: Response): Promise<void> {
+  async getCustomerInsights(req: Request, res: Response) {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
       
@@ -322,7 +323,7 @@ export class AdminAnalyticsController {
     }
   }
 
-  async getCustomerSatisfaction(req: Request, res: Response): Promise<void> {
+  async getCustomerSatisfaction(req: Request, res: Response) {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
       
@@ -349,7 +350,7 @@ export class AdminAnalyticsController {
     }
   }
 
-  async getMoviePerformance(req: Request, res: Response): Promise<void> {
+  async getMoviePerformance(req: Request, res: Response) {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
       
@@ -376,7 +377,7 @@ export class AdminAnalyticsController {
     }
   }
 
-  async getTopPerformingMovies(req: Request, res: Response): Promise<void> {
+  async getTopPerformingMovies(req: Request, res: Response) {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
       const limit = parseInt(req.query.limit as string) || 10;
@@ -404,7 +405,7 @@ export class AdminAnalyticsController {
     }
   }
 
-  async getMovieFormatAnalytics(req: Request, res: Response): Promise<void> {
+  async getMovieFormatAnalytics(req: Request, res: Response) {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
       
@@ -431,7 +432,7 @@ export class AdminAnalyticsController {
     }
   }
 
-  async getFinancialKPIs(req: Request, res: Response): Promise<void> {
+  async getFinancialKPIs(req: Request, res: Response) {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
       
@@ -457,7 +458,7 @@ export class AdminAnalyticsController {
       this.handleError(res, error);
     }
   }
-  async getAdminAnalyticData(req: Request, res: Response): Promise<void> {
+  async getAdminAnalyticData(req: Request, res: Response) {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
       
@@ -486,7 +487,7 @@ export class AdminAnalyticsController {
   }
 
 
-  async getGrowthRates(req: Request, res: Response): Promise<void> {
+  async getGrowthRates(req: Request, res: Response) {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
       
@@ -513,7 +514,7 @@ export class AdminAnalyticsController {
     }
   }
 
-  async getOperationalAnalytics(req: Request, res: Response): Promise<void> {
+  async getOperationalAnalytics(req: Request, res: Response) {
     try {
       const dateRange = this.buildDateRangeFromRequest(req);
       

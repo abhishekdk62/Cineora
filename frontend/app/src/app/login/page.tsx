@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Aurora from "../others/components/ReactBits/Aurora";
+import DynamicAurora from "../others/components/ReactBits/DynamicAurora";
 import { Lexend } from "next/font/google";
 import AuthForm from "../others/components/Auth/AuthForm";
 import { useAppDispatch, useAppSelector } from "../others/redux/hooks/redux";
@@ -11,9 +11,8 @@ import {
   clearError,
   googleLogin,
 } from "../others/redux/slices/authSlice";
-import { googleAuth } from "../others/services/authServices/authService";
 import RouteGuard from "../others/components/Auth/common/RouteGuard";
-import { GoogleCredentialResponse } from "../others/types";
+import { CredentialResponse } from "@react-oauth/google";
 
 const lexend = Lexend({
   weight: "500",
@@ -56,7 +55,7 @@ export default function LoginPage() {
       console.error("Login error:", err);
     }
   };
-  const handleGoogleSuccess = async (credentialResponse: GoogleCredentialResponse) => {
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     dispatch(clearError());
 
     try {
@@ -65,7 +64,9 @@ export default function LoginPage() {
 
       if (googleLogin.fulfilled.match(resultAction)) {
         const data = resultAction.payload;
-        redirectBasedOnRole(data.user.role);
+        if (data?.user?.role) {
+          redirectBasedOnRole(data.user.role);
+        }
       } else {
         console.error("Google auth failed:", resultAction);
       }
@@ -103,7 +104,7 @@ export default function LoginPage() {
     <RouteGuard allowUnauthenticated={true} excludedRoles={['admin', 'owner', 'user']}>
       <div className="min-h-screen relative flex items-center justify-center bg-black overflow-hidden p-4">
         <div className="absolute inset-0 z-0">
-          <Aurora
+          <DynamicAurora
             colorStops={["#5B2EFF", "#FF5A3C", "#2EFF68"]}
             blend={0.5}
             amplitude={1.0}

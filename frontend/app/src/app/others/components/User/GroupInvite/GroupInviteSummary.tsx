@@ -7,13 +7,13 @@ import { AvailableSeatsDetails } from "./AvailableSeatsDetails";
 import { GroupSettings } from "./GroupSettings";
 import { GroupPriceSummary } from "./GroupPriceSummary";
 import { GroupCouponDetails } from "../Payment/GroupCouponDetails";
-import { CouponData } from "@/app/others/types";
+import { CouponData, GroupInviteData } from "@/app/others/types";
 
 const lexendMedium = Lexend({ weight: "400", subsets: ["latin"] });
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
 
 interface GroupInviteSummaryProps {
-  data: CouponData;
+  data: GroupInviteData;
   onCreateInvite: () => void;
   onRatingChange: (rating: number | undefined) => void;
   minRating?: number;

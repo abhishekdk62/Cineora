@@ -1,29 +1,42 @@
 "use client";
 
 import React, { useState } from "react";
-import { Lexend } from "next/font/google";
 import Sidebar from "@/app/others/components/Admin/Dashboard/Sidebar";
-import MoviesManager from "@/app/others/components/Admin/Dashboard/Movies/MoviesManager";
+import { lexendMedium as lexend } from "@/app/others/Utils/fonts";
 import { AdminProvider } from "@/app/others/components/Admin/Dashboard/AdminContext";
-import OwnersManager from "@/app/others/components/Admin/Dashboard/Owners/OwnerManager";
-import UsersManager from "@/app/others/components/Admin/Dashboard/User/UserManager";
-import RoleCheck from "@/app/others/components/Auth/common/RouteGuard";
 import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
-import ScreenAndShowManager from "@/app/others/components/Admin/Dashboard/Screens/ScreenAndShowManager";
-import BookingsManager from "@/app/others/components/Admin/Dashboard/Bookings/BookingsManager";
-import AnalyticsManager from "@/app/others/components/Admin/Dashboard/Analytics/AnalyticsManager";
-import AdminWalletManager from "@/app/others/components/Admin/Dashboard/Wallet/AdminWalletManager";
-import CouponManagement from "@/app/others/components/Admin/Dashboard/Coupon/CouponManagement";
-import StaffManager from "@/app/others/components/Admin/Dashboard/Staff/StaffManager";
-import AdminAnalyticsDashboard from "@/app/others/components/Admin/Dashboard/File";
+import { lazyPanel } from "@/app/others/components/utils/dynamicPanels";
 
-const lexend = Lexend({
-  weight: "500",
-  subsets: ["latin"],
-});
+const MoviesManager = lazyPanel(
+  () => import("@/app/others/components/Admin/Dashboard/Movies/MoviesManager")
+);
+const OwnersManager = lazyPanel(
+  () => import("@/app/others/components/Admin/Dashboard/Owners/OwnerManager")
+);
+const UsersManager = lazyPanel(
+  () => import("@/app/others/components/Admin/Dashboard/User/UserManager")
+);
+const ScreenAndShowManager = lazyPanel(
+  () => import("@/app/others/components/Admin/Dashboard/Screens/ScreenAndShowManager")
+);
+const BookingsManager = lazyPanel(
+  () => import("@/app/others/components/Admin/Dashboard/Bookings/BookingsManager")
+);
+const AdminWalletManager = lazyPanel(
+  () => import("@/app/others/components/Admin/Dashboard/Wallet/AdminWalletManager")
+);
+const AdminAnalyticsDashboard = lazyPanel(
+  () => import("@/app/others/components/Admin/Dashboard/File")
+);
+const CouponManagement = lazyPanel(
+  () => import("@/app/others/components/Admin/Dashboard/Coupon/CouponManagement")
+);
+const StaffManager = lazyPanel(
+  () => import("@/app/others/components/Admin/Dashboard/Staff/StaffManager")
+);
 
-const lexendMedium = { fontFamily: 'Lexend', fontWeight: '500' };
-const lexendSmall = { fontFamily: 'Lexend', fontWeight: '400' };
+const lexendMedium = { fontFamily: "Lexend", fontWeight: "500" };
+const lexendSmall = { fontFamily: "Lexend", fontWeight: "400" };
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("movies");
@@ -37,18 +50,18 @@ const AdminDashboard = () => {
         return <OwnersManager />;
       case "users":
         return <UsersManager />;
-      case 'screens':
-        return <ScreenAndShowManager />
-      case 'bookings':
-        return <BookingsManager />
-      case 'wallet':
-        return <AdminWalletManager />
-      case 'analytics':
-        return <AdminAnalyticsDashboard />
-      case 'coupon':
-        return <CouponManagement lexend={lexend} />
-      case 'staff':
-        return <StaffManager />
+      case "screens":
+        return <ScreenAndShowManager />;
+      case "bookings":
+        return <BookingsManager />;
+      case "wallet":
+        return <AdminWalletManager />;
+      case "analytics":
+        return <AdminAnalyticsDashboard />;
+      case "coupon":
+        return <CouponManagement lexend={lexend} />;
+      case "staff":
+        return <StaffManager />;
       default:
         return (
           <div className="flex items-center justify-center h-96">
@@ -56,7 +69,9 @@ const AdminDashboard = () => {
               <h2 className="text-2xl text-yellow-400 mb-2" style={lexendMedium}>
                 {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
               </h2>
-              <p className="text-gray-300" style={lexendSmall}>This section is under development</p>
+              <p className="text-gray-300" style={lexendSmall}>
+                This section is under development
+              </p>
             </div>
           </div>
         );

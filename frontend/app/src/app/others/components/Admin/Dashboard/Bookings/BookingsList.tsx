@@ -43,7 +43,7 @@ const BookingsList: React.FC<BookingsListProps> = ({ theaterId, ownerId, theater
     500
   );
 
-  const fetchBookings = async (filters: string = {}) => {
+  const fetchBookings = async (filters: { search?: string; status?: string; page?: number } = {}) => {
     try {
       setIsLoading(true);
       
@@ -90,7 +90,7 @@ const BookingsList: React.FC<BookingsListProps> = ({ theaterId, ownerId, theater
       // setTotalItems(response.data.totalCount);
       // setTotalPages(response.data.totalPages);
       
-    } catch (error: string) {
+    } catch (error: unknown) {
       console.error("Error fetching bookings:", error);
       toast.error("Failed to load bookings");
       setBookings([]);

@@ -5,8 +5,8 @@ import { Search, Filter, Building } from 'lucide-react';
 interface Theater {
   _id: string;
   name: string;
-  city: string;
-  state: string;
+  city?: string;
+  state?: string;
 }
 
 interface StaffFiltersProps {

@@ -6,7 +6,7 @@ import { ScreenController } from "../../screens/controllers/screens.controller";
 import { ShowtimeController } from "../../showtimes/controllers/showtimes.controller";
 import { TheaterController } from "../../theaters/controllers/theaters.controller";
 import { UserController } from "../../user/controllers/user.controller";
-import { WalletController } from "../../wallet/dtos/controllers/wallet.controller";
+import { WalletController } from "../../wallet/controllers/wallet.controller";
 import { WalletTransactionController } from "../../walletTransaction/controllers/walletTransaction.controller";
 import { CouponController } from "../../coupons/controllers/coupons.controller";
 import { BookingController } from "../../bookings/controllers/bookings.controller";

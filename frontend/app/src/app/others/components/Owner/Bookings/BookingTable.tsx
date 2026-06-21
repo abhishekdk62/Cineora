@@ -1,14 +1,15 @@
-
 "use client";
 
 import React from "react";
 import { Mail, CreditCard, Check, X, Clock, User, RefreshCcw } from "lucide-react";
+import type { NextFontInstance, OwnerBookingRecord } from '@/app/others/types';
+import { isPopulatedRef } from '@/app/others/types';
 
 interface BookingTableProps {
-  bookings: string[];
+  bookings: OwnerBookingRecord[];
   isLoading: boolean;
-  lexendMedium: string;
-  lexendSmall: string;
+  lexendMedium: NextFontInstance;
+  lexendSmall: NextFontInstance;
 }
 
 const BookingTable: React.FC<BookingTableProps> = ({
@@ -194,13 +195,13 @@ const BookingTable: React.FC<BookingTableProps> = ({
             <div className="flex items-center gap-2 mb-1">
               <User className="w-3 h-3 text-gray-400" />
               <p className={`${lexendMedium.className} text-white text-sm`}>
-                {booking.userId?.email || booking.contactInfo?.email || 'N/A'}
+                {(isPopulatedRef(booking.userId) ? booking.userId.email : undefined) || booking.contactInfo?.email || 'N/A'}
               </p>
             </div>
             <div className="flex items-center gap-1">
               <Mail className="w-3 h-3 text-gray-400" />
               <p className={`${lexendSmall.className} text-gray-400 text-xs truncate`}>
-                ID: {booking.userId?._id?.slice(-8) || 'N/A'}
+                ID: {(isPopulatedRef(booking.userId) ? booking.userId._id?.slice(-8) : undefined) || 'N/A'}
               </p>
             </div>
           </div>
@@ -249,17 +250,17 @@ const BookingTable: React.FC<BookingTableProps> = ({
 
           {/* Payment Status */}
           <div>
-            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${getStatusColor(booking.paymentStatus)}`}>
-              {getStatusIcon(booking.paymentStatus)}
+            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${getStatusColor(booking.paymentStatus || '')}`}>
+              {getStatusIcon(booking.paymentStatus || '')}
               <span className={`${lexendSmall.className} text-xs font-medium capitalize`}>
-                {booking.paymentStatus}
+                {booking.paymentStatus || 'N/A'}
               </span>
             </div>
           </div>
 
           {/* Booking Status */}
           <div>
-            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${getBookingStatusColor(booking.bookingStatus)}`}>
+            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${getBookingStatusColor(booking.bookingStatus || '')}`}>
               <span className={`${lexendSmall.className} text-xs font-medium capitalize`}>
                 {booking.bookingStatus}
               </span>
@@ -277,17 +278,17 @@ const BookingTable: React.FC<BookingTableProps> = ({
           {/* Date/Time */}
           <div>
             <p className={`${lexendSmall.className} text-white text-sm`}>
-              {new Date(booking.bookedAt).toLocaleDateString('en-IN', {
+              {booking.bookedAt ? new Date(booking.bookedAt).toLocaleDateString('en-IN', {
                 month: 'short',
                 day: 'numeric',
                 year: 'numeric'
-              })}
+              }) : 'N/A'}
             </p>
             <p className={`${lexendSmall.className} text-gray-400 text-xs`}>
-              {new Date(booking.bookedAt).toLocaleTimeString('en-IN', {
+              {booking.bookedAt ? new Date(booking.bookedAt).toLocaleTimeString('en-IN', {
                 hour: '2-digit',
                 minute: '2-digit'
-              })}
+              }) : 'N/A'}
             </p>
           </div>
         </div>

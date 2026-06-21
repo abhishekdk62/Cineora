@@ -1,7 +1,9 @@
+import type { NextFontInstance } from '@/app/others/types';
+import { TimeSlotDto } from '../../../dtos/analytics.dto';
 import React, { useState, useEffect } from 'react';
 import { Activity, Layers, DollarSign, Clock, TrendingUp } from 'lucide-react';
 
-import { AnalyticsQueryDto } from '../../../dtos/analytics.dto';
+import { AnalyticsQueryDto, PerformanceMetricsDto } from '../../../dtos/analytics.dto';
 import { getPerformanceMetricsApi } from '@/app/others/services/commonServices/analyticServices';
 import { LoadingCard } from './LoadingCard';
 import { MetricCard } from './MetricCard';
@@ -9,8 +11,8 @@ import { TimeSlotBarChart } from './Charts';
 
 interface PerformanceMetricsSectionProps {
   dateRange: AnalyticsQueryDto;
-  lexendMedium: string;
-  lexendSmall: string;
+  lexendMedium: NextFontInstance;
+  lexendSmall: NextFontInstance;
 }
 
 export const PerformanceMetricsSection: React.FC<PerformanceMetricsSectionProps> = ({
@@ -19,7 +21,7 @@ export const PerformanceMetricsSection: React.FC<PerformanceMetricsSectionProps>
   lexendSmall
 }) => {
   const [loading, setLoading] = useState(true);
-  const [metrics, setMetrics] = useState<string>(null);
+  const [metrics, setMetrics] = useState<PerformanceMetricsDto | null>(null);
 
   useEffect(() => {
     if (dateRange.startDate && dateRange.endDate) {
@@ -31,7 +33,7 @@ export const PerformanceMetricsSection: React.FC<PerformanceMetricsSectionProps>
     setLoading(true);
     try {
       const response = await getPerformanceMetricsApi(dateRange);
-      setMetrics(response.data);
+      setMetrics(response.data ?? null);
     } catch (error) {
       console.error('Error fetching performance metrics:', error);
     } finally {
@@ -55,10 +57,10 @@ export const PerformanceMetricsSection: React.FC<PerformanceMetricsSectionProps>
   return (
     <div className="space-y-6">
       <div>
-        <h2 className={`text-2xl text-white mb-2`} style={lexendMedium}>
+        <h2 className={`text-2xl text-white mb-2`} style={lexendMedium.style}>
           Performance Metrics
         </h2>
-        <p className={`text-gray-400`} style={lexendSmall}>
+        <p className={`text-gray-400`} style={lexendSmall.style}>
           Track key performance indicators across your shows
         </p>
       </div>
@@ -86,7 +88,7 @@ export const PerformanceMetricsSection: React.FC<PerformanceMetricsSectionProps>
         
         <MetricCard
           title="Total Shows"
-          value={metrics.revenuePerShow.length}
+          value={metrics.revenuePerScreen.length}
           subtitle="Active performances"
           icon={Activity}
           color="purple"
@@ -104,41 +106,41 @@ export const PerformanceMetricsSection: React.FC<PerformanceMetricsSectionProps>
 
       {/* Time Slot Performance */}
       <div className="bg-black/90 backdrop-blur-sm border border-gray-500/30 rounded-2xl p-6">
-        <h3 className={`text-lg text-white mb-4`} style={lexendMedium}>
+        <h3 className={`text-lg text-white mb-4`} style={lexendMedium.style}>
           Performance by Time Slot
         </h3>
         <div className="space-y-3">
-          {metrics.timeSlotPerformance.map((slot: string) => (
+          {metrics.timeSlotPerformance.map((slot: TimeSlotDto) => (
             <div key={slot.timeSlot} className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-500/20 rounded-lg">
                   <Clock className="w-5 h-5 text-blue-400" />
                 </div>
                 <div>
-                  <p className={`text-white font-medium`} style={lexendMedium}>
+                  <p className={`text-white font-medium`} style={lexendMedium.style}>
                     {slot.timeSlot}
                   </p>
-                  <p className={`text-gray-400 text-sm`} style={lexendSmall}>
+                  <p className={`text-gray-400 text-sm`} style={lexendSmall.style}>
                     {slot.totalBookings} bookings
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-6">
                 <div className="text-right">
-                  <p className={`text-white text-sm`} style={lexendMedium}>
+                  <p className={`text-white text-sm`} style={lexendMedium.style}>
                     {slot.avgOccupancy.toFixed(1)}% Occupancy
                   </p>
-                  <p className={`text-gray-400 text-xs`} style={lexendSmall}>
+                  <p className={`text-gray-400 text-xs`} style={lexendSmall.style}>
                     {slot.performance} performance
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className={`text-white text-sm`} style={lexendMedium}>
+                  <p className={`text-white text-sm`} style={lexendMedium.style}>
                     ₹{slot.totalRevenue.toLocaleString('en-IN')}
                   </p>
                   <div className="flex items-center gap-1">
                     <TrendingUp className="w-3 h-3 text-green-400" />
-                    <span className={`text-green-400 text-xs`} style={lexendSmall}>
+                    <span className={`text-green-400 text-xs`} style={lexendSmall.style}>
                       Revenue
                     </span>
                   </div>

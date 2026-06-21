@@ -2,7 +2,7 @@
 import dynamic from "next/dynamic";
 import type React from "react";
 import { useState } from "react";
-import Aurora from "../others/components/ReactBits/Aurora";
+import DynamicAurora from "../others/components/ReactBits/DynamicAurora";
 import { Lexend } from "next/font/google";
 import { useRouter } from "next/navigation";
 import ForgotPassword from "../others/components/Auth/ForgotPassword";
@@ -83,7 +83,7 @@ export default function ForgotPasswordPage() {
      <RouteGuard excludedRoles={['admin','owner','user']}>
     <div className="min-h-screen relative flex items-center justify-center bg-black overflow-hidden p-4">
       <div className="absolute inset-0 z-0">
-        <Aurora
+        <DynamicAurora
           colorStops={["#5B2EFF", "#FF5A3C", "#2EFF68"]}
           blend={0.5}
           amplitude={1.0}

@@ -1,10 +1,11 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { Request, Response } from "express";
 
 import { IFavoriteService } from "../interfaces/favorite.service.interface";
 export class MovieFavoriteController {
   constructor(private readonly _favoriteService: IFavoriteService) {}
 
-  async addToFavorites(req: Request, res: Response): Promise<void> {
+  async addToFavorites(req: Request, res: Response) {
     try {
       const { movieId } = req.body as { movieId: string };
       const userId = req.user?.id; 
@@ -26,12 +27,12 @@ export class MovieFavoriteController {
     } catch (error: unknown) {
       res.status(500).json({
         success: false,
-        message: error.message || "Internal server error",
+        message: getErrorMessage(error) || "Internal server error",
       });
     }
   }
 
-  async removeFromFavorites(req: Request, res: Response): Promise<void> {
+  async removeFromFavorites(req: Request, res: Response) {
     try {
       const { movieId } = req.params;
       const userId = req.user?.id;
@@ -48,12 +49,12 @@ export class MovieFavoriteController {
     } catch (error: unknown) {
       res.status(500).json({
         success: false,
-        message: error.message || "Internal server error",
+        message: getErrorMessage(error) || "Internal server error",
       });
     }
   }
 
-  async getUserFavorites(req: Request, res: Response): Promise<void> {
+  async getUserFavorites(req: Request, res: Response) {
     try {
       const userId = req.user?.id;
       const page = parseInt(req.query.page as string) || 1;
@@ -70,12 +71,12 @@ export class MovieFavoriteController {
     } catch (error: unknown) {
       res.status(500).json({
         success: false,
-        message: error.message || "Internal server error",
+        message: getErrorMessage(error) || "Internal server error",
       });
     }
   }
 
-  async toggleFavorite(req: Request, res: Response): Promise<void> {
+  async toggleFavorite(req: Request, res: Response) {
     try {
       const { movieId } = req.body as { movieId: string };
       const userId = req.user?.id;
@@ -96,12 +97,12 @@ export class MovieFavoriteController {
     } catch (error: unknown) {
       res.status(500).json({
         success: false,
-        message: error.message || "Internal server error",
+        message: getErrorMessage(error) || "Internal server error",
       });
     }
   }
 
-  async isFavorite(req: Request, res: Response): Promise<void> {
+  async isFavorite(req: Request, res: Response) {
     try {
       
       const { movieId } = req.params;
@@ -121,12 +122,12 @@ export class MovieFavoriteController {
     } catch (error: unknown) {
       res.status(500).json({
         success: false,
-        message: error.message || "Internal server error",
+        message: getErrorMessage(error) || "Internal server error",
       });
     }
   }
 
-  async getFavoriteCount(req: Request, res: Response): Promise<void> {
+  async getFavoriteCount(req: Request, res: Response) {
     try {
       const { movieId } = req.params;
 
@@ -139,7 +140,7 @@ export class MovieFavoriteController {
     } catch (error: unknown) {
       res.status(500).json({
         success: false,
-        message: error.message || "Internal server error",
+        message: getErrorMessage(error) || "Internal server error",
       });
     }
   }

@@ -6,53 +6,49 @@ import {
   createCoupon,
   updateCoupon,
 } from "@/app/others/services/ownerServices/couponServices";
-import { CouponResponseDto, CreateCouponRequestDto, UpdateCouponRequestDto } from "@/app/others/dtos/coupon.dto";
+import {
+  CouponResponseDto,
+  CreateCouponRequestDto,
+  UpdateCouponRequestDto,
+} from "@/app/others/dtos/coupon.dto";
+import { TheaterResponseDto } from "@/app/others/dtos/theater.dto";
+import { getApiErrorMessage } from "@/app/others/types/common.types";
 import { Ticket } from "lucide-react";
 import { getTheatersByOwnerId } from "@/app/others/services/ownerServices/theaterServices";
 import toast from "react-hot-toast";
-import { da } from "zod/v4/locales";
-
-
 
 const CouponsManager: React.FC = () => {
   const [editingCoupon, setEditingCoupon] = useState<CouponResponseDto | null>(null);
   const [saving, setSaving] = useState(false);
   const [refreshFlag, setRefreshFlag] = useState(false);
-  const [theaters,setTheaters]=useState([])
+  const [theaters, setTheaters] = useState<TheaterResponseDto[]>([]);
 
   const onCreate = async (data: CreateCouponRequestDto) => {
     setSaving(true);
     try {
-      console.log(data);
-      
-      console.log(await createCoupon(data));
-
-
+      await createCoupon(data);
       setEditingCoupon(null);
-      setRefreshFlag(prev => !prev);
-    } catch(error) {
-      alert();
-      toast.error('Failed to create coupon!')
-      console.log(error);
-      
+      setRefreshFlag((prev) => !prev);
+      toast.success("Coupon created successfully");
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Failed to create coupon"));
     } finally {
       setSaving(false);
     }
   };
-  useEffect(()=>{
-    getTheatersByownerId()
-  },[])
-  const getTheatersByownerId=async()=>{
+
+  useEffect(() => {
+    getTheatersByownerId();
+  }, []);
+
+  const getTheatersByownerId = async () => {
     try {
-      const response=await getTheatersByOwnerId()
-      
-      setTheaters(response.data.theaters)
+      const response = await getTheatersByOwnerId();
+      setTheaters(response.data?.theaters ?? []);
     } catch (error) {
-      console.log(error);
-      
-      
+      console.error(getApiErrorMessage(error, "Failed to load theaters"));
     }
-  }
+  };
 
   const onUpdate = async (data: UpdateCouponRequestDto) => {
     if (!editingCoupon) return;
@@ -60,9 +56,10 @@ const CouponsManager: React.FC = () => {
     try {
       await updateCoupon(editingCoupon._id, data);
       setEditingCoupon(null);
-      setRefreshFlag(prev => !prev);
-    } catch {
-      alert("Failed to update coupon!");
+      setRefreshFlag((prev) => !prev);
+      toast.success("Coupon updated successfully");
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Failed to update coupon"));
     } finally {
       setSaving(false);
     }
@@ -80,7 +77,7 @@ const CouponsManager: React.FC = () => {
       theaterIds: [],
       discountPercentage: 10,
       description: "",
-      expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       isActive: true,
       isUsed: false,
       maxUsageCount: 1,
@@ -88,13 +85,22 @@ const CouponsManager: React.FC = () => {
       createdBy: "",
       createdAt: new Date(),
       updatedAt: new Date(),
-    } as CouponResponseDto);
+    });
+  };
+
+  const handleCouponSubmit = async (
+    data: CreateCouponRequestDto | UpdateCouponRequestDto
+  ) => {
+    if (editingCoupon?._id) {
+      await onUpdate(data as UpdateCouponRequestDto);
+    } else {
+      await onCreate(data as CreateCouponRequestDto);
+    }
   };
 
   return (
     <div className="min-h-screen bg-black p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="flex justify-between items-center mb-8 bg-black/40 backdrop-blur-lg rounded-3xl p-8 border border-white/10">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl">
@@ -116,20 +122,9 @@ const CouponsManager: React.FC = () => {
 
         {editingCoupon ? (
           <CouponForm
-            initialData={{
-              name: editingCoupon.name,
-              uniqueId: editingCoupon.uniqueId,
-              theaterIds: editingCoupon.theaterIds?.map(t => typeof t === 'string' ? t : t._id) || [],
-              discountPercentage: editingCoupon.discountPercentage,
-              description: editingCoupon.description,
-              expiryDate: editingCoupon.expiryDate instanceof Date 
-                ? editingCoupon.expiryDate.toISOString().split('T')[0]
-                : new Date(editingCoupon.expiryDate).toISOString().split('T')[0],
-              maxUsageCount: editingCoupon.maxUsageCount,
-              minAmount:editingCoupon.minAmount
-            }}
-            theaterOptions={theaters}
-            onSubmit={editingCoupon._id ? onUpdate : onCreate}
+            initialData={editingCoupon}
+            theaterOptions={theaters.map((t) => ({ id: t._id, name: t.name }))}
+            onSubmit={handleCouponSubmit}
             onCancel={onCancel}
             saving={saving}
             isEditing={!!editingCoupon._id}

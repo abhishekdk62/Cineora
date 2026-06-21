@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import * as bcrypt from "bcryptjs";
 import { IEmailService } from "../../../services/email.service";
 import { config } from "../../../config";
@@ -121,12 +122,13 @@ export class UserService implements IUserService {
 
       const newUser = await this.userRepository.create({
         ...validOTP.userData,
+        gender: validOTP.userData.gender as "male" | "female" | "other" | undefined,
         isVerified: true,
         xpPoints: 100,
         joinedAt: new Date(),
         lastActive: new Date(),
         isActive: true,
-      });
+      } as Partial<IUser>);
 
       await this.otpRepository.markAsUsed(validOTP._id as string);
 
@@ -239,7 +241,7 @@ export class UserService implements IUserService {
     id: string,
     updateData: UpdateProfileDto,
     file?: Express.Multer.File
-  ): Promise<ApiResponse<UserResponseDto>> {
+  ): Promise<ApiResponse<UserDto>> {
     try {
       if (updateData.profilePicture?.startsWith("data:image") || file) {
         try {
@@ -294,7 +296,7 @@ export class UserService implements IUserService {
   async getNearbyUsers(
     userId: string,
     maxDistance: number = 5000
-  ): Promise<ApiResponse<UserResponseDto[]>> {
+  ): Promise<ApiResponse<UserDto[]>> {
     try {
       const user = await this.userRepository.findById(userId);
 
@@ -434,6 +436,7 @@ export class UserService implements IUserService {
         isUsed: false,
         userData: {
           id,
+          email: user.email,
           oldEmail: user.email,
         },
       });
@@ -611,21 +614,21 @@ export class UserService implements IUserService {
       }
 
       if (search) {
-        result.users = this._filterUsersBySearch(result.users, search);
+        result.data = this._filterUsersBySearch(result.data, search);
       }
 
       if (isVerified !== undefined) {
-        result.users = result.users.filter(
+        result.data = result.data.filter(
           (user: IUser) => user.isVerified === isVerified
         );
       }
 
       if (sortBy) {
-        result.users = this._sortUsers(result.users, sortBy, sortOrder);
+        result.data = this._sortUsers(result.data, sortBy, sortOrder);
       }
 
-      result.users = this._processUserProfilePictures(result.users);
-      const userDtos = result.users.map((user: IUser) =>
+      result.data = this._processUserProfilePictures(result.data);
+      const userDtos = result.data.map((user: IUser) =>
         UserMapper.toDto(user)
       );
 
@@ -651,7 +654,7 @@ export class UserService implements IUserService {
 
   async toggleUserStatus(
     userId: string
-  ): Promise<ApiResponse<UserResponseDto>> {
+  ): Promise<ApiResponse<UserDto>> {
     try {
       if (!userId) {
         return createResponse({
@@ -681,7 +684,7 @@ export class UserService implements IUserService {
     }
   }
 
-  async getUserDetails(userId: string): Promise<ApiResponse<UserResponseDto>> {
+  async getUserDetails(userId: string): Promise<ApiResponse<UserDto>> {
     try {
       if (!userId) {
         return createResponse({
@@ -810,8 +813,9 @@ export class UserService implements IUserService {
     sortOrder: string
   ): IUser[] {
     return users.sort((a: IUser, b: IUser) => {
-      let aValue = a[sortBy];
-      let bValue = b[sortBy];
+      const sortKey = sortBy as keyof IUser;
+      let aValue = a[sortKey];
+      let bValue = b[sortKey];
 
       if (
         sortBy.includes("Date") ||
@@ -850,7 +854,7 @@ export class UserService implements IUserService {
   ): ApiResponse<any> {
     console.error("Service error:", error);
     const errorMessage =
-      error instanceof Error ? error.message : defaultMessage;
+      error instanceof Error ? getErrorMessage(error) : defaultMessage;
 
     return createResponse({
       success: false,

@@ -7,7 +7,7 @@ interface Transaction {
   amount: number;
   category: string;
   description: string;
-  createdAt: string;
+  createdAt: string | Date;
   status: string;
   referenceId?: string;
 }
@@ -32,7 +32,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transactions })
     }).format(amount);
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | Date) => {
     return new Date(dateString).toLocaleDateString('en-IN', {
       day: 'numeric',
       month: 'short',

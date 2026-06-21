@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import mongoose, { Types } from "mongoose";
 import { IShowtimeRepository } from "../interfaces/showtimes.repository.interface";
 import { IShowtimeService } from "../interfaces/showtimes.service.interface";
@@ -1077,9 +1078,12 @@ private _formatDate(date: string | Date): string {
       "ageRestriction",
     ];
 
-    const updates: any = {};
+    const updates: Record<string, unknown> = {};
     allowedFields.forEach((field) => {
-      if (updateData[field] !== undefined) updates[field] = updateData[field];
+      const key = field as keyof UpdateShowtimeDTO;
+      if (updateData[key] !== undefined) {
+        updates[field] = updateData[key];
+      }
     });
 
     return updates;
@@ -1269,7 +1273,7 @@ private _formatDate(date: string | Date): string {
   ): ServiceResponse<any> {
     return {
       success: false,
-      message: error.message || defaultMessage,
+      message: getErrorMessage(error) || defaultMessage,
     };
   }
 }

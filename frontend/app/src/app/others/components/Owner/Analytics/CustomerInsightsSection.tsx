@@ -90,37 +90,45 @@ export const CustomerInsightsSection: React.FC<OperationalAnalyticsSectionProps>
         getAdvanceBookingTrendsApi(dateRange)
       ]);
 
+      const insightsData = insights.data;
+      const satisfactionData = satisfaction.data;
+      const repeatData = repeatRate.data;
+      const advanceData = advanceBooking.data;
+
       setCustomerData({
-        ...insights,
-        satisfactionScore: satisfaction?.avgRating || 4.2,
-        repeatCustomerRate: repeatRate?.rate || 68.5,
-        advanceBookingTrends: advanceBooking?.trends || [
+        satisfactionScore: satisfactionData?.[0]?.avgRating || 4.2,
+        repeatCustomerRate: repeatData?.repeatRate || 68.5,
+        advanceBookingTrends: advanceData?.map((item) => ({
+          daysInAdvance: item.category,
+          bookings: item.count,
+          percentage: item.percentage,
+        })) || [
           { daysInAdvance: 'Same Day', bookings: 2456, percentage: 35 },
           { daysInAdvance: '1-3 Days', bookings: 1876, percentage: 28 },
           { daysInAdvance: '1 Week', bookings: 1234, percentage: 22 },
           { daysInAdvance: '2+ Weeks', bookings: 876, percentage: 15 }
         ],
-        totalCustomers: insights?.totalCustomers || 12456,
-        newCustomers: insights?.newCustomers || 1245,
-        returningCustomers: insights?.returningCustomers || 8934,
-        avgBookingsPerCustomer: insights?.avgBookingsPerCustomer || 2.3,
-        customerRetentionRate: insights?.retentionRate || 78.5,
-        avgCustomerLifetimeValue: insights?.lifetimeValue || 2850,
-        topCustomerSegments: insights?.segments || [
+        totalCustomers: repeatData?.totalCustomers || 12456,
+        newCustomers: Math.round((repeatData?.totalCustomers || 0) * 0.1) || 1245,
+        returningCustomers: repeatData?.repeatCustomers || 8934,
+        avgBookingsPerCustomer: 2.3,
+        customerRetentionRate: repeatData?.repeatRate || 78.5,
+        avgCustomerLifetimeValue: repeatData?.avgSpendPerCustomer || 2850,
+        topCustomerSegments: [
           { segment: 'Frequent Moviegoers', count: 3421, percentage: 27.5 },
           { segment: 'Weekend Warriors', count: 2876, percentage: 23.1 },
           { segment: 'Family Viewers', count: 2134, percentage: 17.1 },
           { segment: 'Premium Users', count: 1567, percentage: 12.6 },
           { segment: 'Casual Viewers', count: 2458, percentage: 19.7 }
         ],
-        bookingFrequency: insights?.frequency || [
+        bookingFrequency: [
           { frequency: 'Weekly', count: 1245, percentage: 10.0 },
           { frequency: 'Bi-weekly', count: 2876, percentage: 23.1 },
           { frequency: 'Monthly', count: 4567, percentage: 36.7 },
           { frequency: 'Quarterly', count: 2345, percentage: 18.8 },
           { frequency: 'Rarely', count: 1423, percentage: 11.4 }
         ],
-        ageGroups: insights?.ageGroups || [
+        ageGroups: [
           { ageRange: '18-25', count: 3245, percentage: 26.1 },
           { ageRange: '26-35', count: 4567, percentage: 36.7 },
           { ageRange: '36-45', count: 2876, percentage: 23.1 },

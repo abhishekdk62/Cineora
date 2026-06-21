@@ -1,3 +1,4 @@
+import type { NextFontInstance } from '@/app/others/types';
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, DollarSign, Calendar, Building, Monitor } from 'lucide-react';
 
@@ -7,7 +8,7 @@ import {
   getScreenWiseRevenueApi,
   getMovieWiseRevenueApi
 } from '../../../services/commonServices/analyticServices';
-import { AnalyticsQueryDto } from '../../../dtos/analytics.dto';
+import { AnalyticsQueryDto, MonthlyRevenueDto, TheaterRevenueDto, ScreenRevenueDto, MovieRevenueDto } from '../../../dtos/analytics.dto';
 import { LoadingCard } from './LoadingCard';
 import { RevenueSummaryCard } from './RevenueSummaryCard';
 import { MetricCard } from './MetricCard';
@@ -15,8 +16,8 @@ import { RevenueAreaChart } from './Charts';
 
 interface RevenueAnalyticsSectionProps {
   dateRange: AnalyticsQueryDto;
-  lexendMedium: string;
-  lexendSmall: string;
+  lexendMedium: NextFontInstance;
+  lexendSmall: NextFontInstance;
 }
 
 export const RevenueAnalyticsSection: React.FC<RevenueAnalyticsSectionProps> = ({
@@ -25,10 +26,10 @@ export const RevenueAnalyticsSection: React.FC<RevenueAnalyticsSectionProps> = (
   lexendSmall
 }) => {
   const [isLoading, setIsLoading] = useState(true);
-  const [monthlyData, setMonthlyData] = useState<string[]>([]);
-  const [theaterData, setTheaterData] = useState<string[]>([]);
-  const [screenData, setScreenData] = useState<string[]>([]);
-  const [movieData, setMovieData] = useState<string[]>([]);
+  const [monthlyData, setMonthlyData] = useState<MonthlyRevenueDto[]>([]);
+  const [theaterData, setTheaterData] = useState<TheaterRevenueDto[]>([]);
+  const [screenData, setScreenData] = useState<ScreenRevenueDto[]>([]);
+  const [movieData, setMovieData] = useState<MovieRevenueDto[]>([]);
 
   useEffect(() => {
     fetchRevenueData();

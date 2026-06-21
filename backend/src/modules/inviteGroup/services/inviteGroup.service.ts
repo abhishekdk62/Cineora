@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import mongoose, { Types } from "mongoose";
 import { IInviteGroupService } from "../interfaces/inviteGroup.service.interface";
 import { IInviteGroupRepository } from "../interfaces/inviteGroup.repository.interface";
@@ -133,7 +134,7 @@ async createInviteGroup(
   } catch (error) {
     console.error("Service error details:", error);
     const errorMessage =
-      error instanceof Error ? error.message : "Unknown error occurred";
+      error instanceof Error ? getErrorMessage(error) : "Unknown error occurred";
     throw new Error(`Create invite group failed: ${errorMessage}`);
   }
 }
@@ -240,7 +241,7 @@ async createInviteGroup(
     } catch (error) {
       console.error(` [BACKEND] cancelInviteGroup error:`, error);
       const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+        error instanceof Error ? getErrorMessage(error) : "Unknown error occurred";
       return {
         success: false,
         message: `Cancel invite group failed: ${errorMessage}`,
@@ -259,7 +260,7 @@ async createInviteGroup(
       );
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+        error instanceof Error ? getErrorMessage(error) : "Unknown error occurred";
       throw new Error(`Get available invites failed: ${errorMessage}`);
     }
   }
@@ -275,7 +276,7 @@ async createInviteGroup(
       );
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+        error instanceof Error ? getErrorMessage(error) : "Unknown error occurred";
       throw new Error(`Get user invite groups failed: ${errorMessage}`);
     }
   }
@@ -291,7 +292,7 @@ async createInviteGroup(
       );
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+        error instanceof Error ? getErrorMessage(error) : "Unknown error occurred";
       throw new Error(`Get invite groups by showtime failed: ${errorMessage}`);
     }
   }
@@ -414,7 +415,7 @@ async createInviteGroup(
       };
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+        error instanceof Error ? getErrorMessage(error) : "Unknown error occurred";
       return {
         success: false,
         message: `Join invite group failed: ${errorMessage}`,
@@ -469,7 +470,7 @@ async createInviteGroup(
     } catch (error) {
       console.error(` [BACKEND] leaveInviteGroup error:`, error);
       const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+        error instanceof Error ? getErrorMessage(error) : "Unknown error occurred";
       return {
         success: false,
         message: `Leave invite group failed: ${errorMessage}`,

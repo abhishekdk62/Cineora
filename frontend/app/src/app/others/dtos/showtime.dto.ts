@@ -66,8 +66,9 @@ export interface ToggleShowtimeRequestDto {
 export interface GetShowTimesOwnerParamsDto {
   page?: number;
   limit?: number;
+  filter?: "upcoming" | "past";
 }
-interface Seat {
+export interface Seat {
   id: string;
   type: string;
   col: number;
@@ -143,7 +144,7 @@ export interface ShowtimeResponseDto {
   createdAt: Date;
   updatedAt: Date;
 }
-interface Row {
+export interface Row {
   rowLabel: string;
   seats: Seat[];
   offset?: number;

@@ -5,20 +5,41 @@ import { bookTicket, walletBook } from "@/app/others/services/userServices/booki
 import { useRouter } from "next/navigation";
 import PaymentForm from "./PaymentForm";
 import { createRazorpayOrder, verifyRazorpayPayment } from "@/app/others/services/userServices/paypalServices";
+import type { PaymentVerificationData } from "@/app/others/services/userServices/interfaces";
 import toast from "react-hot-toast";
 import { setBookingData } from "@/app/others/redux/slices/bookingSlice";
 import { useDispatch } from "react-redux";
 import { getWallet } from "@/app/others/services/userServices/walletServices";
-import { BookingState } from "@/app/others/types";
+import type { RootState } from "@/app/others/redux/store";
+import type { ShowtimeData } from "@/app/book/tickets/[showtimeId]/page";
 
 interface PaymentModalProps {
   totalAmount: number;
   onClose: () => void;
 }
 
+interface RazorpayPaymentResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+}
+
+interface RazorpayFailedResponse {
+  error: {
+    description?: string;
+    code?: string;
+  };
+}
+
+interface RazorpayInstance {
+  open: () => void;
+  close: () => void;
+  on: (event: string, handler: (response: RazorpayFailedResponse) => void) => void;
+}
+
 declare global {
   interface Window {
-    Razorpay: PaymentModalProps;
+    Razorpay: new (options: Record<string, unknown>) => RazorpayInstance;
   }
 }
 
@@ -29,8 +50,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<paymentTypes>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRazorpayLoaded, setIsRazorpayLoaded] = useState(false);
-  const [walletBalance, setWalletBalance] = useState(null)
-  const bookingDatasRedux = useSelector((state: BookingState) => state.booking.bookingData);
+  const [walletBalance, setWalletBalance] = useState<number | null>(null)
+  const bookingDatasRedux = useSelector((state: RootState) => state.booking.bookingData);
   const dispatch = useDispatch()
   useEffect(() => {
     const loadRazorpayScript = () => {
@@ -56,7 +77,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose
   async function getWalletDetails() {
     try {
       const data = await getWallet()
-      setWalletBalance(data.data.balance)
+      setWalletBalance(data.data?.balance ?? null)
 
     } catch (error) {
       console.log(error);
@@ -66,7 +87,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose
     getWalletDetails()
   }, [])
   const handleRazorpayPayment = async () => {
-    if (!window.Razorpay || !isRazorpayLoaded) {
+    if (!bookingDatasRedux || !window.Razorpay || !isRazorpayLoaded) {
       alert('Razorpay SDK failed to load. Please try again.');
       return;
     }
@@ -92,7 +113,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose
         name: 'Movie Tickets',
         description: 'Movie Ticket Booking',
         order_id: orderId,
-        handler: async (response: PaymentModalProps) => {
+        handler: async (response: RazorpayPaymentResponse) => {
           try {
             isPaymentProcessing = true;
             console.log('Payment successful:', response);
@@ -100,11 +121,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_order_id: response.razorpay_order_id,
               razorpay_signature: response.razorpay_signature,
-              bookingData: bookingDatasRedux
+              bookingData: bookingDatasRedux as unknown as PaymentVerificationData["bookingData"],
             }); 
 
             if (verifyResponse.success) {
-              const bookingResult = await bookTicket(bookingDatasRedux,orderId);
+              await bookTicket(bookingDatasRedux, orderId);
 
               router.push(`/booking/success`);
             } else {
@@ -118,9 +139,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose
           }
         },
         prefill: {
-          name: bookingDatasRedux.userDetails?.name || 'Customer',
-          email: bookingDatasRedux.userDetails?.email || '',
-          contact: bookingDatasRedux.userDetails?.phone || '',
+          name: bookingDatasRedux.contactInfo?.email || 'Customer',
+          email: bookingDatasRedux.contactInfo?.email || '',
+          contact: bookingDatasRedux.contactInfo?.phone || '',
         },
         theme: {
           color: '#ffffff',
@@ -139,7 +160,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose
       };
 
       const razorpayInstance = new window.Razorpay(options);
-      razorpayInstance.on('payment.failed', function (response: PaymentModalProps) {
+      razorpayInstance.on('payment.failed', function (response: RazorpayFailedResponse) {
         isPaymentProcessing = true;
         console.error('Payment failed:', response.error);
 
@@ -169,6 +190,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ totalAmount, onClose
   }
 
   async function handleWalletPayment() {
+    if (!bookingDatasRedux) return;
+
     try {
 
 const idempotencyKey = `${bookingDatasRedux.userId}_${Date.now()}_${crypto.randomUUID()}`;
@@ -180,13 +203,14 @@ const idempotencyKey = `${bookingDatasRedux.userId}_${Date.now()}_${crypto.rando
       // console.log('messi booked',data);
       let walletTransactionId=data.walletTransactionDetails.data.transactionId
       
-      const res = await bookTicket(bookingDatasRedux,idempotencyKey);
+      const res = await bookTicket(bookingDatasRedux, idempotencyKey);
 
       router.push('/booking/success');
     } catch (error: unknown) {
       console.log(error);
-      
-      if (error.response.data.message == 'Insufficient balance') {
+      const apiError = error as { response?: { data?: { message?: string } } };
+
+      if (apiError.response?.data?.message === 'Insufficient balance') {
 
         toast.error(' Insufficient balance 😵‍💫')
 

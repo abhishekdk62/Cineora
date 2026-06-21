@@ -8,7 +8,7 @@ export interface DateRange {
 export interface AnalyticsQueryDto {
   startDate?: string;
   endDate?: string;
-  timeframe?: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+  timeframe?: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom';
   theaterId?: string;
   screenId?: string;
   movieId?: string;

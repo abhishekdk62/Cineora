@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { IInviteGroup } from "../interfaces/inviteGroup.model.interface";
 import { IInviteGroupRepository } from "../interfaces/inviteGroup.repository.interface";
 import InviteGroup from "../models/inviteGroup.model";
@@ -29,7 +30,7 @@ export class InviteGroupRepository implements IInviteGroupRepository {
       return savedInviteGroup;
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+        error instanceof Error ? getErrorMessage(error) : "Unknown error occurred";
       throw new Error(`Create invite group failed: ${errorMessage}`);
     }
   }
@@ -39,7 +40,7 @@ export class InviteGroupRepository implements IInviteGroupRepository {
     filters?: InviteGroupFilterDTO
   ): Promise<IInviteGroup[]> {
     try {
-      const query: FilterQuery = { hostUserId };
+      const query: FilterQuery<Record<string, unknown>> = { hostUserId };
       const inviteGroups = await InviteGroup.find(query)
         .populate("hostUserId", "username profilePicture groupBookingStats")
         .populate("movieId", "title poster")
@@ -53,7 +54,7 @@ export class InviteGroupRepository implements IInviteGroupRepository {
       return inviteGroups;
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+        error instanceof Error ? getErrorMessage(error) : "Unknown error occurred";
       throw new Error(`Find invite groups by host failed: ${errorMessage}`);
     }
   }
@@ -63,7 +64,7 @@ export class InviteGroupRepository implements IInviteGroupRepository {
     filters?: InviteGroupFilterDTO
   ): Promise<IInviteGroup[]> {
     try {
-      const query: FilterQuery = {
+      const query: FilterQuery<Record<string, unknown>> = {
         status: { $ne: "cancelled" },
             hostUserId: { $ne: userId },         
 
@@ -101,7 +102,7 @@ export class InviteGroupRepository implements IInviteGroupRepository {
       return inviteGroups;
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+        error instanceof Error ? getErrorMessage(error) : "Unknown error occurred";
       throw new Error(`Find invites by userId failed: ${errorMessage}`);
     }
   }
@@ -120,7 +121,7 @@ export class InviteGroupRepository implements IInviteGroupRepository {
       return inviteGroup;
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+        error instanceof Error ? getErrorMessage(error) : "Unknown error occurred";
       throw new Error(`Find invite group by invite ID failed: ${errorMessage}`);
     }
   }
@@ -130,7 +131,7 @@ export class InviteGroupRepository implements IInviteGroupRepository {
     filters?: InviteGroupFilterDTO
   ): Promise<IInviteGroup[]> {
     try {
-      const query: FilterQuery = {
+      const query: FilterQuery<Record<string, unknown>> = {
         showtimeId,
 
         status: { $in: filters?.status || ["pending", "active"] },
@@ -144,7 +145,7 @@ export class InviteGroupRepository implements IInviteGroupRepository {
       return inviteGroups;
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+        error instanceof Error ? getErrorMessage(error) : "Unknown error occurred";
       throw new Error(`Find invite groups by showtime failed: ${errorMessage}`);
     }
   }
@@ -217,7 +218,7 @@ export class InviteGroupRepository implements IInviteGroupRepository {
       };
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+        error instanceof Error ? getErrorMessage(error) : "Unknown error occurred";
       throw new Error(`Remove participant failed: ${errorMessage}`);
     }
   }
@@ -249,7 +250,7 @@ export class InviteGroupRepository implements IInviteGroupRepository {
       return updatedInviteGroup;
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+        error instanceof Error ? getErrorMessage(error) : "Unknown error occurred";
       throw new Error(`Update payment status failed: ${errorMessage}`);
     }
   }
@@ -287,7 +288,7 @@ console.log('participantDetails at repo',updatedInviteGroup);
     } catch (error) {
       console.error(" Update status error:", error);
       const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+        error instanceof Error ? getErrorMessage(error) : "Unknown error occurred";
       throw new Error(`Update invite group status failed: ${errorMessage}`);
     }
   }

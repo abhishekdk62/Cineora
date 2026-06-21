@@ -1,31 +1,9 @@
 import React from 'react';
 import { User, Mail, Calendar, Eye, Power, PowerOff, Building, Crown } from 'lucide-react';
 import { Lexend } from 'next/font/google';
+import { StaffMember } from './staff.types';
 
 const lexend = Lexend({ subsets: ['latin'] });
-
-interface StaffMember {
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: string;
-  isActive: boolean;
-  ownerId?: {
-    ownerName?: string;
-    email?: string;
-    phone?: string;
-    // other owner properties...
-  };
-  theaterId?: {
-    name?: string;
-    address?: string;
-    city?: string;
-    state?: string;
-    // other theater properties...
-  };
-  createdAt?: string;
-  updatedAt?: string;
-}
 
 interface StaffCardProps {
   staff: StaffMember;

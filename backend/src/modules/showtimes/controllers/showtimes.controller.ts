@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { Request, Response } from "express";
 import { IShowtimeService } from "../interfaces/showtimes.service.interface";
 import {
@@ -41,7 +42,7 @@ export interface ExtendedCreateResponseParams {
 export class ShowtimeController {
   constructor(private readonly _showtimeService: IShowtimeService) {}
 
-  async createShowtime(req: Request, res: Response): Promise<void> {
+  async createShowtime(req: Request, res: Response) {
     try {
       const { ownerId } = req.owner;
 
@@ -77,7 +78,7 @@ export class ShowtimeController {
     }
   }
 
-  async updateShowtime(req: Request, res: Response): Promise<void> {
+  async updateShowtime(req: Request, res: Response) {
     try {
       const { showtimeId } = req.params;
       const updateShowtimeDto: UpdateShowtimeDto = req.body;
@@ -97,7 +98,7 @@ export class ShowtimeController {
     }
   }
 
-  async editShowtime(req: Request, res: Response): Promise<void> {
+  async editShowtime(req: Request, res: Response) {
     try {
       const { ownerId } = req.owner;
       const editShowtimeDto: EditShowtimeDto = req.body;
@@ -131,7 +132,7 @@ export class ShowtimeController {
     }
   }
 
-  async deleteShowtime(req: Request, res: Response): Promise<void> {
+  async deleteShowtime(req: Request, res: Response) {
     try {
       const { showtimeId } = req.params;
       const result = await this._showtimeService.deleteShowtime(showtimeId);
@@ -149,7 +150,7 @@ export class ShowtimeController {
     }
   }
 
-  async changeShowtimeStatus(req: Request, res: Response): Promise<void> {
+  async changeShowtimeStatus(req: Request, res: Response) {
     try {
       const { showtimeId } = req.params;
       const updateStatusDto: UpdateStatusDto = req.body;
@@ -172,7 +173,7 @@ export class ShowtimeController {
     }
   }
 
-  async getShowtimeById(req: Request, res: Response): Promise<void> {
+  async getShowtimeById(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const result = await this._showtimeService.getShowtimeById(id);
@@ -190,7 +191,7 @@ export class ShowtimeController {
     }
   }
 
-  async getShowtimesByOwnerId(req: Request, res: Response): Promise<void> {
+  async getShowtimesByOwnerId(req: Request, res: Response) {
     try {
       const { ownerId } = req.owner;
 
@@ -216,7 +217,7 @@ export class ShowtimeController {
           ownerId,
           paginationQuery.page,
           paginationQuery.limit,
-          filter
+          filter as "upcoming" | "past" | undefined
         );
 
         res.status(StatusCodes.OK).json(
@@ -252,7 +253,7 @@ export class ShowtimeController {
     }
   }
 
-  async getTheatersByMovie(req: Request, res: Response): Promise<void> {
+  async getTheatersByMovie(req: Request, res: Response) {
     try {
       const { movieId } = req.params;
       const { date } = req.query;
@@ -285,7 +286,7 @@ export class ShowtimeController {
     }
   }
 
-  async getShowtimesByScreen(req: Request, res: Response): Promise<void> {
+  async getShowtimesByScreen(req: Request, res: Response) {
     try {
       const { screenId } = req.params;
       const { date } = req.query;
@@ -318,7 +319,7 @@ export class ShowtimeController {
     }
   }
 
-  async getShowtimesByTheater(req: Request, res: Response): Promise<void> {
+  async getShowtimesByTheater(req: Request, res: Response) {
     try {
       const { theaterId } = req.params;
       const { date } = req.query;
@@ -351,7 +352,7 @@ export class ShowtimeController {
     }
   }
 
-  async blockShowtimeSeats(req: Request, res: Response): Promise<void> {
+  async blockShowtimeSeats(req: Request, res: Response) {
     try {
       const { showtimeId } = req.params;
       const blockSeatsDto: BlockSeatsDto = req.body;
@@ -376,7 +377,7 @@ export class ShowtimeController {
     }
   }
 
-  async getShowtimesByScreenAdmin(req: Request, res: Response): Promise<void> {
+  async getShowtimesByScreenAdmin(req: Request, res: Response) {
     try {
       const { screenId } = req.params;
       const page = parseInt(req.query.page as string) || 1;
@@ -430,7 +431,7 @@ export class ShowtimeController {
     }
   }
 
-  async getShowtimesByFilters(req: Request, res: Response): Promise<void> {
+  async getShowtimesByFilters(req: Request, res: Response) {
     try {
       const { theaterId, screenId } = req.params;
       const { date } = req.query;
@@ -492,7 +493,7 @@ export class ShowtimeController {
   }
 
   private _handleError(res: Response, error: unknown, defaultMessage: string): void {
-    const errorMessage = error instanceof Error ? error.message : defaultMessage;
+    const errorMessage = error instanceof Error ? getErrorMessage(error) : defaultMessage;
     
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
       createResponse({

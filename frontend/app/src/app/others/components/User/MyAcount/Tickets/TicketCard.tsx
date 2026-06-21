@@ -10,17 +10,17 @@ import QRCodeDisplay from './QRCodeDisplay';
 import { Star } from 'lucide-react';
 import { addReview } from '@/app/others/services/userServices/reviewServices';
 import SingleTicketCancellationModal from './SingleTicketCancellationModal';
-import { TicketData } from './TicketsList';
+import { GroupedBooking, TicketData } from './TicketsList';
 
 const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
 const lexendSmall = { className: "font-normal text-sm" };
 
 interface TicketCardProps {
-  handleAddReview: (booking: Booking) => void;
-  booking: Booking;
+  handleAddReview: (booking: GroupedBooking) => void;
+  booking: GroupedBooking;
   activeTab: string;
-  onViewDetails: (booking: Booking) => void;
+  onViewDetails: (booking: GroupedBooking) => void;
   getTickets: (pageNumber: number) => void;
 }
 
@@ -34,16 +34,12 @@ const TicketCard: React.FC<TicketCardProps> = ({
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [showCancellationModal, setShowCancellationModal] = useState(false);
 
-  const getMovieData = (booking: Booking) => {
-    return booking.movie || booking.movieId || {};
+  const getMovieData = (booking: GroupedBooking) => {
+    return booking.movie || {};
   };
 
-  const getTheaterData = (booking: Booking) => {
-    return booking.theater || booking.theaterId || {};
-  };
-
-  const getShowtimeData = (booking: Booking) => {
-    return booking.showtime || booking.showtimeId || {};
+  const getTheaterData = (booking: GroupedBooking) => {
+    return booking.theater || {};
   };
 
   const groupTicketsBySeatType = (tickets: TicketData[]) => {
@@ -54,7 +50,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
       return parseInt(a.seatNumber) - parseInt(b.seatNumber);
     });
 
-    const grouped: { [key: string]: Booking[] } = {};
+    const grouped: { [key: string]: TicketData[] } = {};
 
     sortedTickets.forEach(ticket => {
       if (!grouped[ticket.seatType]) {
@@ -75,7 +71,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
         seatType,
         seats: ticketGroup.map(t => `${t.seatRow}${t.seatNumber}`),
         count: ticketGroup.length,
-        price: ticketGroup.price,
+        price: basePrice,
         basePrice: basePrice,
         discountAmount: discountAmount,
         discountedPrice: discountedPrice,
@@ -152,14 +148,8 @@ const TicketCard: React.FC<TicketCardProps> = ({
   const handleDownloadPdf = async () => {
     try {
       setDownloadingPdf(true);
-      const { groups: seatGroups, totalAmount, totalSeats, allSeats } = calculatePricing();
-
       await generateTicketPDF({
         ticket: booking,
-        seatGroups,
-        totalAmount,
-        totalSeats,
-        allSeats,
         formatDate,
         formatTime
       });
@@ -173,7 +163,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
   const hasMultipleTickets = booking.allTickets && booking.allTickets.length > 1;
 
   const handleSingleTicketCancel = () => {
-    if (booking.allTickets[0].isInvited) {
+    if (booking.allTickets?.[0]?.isInvited) {
 
       toast(
         "This ticket seams to be bought from group invites.\n\Please cancell this from there.",
@@ -216,7 +206,6 @@ const TicketCard: React.FC<TicketCardProps> = ({
 
   const movieData = getMovieData(booking);
   const theaterData = getTheaterData(booking);
-  const showtimeData = getShowtimeData(booking);
   const { totalAmount, totalDiscount, totalBasePrice } = calculatePricing();
 
   return (
@@ -281,7 +270,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
             </span>
             <span className={`${lexendSmall.className} bg-white/10 text-white px-3 py-1.5 rounded-lg font-medium border border-white/20`}>
               {hasMultipleTickets ?
-                `${booking.allTickets.length} Seats` :
+                `${booking.allTickets?.length ?? 0} Seats` :
                 `Seat: ${booking.seatRow}${booking.seatNumber}`
               }
             </span>

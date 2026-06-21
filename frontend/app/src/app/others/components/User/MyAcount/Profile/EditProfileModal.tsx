@@ -20,6 +20,7 @@ import {
   Check,
 } from "lucide-react";
 import { updateProfile } from "@/app/others/services/userServices/userServices";
+import type { UpdateUserRequestDto } from "@/app/others/dtos/user.dto";
 import { IUser } from "./MyAccountContent";
 import dynamic from "next/dynamic";
 
@@ -335,11 +336,11 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
         
         toast.success(`Location updated: ${locationData.city}, ${locationData.state}`);
       } else {
-        toast.warning("Location selected, but couldn't auto-detect city/state. Please fill manually.");
+        toast("Location selected, but couldn't auto-detect city/state. Please fill manually.", { icon: '⚠️' });
       }
     } catch (error) {
       console.error('Error getting location details:', error);
-      toast.warning("Location selected, but couldn't auto-detect city/state. Please fill manually.");
+      toast("Location selected, but couldn't auto-detect city/state. Please fill manually.", { icon: '⚠️' });
     } finally {
       setIsGeocodingLoading(false);
     }
@@ -353,7 +354,19 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
 
     setIsLoading(true);
     try {
-      await updateProfile(formData);
+      const updatePayload: UpdateUserRequestDto = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth) : undefined,
+        language: formData.language,
+        gender: formData.gender || undefined,
+        phone: formData.phone,
+        profilePicture: formData.profilePicture,
+        locationCity: formData.locationCity,
+        locationState: formData.locationState,
+        location: formData.location,
+      };
+      await updateProfile(updatePayload);
       toast.success("Profile updated");
       if (onDataUpdate) await onDataUpdate(); 
       onClose();
@@ -405,8 +418,8 @@ const EditProfileModal = ({ user, onClose, onDataUpdate }: EditProfileModalProps
               <div className="relative inline-block">
                 <img
                   src={
-                    formData.profilePictureUrl ||
-                    user.profilePictureUrl ||
+                    formData.profilePicture ||
+                    user.profilePicture ||
                     "/api/placeholder/150/150"
                   }
                   alt="Profile"

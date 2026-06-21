@@ -9,7 +9,7 @@ import EmptyState from './EmptyState';
 import ReviewModal from './ReviewModal';
 import toast from 'react-hot-toast';
 import { addReview } from '@/app/others/services/userServices/reviewServices';
-import { AdvanceBookingDto } from '@/app/others/dtos/analytics.dto';
+import { GetTicketsApiResponseDto } from '@/app/others/dtos/ticket.dto';
 
 const lexendBold = { className: "font-bold" };
 
@@ -64,24 +64,13 @@ export interface TicketData {
     createdAt: string;
     updatedAt: string;
     __v: number;
+    allTickets?: TicketData[];
+    seats?: string[];
+    totalPrice?: number;
+    isInvited?: boolean;
 }
 
-interface ApiResponse {
-    success: boolean;
-    message: string;
-    data: TicketData[];
-    meta: {
-        pagination: {
-            currentPage: number;
-            totalPages: number;
-            total: number;
-            limit: number;
-            hasNextPage: boolean;
-            hasPrevPage: boolean;
-        };
-    };
-    timestamp: string;
-}
+export type GroupedBooking = TicketData;
 
 type TabType = 'upcoming' | 'history' | 'cancelled';
 
@@ -103,7 +92,7 @@ const TicketsList: React.FC = () => {
 
     const [showReviewModal, setShowReviewModal] = useState(false);
     const [rating, setRating] = useState(0);
-    const [selectedBookingForReview, setSelectedBookingForReview] = useState<AdvanceBookingDto>(null);
+    const [selectedBookingForReview, setSelectedBookingForReview] = useState<GroupedBooking | null>(null);
     const [reviewText, setReviewText] = useState('');
     const [submittingReview, setSubmittingReview] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
@@ -139,23 +128,24 @@ const getTickets = async (pageNumber: number = 1, filterType?: string, append: b
             }
         }
 
-        const response: ApiResponse = await getTicketsApi(pageNumber, limit, typeParam);
+        const response: GetTicketsApiResponseDto = await getTicketsApi(pageNumber, limit, typeParam);
         console.log(response);
 
-        if (response.success) {
+        if (response.success && response.data) {
+            const tickets = response.data as unknown as TicketData[];
             if (append && pageNumber > 1) {
-                setAllTickets(prev => [...prev, ...response.data]);
+                setAllTickets(prev => [...prev, ...tickets]);
             } else {
-                setAllTickets(response.data);
+                setAllTickets(tickets);
             }
 
             setTabCounts(prev => ({
                 ...prev,
-                [activeTab]: response.meta.pagination.total
+                [activeTab]: response.meta?.pagination?.total ?? 0
             }));
             
-            setTotalCount(response.meta.pagination.total);
-            setHasMore(response.meta.pagination.hasNextPage);
+            setTotalCount(response.meta?.pagination?.total ?? 0);
+            setHasMore(response.meta?.pagination?.hasNextPage ?? false);
             setError(null);
         } else {
             setError(response.message || 'Failed to load tickets');
@@ -232,8 +222,8 @@ const getTickets = async (pageNumber: number = 1, filterType?: string, append: b
     };
 
 
-    const handleViewDetails = (ticket: TicketData) => {
-        setSelectedTicket(ticket);
+    const handleViewDetails = (booking: GroupedBooking) => {
+        setSelectedTicket(booking);
         setShowModal(true);
     };
 
@@ -242,7 +232,7 @@ const getTickets = async (pageNumber: number = 1, filterType?: string, append: b
         setSelectedTicket(null);
     };
 
-    const handleAddReview = (booking: AdvanceBookingDto) => {
+    const handleAddReview = (booking: GroupedBooking) => {
         setSelectedBookingForReview(booking);
         setShowReviewModal(true);
     };
@@ -252,6 +242,8 @@ const getTickets = async (pageNumber: number = 1, filterType?: string, append: b
             toast.error('Please select a rating');
             return;
         }
+
+        if (!selectedBookingForReview) return;
 
         const movieId = selectedBookingForReview.movie?._id || selectedBookingForReview.movieId;
         const theaterId = selectedBookingForReview.theater?._id || selectedBookingForReview.theaterId;
@@ -276,7 +268,8 @@ const getTickets = async (pageNumber: number = 1, filterType?: string, append: b
             setAllTickets([]);
             getTickets(1);
         } catch (error: unknown) {
-            if (error?.response?.data?.message?.includes('already reviewed')) {
+            const axiosError = error as { response?: { data?: { message?: string } } };
+            if (axiosError.response?.data?.message?.includes('already reviewed')) {
                 toast('You have already reviewed this show!', {
                     style: {
                         borderRadius: '10px',

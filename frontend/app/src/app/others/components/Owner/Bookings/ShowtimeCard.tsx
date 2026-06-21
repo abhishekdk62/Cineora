@@ -2,12 +2,14 @@
 
 import React from "react";
 import { Clock, Users, Calendar, Film } from "lucide-react";
+import type { NextFontInstance, OwnerShowtimeBooking } from '@/app/others/types';
+import { isPopulatedRef } from '@/app/others/types';
 
 interface ShowtimeCardProps {
-  showtime: string;
+  showtime: OwnerShowtimeBooking;
   onClick: () => void;
-  lexendMedium: string;
-  lexendSmall: string;
+  lexendMedium: NextFontInstance;
+  lexendSmall: NextFontInstance;
 }
 
 const ShowtimeCard: React.FC<ShowtimeCardProps> = ({
@@ -16,6 +18,9 @@ const ShowtimeCard: React.FC<ShowtimeCardProps> = ({
   lexendMedium,
   lexendSmall,
 }) => {
+  const movieTitle = isPopulatedRef(showtime.movieId) ? showtime.movieId.title : 'Unknown Movie';
+  const moviePoster = isPopulatedRef(showtime.movieId) ? showtime.movieId.poster : '';
+  const screenName = isPopulatedRef(showtime.screenId) ? showtime.screenId.name : 'Unknown Screen';
   const bookedSeatsCount = showtime.bookedSeats?.length || 0;
   const occupancyPercentage = Math.round((bookedSeatsCount / showtime.totalSeats) * 100);
   
@@ -34,8 +39,8 @@ const ShowtimeCard: React.FC<ShowtimeCardProps> = ({
       {/* Movie Poster */}
       <div className="flex justify-center mb-4">
         <img
-          src={showtime.movieId.poster}
-          alt={showtime.movieId.title}
+          src={moviePoster}
+          alt={movieTitle}
           className="w-32 h-44 object-cover rounded-lg border border-gray-500/30 shadow-lg"
         />
       </div>
@@ -43,7 +48,7 @@ const ShowtimeCard: React.FC<ShowtimeCardProps> = ({
       {/* Movie Title */}
       <div className="text-center mb-3">
         <h3 className={`${lexendMedium.className} text-white text-lg mb-1 truncate group-hover:text-blue-400 transition-colors`}>
-          {showtime.movieId.title}
+          {movieTitle}
         </h3>
         <p className={`${lexendSmall.className} text-gray-400 text-sm`}>
           {showtime.language?.toUpperCase()} • {showtime.format}
@@ -110,7 +115,7 @@ const ShowtimeCard: React.FC<ShowtimeCardProps> = ({
       {/* Screen Info */}
       <div className="text-center">
         <p className={`${lexendSmall.className} text-gray-400 text-xs`}>
-          Screen: {showtime.screenId.name}
+          Screen: {screenName}
         </p>
         <p className={`${lexendSmall.className} text-gray-400 text-xs`}>
           Age Restriction: {showtime.ageRestriction}+

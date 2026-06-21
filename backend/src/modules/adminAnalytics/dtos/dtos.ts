@@ -209,7 +209,46 @@ export interface IOperationalAnalyticsDTO {
   }>;
 }
 export interface IDateRange {
-  startDate: Date;
-  endDate: Date;
+  startDate?: Date | string;
+  endDate?: Date | string;
+  /** @deprecated Use startDate */
+  start?: Date | string;
+  /** @deprecated Use endDate */
+  end?: Date | string;
+}
+
+/** Booking rows returned for the admin analytics export dashboard. */
+export interface IAdminBookingAnalyticsRecord {
+  _id: string;
+  bookingId: string;
+  userId: string;
+  movieId: {
+    _id: string;
+    title: string;
+    genre?: string[];
+    language?: string;
+    rating?: string;
+    poster?: string;
+    duration?: number;
+    director?: string;
+    releaseDate?: string | Date;
+  };
+  theaterId: {
+    _id: string;
+    name: string;
+    city?: string;
+    ownerId?: string;
+  };
+  priceDetails: {
+    total: number;
+    subtotal: number;
+    taxes: number;
+    convenienceFee: number;
+    discount?: number;
+  };
+  bookedAt: string | Date;
+  paymentStatus: string;
+  bookingStatus: string;
+  selectedSeats: string[];
 }
 

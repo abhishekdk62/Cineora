@@ -1,7 +1,7 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
 
 export interface ITicket extends Document {
-  _id?:string;
+  _id: mongoose.Types.ObjectId;
   ticketId: string;
   isInvited:boolean,
   bookingId: mongoose.Types.ObjectId;
@@ -23,5 +23,5 @@ export interface ITicket extends Document {
   usedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
-  couponId:mongoose.Types.ObjectId;
+  couponId?: mongoose.Types.ObjectId | string;
 }

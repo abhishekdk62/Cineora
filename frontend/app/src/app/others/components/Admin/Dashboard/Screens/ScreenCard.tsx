@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { LayoutPreview } from "../../../Owner/Screens/LayoutPreview";
 import { IScreen } from "./inedx";
-import { Screen } from "../../../Owner/Showtimes/ScreenSelectionModal";
 
 const lexend = Lexend({
   weight: "500",
@@ -30,9 +29,9 @@ const lexendSmall = Lexend({
 
 interface ScreenCardProps {
   handleToggleScreenStatus: (screenId: string, isActive: boolean) => void
-  screen: Screen;
-  onViewDetails: (screen: Screen) => void;
-  onViewShowtimes: (screen: Screen) => void;
+  screen: IScreen;
+  onViewDetails: (screen: IScreen) => void;
+  onViewShowtimes: (screen: IScreen) => void;
 }
 
 const ScreenCard: React.FC<ScreenCardProps> = ({
@@ -203,9 +202,24 @@ const ScreenCard: React.FC<ScreenCardProps> = ({
               </h4>
             </div>
             <LayoutPreview
-              advancedLayoutJSON={screen.layout.advancedLayout}
+              advancedLayoutJSON={{
+                rows: screen.layout.advancedLayout.rows.map((row) => ({
+                  rowLabel: row.rowLabel,
+                  offset: row.offset ?? 0,
+                  seats: row.seats.map((seat) => ({
+                    col: 0,
+                    id: seat.id,
+                    type: seat.type,
+                    price: seat.price,
+                  })),
+                })),
+                aisles: {
+                  vertical: [],
+                  horizontal: [],
+                },
+              }}
               maxCols={screen.layout.seatsPerRow || 24}
-                 showAisles={hasAisles()} 
+              showAisles={hasAisles()}
             />
           </div>
         </div>

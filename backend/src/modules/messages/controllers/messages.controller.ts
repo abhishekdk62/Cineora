@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { Request, Response } from "express";
 
 import { StatusCodes } from "../../../utils/statuscodes";
@@ -29,7 +30,7 @@ const CHAT_MESSAGE_MESSAGES = {
 };
 
 interface AuthenticatedRequest extends Request {
-  user?: { id: string; role?: string ,email:string};
+  user?: { id: string; role?: string; email?: string };
   owner?: { ownerId: string; role?: string };
   admin?: { adminId: string; role?: string };
 }
@@ -37,7 +38,7 @@ interface AuthenticatedRequest extends Request {
 export class ChatMessageController {
   constructor(private readonly chatMessageService: IChatMessageService) {}
 
-  async sendMessage(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async sendMessage(req: AuthenticatedRequest, res: Response) {
     try {
       const userId = req.user?.id;
       let userMail=req.user?.email
@@ -87,7 +88,7 @@ const senderName=userMail.split('@')[0]
     }
   }
 
-  async getMessages(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async getMessages(req: AuthenticatedRequest, res: Response) {
     try {
       const userId = req.user?.id;
 
@@ -125,7 +126,7 @@ const senderName=userMail.split('@')[0]
     }
   }
 
-  async editMessage(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async editMessage(req: AuthenticatedRequest, res: Response) {
     try {
       const userId = req.user?.id;
 
@@ -171,7 +172,7 @@ const senderName=userMail.split('@')[0]
     }
   }
 
-  async deleteMessage(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async deleteMessage(req: AuthenticatedRequest, res: Response) {
     try {
       const userId = req.user?.id;
 
@@ -214,7 +215,7 @@ const senderName=userMail.split('@')[0]
     }
   }
 
-  async createSystemMessage(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async createSystemMessage(req: AuthenticatedRequest, res: Response) {
     try {
       const { chatRoomId, systemMessageType, content, systemData } = req.body;
       console.log('leave data',req.body);
@@ -247,7 +248,7 @@ const senderName=userMail.split('@')[0]
   ): void {
     console.error("Chat Message Controller Error:", error);
     
-    const errorMessage = error instanceof Error ? error.message : defaultMessage;
+    const errorMessage = error instanceof Error ? getErrorMessage(error) : defaultMessage;
     
     if (errorMessage.includes('not found')) {
       res.status(StatusCodes.NOT_FOUND).json(

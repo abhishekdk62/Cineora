@@ -1,4 +1,5 @@
 import { IBaseReadRepository, IBaseRepository, IBaseWriteRepository } from '../../../repositories/baseRepository.interface';
+import { PaginatedResult } from '../../../types/pagination.types';
 import { IUser } from './user.model.interface';
 
 export interface IReadUserRepository extends IBaseReadRepository<IUser> {
@@ -8,7 +9,7 @@ export interface IReadUserRepository extends IBaseReadRepository<IUser> {
   findUserByGoogleIdOrEmail(googleId: string, email: string): Promise<IUser | null>;
   findNearbyUsers(coordinates: [number, number], maxDistance: number): Promise<IUser[]>;
   findActiveUsers(limit: number): Promise<IUser[]>;
-  findUsersByVerification(isVerified: boolean, page: number, limit: number): Promise<{ users: IUser[], total: number }>;
+  findUsersByVerification(isVerified: boolean, page: number, limit: number): Promise<PaginatedResult<IUser>>;
 }
 
 export interface IWriteUserRepository extends IBaseWriteRepository<IUser> {

@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { INotification } from "../interfaces/notification.model.interface";
 import { 
 
@@ -16,7 +17,7 @@ export class NotificationRepository implements INotificationRepository {
       }
       return savedNotification;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred while creating notification";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Unknown error occurred while creating notification";
       throw new Error(`Create notification failed: ${errorMessage}`);
     }
   }
@@ -28,7 +29,7 @@ export class NotificationRepository implements INotificationRepository {
         .lean();
       return notifications;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred while finding notifications";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Unknown error occurred while finding notifications";
       throw new Error(`Find notifications by userId failed: ${errorMessage}`);
     }
   }
@@ -40,7 +41,7 @@ export class NotificationRepository implements INotificationRepository {
         .lean();
       return notifications;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred while finding unread notifications";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Unknown error occurred while finding unread notifications";
       throw new Error(`Find unread notifications failed: ${errorMessage}`);
     }
   }
@@ -51,7 +52,7 @@ export class NotificationRepository implements INotificationRepository {
         .lean();
       return notifications;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred while finding unread notifications";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Unknown error occurred while finding unread notifications";
       throw new Error(`Find unread notifications failed: ${errorMessage}`);
     }
   }
@@ -77,7 +78,7 @@ async markAllNotificationsRead(userId:string):Promise<boolean>
       
       return updatedNotification;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred while marking notification as read";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Unknown error occurred while marking notification as read";
       throw new Error(`Mark notification as read failed: ${errorMessage}`);
     }
   }
@@ -87,7 +88,7 @@ async markAllNotificationsRead(userId:string):Promise<boolean>
       const result = await Notification.findOneAndDelete({ notificationId });
       return !!result;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred while deleting notification";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Unknown error occurred while deleting notification";
       throw new Error(`Delete notification failed: ${errorMessage}`);
     }
   }
@@ -100,7 +101,7 @@ async markAllNotificationsRead(userId:string):Promise<boolean>
       });
       return count;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred while counting unread notifications";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Unknown error occurred while counting unread notifications";
       throw new Error(`Count unread notifications failed: ${errorMessage}`);
     }
   }
@@ -110,7 +111,7 @@ async markAllNotificationsRead(userId:string):Promise<boolean>
       const notification = await Notification.findOne({ notificationId }).lean();
       return notification;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred while finding notification";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Unknown error occurred while finding notification";
       throw new Error(`Find notification by ID failed: ${errorMessage}`);
     }
   }

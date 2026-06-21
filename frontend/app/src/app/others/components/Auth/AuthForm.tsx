@@ -4,11 +4,11 @@ import { Eye, EyeClosed } from "lucide-react";
 import { Lexend } from "next/font/google";
 import React, { useState } from "react";
 import { GoogleLogin } from '@react-oauth/google';
-import { useForm } from 'react-hook-form';
+import { useForm, FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { loginSchema, signupSchema } from "../../Utils/zodSchemas";
-import { GoogleCredentialResponse } from "../../types";
+import { CredentialResponse } from "@react-oauth/google";
 type LoginFormData = z.infer<typeof loginSchema>;
 type SignupFormData = z.infer<typeof signupSchema>;
 
@@ -22,7 +22,7 @@ interface AuthFormProps {
   onSubmit: (data: LoginFormData | SignupFormData) => void;
   onSwitch: () => void;
   onForgotPassword?: () => void;
-  onGoogleSuccess?: (data: GoogleCredentialResponse) => void;
+  onGoogleSuccess?: (data: CredentialResponse) => void;
   error?: string | null;
   loading?: boolean;
 }
@@ -67,7 +67,9 @@ const Form: React.FC<AuthFormProps> = ({
   };
 
 
-  const handleGoogleSuccess = async (credentialResponse: GoogleCredentialResponse) => {
+  const signupErrors = errors as FieldErrors<SignupFormData>;
+
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
       if (onGoogleSuccess) {
         onGoogleSuccess(credentialResponse);
@@ -98,14 +100,14 @@ const Form: React.FC<AuthFormProps> = ({
                 id="username"
                 type={"text"}
                 {...register('username')}
-                className={`${lexendSmall.className} w-full px-4 py-3 bg-white/10 border ${errors.confirmPassword ? 'border-red-400' : 'border-white/20'
+                className={`${lexendSmall.className} w-full px-4 py-3 bg-white/10 border ${signupErrors.confirmPassword ? 'border-red-400' : 'border-white/20'
                   } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent backdrop-blur-sm pr-12`}
                 placeholder="Enter your username"
               />
             </div>
-            {errors.username && (  // ❌ Was missing this error display
+            {isSignup && signupErrors.username && (
               <p className={`${lexendSmall.className} text-red-400 text-sm mt-1`}>
-                {errors.username?.message}
+                {signupErrors.username?.message}
               </p>
             )}
 
@@ -192,7 +194,7 @@ const Form: React.FC<AuthFormProps> = ({
                 id="confirmpassword"
                 type={showConfirmPassword ? "text" : "password"}
                 {...register('confirmPassword')}
-                className={`${lexendSmall.className} w-full px-4 py-3 bg-white/10 border ${errors.confirmPassword ? 'border-red-400' : 'border-white/20'
+                className={`${lexendSmall.className} w-full px-4 py-3 bg-white/10 border ${signupErrors.confirmPassword ? 'border-red-400' : 'border-white/20'
                   } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent backdrop-blur-sm pr-12`}
                 placeholder="Confirm your password"
               />
@@ -204,9 +206,9 @@ const Form: React.FC<AuthFormProps> = ({
                 {showConfirmPassword ? <EyeClosed className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
-            {errors.confirmPassword && (
+            {signupErrors.confirmPassword && (
               <p className={`${lexendSmall.className} text-red-400 text-sm mt-1`}>
-                {errors.confirmPassword?.message}
+                {signupErrors.confirmPassword?.message}
               </p>
             )}
 

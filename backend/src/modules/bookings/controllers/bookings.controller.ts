@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { Request, Response } from "express";
 import {
   CreateBookingDto,
@@ -34,7 +35,8 @@ export class BookingController {
     private readonly notificationService: INotificationService,
     private readonly notificationScheduler: NotificationScheduler,
     private readonly theaterService: ITheaterService,
-    private readonly paymentService: IPaymentService
+    private readonly paymentService: IPaymentService,
+    private readonly couponService?: ICouponService
   ) {}
 
   async createBooking(
@@ -126,7 +128,7 @@ export class BookingController {
         bookingResult.data
       );
 
-      if (bookingDto.appliedCoupon && bookingDto.appliedCoupon._id) {
+      if (bookingDto.appliedCoupon && bookingDto.appliedCoupon._id && this.couponService) {
         try {
           await this.couponService.incrementCouponUsage(
             bookingDto.appliedCoupon._id
@@ -151,7 +153,7 @@ export class BookingController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message || BOOKING_MESSAGES.INTERNAL_SERVER_ERROR
+        getErrorMessage(error) || BOOKING_MESSAGES.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -188,7 +190,7 @@ export class BookingController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message || "Internal server error"
+        getErrorMessage(error) || "Internal server error"
       );
     }
   }
@@ -251,7 +253,7 @@ export class BookingController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message || BOOKING_MESSAGES.INTERNAL_SERVER_ERROR
+        getErrorMessage(error) || BOOKING_MESSAGES.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -279,7 +281,7 @@ export class BookingController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message || BOOKING_MESSAGES.INTERNAL_SERVER_ERROR
+        getErrorMessage(error) || BOOKING_MESSAGES.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -310,7 +312,7 @@ export class BookingController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message || BOOKING_MESSAGES.INTERNAL_SERVER_ERROR
+        getErrorMessage(error) || BOOKING_MESSAGES.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -352,7 +354,7 @@ export class BookingController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message || BOOKING_MESSAGES.INTERNAL_SERVER_ERROR
+        getErrorMessage(error) || BOOKING_MESSAGES.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -385,7 +387,7 @@ export class BookingController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message || BOOKING_MESSAGES.INTERNAL_SERVER_ERROR
+        getErrorMessage(error) || BOOKING_MESSAGES.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -416,7 +418,7 @@ export class BookingController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message || BOOKING_MESSAGES.INTERNAL_SERVER_ERROR
+        getErrorMessage(error) || BOOKING_MESSAGES.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -448,7 +450,7 @@ export class BookingController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message || BOOKING_MESSAGES.INTERNAL_SERVER_ERROR
+        getErrorMessage(error) || BOOKING_MESSAGES.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -473,7 +475,7 @@ export class BookingController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message || BOOKING_MESSAGES.INTERNAL_SERVER_ERROR
+        getErrorMessage(error) || BOOKING_MESSAGES.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -601,7 +603,7 @@ export class BookingController {
     userId: string,
     bookingDto: CreateBookingDto,
     bookingData: bookingInfo
-  ): Promise<void> {
+  ) {
     const bookingNotificationData = {
       bookingId: bookingData.bookingId || bookingData._id.toString(),
       movieTitle: bookingDto.movieTitle,
@@ -633,7 +635,7 @@ export class BookingController {
   private _sendSuccessResponse(
     res: Response,
     statusCode: number,
-    payload: { message?: string; data?: bookingInfo }
+    payload: { message?: string; data?: unknown }
   ): Response {
     return res.status(statusCode).json(
       createResponse({
@@ -644,7 +646,7 @@ export class BookingController {
   }
   private async _distributePayment(
     bookingDto: CreateBookingDto
-  ): Promise<void> {
+  ) {
     try {
       const theaterResult = await this.theaterService.getTheaterById(
         bookingDto.theaterId
@@ -652,7 +654,7 @@ export class BookingController {
       if (!theaterResult.success) {
         return;
       }
-      const ownerId = theaterResult.data.ownerId;
+      const ownerId = String(theaterResult.data?.ownerId ?? "");
       const baseAmount = bookingDto.totalAmount;
 
       const adminCommission = Math.round(baseAmount * 0.15);
@@ -669,7 +671,7 @@ export class BookingController {
     ownerId: string,
     amount: number,
     bookingDto: CreateBookingDto
-  ): Promise<void> {
+  ) {
     try {
       const creditData: CreditWalletDto = {
         userId: ownerId,
@@ -697,7 +699,7 @@ export class BookingController {
           await this.walletTransactionService.createWalletTransaction({
             userId: ownerId,
             userModel: "Owner",
-            walletId: createResult.data._id,
+            walletId: String(createResult.data._id),
             type: "credit",
             amount: amount,
             category: "revenue",
@@ -715,7 +717,7 @@ export class BookingController {
         await this.walletTransactionService.createWalletTransaction({
           userId: ownerId,
           userModel: "Owner",
-          walletId: result.data._id,
+          walletId: String(result.data._id),
           type: "credit",
           amount: amount,
           category: "revenue",
@@ -735,7 +737,7 @@ export class BookingController {
   private async _creditAdminWallet(
     amount: number,
     bookingDto: CreateBookingDto
-  ): Promise<void> {
+  ) {
     try {
       const ADMIN_USER_ID =
         process.env.ADMIN_USER_ID || "your-default-admin-id";
@@ -768,7 +770,7 @@ export class BookingController {
           await this.walletTransactionService.createWalletTransaction({
             userId: ADMIN_USER_ID,
             userModel: "Admin",
-            walletId: createResult.data._id,
+            walletId: String(createResult.data._id),
             type: "credit",
             amount: amount,
             category: "revenue",
@@ -786,7 +788,7 @@ export class BookingController {
         await this.walletTransactionService.createWalletTransaction({
           userId: ADMIN_USER_ID,
           userModel: "Admin",
-          walletId: result.data._id,
+          walletId: String(result.data._id),
           type: "credit",
           amount: amount,
           category: "revenue",

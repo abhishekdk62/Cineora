@@ -5,6 +5,7 @@ import { checkCoupon } from "@/app/others/services/userServices/couponServices";
 import toast from 'react-hot-toast';
 import { CouponData } from "@/app/others/types";
 import { AxiosError } from "axios";
+import { normalizeCouponResponse } from "@/app/others/Utils/couponUtils";
 
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
 const lexendMedium = Lexend({ weight: "400", subsets: ["latin"] });
@@ -41,13 +42,19 @@ export const GroupCouponDetails: React.FC<GroupCouponDetailsProps> = ({
     const loadingToast = toast.loading('Validating coupon...');
 
     try {
+      if (!theaterId) {
+        toast.error("Theater information is missing", { id: loadingToast });
+        return { success: false, message: "Theater information is missing" };
+      }
+
       const data = await checkCoupon(theaterId, code);
       console.log(data);
 
-      if (data && data.data) {
-        handleSelectCoupon(data.data);
+      const coupon = normalizeCouponResponse(data.data);
+      if (coupon) {
+        handleSelectCoupon(coupon);
         toast.success('Coupon applied successfully!', { id: loadingToast });
-        return { success: true, data: data.data };
+        return { success: true, data: coupon };
       } else {
         toast.error("Coupon doesn't exist or expired", { id: loadingToast });
         return { success: false, message: "Coupon doesn't exist or expired" };

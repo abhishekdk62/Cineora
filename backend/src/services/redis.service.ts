@@ -11,7 +11,7 @@
 //     });
 //   }
 
-//   async blacklistRefreshToken(refreshToken: string): Promise<void> {
+//   async blacklistRefreshToken(refreshToken: string) {
 //     try {
 //       const decoded = jwt.decode(refreshToken) as any;
 //       if (decoded && decoded.exp && decoded.jti) {
@@ -39,7 +39,7 @@
 //     }
 //   }
 
-//   async revokeAllUserTokens(userId: string, userType: string): Promise<void> {
+//   async revokeAllUserTokens(userId: string, userType: string) {
 //     try {
 //       await this.redis.del(`user:${userId}:${userType}:refresh`);
 //     } catch (error) {

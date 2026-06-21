@@ -25,7 +25,7 @@ interface Theater {
   location: {
     coordinates: [number, number]
   }
-  rating: number;
+  rating?: number;
   facilities: string[];
   distance?: string;
 }

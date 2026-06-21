@@ -3,6 +3,7 @@ import {
   UpdateBookingDto,
   BookingRepositoryFindResult,
 } from "../dtos/dto";
+import { bookingInfo } from "../../tickets/dtos/dto";
 import { IBooking } from "./bookings.model.interface";
 
 export interface IBookingReadRepository {
@@ -32,7 +33,7 @@ export interface IBookingReadRepository {
 }
 
 export interface IBookingWriteRepository {
-  createBooking(bookingData: CreateBookingDto): Promise<IBooking | null>;
+  createBooking(bookingData: CreateBookingDto | bookingInfo): Promise<IBooking | null>;
   updateBookingById(
     bookingId: string,
     updateData: UpdateBookingDto

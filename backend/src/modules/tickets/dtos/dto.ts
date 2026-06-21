@@ -106,9 +106,9 @@ export interface TicketFilterDto {
 }
 
 export interface TicketResponseDto {
-  id: string;
+  id?: string;
   ticketId: string;
-  bookingId: string;
+  bookingId: string | { _id?: string; toString?: () => string };
   userId: string;
   movieId: string;
   theaterId: string;
@@ -124,8 +124,14 @@ export interface TicketResponseDto {
   qrCode?: string;
   isUsed: boolean;
   usedAt?: Date;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+  movieTitle?: string;
+  refundAmount?: number;
+  refundPercentage?: number;
+  cancelledTickets?: ITicket[] | TicketResponseDto[];
+  message?: string;
+  data?: unknown;
 }
 
 export interface PaginatedTicketsResponseDto {
@@ -189,6 +195,37 @@ export interface bookingInfo {
   showDate: Date;
   showTime: string;
   email: string;
+  _id?: string;
+  bookingId?: string;
+  selectedSeats?: string[];
+  selectedSeatIds?: string[];
+  seatPricing?: number[] | Array<{
+    rowId: string;
+    seatType: "VIP" | "Premium" | "Normal";
+    basePrice: number;
+    finalPrice: number;
+    rowLabel: string;
+  }>;
+  priceDetails?: {
+    subtotal: number;
+    convenienceFee: number;
+    taxes: number;
+    discount?: number;
+    total: number;
+  } | number;
+  paymentStatus?: string;
+  paymentMethod?: string;
+  bookingStatus?: "confirmed" | "cancelled" | "expired";
+  contactInfo?: { email: string };
+  appliedCoupon?: {
+    _id: string;
+    discountPercentage?: number;
+    name?: string;
+    uniqueId?: string;
+  };
+  couponUsed?: boolean;
+  discountApplied?: number;
+  cancelledAt?: Date;
 }
 
 export interface CreateTicketFromBookingDto {

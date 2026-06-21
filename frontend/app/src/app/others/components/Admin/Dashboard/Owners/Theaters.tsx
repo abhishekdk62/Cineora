@@ -141,12 +141,8 @@ const Theaters: React.FC<TheatersProps> = ({
       };
 
       const response = await getTheatersByOwnerIdAdmin(ownerId, theaterFilters);
-      setTheaters(response.data?.theaters || response.theaters || []);
-      if (response.data?.meta?.pagination) {
-        setTotalPages(response.data.meta.pagination.totalPages);
-        setTotalItems(response.data.meta.pagination.total);
-        setCurrentPage(response.data.meta.pagination.currentPage);
-      } else if (response.meta?.pagination) {
+      setTheaters((response.data?.theaters || response.theaters || []) as unknown as ITheater[]);
+      if (response.meta?.pagination) {
         setTotalPages(response.meta.pagination.totalPages);
         setTotalItems(response.meta.pagination.total);
         setCurrentPage(response.meta.pagination.currentPage);

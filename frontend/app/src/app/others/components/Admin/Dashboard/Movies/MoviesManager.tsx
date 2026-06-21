@@ -17,8 +17,9 @@ import {
 import toast from "react-hot-toast";
 import { confirmAction } from "@/app/others/components/utils/ConfirmDialog";
 import { MovieResponseDto } from "@/app/others/dtos";
+import { CreateMovieRequestDto, UpdateMovieRequestDto } from "@/app/others/dtos/movie.dto";
 import { AxiosError } from "axios";
-import MoviesList from "../../../ReactBits/MoviesList";
+import MoviesList from "./MoviesList";
 
 const lexend = Lexend({
   weight: "500",
@@ -52,7 +53,7 @@ const MoviesManager: React.FC = () => {
     "current"
   );
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [selectedTmdbMovie, setSelectedTmdbMovie] = useState<Movie>(null);
+  const [selectedTmdbMovie, setSelectedTmdbMovie] = useState<Movie | null>(null);
   const [editingMovie, setEditingMovie] = useState<MovieResponseDto | null>(null);
   const [filteredMovies, setFilteredMovies] = useState<MovieResponseDto[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -159,9 +160,24 @@ const MoviesManager: React.FC = () => {
     },
     [currentFilters, movies, itemsPerPage, hasActiveFilters]
   );
-  const handleAddMovie = async (movieData: MovieResponseDto) => {
+  const handleAddMovie = async (movieData: Movie) => {
     try {
-      const response = await addMovie(movieData);
+      const createPayload: CreateMovieRequestDto = {
+        title: movieData.title,
+        description: movieData.description,
+        releaseDate: new Date(movieData.releaseDate),
+        duration: movieData.duration,
+        rating: movieData.rating,
+        genre: movieData.genre,
+        director: movieData.director,
+        language: movieData.language,
+        cast: movieData.cast,
+        poster: movieData.poster ?? '',
+        trailer: movieData.trailer,
+        tmdbId: movieData.tmdbId?.toString() ?? '',
+        isActive: movieData.isActive,
+      };
+      const response = await addMovie(createPayload);
       toast.success("Movie added successfully!");
 
       if (response.data) {
@@ -188,13 +204,29 @@ const MoviesManager: React.FC = () => {
   const handleEditMovie = async (movieData: Movie) => {
     if (!editingMovie) return;
     try {
-      const response = await updateMovie(editingMovie?._id, movieData);
+      const updatePayload: UpdateMovieRequestDto = {
+        title: movieData.title,
+        description: movieData.description,
+        releaseDate: new Date(movieData.releaseDate),
+        duration: movieData.duration,
+        rating: movieData.rating,
+        genre: movieData.genre,
+        director: movieData.director,
+        language: movieData.language,
+        cast: movieData.cast,
+        poster: movieData.poster,
+        trailer: movieData.trailer,
+        tmdbId: movieData.tmdbId?.toString(),
+        isActive: movieData.isActive,
+      };
+      const response = await updateMovie(editingMovie._id, updatePayload);
       toast.success("Movie updated successfully!");
       setMovies((prev) =>
         prev.map((m) => {
-          if (m?._id === editingMovie?._id) {
-            return { ...m, ...movieData, updatedAt: new Date() };
+          if (m?._id === editingMovie?._id && response.data) {
+            return { ...m, ...response.data };
           }
+          return m;
         })
       );
 
@@ -204,7 +236,11 @@ const MoviesManager: React.FC = () => {
         handleFiltersChange(currentFilters, false);
       }
     } catch (error: unknown) {
-      toast.error(error.response?.data?.message || "Failed to update movie");
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data?.message || "Failed to update movie");
+      } else {
+        toast.error("Failed to update movie");
+      }
       console.error(error);
     }
   };
@@ -240,7 +276,11 @@ const MoviesManager: React.FC = () => {
       }
     } catch (err: unknown) {
       console.error(err);
-      toast.error(err.response?.data?.message || "Failed to delete movie");
+      if (err instanceof AxiosError) {
+        toast.error(err.response?.data?.message || "Failed to delete movie");
+      } else {
+        toast.error("Failed to delete movie");
+      }
     }
   };
 
@@ -368,7 +408,7 @@ const MoviesManager: React.FC = () => {
               setEditingMovie(null);
             }}
             onSubmit={editingMovie ? handleEditMovie : handleAddMovie}
-            tmdbMovie={selectedTmdbMovie}
+            tmdbMovie={selectedTmdbMovie ?? undefined}
             editingMovie={editingMovie}
           />
         )}

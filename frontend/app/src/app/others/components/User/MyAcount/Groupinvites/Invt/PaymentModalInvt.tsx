@@ -5,10 +5,10 @@ import { useSelector } from "react-redux";
 import { bookTicket, walletBook } from "@/app/others/services/userServices/bookingServices";
 import { useRouter } from "next/navigation";
 import { createRazorpayOrder, verifyRazorpayPayment } from "@/app/others/services/userServices/paypalServices";
+import type { PaymentVerificationData } from "@/app/others/services/userServices/interfaces";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { getWallet } from "@/app/others/services/userServices/walletServices";
-import { BookingState } from "@/app/others/types";
 import PaymentFormInvt from "./PaymentFormInvt";
 import { setBookingData } from "@/app/others/redux/slices/bookingSlice";
 import { confirmJoinInviteGroup } from "@/app/others/services/userServices/inviteGroupServices";
@@ -18,25 +18,45 @@ import { RootState } from "@/app/others/redux/store";
 interface PaymentModalProps {
   totalAmount: number;
   onClose: () => void;
-  inviteId: string
+  inviteId: string;
+}
+
+interface RazorpayPaymentResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+}
+
+interface RazorpayFailedResponse {
+  error: {
+    description?: string;
+    code?: string;
+  };
+}
+
+interface RazorpayInstance {
+  open: () => void;
+  close: () => void;
+  on: (event: string, handler: (response: RazorpayFailedResponse) => void) => void;
 }
 
 declare global {
   interface Window {
-    Razorpay: PaymentModalProps;
+    Razorpay: new (options: Record<string, unknown>) => RazorpayInstance;
   }
 }
 
-export type paymentTypes = "upi" | "card" | "netbanking" | "wallet" | "razorpay" | ''
+export type paymentTypes = "upi" | "card" | "netbanking" | "wallet" | "razorpay" | '';
 
 export const PaymentModalInvt: React.FC<PaymentModalProps> = ({ totalAmount, onClose, inviteId }) => {
   const router = useRouter();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<paymentTypes>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRazorpayLoaded, setIsRazorpayLoaded] = useState(false);
-  const [walletBalance, setWalletBalance] = useState(null)
-  const bookingDatasRedux = useSelector((state: BookingState) => state.booking.bookingData);
-  const dispatch = useDispatch()
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const bookingDatasRedux = useSelector((state: RootState) => state.booking.bookingData);
+  const dispatch = useDispatch();
+
   useEffect(() => {
     const loadRazorpayScript = () => {
       return new Promise((resolve) => {
@@ -60,21 +80,22 @@ export const PaymentModalInvt: React.FC<PaymentModalProps> = ({ totalAmount, onC
 
   async function getWalletDetails() {
     try {
-      const data = await getWallet()
-      setWalletBalance(data.data.balance)
-
+      const data = await getWallet();
+      setWalletBalance(data.data?.balance ?? null);
     } catch (error) {
       console.log(error);
     }
   }
+
   useEffect(() => {
-    getWalletDetails()
-  }, [])
-    const id = useSelector((state: RootState) => state?.auth?.user?.id) || 4545345;
-    const email = useSelector((state: RootState) => state?.auth?.user?.email);
-  
+    getWalletDetails();
+  }, []);
+
+  const id = useSelector((state: RootState) => state?.auth?.user?.id) || 4545345;
+  const email = useSelector((state: RootState) => state?.auth?.user?.email);
+
   const handleRazorpayPayment = async () => {
-    if (!window.Razorpay || !isRazorpayLoaded) {
+    if (!bookingDatasRedux || !window.Razorpay || !isRazorpayLoaded) {
       alert('Razorpay SDK failed to load. Please try again.');
       return;
     }
@@ -100,7 +121,7 @@ export const PaymentModalInvt: React.FC<PaymentModalProps> = ({ totalAmount, onC
         name: 'Movie Tickets',
         description: 'Movie Ticket Booking',
         order_id: orderId,
-        handler: async (response: PaymentModalProps) => {
+        handler: async (response: RazorpayPaymentResponse) => {
           try {
             isPaymentProcessing = true;
             console.log('Payment successful:', response);
@@ -108,28 +129,28 @@ export const PaymentModalInvt: React.FC<PaymentModalProps> = ({ totalAmount, onC
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_order_id: response.razorpay_order_id,
               razorpay_signature: response.razorpay_signature,
-              bookingData: null
+              bookingData: bookingDatasRedux as unknown as PaymentVerificationData["bookingData"],
             });
             if (verifyResponse.success) {
-
-
-
-
-              
-              const bookingResult = await bookTicket({ ...bookingDatasRedux, isInvited: true },orderId);
+              const bookingResult = await bookTicket({ ...bookingDatasRedux, isInvited: true }, orderId);
               console.log('Booking successful:', bookingResult.data);
 
-              const response = await confirmJoinInviteGroup({ inviteId, totalAmount, ticketId: bookingResult.data.tickets[0]._id })
-              const dat = await getChatRoomByInvite(inviteId)
+              const response = await confirmJoinInviteGroup({ inviteId, totalAmount, ticketId: bookingResult.data.tickets[0]._id });
+              const dat = await getChatRoomByInvite(inviteId);
               console.log('the sns for getchattoombyinviteid', dat);
 
               const resd = await joinChatRoom({ inviteGroupId: dat.data.inviteGroupId });
-const chated=await createSystemMessage({chatRoomId:resd.data.data._id,systemMessageType:'USER_JOINED',content:'User joined ',systemData:{userId:id,username:email?.split('@')[0]}})
-console.log('checked',chated);
+              const chated = await createSystemMessage({
+                chatRoomId: resd.data.data._id,
+                systemMessageType: 'USER_JOINED',
+                content: 'User joined ',
+                systemData: { userId: String(id), username: email?.split('@')[0] },
+              });
+              console.log('checked', chated);
 
               console.log('joined', resd);
 
-toast.success('Joined this invite group plaese open the chat box.')
+              toast.success('Joined this invite group plaese open the chat box.');
               console.log(response);
               router.push(`/booking/success`);
             } else {
@@ -137,9 +158,7 @@ toast.success('Joined this invite group plaese open the chat box.')
             }
           } catch (error) {
             console.error('Payment verification failed:', error);
-
-
-            router.push(`/booking/failed`)
+            router.push(`/booking/failed`);
             setIsProcessing(false);
           }
         },
@@ -153,26 +172,22 @@ toast.success('Joined this invite group plaese open the chat box.')
         },
         modal: {
           ondismiss: () => {
-            router.push(`/booking/failed`)
+            router.push(`/booking/failed`);
 
             if (!isPaymentProcessing) {
               console.log('Payment cancelled by user');
               setIsProcessing(false);
-
             }
           },
         },
       };
 
       const razorpayInstance = new window.Razorpay(options);
-      razorpayInstance.on('payment.failed', function (response: PaymentModalProps) {
+      razorpayInstance.on('payment.failed', function (response: RazorpayFailedResponse) {
         isPaymentProcessing = true;
         console.error('Payment failed:', response.error);
 
         razorpayInstance.close();
-
-        const errorMessage = response.error.description || 'Payment failed';
-        const errorCode = response.error.code || 'PAYMENT_ERROR';
 
         router.push(`/booking/failed`);
         setIsProcessing(false);
@@ -183,51 +198,53 @@ toast.success('Joined this invite group plaese open the chat box.')
     } catch (error) {
       toast.error('Payment Failed');
       console.error('Payment initiation failed:', error);
-      router.push(`/booking/failed`)
+      router.push(`/booking/failed`);
       setIsProcessing(false);
     }
   };
 
   const onSelectPaymentMethod = (value: paymentTypes) => {
-
-    setSelectedPaymentMethod(value)
-    dispatch(setBookingData({ paymentMethod: value }))
-  }
+    setSelectedPaymentMethod(value);
+    dispatch(setBookingData({ paymentMethod: value }));
+  };
 
   async function handleWalletPayment() {
+    if (!bookingDatasRedux) return;
+
     try {
+      const idempotencyKey = `${bookingDatasRedux.userId}_${Date.now()}_${crypto.randomUUID()}`;
 
-const idempotencyKey = `${bookingDatasRedux.userId}_${Date.now()}_${crypto.randomUUID()}`;
-
-      console.log('idempotencyKey',idempotencyKey);
+      console.log('idempotencyKey', idempotencyKey);
 
       setIsProcessing(true);
-      const data = await walletBook(totalAmount, 'User',idempotencyKey)
-      let walletTransactionId=data.walletTransactionDetails.data.transactionId
+      await walletBook(totalAmount, 'User', idempotencyKey);
 
-      const res = await bookTicket({ ...bookingDatasRedux, isInvited: true },idempotencyKey);
-      const response = await confirmJoinInviteGroup({ inviteId, totalAmount, ticketId: res.data.tickets[0]._id })
+      const res = await bookTicket({ ...bookingDatasRedux, isInvited: true }, idempotencyKey);
+      const response = await confirmJoinInviteGroup({ inviteId, totalAmount, ticketId: res.data.tickets[0]._id });
 
-      const dat = await getChatRoomByInvite(inviteId)
+      const dat = await getChatRoomByInvite(inviteId);
       console.log('the sns for getchattoombyinviteid', dat);
 
       const resd = await joinChatRoom({ inviteGroupId: dat.data.inviteGroupId });
-const chated=await createSystemMessage({chatRoomId:resd.data.data._id,systemMessageType:'USER_JOINED',content:'User joined ',systemData:{userId:id,username:email?.split('@')[0]}})
-console.log('checked',chated);
+      const chated = await createSystemMessage({
+        chatRoomId: resd.data.data._id,
+        systemMessageType: 'USER_JOINED',
+        content: 'User joined ',
+        systemData: { userId: String(id), username: email?.split('@')[0] },
+      });
+      console.log('checked', chated);
       console.log('joined', resd);
-toast.success('Joined this invite group plaese open the chat box.')
+      toast.success('Joined this invite group plaese open the chat box.');
 
       router.push('/booking/success');
     } catch (error: unknown) {
       console.log(error);
 
-      if (error.response.data.message == 'Insufficient balance') {
-
-        toast.error(' Insufficient balance 😵‍💫')
-
+      const axiosError = error as { response?: { data?: { message?: string } } };
+      if (axiosError.response?.data?.message === 'Insufficient balance') {
+        toast.error(' Insufficient balance 😵‍💫');
       } else {
         router.push('/booking/failed');
-
       }
     } finally {
       setIsProcessing(false);
@@ -235,12 +252,10 @@ toast.success('Joined this invite group plaese open the chat box.')
   }
 
   const handlePayment = async () => {
-
-
     if (selectedPaymentMethod === 'razorpay') {
       await handleRazorpayPayment();
     } else if (selectedPaymentMethod == 'wallet') {
-      handleWalletPayment()
+      handleWalletPayment();
     }
   };
 

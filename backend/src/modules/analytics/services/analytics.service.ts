@@ -1,4 +1,5 @@
 
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { ServiceResponse } from "../../../interfaces/interface";
 import { IDateRange } from "../../adminAnalytics/dtos/dtos";
 import {
@@ -36,7 +37,7 @@ import {
   IShowUtilizationDTO,
   ITheaterEfficiencyDTO,
   IGrowthRateDTO,
-} from "../interfaces/analytics.repository.interface";
+} from "../interfaces/analytics.service.interface";
 import { IAnalyticsRepository } from "../interfaces/analytics.repository.interface";
 
 export class AnalyticsService implements IAnalyticsService {
@@ -95,7 +96,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get comprehensive analytics";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get comprehensive analytics";
       return {
         success: false,
         message: errorMessage,
@@ -131,7 +132,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get revenue analytics";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get revenue analytics";
       return {
         success: false,
         message: errorMessage,
@@ -168,7 +169,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get monthly revenue trends";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get monthly revenue trends";
       return {
         success: false,
         message: errorMessage,
@@ -198,7 +199,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get weekly revenue";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get weekly revenue";
       return {
         success: false,
         message: errorMessage,
@@ -229,7 +230,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get daily revenue";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get daily revenue";
       return {
         success: false,
         message: errorMessage,
@@ -259,7 +260,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get theater-wise revenue";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get theater-wise revenue";
       return {
         success: false,
         message: errorMessage,
@@ -289,7 +290,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get screen-wise revenue";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get screen-wise revenue";
       return {
         success: false,
         message: errorMessage,
@@ -320,7 +321,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get movie-wise revenue";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get movie-wise revenue";
       return {
         success: false,
         message: errorMessage,
@@ -371,7 +372,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get performance metrics";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get performance metrics";
       return {
         success: false,
         message: errorMessage,
@@ -398,7 +399,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get overall occupancy";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get overall occupancy";
       return {
         success: false,
         message: errorMessage,
@@ -418,7 +419,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get average ticket price";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get average ticket price";
       return {
         success: false,
         message: errorMessage,
@@ -431,7 +432,7 @@ export class AnalyticsService implements IAnalyticsService {
     try {
       return await this.getScreenWiseRevenue(ownerId, dateRange);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get revenue per screen";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get revenue per screen";
       return {
         success: false,
         message: errorMessage,
@@ -459,7 +460,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get revenue per show";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get revenue per show";
       return {
         success: false,
         message: errorMessage,
@@ -487,7 +488,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get time slot performance";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get time slot performance";
       return {
         success: false,
         message: errorMessage,
@@ -520,7 +521,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get weekday weekend comparison";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get weekday weekend comparison";
       return {
         success: false,
         message: errorMessage,
@@ -551,7 +552,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get movie analytics";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get movie analytics";
       return {
         success: false,
         message: errorMessage,
@@ -581,7 +582,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get top performing movies";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get top performing movies";
       return {
         success: false,
         message: errorMessage,
@@ -611,7 +612,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get format performance";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get format performance";
       return {
         success: false,
         message: errorMessage,
@@ -641,7 +642,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get language performance";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get language performance";
       return {
         success: false,
         message: errorMessage,
@@ -668,7 +669,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get movie lifecycle trends";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get movie lifecycle trends";
       return {
         success: false,
         message: errorMessage,
@@ -702,7 +703,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get customer insights";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get customer insights";
       return {
         success: false,
         message: errorMessage,
@@ -720,7 +721,7 @@ export class AnalyticsService implements IAnalyticsService {
         theaterName: item.theaterName || 'Unknown Theater',
         avgRating: item.avgRating,
         totalReviews: item.totalReviews,
-        ratingDistribution: this.calculateRatingDistribution(item.ratingDistribution),
+        ratingDistribution: item.ratingDistribution ?? this.calculateRatingDistribution([]),
         satisfactionLevel: this.determineSatisfactionLevel(item.avgRating)
       }));
 
@@ -731,7 +732,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get customer satisfaction ratings";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get customer satisfaction ratings";
       return {
         success: false,
         message: errorMessage,
@@ -759,7 +760,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get repeat customer rate";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get repeat customer rate";
       return {
         success: false,
         message: errorMessage,
@@ -787,7 +788,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get advance booking trends";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get advance booking trends";
       return {
         success: false,
         message: errorMessage,
@@ -807,7 +808,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get average spend per customer";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get average spend per customer";
       return {
         success: false,
         message: errorMessage,
@@ -827,7 +828,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get cancellation rate";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get cancellation rate";
       return {
         success: false,
         message: errorMessage,
@@ -869,7 +870,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get financial KPIs";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get financial KPIs";
       return {
         success: false,
         message: errorMessage,
@@ -897,7 +898,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get potential vs actual revenue";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get potential vs actual revenue";
       return {
         success: false,
         message: errorMessage,
@@ -925,7 +926,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get dynamic pricing impact";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get dynamic pricing impact";
       return {
         success: false,
         message: errorMessage,
@@ -955,7 +956,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get discount impact";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get discount impact";
       return {
         success: false,
         message: errorMessage,
@@ -968,7 +969,7 @@ export class AnalyticsService implements IAnalyticsService {
     try {
       return await this.getTimeSlotPerformance(ownerId, dateRange);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get peak hour revenue";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get peak hour revenue";
       return {
         success: false,
         message: errorMessage,
@@ -1001,7 +1002,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get seasonal revenue patterns";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get seasonal revenue patterns";
       return {
         success: false,
         message: errorMessage,
@@ -1033,7 +1034,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get operational analytics";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get operational analytics";
       return {
         success: false,
         message: errorMessage,
@@ -1060,7 +1061,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get show utilization rate";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get show utilization rate";
       return {
         success: false,
         message: errorMessage,
@@ -1088,7 +1089,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get low performing time slots";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get low performing time slots";
       return {
         success: false,
         message: errorMessage,
@@ -1116,7 +1117,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get theater efficiency score";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get theater efficiency score";
       return {
         success: false,
         message: errorMessage,
@@ -1149,7 +1150,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get revenue growth rate";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get revenue growth rate";
       return {
         success: false,
         message: errorMessage,
@@ -1179,7 +1180,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to generate analytics report";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to generate analytics report";
       return {
         success: false,
         message: errorMessage,
@@ -1200,7 +1201,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to export analytics data";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to export analytics data";
       return {
         success: false,
         message: errorMessage,
@@ -1250,7 +1251,7 @@ export class AnalyticsService implements IAnalyticsService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get analytics summary";
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : "Failed to get analytics summary";
       return {
         success: false,
         message: errorMessage,

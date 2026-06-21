@@ -25,7 +25,7 @@ export class StaffService implements IStaffService {
   async createStaff(
     ownerId: string,
     createStaffData: CreateStaffDTO
-  ): Promise<StaffResponseDTO> {
+  ): Promise<StaffResponseDTO | "Exists"> {
     const { firstName, lastName, email, password, theaterId } = createStaffData;
 
     // Check if email exists across all systems
@@ -102,11 +102,11 @@ export class StaffService implements IStaffService {
     const result = await this.staffRepo.findAllPaginated(page, limit, filters);
 
     return {
-      staffs: result.staffs,
+      staffs: result.data.map((staff) => this.mapToStaffResponseDTO(staff)),
       pagination: {
         currentPage: page,
         totalPages: result.totalPages,
-        totalCount: result.totalCount,
+        totalCount: result.total,
         hasNext: page < result.totalPages,
         hasPrevious: page > 1,
       },

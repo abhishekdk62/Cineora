@@ -175,11 +175,16 @@ export class ChatMessageService implements IChatMessageService {
     if (message.editedAt) response.editedAt = message.editedAt;
     if (message.deletedAt) response.deletedAt = message.deletedAt;
 
-    if (message.replyToMessageId && (message.replyToMessageId as string).content) {
+    if (message.replyToMessageId && typeof message.replyToMessageId === 'object') {
+      const reply = message.replyToMessageId as {
+        _id?: { toString(): string };
+        content?: string;
+        senderName?: string;
+      };
       response.replyToMessage = {
-        _id: (message.replyToMessageId as string)._id.toString(),
-        content: (message.replyToMessageId as string).content,
-        senderName: (message.replyToMessageId as string).senderName
+        _id: reply._id?.toString() ?? '',
+        content: reply.content ?? '',
+        senderName: reply.senderName ?? ''
       };
     }
 

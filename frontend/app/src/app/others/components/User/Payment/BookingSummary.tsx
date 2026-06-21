@@ -7,14 +7,13 @@ import { PriceSummary } from "./PriceSummary";
 import { setBookingData } from "@/app/others/redux/slices/bookingSlice";
 import { useDispatch } from "react-redux";
 import { CouponDetails } from "./Coupondetails";
-import { CouponData } from "@/app/others/types";
-import { AdvanceBookingDto } from "@/app/others/dtos/analytics.dto";
+import { CouponData, PaymentSummaryData } from "@/app/others/types";
 const lexendMedium = Lexend({ weight: "400", subsets: ["latin"] });
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
 interface BookingSummaryProps {
-  data: AdvanceBookingDto;
+  data: PaymentSummaryData;
   onPayment: () => void;
-  selectedCoupon?: CouponData;
+  selectedCoupon?: CouponData | null;
   availableCoupons?: CouponData[];
   onSelectCoupon?: (coupon: CouponData) => void;
   onRemoveCoupon?: () => void;
@@ -30,14 +29,14 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({ data, onPayment,
   return (
     <div className="backdrop-blur-sm bg-black/20 rounded-2xl p-8 border border-gray-500/30">
       <div className="space-y-8">
-        <MovieDetails data={data} />
+        <MovieDetails data={{ ...data, moviePoster: data.moviePoster ?? "" }} />
 
         <SeatSelection
           selectedSeats={data.selectedSeats}
           seatBreakdown={data.seatBreakdown}
         />
         <CouponDetails
-          selectedCoupon={selectedCoupon}
+          selectedCoupon={selectedCoupon ?? undefined}
           availableCoupons={availableCoupons}
           onSelectCoupon={onSelectCoupon}
           onRemoveCoupon={onRemoveCoupon}
@@ -45,7 +44,7 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({ data, onPayment,
           discount={data.discount}
         />
 
-        <PriceSummary data={data} />
+        <PriceSummary data={{ ...data, selectedCoupon: data.selectedCoupon ?? undefined }} />
 
         <button
 

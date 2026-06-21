@@ -1,5 +1,4 @@
 
-
 export interface UpdateShowtimeDTO {
   movieId?: string;
   theaterId?: string;
@@ -76,8 +75,13 @@ export interface ShowtimePaginationDTO {
   limit: number;
 }
 
+export interface ShowtimeItemDTO {
+  _id?: string;
+  [key: string]: unknown;
+}
+
 export interface ShowtimeListResponseDTO {
-  showtimes: ShowtimeListResponseDTO[];
+  showtimes: ShowtimeItemDTO[];
   pagination: ShowtimePaginationDTO;
 }
 
@@ -105,67 +109,10 @@ export interface CreateShowtimeDTO {
   ageRestriction?: number;
 }
 
-
-export interface IRowPricingDTO {
-  rowLabel: string;
-  seatType: "VIP" | "Premium" | "Normal";
-  basePrice: number;
-  showtimePrice: number;
-  totalSeats: number;
-  availableSeats: number;
-  bookedSeats?: string[];
-}
-
-export interface ShowtimeFilters {
-  search?: string;
-  showDate?: Date | string;
-  isActive?: boolean;
-  format?: string;
-  language?: string;
-  theaterId?: string;
-  screenId?: string;
-  movieId?: string;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
-  date?: Date | string;
-}
-
-export interface PaginatedShowtimeResult {
-  showtimes: ShowtimeListResponseDTO[];
-  total: number;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-}
-
-
-
-
-
-export interface ShowtimePaginationDTO {
-  current: number;
-  pages: number;
-  total: number;
-  limit: number;
-}
-
-export interface ShowtimeListResponseDTO {
-  showtimes: ShowtimeListResponseDTO[];
-  pagination: ShowtimePaginationDTO;
-}
-
-export interface TimeSlotCheckDTO {
-  screenId: string;
-  showDate: Date;
-  startTime: string;
-  endTime: string;
-  excludeId?: string;
-}
-
 export interface BulkShowtimeCreateDTO {
   created: number;
   skipped: number;
-  showtimes: ShowtimeListResponseDTO[];
+  showtimes: ShowtimeItemDTO[];
   errors?: string[];
 }
 
@@ -193,16 +140,4 @@ export interface PaginationQueryDto {
 
 export interface DateQueryDto {
   date: string;
-}
-export interface EditShowtimeDto extends UpdateShowtimeDTO {
-  _id: string;
-}
-
-export interface UpdateStatusDto {
-  isActive: boolean;
-}
-
-export interface PaginationQueryDto {
-  page: number;
-  limit: number;
 }

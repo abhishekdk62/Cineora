@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { ICouponService } from "../interfaces/coupons.service.interface";
 import { ICouponRepository } from "../interfaces/coupons.repository.interface";
 import {
@@ -486,7 +487,7 @@ async incrementCouponUsage(couponId: string): Promise<ApiResponse<void>> {
     error: unknown,
     defaultMessage: string
   ): ApiResponse<any> {
-    const message = error instanceof Error ? error.message : defaultMessage;
+    const message = error instanceof Error ? getErrorMessage(error) : defaultMessage;
     return createResponse({
       success: false,
       message,

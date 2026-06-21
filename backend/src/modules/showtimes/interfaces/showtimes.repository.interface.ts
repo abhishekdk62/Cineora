@@ -5,7 +5,7 @@ export interface IShowtimeReadRepository {
   getShowtimeById(showtimeId: string): Promise<IMovieShowtime | null>;
   getShowtimesByMovieAndDate(movieId: string, date: Date): Promise<IMovieShowtime[]>;
   getShowtimesByTheaterAndDate(theaterId: string, date: Date): Promise<IMovieShowtime[]>;
-  getShowtimesByOwnerIdPaginated(ownerId: string, skip: number, limit: number): Promise<IMovieShowtime[]>;
+  getShowtimesByOwnerIdPaginated(ownerId: string, skip: number, limit: number, filter?: "upcoming" | "past"): Promise<IMovieShowtime[]>;
   getShowtimesByFilters(filters: {
     theaterId: string;
     screenId: string;
@@ -32,7 +32,7 @@ export interface IShowtimeReadRepository {
   
   getHeldSeats(showtimeId: string): Promise<string[]>;
 
-  countShowtimesByOwnerId(ownerId: string): Promise<number>;
+  countShowtimesByOwnerId(ownerId: string, filter?: "upcoming" | "past"): Promise<number>;
   getShowtimesByOwnerId(ownerId: string): Promise<IMovieShowtime[]>;
   getShowtimesByScreenPaginated(
     screenId: string,

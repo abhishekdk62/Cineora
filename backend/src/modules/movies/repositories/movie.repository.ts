@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { 
   CreateMovieDto, 
   UpdateMovieDto, 
@@ -17,7 +18,7 @@ export class MovieRepository implements IMovieRepository {
     try {
       return await Movie.findById(movieId).exec();
     } catch (error) {
-      throw new Error(`Failed to find movie by id: ${error.message}`);
+      throw new Error(`Failed to find movie by id: ${getErrorMessage(error)}`);
     }
   }
 
@@ -25,15 +26,16 @@ export class MovieRepository implements IMovieRepository {
     try {
       return await Movie.findOne({ tmdbId }).exec();
     } catch (error) {
-      throw new Error(`Failed to find movie by tmdbId: ${error.message}`);
+      throw new Error(`Failed to find movie by tmdbId: ${getErrorMessage(error)}`);
     }
   }
 
   async findAll(page?: number, limit?: number): Promise<{ data: IMovie[]; total: number }> {
     try {
-      return await Movie.find().exec();
+      const movies = await Movie.find().exec();
+      return { data: movies, total: movies.length };
     } catch (error) {
-      throw new Error(`Failed to find all movies: ${error.message}`);
+      throw new Error(`Failed to find all movies: ${getErrorMessage(error)}`);
     }
   }
 
@@ -54,9 +56,9 @@ export class MovieRepository implements IMovieRepository {
       ]);
 
       const totalPages = Math.ceil(total / validLimit);
-      return { movies, total, totalPages };
+      return { data: movies as IMovie[], total, totalPages };
     } catch (error) {
-      throw new Error(`Failed to find movies with query: ${error.message}`);
+      throw new Error(`Failed to find movies with query: ${getErrorMessage(error)}`);
     }
   }
 
@@ -80,9 +82,9 @@ export class MovieRepository implements IMovieRepository {
       ]);
 
       const totalPages = Math.ceil(total / validLimit);
-      return { movies, total, totalPages };
+      return { data: movies as IMovie[], total, totalPages };
     } catch (error) {
-      throw new Error(`Failed to find movies paginated: ${error.message}`);
+      throw new Error(`Failed to find movies paginated: ${getErrorMessage(error)}`);
     }
   }
 
@@ -91,7 +93,7 @@ export class MovieRepository implements IMovieRepository {
       const movie = new Movie(movieData);
       return await movie.save();
     } catch (error) {
-      throw new Error(`Failed to create movie: ${error.message}`);
+      throw new Error(`Failed to create movie: ${getErrorMessage(error)}`);
     }
   }
 
@@ -99,7 +101,7 @@ export class MovieRepository implements IMovieRepository {
     try {
       return await Movie.findByIdAndUpdate(movieId, movieData, { new: true }).exec();
     } catch (error) {
-      throw new Error(`Failed to update movie: ${error.message}`);
+      throw new Error(`Failed to update movie: ${getErrorMessage(error)}`);
     }
   }
 
@@ -108,7 +110,7 @@ export class MovieRepository implements IMovieRepository {
       const deletionResult = await Movie.findByIdAndDelete(movieId).exec();
       return deletionResult;
     } catch (error) {
-      throw new Error(`Failed to delete movie: ${error.message}`);
+      throw new Error(`Failed to delete movie: ${getErrorMessage(error)}`);
     }
   }
 
@@ -120,7 +122,7 @@ export class MovieRepository implements IMovieRepository {
       movie.isActive = !movie.isActive;
       return await movie.save();
     } catch (error) {
-      throw new Error(`Failed to toggle movie status: ${error.message}`);
+      throw new Error(`Failed to toggle movie status: ${getErrorMessage(error)}`);
     }
   }
 }

@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { Types } from "mongoose";
 import { ITheaterRepository } from "../../theaters/interfaces/theater.repository.interface";
 
@@ -53,7 +54,8 @@ export class ScreenService implements IScreenService {
       }
 
       const processedData: CreateScreenDto = {
-        theaterId: new Types.ObjectId(screenData.theater!._id)||new Types.ObjectId(screenData?.theaterId),
+        theater: { _id: String(screenData.theater?._id ?? screenData?.theaterId) },
+        theaterId: String(screenData.theater?._id ?? screenData?.theaterId),
         name: screenData.name.trim(),
         totalSeats: screenData.totalSeats,
         layout: {
@@ -734,7 +736,7 @@ export class ScreenService implements IScreenService {
     error: unknown,
     defaultMessage: string
   ): ServiceResponse<never> {
-    const message = error instanceof Error ? error.message : defaultMessage;
+    const message = error instanceof Error ? getErrorMessage(error) : defaultMessage;
     return {
       success: false,
       message,

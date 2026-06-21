@@ -1,3 +1,4 @@
+import type { NextFontInstance } from '@/app/others/types';
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
 
@@ -7,8 +8,8 @@ interface MetricCardProps {
   subtitle?: string;
   icon: LucideIcon;
   color: 'blue' | 'green' | 'yellow' | 'purple' | 'red';
-  lexendMedium: string;
-  lexendSmall: string;
+  lexendMedium: NextFontInstance;
+  lexendSmall: NextFontInstance;
 }
 
 export const MetricCard: React.FC<MetricCardProps> = ({

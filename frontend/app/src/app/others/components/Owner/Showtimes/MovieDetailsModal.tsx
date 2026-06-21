@@ -3,29 +3,12 @@
 import React from "react";
 import { X, Calendar, Clock, Star, Play, Users, User } from "lucide-react";
 import { lexendMedium, lexendSmall } from "@/app/others/Utils/fonts";
-
-interface Movie {
-  _id: string;
-  title: string;
-  genre: string[];
-  duration: number;
-  language: string;
-  releaseDate: string;
-  rating: string;
-  poster?: string;
-  description: string;
-  director: string;
-  cast: string[];
-  trailer?: string;
-  tmdbId?: string;
-  isActive: boolean;
-}
+import { MovieResponseDto } from "@/app/others/dtos/movie.dto";
 
 interface MovieDetailsModalProps {
-  movie: Movie;
-  onSelect: (movie: Movie) => void;
+  movie: MovieResponseDto;
+  onSelect: (movie: MovieResponseDto) => void;
   onClose: () => void;
-
 }
 
 const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
@@ -39,8 +22,9 @@ const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
     return `${hours}h ${mins}m`;
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (date: string | Date) => {
+    const value = date instanceof Date ? date.toISOString() : date;
+    return new Date(value).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'

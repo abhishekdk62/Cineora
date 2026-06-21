@@ -1,5 +1,8 @@
 import ADMIN_ANALYTICS_ROUTES from "../../constants/commonConstants/adminAnalyticsConstants";
 import apiClient from "../../Utils/apiClient";
+import { ApiResponse } from "../../dtos/common.dto";
+
+export type AdminAnalyticsDto = ApiResponse<Record<string, unknown>>;
 
 interface AdminAnalyticsQuery {
   startDate?: string;

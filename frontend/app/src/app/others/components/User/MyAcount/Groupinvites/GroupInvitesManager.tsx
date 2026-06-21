@@ -18,7 +18,7 @@ const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
 const lexendSmall = { className: "font-normal text-sm" };
 
-interface GroupInvite {
+export interface GroupInvite {
   _id: string;
   inviteId: string;
   hostUserId: {
@@ -209,11 +209,11 @@ const GroupInvitesManager: React.FC = () => {
       setLoading(true);
       if (activeTab === 'my-requests') {
         const response = await getMyInviteGroups({ limit: 50 });
-        setMyInvites(response.data || []);
+        setMyInvites((response.data as unknown as GroupInvite[]) || []);
         console.log('my invites', response.data);
       } else {
         const response = await getAvailableInvites({ limit: 50 });
-        setAvailableInvites(response.data || []);
+        setAvailableInvites((response.data as unknown as GroupInvite[]) || []);
         console.log('all invites', response.data);
       }
     } catch (error) {
@@ -299,14 +299,19 @@ const GroupInvitesManager: React.FC = () => {
 
       const response = await cancelInviteGroup(inviteId);
       console.log('gtrorororo', response);
-      let ticket = response.data.participantDetails[0].ticketId
-      let amount = response.data.participantDetails[0].amount
-      const res = await cancelSingleTicket([ticket], amount)
+      const cancelData = response.data as {
+        participantDetails: Array<{ ticketId: string; amount: number }>;
+      };
+      const ticket = cancelData.participantDetails[0].ticketId;
+      const res = await cancelSingleTicket([ticket]);
       console.log(res);
-                const dat = await getChatRoomByInvite(inviteId)
-      console.log('getChatRoomByInvite',dat);
-      
-      const resp=await leaveChatRoom({chatRoomId:dat.data.inviteGroupId,userId:id}) 
+      const dat = await getChatRoomByInvite(inviteId);
+      console.log('getChatRoomByInvite', dat);
+
+      const resp = await leaveChatRoom({
+        chatRoomId: dat.data.inviteGroupId as string,
+        userId: id ?? '',
+      }); 
       console.log(res);
       console.log(resp);
       fetchData();
@@ -419,5 +424,4 @@ const GroupInvitesManager: React.FC = () => {
   );
 };
 
-export { type GroupInvite };
 export default GroupInvitesManager;

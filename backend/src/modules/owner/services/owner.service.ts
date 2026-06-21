@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import * as bcrypt from "bcryptjs";
 import { IEmailService } from "../../../services/email.service";
 import { config } from "../../../config";
@@ -51,7 +52,7 @@ export class OwnerService implements IOwnerService {
       return {
         success: false,
         message:
-          error instanceof Error ? error.message : "Something went wrong",
+          error instanceof Error ? getErrorMessage(error) : "Something went wrong",
       };
     }
   }
@@ -80,7 +81,7 @@ export class OwnerService implements IOwnerService {
       return {
         success: false,
         message:
-          error instanceof Error ? error.message : "Something went wrong",
+          error instanceof Error ? getErrorMessage(error) : "Something went wrong",
       };
     }
   }
@@ -101,7 +102,7 @@ export class OwnerService implements IOwnerService {
       return {
         success: false,
         message:
-          error instanceof Error ? error.message : "Something went wrong",
+          error instanceof Error ? getErrorMessage(error) : "Something went wrong",
       };
     }
   }
@@ -117,7 +118,7 @@ export class OwnerService implements IOwnerService {
       result = this._applySorting(result, filters);
       result = this._transformOwnersData(result);
 
-      const ownerDtos = result.owners.map((owner) => OwnerMapper.toDto(owner));
+      const ownerDtos = result.data.map((owner) => OwnerMapper.toDto(owner));
 
       return {
         success: true,
@@ -139,7 +140,7 @@ export class OwnerService implements IOwnerService {
       return {
         success: false,
         message:
-          error instanceof Error ? error.message : "Something went wrong",
+          error instanceof Error ? getErrorMessage(error) : "Something went wrong",
       };
     }
   }
@@ -169,7 +170,7 @@ export class OwnerService implements IOwnerService {
       return {
         success: false,
         message:
-          error instanceof Error ? error.message : "Something went wrong",
+          error instanceof Error ? getErrorMessage(error) : "Something went wrong",
       };
     }
   }
@@ -204,7 +205,7 @@ export class OwnerService implements IOwnerService {
       return {
         success: false,
         message:
-          error instanceof Error ? error.message : "Something went wrong",
+          error instanceof Error ? getErrorMessage(error) : "Something went wrong",
       };
     }
   }
@@ -231,7 +232,7 @@ export class OwnerService implements IOwnerService {
       return {
         success: false,
         message:
-          error instanceof Error ? error.message : "Something went wrong",
+          error instanceof Error ? getErrorMessage(error) : "Something went wrong",
       };
     }
   }
@@ -284,7 +285,7 @@ export class OwnerService implements IOwnerService {
       return {
         success: false,
         message:
-          error instanceof Error ? error.message : "Something went wrong",
+          error instanceof Error ? getErrorMessage(error) : "Something went wrong",
       };
     }
   }
@@ -355,7 +356,7 @@ export class OwnerService implements IOwnerService {
       return {
         success: false,
         message:
-          error instanceof Error ? error.message : "Something went wrong",
+          error instanceof Error ? getErrorMessage(error) : "Something went wrong",
       };
     }
   }
@@ -398,7 +399,7 @@ export class OwnerService implements IOwnerService {
       return {
         success: false,
         message:
-          error instanceof Error ? error.message : "Something went wrong",
+          error instanceof Error ? getErrorMessage(error) : "Something went wrong",
       };
     }
   }
@@ -538,7 +539,7 @@ export class OwnerService implements IOwnerService {
 
   private async _fetchOwnersWithFilters(
     filters: OwnerFilterDto
-  ): Promise<{ owners: IOwner[]; total: number }> {
+  ): Promise<import("../../../types/pagination.types").PaginatedResult<IOwner>> {
     const { status, page = 1, limit = 10 } = filters;
 
     if (status) {
@@ -547,19 +548,19 @@ export class OwnerService implements IOwnerService {
         Number(page),
         Number(limit)
       );
-    } else {
-      return await this.ownerRepository.findAll(Number(page), Number(limit));
     }
+
+    return await this.ownerRepository.findAll(Number(page), Number(limit));
   }
 
   private _applyClientSideFilters(
-    result: { owners: IOwner[]; total: number },
+    result: import("../../../types/pagination.types").PaginatedResult<IOwner>,
     filters: OwnerFilterDto
-  ): { owners: IOwner[]; total: number } {
+  ): import("../../../types/pagination.types").PaginatedResult<IOwner> {
     const { search } = filters;
 
     if (search) {
-      result.owners = result.owners.filter(
+      result.data = result.data.filter(
         (owner: IOwner) =>
           owner.ownerName.toLowerCase().includes(search.toLowerCase()) ||
           owner.email.toLowerCase().includes(search.toLowerCase()) ||
@@ -571,19 +572,23 @@ export class OwnerService implements IOwnerService {
   }
 
   private _applySorting(
-    result: { owners: IOwner[]; total: number },
+    result: import("../../../types/pagination.types").PaginatedResult<IOwner>,
     filters: OwnerFilterDto
-  ): { owners: IOwner[]; total: number } {
+  ): import("../../../types/pagination.types").PaginatedResult<IOwner> {
     const { sortBy, sortOrder } = filters;
 
     if (sortBy) {
-      result.owners.sort((a: IOwner, b: IOwner) => {
-        let aValue = (a as string)[sortBy];
-        let bValue = (b as string)[sortBy];
+      result.data.sort((a: IOwner, b: IOwner) => {
+        let aValue = (a as unknown as Record<string, unknown>)[sortBy];
+        let bValue = (b as unknown as Record<string, unknown>)[sortBy];
 
         if (sortBy.includes("Date") || sortBy.includes("At")) {
-          aValue = new Date(aValue);
-          bValue = new Date(bValue);
+          const aTime = new Date(aValue as string | number | Date).getTime();
+          const bTime = new Date(bValue as string | number | Date).getTime();
+          if (sortOrder === "desc") {
+            return bTime > aTime ? 1 : -1;
+          }
+          return aTime > bTime ? 1 : -1;
         }
 
         if (sortOrder === "desc") {
@@ -596,16 +601,15 @@ export class OwnerService implements IOwnerService {
     return result;
   }
 
-  private _transformOwnerProfileData(owner: IOwner): IOwner {
+  private _transformOwnerProfileData(owner: IOwner): Partial<IOwner> {
     return {
       ...owner,
     };
   }
 
-  private _transformOwnersData(result: { owners: IOwner[]; total: number }): {
-    owners: IOwner[];
-    total: number;
-  } {
+  private _transformOwnersData(
+    result: import("../../../types/pagination.types").PaginatedResult<IOwner>
+  ): import("../../../types/pagination.types").PaginatedResult<IOwner> {
     return result;
   }
 
@@ -623,6 +627,7 @@ export class OwnerService implements IOwnerService {
       type: "owner_email_change",
       userData: {
         id: owner._id.toString(),
+        email: owner.email,
         oldEmail: owner.email,
       },
     });
@@ -653,7 +658,7 @@ export class OwnerService implements IOwnerService {
   private async _cleanupOtpRecords(
     otpId: string,
     email: string
-  ): Promise<void> {
+  ) {
     await this.otpRepository.markAsUsed(otpId);
     await this.otpRepository.deleteByEmail(email, "owner_email_change");
   }

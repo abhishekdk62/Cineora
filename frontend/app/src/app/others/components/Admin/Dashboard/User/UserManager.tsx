@@ -34,12 +34,13 @@ export interface IUser {
   isVerified: boolean;
   emailVerified: boolean;
   phoneVerified: boolean;
-  lastActive?: string;
   joinedAt: string;
   updatedAt: string;
   bookingHistory?: string[];
   favoriteTheatres?: string[];
 }
+
+export type User = IUser;
 
 export interface UserFilters {
   search?: string;
@@ -49,20 +50,6 @@ export interface UserFilters {
   limit?: number;
   status?: "active" | "inactive";
   isVerified?: boolean;
-}
-
-export interface UserResponse {
-  data: {
-    users: IUser[];
-    meta: {
-      pagination: {
-        currentPage: number;
-        totalPages: number;
-        total: number;
-        limit: number;
-      };
-    };
-  };
 }
 
 const lexend = Lexend({
@@ -180,7 +167,14 @@ const UsersManager: React.FC = () => {
     try {
       setCountsLoading(true);
       const counts = await getUserCounts();
-      setActiveCounts(counts);
+      if (counts.data) {
+        setActiveCounts({
+          activeUsers: counts.data.activeUsers,
+          inactiveUsers: counts.data.inactiveUsers,
+          verifiedUsers: counts.data.verifiedUsers,
+          unverifiedUsers: counts.data.unverifiedUsers,
+        });
+      }
     } catch (error: unknown) {
       console.error("Error fetching counts:", error);
       toast.error("Failed to load user counts");
@@ -230,12 +224,34 @@ const UsersManager: React.FC = () => {
         apiFilters.isVerified = false;
       }
 
-      const response: UserResponse = await getUsers(apiFilters);
-      console.log(response);
-      setUsers(response.data.users);
-      setTotalPages(response.data.meta.pagination.totalPages);
-      setTotalItems(response.data.meta.pagination.total);
-      setCurrentPage(response.data.meta.pagination.currentPage);
+      const response = await getUsers(apiFilters);
+      const users = (response.data || []).map((user) => ({
+        _id: user._id,
+        name: [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username,
+        phone: user.phone || '',
+        email: user.email,
+        profilePicture: user.profilePicture,
+        dateOfBirth: user.dateOfBirth ? String(user.dateOfBirth) : undefined,
+        username: user.username,
+        language: user.language || '',
+        authProvider: user.authProvider,
+        lastActive: String(user.lastActive),
+        xpPoints: String(user.xpPoints),
+        location: user.location || { coordinates: [0, 0] },
+        gender: user.gender,
+        isActive: user.isActive,
+        isVerified: user.isVerified,
+        emailVerified: user.isVerified,
+        phoneVerified: false,
+        joinedAt: String(user.joinedAt),
+        updatedAt: String(user.updatedAt),
+      }));
+      setUsers(users);
+      if (response.meta?.pagination) {
+        setTotalPages(response.meta.pagination.totalPages);
+        setTotalItems(response.meta.pagination.total);
+        setCurrentPage(response.meta.pagination.currentPage);
+      }
     } catch (error: unknown) {
       console.error("Filter error:", error);
       toast.error("Failed to load users");

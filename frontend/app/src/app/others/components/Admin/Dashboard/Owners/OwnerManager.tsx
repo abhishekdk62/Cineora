@@ -12,63 +12,22 @@ import {
   rejectOwnerRequest,
   toggleOwnerStatus,
 } from "@/app/others/services/adminServices/ownerServices";
+import {
+  OwnerResponseDto,
+  OwnerRequestResponseDto,
+} from "@/app/others/dtos/owner.dto";
+import { getApiErrorMessage } from "@/app/others/types/common.types";
 import OwnersContent from "./OwnersContent";
 import OwnersStats from "./OwnersStats";
 import OwnersHeader from "./OwnersHeader";
 import { useDebounce } from "@/app/others/Utils/debounce";
 
-export interface Owner {
-  _id: string;
-  ownerName: string;
-  phone: string;
-  email: string;
-  password?: string;
-  aadhaar: string;
-  pan: string;
-  accountHolder?: string;
-  bankName?: string;
-  accountNumber?: string;
-  ifsc?: string;
-  aadhaarUrl: string;
-  panUrl: string;
-  ownerPhotoUrl?: string;
-  kycRequestId: string;
-  approvedAt: string;
-  approvedBy: string;
-  isActive: boolean;
-  isVerified: boolean;
-  theatres: string[];
-  lastLogin?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface OwnerRequest {
-  _id: string;
-  ownerName: string;
-  email: string;
-  phone: string;
-  aadhaar: string;
-  pan: string;
-  accountHolder?: string;
-  bankName?: string;
-  accountNumber?: string;
-  ifsc?: string;
-  aadhaarUrl: string;
-  panUrl: string;
-  ownerPhotoUrl?: string;
-  declaration: boolean;
-  otp: string;
-  agree: boolean;
-  status: "pending" | "approved" | "rejected";
-  submittedAt: string;
-  reviewedAt?: string;
-  reviewedBy?: string;
-  rejectionReason?: string;
-  emailVerified: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+export type Owner = OwnerResponseDto;
+export type OwnerRequest = OwnerRequestResponseDto & {
+  otp?: string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+};
 
 export interface OwnerFilters {
   search?: string;
@@ -95,20 +54,6 @@ export interface OwnerRequestFilters {
   page?: number;
   limit?: number;
   status?: "pending" | "approved" | "rejected";
-}
-
-export interface OwnerResponse {
-  owners: Owner[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-}
-
-export interface OwnerRequestResponse {
-  requests: OwnerRequest[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
 }
 
 const OwnersManager: React.FC = () => {
@@ -155,17 +100,20 @@ const OwnersManager: React.FC = () => {
     try {
       setCountsLoading(true);
       const response = await getOwnerCounts();
-      if (response?.data?.counts) {
-        setActiveCounts(response.data.counts);
-      } else if (response?.counts) {
-        setActiveCounts(response.counts);
+      if (response?.data) {
+        setActiveCounts({
+          activeOwners: response.data.activeOwners,
+          inactiveOwners: response.data.inactiveOwners,
+          pendingRequests: response.data.pendingRequests,
+          rejectedRequests: response.data.rejectedRequests,
+        });
       } else {
         console.error("Unexpected response format:", response);
         toast.error("Failed to load counts - invalid response format");
       }
-    } catch (error: string) {
+    } catch (error: unknown) {
       console.error("Error fetching counts:", error);
-      toast.error(error.response?.data?.message || "Failed to load counts");
+      toast.error(getApiErrorMessage(error, "Failed to load counts"));
       setActiveCounts({
         activeOwners: 0,
         inactiveOwners: 0,
@@ -203,18 +151,14 @@ const OwnersManager: React.FC = () => {
         setOwners(response.data?.owners || response.owners || []);
         setOwnerRequests([]);
 
-        if (response.data?.meta?.pagination) {
-          setTotalPages(response.data.meta.pagination.totalPages);
-          setTotalItems(response.data.meta.pagination.total);
-          setCurrentPage(response.data.meta.pagination.currentPage);
-        } else if (response.meta?.pagination) {
+        if (response.meta?.pagination) {
           setTotalPages(response.meta.pagination.totalPages);
           setTotalItems(response.meta.pagination.total);
           setCurrentPage(response.meta.pagination.currentPage);
         }
-      } catch (error: string) {
+      } catch (error: unknown) {
         console.error("Filter error:", error);
-        toast.error(error.response?.data?.message || "Filter failed");
+        toast.error(getApiErrorMessage(error, "Filter failed"));
         setOwners([]);
         setTotalPages(1);
         setTotalItems(0);
@@ -244,21 +188,21 @@ const OwnersManager: React.FC = () => {
         };
         const response = await getOwnerRequests(requestFiltersWithStatus);
 
-        setOwnerRequests(response.data?.requests || response.requests || []);
+        setOwnerRequests(
+          Array.isArray(response.data)
+            ? response.data
+            : (response as { requests?: OwnerRequest[] }).requests || []
+        );
         setOwners([]);
 
-        if (response.data?.meta?.pagination) {
-          setTotalPages(response.data.meta.pagination.totalPages);
-          setTotalItems(response.data.meta.pagination.total);
-          setCurrentPage(response.data.meta.pagination.currentPage);
-        } else if (response.meta?.pagination) {
+        if (response.meta?.pagination) {
           setTotalPages(response.meta.pagination.totalPages);
           setTotalItems(response.meta.pagination.total);
           setCurrentPage(response.meta.pagination.currentPage);
         }
-      } catch (error: string) {
+      } catch (error: unknown) {
         console.error("Filter error:", error);
-        toast.error(error.response?.data?.message || "Filter failed");
+        toast.error(getApiErrorMessage(error, "Filter failed"));
         setOwnerRequests([]);
         setTotalPages(1);
         setTotalItems(0);
@@ -317,18 +261,14 @@ const OwnersManager: React.FC = () => {
         setOwners(response.data?.owners || response.owners || []);
         setOwnerRequests([]);
 
-        if (response.data?.meta?.pagination) {
-          setTotalPages(response.data.meta.pagination.totalPages);
-          setTotalItems(response.data.meta.pagination.total);
-          setCurrentPage(response.data.meta.pagination.currentPage);
-        } else if (response.meta?.pagination) {
+        if (response.meta?.pagination) {
           setTotalPages(response.meta.pagination.totalPages);
           setTotalItems(response.meta.pagination.total);
           setCurrentPage(response.meta.pagination.currentPage);
         }
-      } catch (error: string) {
+      } catch (error: unknown) {
         console.error("Filter error:", error);
-        toast.error(error.response?.data?.message || "Filter failed");
+        toast.error(getApiErrorMessage(error, "Filter failed"));
         setOwners([]);
         setTotalPages(1);
         setTotalItems(0);
@@ -366,21 +306,21 @@ const OwnersManager: React.FC = () => {
         };
         const response = await getOwnerRequests(requestFiltersWithStatus);
 
-        setOwnerRequests(response.data?.requests || response.requests || []);
+        setOwnerRequests(
+          Array.isArray(response.data)
+            ? response.data
+            : (response as { requests?: OwnerRequest[] }).requests || []
+        );
         setOwners([]);
 
-        if (response.data?.meta?.pagination) {
-          setTotalPages(response.data.meta.pagination.totalPages);
-          setTotalItems(response.data.meta.pagination.total);
-          setCurrentPage(response.data.meta.pagination.currentPage);
-        } else if (response.meta?.pagination) {
+        if (response.meta?.pagination) {
           setTotalPages(response.meta.pagination.totalPages);
           setTotalItems(response.meta.pagination.total);
           setCurrentPage(response.meta.pagination.currentPage);
         }
-      } catch (error: string) {
+      } catch (error: unknown) {
         console.error("Filter error:", error);
-        toast.error(error.response?.data?.message || "Filter failed");
+        toast.error(getApiErrorMessage(error, "Filter failed"));
         setOwnerRequests([]);
         setTotalPages(1);
         setTotalItems(0);
@@ -430,11 +370,9 @@ const OwnersManager: React.FC = () => {
       if (Object.keys(ownerFilters).length > 0) {
         handleOwnerFiltersChange(ownerFilters, false);
       }
-    } catch (error: string) {
+    } catch (error: unknown) {
       console.error("Error toggling owner status:", error);
-      toast.error(
-        error.response?.data?.message || "Failed to update owner status"
-      );
+      toast.error(getApiErrorMessage(error, "Failed to update owner status"));
     }
   };
 
@@ -455,9 +393,9 @@ const OwnersManager: React.FC = () => {
       if (Object.keys(requestFilters).length > 0) {
         handleRequestFiltersChange(requestFilters, false);
       }
-    } catch (error: string) {
+    } catch (error: unknown) {
       console.error("Error accepting request:", error);
-      toast.error(error.response?.data?.message || "Failed to accept request");
+      toast.error(getApiErrorMessage(error, "Failed to accept request"));
     }
   };
 
@@ -466,16 +404,16 @@ const OwnersManager: React.FC = () => {
     rejectionReason: string
   ) => {
     try {
-      await rejectOwnerRequest(request._id, rejectionReason);
+      await rejectOwnerRequest(request._id, { rejectionReason });
       toast.success("Owner request rejected!");
       fetchCounts();
 
       if (Object.keys(requestFilters).length > 0) {
         handleRequestFiltersChange(requestFilters, false);
       }
-    } catch (error: string) {
+    } catch (error: unknown) {
       console.error("Error rejecting request:", error);
-      toast.error(error.response?.data?.message || "Failed to reject request");
+      toast.error(getApiErrorMessage(error, "Failed to reject request"));
     }
   };
 

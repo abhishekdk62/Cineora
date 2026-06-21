@@ -2,18 +2,7 @@
 import React from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import StaffCard from "./StaffCard";
-
-interface StaffMember {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: string;
-  isActive: boolean;
-  theaterId?: any;
-  createdAt?: string;
-  updatedAt?: string;
-}
+import type { StaffMember } from "./staff.types";
 
 interface StaffGridProps {
   groupedStaffs: Record<string, StaffMember[]>;

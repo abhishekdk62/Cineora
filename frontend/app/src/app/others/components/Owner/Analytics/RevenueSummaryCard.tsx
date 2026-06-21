@@ -1,3 +1,4 @@
+import type { NextFontInstance } from '@/app/others/types';
 import React from 'react';
 import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 
@@ -6,8 +7,8 @@ interface RevenueSummaryCardProps {
   amount: number;
   growthRate?: number;
   period: string;
-  lexendMedium: string;
-  lexendSmall: string;
+  lexendMedium: NextFontInstance;
+  lexendSmall: NextFontInstance;
 }
 
 export const RevenueSummaryCard: React.FC<RevenueSummaryCardProps> = ({

@@ -128,7 +128,7 @@ export class UserRepository implements IUserRepository {
   async findAll(
     page: number = 1,
     limit: number = 10
-  ): Promise<{ users: IUser[]; total: number }> {
+  ): Promise<{ data: IUser[]; total: number }> {
     const skipCount = (page - 1) * limit;
 
     const [users, total] = await Promise.all([
@@ -141,14 +141,14 @@ export class UserRepository implements IUserRepository {
       User.countDocuments({}),
     ]);
 
-    return { users, total };
+    return { data: users, total };
   }
 
   async findByStatus(
     status: string,
     page: number = 1,
     limit: number = 10
-  ): Promise<{ users: IUser[]; total: number }> {
+  ): Promise<{ data: IUser[]; total: number }> {
     const skipCount = (page - 1) * limit;
 
     const [users, total] = await Promise.all([
@@ -165,14 +165,14 @@ export class UserRepository implements IUserRepository {
       }),
     ]);
 
-    return { users, total };
+    return { data: users, total };
   }
 
   async findUsersByVerification(
     isVerified: boolean,
     page: number = 1,
     limit: number = 10
-  ): Promise<{ users: IUser[]; total: number }> {
+  ): Promise<import("../../../types/pagination.types").PaginatedResult<IUser>> {
     const skipCount = (page - 1) * limit;
 
     const [users, total] = await Promise.all([
@@ -185,7 +185,7 @@ export class UserRepository implements IUserRepository {
       User.countDocuments({ isVerified }),
     ]);
 
-    return { users, total };
+    return { data: users as IUser[], total };
   }
 
   async findUserByGoogleId(googleId: string): Promise<IUser | null> {
@@ -273,5 +273,16 @@ export class UserRepository implements IUserRepository {
     )
       .select("-password")
       .exec();
+  }
+
+  async updateUserProfile(
+    userId: string,
+    updateData: Partial<IUser>
+  ): Promise<IUser | null> {
+    return this.update(userId, updateData);
+  }
+
+  async delete(userId: string): Promise<IUser | null> {
+    return User.findByIdAndDelete(userId).select("-password").exec();
   }
 }

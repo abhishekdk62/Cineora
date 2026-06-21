@@ -3,18 +3,33 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import TheaterListManager from "./TheaterListManager";
-import { GetTheatersFilters, getTheatersWithFilters, Theater } from "@/app/others/services/userServices/theaterServices";
+import { getTheatersWithFilters } from "@/app/others/services/userServices/theaterServices";
+import { TheaterFilters } from "@/app/others/dtos/theater.dto";
 import { useDebounce } from "@/app/others/Utils/debounce";
 import { getTheaterRatingApi, getTheaterReviewStats } from "@/app/others/services/commonServices/ratingServices";
 import TheaterReviewModal from "./TheaterReviewModal";
+import type { ReviewsData, RatingStats } from "./TheaterReviewsContent";
 
 type SortOption = "nearby" | "rating-high" | "rating-low" | "a-z" | "z-a";
+
+interface TheaterListItem {
+  _id: string;
+  name: string;
+  city: string;
+  state: string;
+  rating?: number;
+  location: {
+    coordinates: [number, number];
+  };
+  facilities: string[];
+  distance?: string;
+}
 
 const TheatersPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("nearby");
   const [currentPage, setCurrentPage] = useState(1);
-  const [theaters, setTheaters] = useState<Theater[]>([]);
+  const [theaters, setTheaters] = useState<TheaterListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchLoading, setSearchLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -26,8 +41,8 @@ const TheatersPage: React.FC = () => {
   const [currentFilters, setCurrentFilters] = useState({});
   const [selectedTheaterForReview, setSelectedTheaterForReview] = useState('')
   const [showReviewModal, setShowReviewModal] = useState(false)
-  const [theaterReviewsData, setTheaterReviewsData] = useState(null);
-  const [theaterRatingStats, setTheaterRatingStats] = useState(null);
+  const [theaterReviewsData, setTheaterReviewsData] = useState<ReviewsData | null>(null);
+  const [theaterRatingStats, setTheaterRatingStats] = useState<RatingStats | null>(null);
 
   function handleClickReview(theaterId: string) {
     setShowReviewModal(true)
@@ -43,7 +58,7 @@ const TheatersPage: React.FC = () => {
     try {
       const data = await getTheaterReviewStats(theaterId)
       console.log('stats');
-      setTheaterRatingStats(data.data);
+      setTheaterRatingStats(data.data ?? null);
 
       console.log(data);
 
@@ -57,7 +72,7 @@ const TheatersPage: React.FC = () => {
   const getTheaterRevies = async (theaterId: string) => {
     try {
       const data = await getTheaterRatingApi(theaterId)
-      setTheaterReviewsData(data.data);
+      setTheaterReviewsData(data.data ?? null);
 
       console.log(data);
 
@@ -113,39 +128,47 @@ const TheatersPage: React.FC = () => {
       }
       setError(null);
 
-      let locationData = userLocation;
+      let locationData: { latitude: string; longitude: string } | undefined = userLocation;
       if (!locationData) {
         try {
-          locationData = JSON.parse(localStorage.getItem('userLocation') || 'null');
+          const stored = localStorage.getItem('userLocation');
+          locationData = stored ? JSON.parse(stored) : undefined;
         } catch {
-          locationData = null;
+          locationData = undefined;
         }
       }
 
-      const filters: GetTheatersFilters = {
+      const filters: TheaterFilters = {
         search,
         sortBy: sort,
         page,
         limit: itemsPerPage,
-        facilities,
-        ...(locationData ? { latitude: locationData.latitude, longitude: locationData.longitude } : {}),
+        facilities: facilities.length ? facilities.join(",") : undefined,
+        ...(locationData
+          ? {
+              latitude: parseFloat(locationData.latitude),
+              longitude: parseFloat(locationData.longitude),
+            }
+          : {}),
       };
 
       const data = await getTheatersWithFilters(filters);
       console.log('Theater response:', data);
 
       if (reset || page === 1) {
-        setTheaters(data.data);
+        setTheaters((data.data ?? []) as unknown as TheaterListItem[]);
       } else {
         setTheaters(prev => {
           const existingIds = prev.map(item => item._id);
-          const filteredNew = data.data.filter((theater: Theater) => !existingIds.includes(theater._id));
+          const filteredNew = ((data.data ?? []) as unknown as TheaterListItem[]).filter(
+            (theater) => !existingIds.includes(theater._id)
+          );
           return [...prev, ...filteredNew];
         });
       }
 
-      setTotalCount(data.meta.pagination.total);
-      setHasMore(data.meta.pagination.hasNextPage);
+      setTotalCount(data.meta?.pagination?.total ?? 0);
+      setHasMore(data.meta?.pagination?.hasNextPage ?? false);
 
     } catch (err) {
       setError("Failed to load theaters.");

@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { Request, Response } from "express";
 import { StatusCodes } from "../../../utils/statuscodes";
 import { createResponse } from "../../../utils/createResponse";
@@ -8,7 +9,7 @@ import { IStaffService } from "../interfaces/staff.services.interface";
 export class StaffController {
   constructor(private readonly staffService: IStaffService) {}
 
-  async createStaff(req: Request, res: Response): Promise<void> {
+  async createStaff(req: Request, res: Response) {
     try {
       const ownerId = req.owner?.ownerId;
       const createStaffData: CreateStaffDTO = req.body;
@@ -31,15 +32,13 @@ export class StaffController {
       }
 
       const staff = await this.staffService.createStaff(ownerId, createStaffData);
-      if(staff=='Exists')
-      {
-            return res.status(StatusCodes.CONFLICT).json(
-        createResponse({
-          success: true,
-          message: STAFF_MESSAGES.EMAIL_ALREADY_IN_USE,
-          data: { staff },
-        })
-      );
+      if (staff === "Exists") {
+        return res.status(StatusCodes.CONFLICT).json(
+          createResponse({
+            success: false,
+            message: STAFF_MESSAGES.EMAIL_ALREADY_IN_USE,
+          })
+        );
       }
 
       return res.status(StatusCodes.CREATED).json(
@@ -50,7 +49,7 @@ export class StaffController {
         })
       );
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : NOTIFICATION_MESSAGES.INTERNAL_SERVER_ERROR;
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : NOTIFICATION_MESSAGES.INTERNAL_SERVER_ERROR;
       return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
@@ -60,7 +59,7 @@ export class StaffController {
     }
   }
 
-  async getStaffDetails(req: Request, res: Response): Promise<void> {
+  async getStaffDetails(req: Request, res: Response) {
     try {
       const staffId = req.staff.staffId;
       const staff = await this.staffService.getStaffDetails(staffId);
@@ -73,7 +72,7 @@ export class StaffController {
         })
       );
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : NOTIFICATION_MESSAGES.INTERNAL_SERVER_ERROR;
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : NOTIFICATION_MESSAGES.INTERNAL_SERVER_ERROR;
       return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
@@ -83,7 +82,7 @@ export class StaffController {
     }
   }
 
-  async getAllStaffsPaginated(req: Request, res: Response): Promise<void> {
+  async getAllStaffsPaginated(req: Request, res: Response) {
     try {
       const ownerId = req.owner?.ownerId;
       const queryParams: GetAllStaffsQueryDTO = req.query;
@@ -100,7 +99,7 @@ export class StaffController {
         })
       );
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : NOTIFICATION_MESSAGES.INTERNAL_SERVER_ERROR;
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : NOTIFICATION_MESSAGES.INTERNAL_SERVER_ERROR;
       return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
@@ -110,7 +109,7 @@ export class StaffController {
     }
   }
 
-  async toggleStaffStatus(req: Request, res: Response): Promise<void> {
+  async toggleStaffStatus(req: Request, res: Response) {
     try {
       const { staffId } = req.params;
       const staff = await this.staffService.toggleStaffStatus(staffId);
@@ -123,7 +122,7 @@ export class StaffController {
         })
       );
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : NOTIFICATION_MESSAGES.INTERNAL_SERVER_ERROR;
+      const errorMessage = error instanceof Error ? getErrorMessage(error) : NOTIFICATION_MESSAGES.INTERNAL_SERVER_ERROR;
       return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,

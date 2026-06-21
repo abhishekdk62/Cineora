@@ -1,8 +1,14 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import Orb from "../ReactBits/Orb";
+import DynamicOrb from "../ReactBits/DynamicOrb";
 
 export default function OrbClient() {
-  return <Orb hoverIntensity={0.5} rotateOnHover hue={0} />;
+  return (
+    <DynamicOrb
+      hoverIntensity={0.5}
+      rotateOnHover
+      hue={0}
+      forceHoverState={false}
+    />
+  );
 }

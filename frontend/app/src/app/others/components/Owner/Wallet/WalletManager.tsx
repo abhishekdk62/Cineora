@@ -4,11 +4,11 @@ import { getTransactionDetailsOwner, getWalletOwner } from '@/app/others/service
 import WalletBalance from './WalletBalance';
 import TransactionHistory from './TransactionHistory';
 import ResultModal from './ResultModal';
-import { TransactionDetailsDto } from '@/app/others/dtos';
+import { WalletTransactionResponseDto } from '@/app/others/dtos';
 
 interface WalletData {
   balance: number;
-  transactions: TransactionDetailsDto[];
+  transactions: WalletTransactionResponseDto[];
 }
 
 const lexendMediumStyle = { fontFamily: 'Lexend, sans-serif', fontWeight: 500 };

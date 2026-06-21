@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { IPayment, ITransactionDetails } from "../interfaces/payment.model.interface";
 import Payment from "../models/payment.model";
 import { 
@@ -21,7 +22,7 @@ export class PaymentRepository implements IPaymentRepository {
       }
       return savedPayment;
     } catch (error) {
-      throw new Error(`Error creating payment: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error creating payment: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -33,7 +34,7 @@ export class PaymentRepository implements IPaymentRepository {
       }
       return updatedPayment;
     } catch (error) {
-      throw new Error(`Error updating payment by ID: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error updating payment by ID: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -45,7 +46,7 @@ export class PaymentRepository implements IPaymentRepository {
       }
       return updatedPayment;
     } catch (error) {
-      throw new Error(`Error updating payment by payment ID: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error updating payment by payment ID: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -66,7 +67,7 @@ export class PaymentRepository implements IPaymentRepository {
       }
       return updatedPayment;
     } catch (error) {
-      throw new Error(`Error updating payment status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error updating payment status: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -88,7 +89,7 @@ export class PaymentRepository implements IPaymentRepository {
       }
       return updatedPayment;
     } catch (error) {
-      throw new Error(`Error creating payment refund: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error creating payment refund: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -97,7 +98,7 @@ export class PaymentRepository implements IPaymentRepository {
       const result = await Payment.findByIdAndDelete(paymentId);
       return !!result;
     } catch (error) {
-      throw new Error(`Error deleting payment: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error deleting payment: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -107,7 +108,7 @@ export class PaymentRepository implements IPaymentRepository {
         .populate("bookingId")
         .populate("userId", "firstName lastName email");
     } catch (error) {
-      throw new Error(`Error fetching payment by ID: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error fetching payment by ID: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -117,7 +118,7 @@ export class PaymentRepository implements IPaymentRepository {
         .populate("bookingId")
         .populate("userId", "firstName lastName email");
     } catch (error) {
-      throw new Error(`Error fetching payment by payment ID: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error fetching payment by payment ID: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -127,7 +128,7 @@ export class PaymentRepository implements IPaymentRepository {
         .populate("userId", "firstName lastName email")
         .sort({ initiatedAt: -1 });
     } catch (error) {
-      throw new Error(`Error fetching payments by booking ID: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error fetching payments by booking ID: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -137,7 +138,7 @@ export class PaymentRepository implements IPaymentRepository {
         .populate("bookingId")
         .sort({ initiatedAt: -1 });
     } catch (error) {
-      throw new Error(`Error fetching payments by user ID: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error fetching payments by user ID: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -148,7 +149,7 @@ export class PaymentRepository implements IPaymentRepository {
         .populate("userId", "firstName lastName email")
         .sort({ initiatedAt: -1 });
     } catch (error) {
-      throw new Error(`Error fetching payments by status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error fetching payments by status: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -161,7 +162,7 @@ export class PaymentRepository implements IPaymentRepository {
         .populate("userId", "firstName lastName email")
         .sort({ initiatedAt: -1 });
     } catch (error) {
-      throw new Error(`Error fetching pending payments: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error fetching pending payments: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -172,7 +173,7 @@ export class PaymentRepository implements IPaymentRepository {
         .populate("userId", "firstName lastName email")
         .sort({ initiatedAt: -1 });
     } catch (error) {
-      throw new Error(`Error fetching failed payments: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error fetching failed payments: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -185,7 +186,7 @@ export class PaymentRepository implements IPaymentRepository {
         .populate("bookingId")
         .populate("userId", "firstName lastName email");
     } catch (error) {
-      throw new Error(`Error fetching refundable payments: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error fetching refundable payments: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 async createPaymentRecord(paymentData: {
@@ -211,7 +212,7 @@ async createPaymentRecord(paymentData: {
 
     return payment;
   } catch (error) {
-    throw new Error(`Error creating payment: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(`Error creating payment: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
   }
 }
 
@@ -229,7 +230,7 @@ async getLatestVerifiedPayment(
 
     return payment;
   } catch (error) {
-    throw new Error(`Error fetching payment: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(`Error fetching payment: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
   }
 }
 

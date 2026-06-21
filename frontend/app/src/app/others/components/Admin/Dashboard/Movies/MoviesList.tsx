@@ -20,7 +20,7 @@ const lexendSmallStyle = { fontFamily: 'Lexend', fontWeight: '400' };
 
 export interface Movie {
   _id: string;
-  tmdbId: string; 
+  tmdbId?: number | string;
   title: string;
   genre: string[];
   releaseDate: string;

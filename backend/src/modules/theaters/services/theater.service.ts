@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { ServiceResponse } from "../../../interfaces/interface";
 import { IEmailService } from "../../../services/email.service";
 import {
@@ -133,7 +134,7 @@ export class TheaterService implements ITheaterService {
       return {
         success: true,
         message: "Theaters retrieved successfully",
-        data: result,
+        data: { theaters: result.data, total: result.total },
       };
     } catch (error: unknown) {
       console.error("Error getting all theaters:", error);
@@ -469,11 +470,11 @@ export class TheaterService implements ITheaterService {
     );
   }
 
-  private async _sendTheaterVerificationEmail(theater: ITheater): Promise<void> {
+  private async _sendTheaterVerificationEmail(theater: ITheater) {
     try {
       if (this._isTheaterOwnerEmailAvailable(theater)) {
         await this.emailService.sendTheaterVerifiedEmail(
-          (theater.ownerId as string).email,
+          (theater.ownerId as unknown as { email: string }).email,
           theater.name
         );
       }
@@ -482,11 +483,11 @@ export class TheaterService implements ITheaterService {
     }
   }
 
-  private async _sendTheaterRejectionEmail(theater: ITheater, rejectionReason?: string): Promise<void> {
+  private async _sendTheaterRejectionEmail(theater: ITheater, rejectionReason?: string) {
     try {
       if (this._isTheaterOwnerEmailAvailable(theater)) {
         await this.emailService.sendTheaterRejectedEmail(
-          (theater.ownerId as string).email,
+          (theater.ownerId as unknown as { email: string }).email,
           theater.name,
           rejectionReason || "Your theater application did not meet our requirements."
         );
@@ -527,16 +528,16 @@ export class TheaterService implements ITheaterService {
   }
 
   private _handleServiceError(error: unknown, defaultMessage: string): ServiceResponse<any> {
-    if (error.message === "Theater with this name already exists in this city") {
+    if (getErrorMessage(error) === "Theater with this name already exists in this city") {
       return {
         success: false,
-        message: error.message,
+        message: getErrorMessage(error),
       };
     }
 
     return {
       success: false,
-      message: error.message || defaultMessage,
+      message: getErrorMessage(error) || defaultMessage,
     };
   }
 }

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Lexend } from "next/font/google";
 import { ArrowLeft } from "lucide-react";
-import Prism from "@/app/others/components/ReactBits/Prism";
+import DynamicPrism from "@/app/others/components/ReactBits/DynamicPrism";
 import { NavBar } from "@/app/others/components/Home";
 import Loader from "@/app/others/components/utils/Loader";
 import { PaymentModal } from "@/app/others/components/User/Payment/PaymentModal";
@@ -14,9 +14,22 @@ import { getShowTimeUser } from "@/app/others/services/userServices/showTimeServ
 import { applyCoupon, calculateTotalAmount, removeCoupon, setBookingData } from "@/app/others/redux/slices/bookingSlice";
 import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
 import { getCouponsByTheaterId } from "@/app/others/services/userServices/couponServices";
-import { BookingState, CouponData, RowPricing, SeatBreakdownItem, ShowTimeData } from "@/app/others/types";
+import { CouponData, PaymentSummaryData, RowPricing, SeatBreakdownItem } from "@/app/others/types";
 import { RowPricingDto, ShowtimeResponseDto } from "@/app/others/dtos";
 import { CouponResponseDto } from "@/app/others/dtos/coupon.dto";
+import type { RootState } from "@/app/others/redux/store";
+
+const toCouponData = (coupon: CouponResponseDto): CouponData => ({
+  _id: coupon._id,
+  name: coupon.name,
+  uniqueId: coupon.uniqueId,
+  discountPercentage: coupon.discountPercentage,
+  description: coupon.description,
+  expiryDate: coupon.expiryDate,
+  isActive: coupon.isActive,
+  maxUsageCount: coupon.maxUsageCount,
+  theaterIds: coupon.theaterIds?.map((t) => ({ _id: t._id, name: t.name })),
+});
 
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
 
@@ -25,13 +38,13 @@ export default function PaymentPage() {
   const router = useRouter();
   const dispatch = useDispatch();
   const showtimeId = params?.showtimeId as string;
-  const bookingDatasRedux = useSelector((state: { booking: BookingState }) => state.booking.bookingData);
+  const bookingDatasRedux = useSelector((state: RootState) => state.booking.bookingData);
   const [showTimeData, setShowTimeData] = useState<ShowtimeResponseDto|null>(null);
   const [loading, setLoading] = useState(true);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [seatIdsUpdated, setSeatIdsUpdated] = useState(false);
-  const [availableCoupons, setAvailableCoupons] = useState<CouponResponseDto[]>([]);
-  const [selectedCoupon, setSelectedCoupon] = useState<CouponResponseDto|null>(null);
+  const [availableCoupons, setAvailableCoupons] = useState<CouponData[]>([]);
+  const [selectedCoupon, setSelectedCoupon] = useState<CouponData|null>(null);
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [showCouponsModal, setShowCouponsModal] = useState(false);
 
@@ -56,7 +69,7 @@ export default function PaymentPage() {
   }, [bookingDatasRedux?.showtimeId]);
 
   useEffect(() => {
-    if (bookingDatasRedux?.totalAmount === 0 && bookingDatasRedux?.amount > 0) {
+    if ((bookingDatasRedux?.totalAmount ?? 0) === 0 && (bookingDatasRedux?.amount ?? 0) > 0) {
       dispatch(calculateTotalAmount());
     }
   }, [bookingDatasRedux?.totalAmount, bookingDatasRedux?.amount, dispatch]);
@@ -135,7 +148,7 @@ if(seatIdObj.id)
       if (bookingDatasRedux?.theaterId) {
         try {
           const result = await getCouponsByTheaterId(bookingDatasRedux.theaterId);
-          setAvailableCoupons(result.data || []);
+          setAvailableCoupons((result.data ?? []).map(toCouponData));
         } catch (error) {
           console.error("Failed to fetch coupons:", error);
           setAvailableCoupons([]);
@@ -146,18 +159,20 @@ if(seatIdObj.id)
     fetchTheaterCoupons();
   }, [bookingDatasRedux?.theaterId]);
 
-const paymentData = useMemo(() => {
+const paymentData = useMemo((): PaymentSummaryData | null => {
   if (!bookingDatasRedux || !showTimeData) return null;
 
   let finalSeatBreakdown = seatBreakdown.breakdown;
+  const selectedSeats = bookingDatasRedux.selectedSeats ?? [];
+  const bookingAmount = bookingDatasRedux.amount ?? 0;
 
-  if (finalSeatBreakdown.length === 0 && bookingDatasRedux.selectedSeats) {
-    finalSeatBreakdown = bookingDatasRedux.selectedSeats.map((seatId: string) => ({
+  if (finalSeatBreakdown.length === 0 && selectedSeats.length > 0) {
+    finalSeatBreakdown = selectedSeats.map((seatId: string) => ({
       type: "Standard",
       displayType: `Standard - ${seatId}`,
-      price: Math.round(bookingDatasRedux.amount / bookingDatasRedux.selectedSeats.length),
+      price: Math.round(bookingAmount / selectedSeats.length),
       count: 1,
-      total: Math.round(bookingDatasRedux.amount / bookingDatasRedux.selectedSeats.length),
+      total: Math.round(bookingAmount / selectedSeats.length),
       seats: [seatId],
       seatId: seatId
     }));
@@ -205,7 +220,7 @@ return {
   showTime: showTimeData.showTime || "Show Time",
   format: showTimeData.format || "2D",
   language: showTimeData.language || "English",
-  selectedSeats: bookingDatasRedux.selectedSeats,
+  selectedSeats,
   seatBreakdown: finalSeatBreakdown,
   
   subtotal: bookingDatasRedux.priceDetails?.subtotal || 0,
@@ -224,12 +239,12 @@ return {
   const handleBack = useCallback(() => {
     router.back();
   }, [router]);
-  const handleSelectCoupon = useCallback((coupon: CouponResponseDto) => {
+  const handleSelectCoupon = useCallback((coupon: CouponData) => {
     setSelectedCoupon(coupon);
     if(paymentData)
     {
       
-      const discount = Math.round(paymentData.subtotal * (coupon.discountPercentage / 100));
+      const discount = Math.round(paymentData.subtotal * ((coupon.discountPercentage ?? 0) / 100));
         setCouponDiscount(discount);
           dispatch(applyCoupon({
         coupon: coupon,
@@ -269,7 +284,7 @@ return {
     <RouteGuard allowedRoles={['user']} >
       <div className="min-h-screen bg-black relative overflow-hidden">
         <div className="fixed inset-0 z-10 opacity-30">
-          <Prism
+          <DynamicPrism
             animationType="rotate"
             timeScale={0.5}
             height={3.5}

@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { createResponse } from "../../../utils/createResponse";
 import { IAuthService } from "../interfaces/auth.service.interface";
 import {
@@ -15,7 +16,7 @@ import { AUTH_MESSAGES } from "../../../utils/messages.constants";
 export class AuthController {
   constructor(private readonly _authService: IAuthService) {}
 
-  async login(req: Request, res: Response): Promise<void> {
+  async login(req: Request, res: Response) {
     try {
       const loginData: LoginRequestDto = req.body;
       if (!loginData.email || !loginData.password) {
@@ -82,7 +83,7 @@ export class AuthController {
       );
     }
   }
-  async sendPasswordResetOTP(req: Request, res: Response): Promise<void> {
+  async sendPasswordResetOTP(req: Request, res: Response) {
     try {
       const requestData: SendPasswordResetOtpRequestDto = req.body;
 
@@ -118,12 +119,12 @@ export class AuthController {
      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error.message,
+          message: getErrorMessage(error),
         })
       );
     }
   }
-  async verifyPasswordResetOtp(req: Request, res: Response): Promise<void> {
+  async verifyPasswordResetOtp(req: Request, res: Response) {
     try {
       const requestData: VerifyPasswordResetOtpRequestDto = req.body;
 
@@ -159,12 +160,12 @@ export class AuthController {
     return  res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error.message,
+          message: getErrorMessage(error),
         })
       );
     }
   }
-  async resetPasswordWithOTP(req: Request, res: Response): Promise<void> {
+  async resetPasswordWithOTP(req: Request, res: Response) {
     try {
       const requestData: ResetPasswordRequestDto = req.body;
 
@@ -201,12 +202,12 @@ export class AuthController {
     return  res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error.message,
+          message: getErrorMessage(error),
         })
       );
     }
   }
-  async googleAuthenticate(req: Request, res: Response): Promise<void> {
+  async googleAuthenticate(req: Request, res: Response) {
     try {
       const requestData: GoogleAuthRequestDto = req.body;
 
@@ -264,13 +265,25 @@ export class AuthController {
       );
     }
   }
-  async logout(req: Request, res: Response): Promise<void> {
+  async logout(req: Request, res: Response) {
     try {
-      const userId = req.user?.userId || req.user?.adminId || req.user?.ownerId;
-      const userType = req.user?.role;
+      const userId =
+        req.user?.id ||
+        req.admin?.adminId ||
+        req.owner?.ownerId ||
+        req.staff?.staffId;
+      const userType =
+        req.user?.role ||
+        req.admin?.role ||
+        req.owner?.role ||
+        req.staff?.role;
 
       if (userId && userType) {
-        await this._authService.logout(userId, userType);
+        await this._authService.logout(
+          userId,
+          userType as "user" | "admin" | "owner" | "staff",
+          req.cookies?.refreshToken
+        );
       }
 
       res.clearCookie("accessToken");
@@ -313,26 +326,28 @@ export class AuthController {
       }
 
       if (!userId) {
-        return res.status(StatusCodes.UNAUTHORIZED).json(
+        res.status(StatusCodes.UNAUTHORIZED).json(
           createResponse({
             success: false,
             message: AUTH_MESSAGES.INVALID_TOKEN,
           })
         );
+        return;
       }
 
       const user = await this._authService.getUserByIdAndRole(userId, userRole);
 
       if (!user) {
-        return res.status(StatusCodes.UNAUTHORIZED).json(
+        res.status(StatusCodes.UNAUTHORIZED).json(
           createResponse({
             success: false,
             message: AUTH_MESSAGES.USER_NOT_FOUND,
           })
         );
+        return;
       }
 
-      return res.status(StatusCodes.OK).json(
+      res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
           message: AUTH_MESSAGES.USER_RETRIEVED,
@@ -347,10 +362,10 @@ export class AuthController {
       );
     } catch (error) {
       console.error("Get current user controller error:", error);
-     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
+     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error.message,
+          message: getErrorMessage(error),
         })
       );
     }

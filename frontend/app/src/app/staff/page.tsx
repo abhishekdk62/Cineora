@@ -1,9 +1,8 @@
 "use client";
 
 import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
-import DarkVeil from "@/app/others/components/ReactBits/DarkVeil";
 import React, { useState } from "react";
-import Prism from "@/app/others/components/ReactBits/Prism";
+import DynamicPrism from "@/app/others/components/ReactBits/DynamicPrism";
 import Staff from "../others/components/Staff/Staff";
 import StaffHeader from "../others/components/Staff/StaffHeader";
 
@@ -14,7 +13,7 @@ const page = () => {
         <RouteGuard allowedRoles={['staff']}>
         <div className="relative min-h-screen bg-black">
             <div className="fixed top-9 inset-0 z-0">
-                <Prism
+                <DynamicPrism
                     animationType="rotate"
                     timeScale={0.5}
                     height={3.5}

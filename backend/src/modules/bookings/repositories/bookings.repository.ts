@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import mongoose, { FilterQuery } from "mongoose";
 import {
   CreateBookingDto,
@@ -23,7 +24,7 @@ export class BookingRepository implements IBookingRepository {
         .populate("userId", "firstName lastName email phone")
         .exec();
     } catch (error) {
-      throw new Error(`Failed to find booking by id: ${error.message}`);
+      throw new Error(`Failed to find booking by id: ${getErrorMessage(error)}`);
     }
   }
   async getBookingsByTheaterId(
@@ -36,7 +37,7 @@ export class BookingRepository implements IBookingRepository {
     try {
       const skip = (page - 1) * limit;
 
-      const dateFilter: FilterQuery = {};
+      const dateFilter: FilterQuery<Record<string, unknown>> = {};
       if (startDate && endDate) {
         dateFilter.bookedAt = {
           $gte: new Date(startDate + "T00:00:00.000Z"), 
@@ -70,7 +71,7 @@ export class BookingRepository implements IBookingRepository {
       return { bookings, totalBookings };
     } catch (error) {
       throw new Error(
-        `Failed to fetch bookings by theater id: ${error.message}`
+        `Failed to fetch bookings by theater id: ${getErrorMessage(error)}`
       );
     }
   }
@@ -91,7 +92,7 @@ async findAllBookingsByOwnerId(ownerId: string): Promise<IBooking[]> {
     .exec()
     .then(bookings => bookings.filter(booking => booking.theaterId !== null));
   } catch (error) {
-    throw new Error(`Failed to find bookings by owner id: ${error.message}`);
+    throw new Error(`Failed to find bookings by owner id: ${getErrorMessage(error)}`);
   }
 }
 
@@ -100,7 +101,7 @@ async findAllBookingsByOwnerId(ownerId: string): Promise<IBooking[]> {
       return await Booking.countDocuments({ theaterId });
     } catch (error) {
       throw new Error(
-        `Failed to count bookings by theater id: ${error.message}`
+        `Failed to count bookings by theater id: ${getErrorMessage(error)}`
       );
     }
   }
@@ -114,7 +115,7 @@ async findAllBookingsByOwnerId(ownerId: string): Promise<IBooking[]> {
         .populate("userId", "firstName lastName email phone")
         .exec();
     } catch (error) {
-      throw new Error(`Failed to find booking by booking id: ${error.message}`);
+      throw new Error(`Failed to find booking by booking id: ${getErrorMessage(error)}`);
     }
   }
 
@@ -127,7 +128,7 @@ async findAllBookingsByOwnerId(ownerId: string): Promise<IBooking[]> {
         .sort({ bookedAt: -1 })
         .exec();
     } catch (error) {
-      throw new Error(`Failed to find bookings by user id: ${error.message}`);
+      throw new Error(`Failed to find bookings by user id: ${getErrorMessage(error)}`);
     }
   }
 
@@ -157,7 +158,7 @@ async findAllBookingsByOwnerId(ownerId: string): Promise<IBooking[]> {
         totalPages: Math.ceil(total / limit),
       };
     } catch (error) {
-      throw new Error(`Failed to find bookings paginated: ${error.message}`);
+      throw new Error(`Failed to find bookings paginated: ${getErrorMessage(error)}`);
     }
   }
 
@@ -168,7 +169,7 @@ async findAllBookingsByOwnerId(ownerId: string): Promise<IBooking[]> {
         .exec();
     } catch (error) {
       throw new Error(
-        `Failed to find bookings by showtime id: ${error.message}`
+        `Failed to find bookings by showtime id: ${getErrorMessage(error)}`
       );
     }
   }
@@ -187,7 +188,7 @@ async findAllBookingsByOwnerId(ownerId: string): Promise<IBooking[]> {
         .sort({ showDate: 1 })
         .exec();
     } catch (error) {
-      throw new Error(`Failed to find upcoming bookings: ${error.message}`);
+      throw new Error(`Failed to find upcoming bookings: ${getErrorMessage(error)}`);
     }
   }
 
@@ -200,7 +201,7 @@ async findAllBookingsByOwnerId(ownerId: string): Promise<IBooking[]> {
         .sort({ bookedAt: -1 })
         .exec();
     } catch (error) {
-      throw new Error(`Failed to find booking history: ${error.message}`);
+      throw new Error(`Failed to find booking history: ${getErrorMessage(error)}`);
     }
   }
 
@@ -214,7 +215,7 @@ async findAllBookingsByOwnerId(ownerId: string): Promise<IBooking[]> {
         bookingStatus: "confirmed",
       }).exec();
     } catch (error) {
-      throw new Error(`Failed to find expired bookings: ${error.message}`);
+      throw new Error(`Failed to find expired bookings: ${getErrorMessage(error)}`);
     }
   }
 
@@ -222,13 +223,13 @@ async findAllBookingsByOwnerId(ownerId: string): Promise<IBooking[]> {
     try {
       return await Booking.findOne({ paymentId }).exec();
     } catch (error) {
-      throw new Error(`Failed to find booking by payment id: ${error.message}`);
+      throw new Error(`Failed to find booking by payment id: ${getErrorMessage(error)}`);
     }
   }
   async createBooking(bookingData: bookingInfo): Promise<IBooking | null> {
     try {
 
-      let transformedBookingData = {
+      let transformedBookingData: Record<string, unknown> = {
         bookingId: bookingData.bookingId,
         userId: bookingData.userId,
         movieId: bookingData.movieId,
@@ -263,7 +264,7 @@ async findAllBookingsByOwnerId(ownerId: string): Promise<IBooking[]> {
     } catch (error) {
       throw new Error(
         `Failed to create booking: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -278,7 +279,7 @@ async findAllBookingsByOwnerId(ownerId: string): Promise<IBooking[]> {
         new: true,
       }).exec();
     } catch (error) {
-      throw new Error(`Failed to update booking by id: ${error.message}`);
+      throw new Error(`Failed to update booking by id: ${getErrorMessage(error)}`);
     }
   }
 
@@ -292,7 +293,7 @@ async findAllBookingsByOwnerId(ownerId: string): Promise<IBooking[]> {
       }).exec();
     } catch (error) {
       throw new Error(
-        `Failed to update booking by booking id: ${error.message}`
+        `Failed to update booking by booking id: ${getErrorMessage(error)}`
       );
     }
   }
@@ -308,7 +309,7 @@ async findAllBookingsByOwnerId(ownerId: string): Promise<IBooking[]> {
         { new: true }
       ).exec();
     } catch (error) {
-      throw new Error(`Failed to cancel booking: ${error.message}`);
+      throw new Error(`Failed to cancel booking: ${getErrorMessage(error)}`);
     }
   }
 
@@ -326,7 +327,7 @@ async findAllBookingsByOwnerId(ownerId: string): Promise<IBooking[]> {
         new: true,
       }).exec();
     } catch (error) {
-      throw new Error(`Failed to update payment status: ${error.message}`);
+      throw new Error(`Failed to update payment status: ${getErrorMessage(error)}`);
     }
   }
 
@@ -335,7 +336,7 @@ async findAllBookingsByOwnerId(ownerId: string): Promise<IBooking[]> {
       const result = await Booking.findByIdAndDelete(bookingId).exec();
       return !!result;
     } catch (error) {
-      throw new Error(`Failed to delete booking: ${error.message}`);
+      throw new Error(`Failed to delete booking: ${getErrorMessage(error)}`);
     }
   }
 }

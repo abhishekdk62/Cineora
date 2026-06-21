@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 import { Lexend } from "next/font/google";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
-import TheaterReviewsContent from "./TheaterReviewsContent";
+import TheaterReviewsContent, { type Review, type ReviewsData, type RatingStats } from "./TheaterReviewsContent";
 import { confirmAction } from "../../utils/ConfirmDialog";
 import EditReviewModal from "../Movies/EditReviewModal";
 import { deleteReview, updateReview } from "@/app/others/services/userServices/reviewServices";
@@ -15,36 +15,12 @@ const lexendBold = Lexend({
   subsets: ["latin"],
 });
 
-interface Review {
-  _id: string;
-  bookingId: string;
-  createdAt: string;
-  helpfulCount: number;
-  isVerifiedBooking: boolean;
-  movieId: string;
-  rating: number;
-  reportCount: number;
-  reviewText: string;
-  reviewType: "movie" | "theater";
-  status: string;
-  theaterId: string;
-  updatedAt: string;
-  userId: {
-    _id: string;
-    email: string;
-    username: string;
-    profilePicture?: string;
-  };
-}
-interface Ratings{
-  
-}
 interface TheaterReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   theaterId: string;
-  reviewsData: Review[];
-  ratingStats: Ratings[];
+  reviewsData: ReviewsData | null;
+  ratingStats: RatingStats | null;
   theaterName: string;
 }
 
@@ -126,11 +102,13 @@ let filteredReviews=reviews.filter((r)=>r._id!=revid)
     }
   };
 
-  const updatedReviewsData = {
-    ...reviewsData,
-    reviews: reviews,
-    total: reviews.length
-  };
+  const updatedReviewsData: ReviewsData | null = reviewsData
+    ? {
+        ...reviewsData,
+        reviews,
+        total: reviews.length,
+      }
+    : null;
 
   if (!isOpen) return null;
 

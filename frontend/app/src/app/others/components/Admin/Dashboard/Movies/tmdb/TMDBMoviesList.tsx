@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { TMDBMoviesListProps } from "../types/tmdb"; 
+import { TMDBMovie, TMDBMoviesListProps } from "../types/tmdb"; 
 import { useTMDBMovies } from "../hooks/useTMDBMovies"; 
 import PageHeader from "./PageHeader";
 import SearchAndFilters from "./SearchAndFilters";
@@ -9,21 +9,7 @@ import MovieListItem from "./MovieListItem";
 import Pagination from "./Pagination";
 import LoadingState from "./LoadingState";
 import EmptyState from "./EmptyState";
-interface TMDBMovie {
-  id: number;
-  title: string;
-  genre_ids: number[];
-  release_date: string;
-  overview: string;
-  poster_path: string;
-  original_language: string;
-  adult?: boolean;
-  backdrop_path?: string | null;
-  popularity?: number;
-  vote_average?: number;
-  vote_count?: number;
-  video?: boolean;
-}
+
 const TMDBMoviesList: React.FC<TMDBMoviesListProps> = ({ onAddMovie }) => {
   const {
     searchTerm,
@@ -44,9 +30,8 @@ const TMDBMoviesList: React.FC<TMDBMoviesListProps> = ({ onAddMovie }) => {
     TMDB_IMAGE_BASE_URL,
   } = useTMDBMovies();
 
-  const handleAddMovie = async (movie: TMDBMovie) => {
+  const handleAddMovie = (movie: TMDBMovie) => {
     try {
-      
       const movieData = {
         tmdbId: movie.id,
         title: movie.title,
@@ -55,7 +40,7 @@ const TMDBMoviesList: React.FC<TMDBMoviesListProps> = ({ onAddMovie }) => {
         duration: 120,
         rating: "PG-13",
         description: movie.overview,
-        poster: `${TMDB_IMAGE_BASE_URL}${movie.poster_path}`,
+        poster: `${TMDB_IMAGE_BASE_URL}${movie.poster_path ?? ""}`,
         trailer: "",
         cast: ["Sample Actor 1", "Sample Actor 2"],
         director: "Sample Director",

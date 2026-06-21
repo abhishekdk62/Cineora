@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { IDateRange } from "../dtos/dtos";
+import { IAdminBookingAnalyticsRecord, IDateRange } from "../dtos/dtos";
 
 
 export interface IAnalyticsRepository {
@@ -46,4 +46,5 @@ export interface IAnalyticsRepository {
   
   getCancellationRates(dateRange: IDateRange): Promise<{cancellationRate: number; refundAmount: number}>;
   getPaymentAnalytics(dateRange: IDateRange): Promise<{successRate: number; failureRate: number; avgProcessingTime: number}>;
+  getAdminAnalyticData(dateRange: IDateRange): Promise<IAdminBookingAnalyticsRecord[]>;
 }

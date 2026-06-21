@@ -1,6 +1,10 @@
 import React, { useEffect, useRef } from "react";
 import { Renderer, Triangle, Program, Mesh } from "ogl";
 
+interface PrismContainer extends HTMLDivElement {
+  __prismIO?: IntersectionObserver;
+}
+
 type PrismProps = {
   height?: number;
   baseWidth?: number;
@@ -426,7 +430,7 @@ const Prism: React.FC<PrismProps> = ({
       });
       io.observe(container);
       startRAF();
-      (container as string).__prismIO = io;
+      (container as PrismContainer).__prismIO = io;
     } else {
       startRAF();
     }
@@ -444,11 +448,10 @@ const Prism: React.FC<PrismProps> = ({
         window.removeEventListener("blur", onBlur);
       }
       if (suspendWhenOffscreen) {
-        const io = (container as string).__prismIO as
-          | IntersectionObserver
-          | undefined;
+        const prismContainer = container as PrismContainer;
+        const io = prismContainer.__prismIO;
         if (io) io.disconnect();
-        delete (container as string).__prismIO;
+        delete prismContainer.__prismIO;
       }
       if (gl.canvas.parentElement === container)
         container.removeChild(gl.canvas);

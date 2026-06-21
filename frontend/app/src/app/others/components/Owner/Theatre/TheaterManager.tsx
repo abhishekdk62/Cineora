@@ -64,7 +64,7 @@ const openAddStaffModal = (theater: ITheater) => {
   setShowAddStaffModal(true);
 };
 
-const handleAddStaff = (newStaff) => {
+const handleAddStaff = (_newStaff: unknown) => {
   setShowAddStaffModal(false);
   setSelectedTheaterForStaff(null);
 };
@@ -97,18 +97,20 @@ const handleAddStaff = (newStaff) => {
 
       const data = await getTheatersByOwnerId(filters);
 
-      setTheaters(data.data.theaters || []);
+      setTheaters((data.data?.theaters || []) as unknown as ITheater[]);
 
+      const total = data.meta?.pagination?.total ?? data.data?.theaters?.length ?? 0;
       setPagination((prev) => ({
         ...prev,
-        totalItems: data.total,
-        totalPages: Math.ceil(data.total / prev.itemsPerPage),
+        totalItems: total,
+        totalPages: Math.ceil(total / prev.itemsPerPage) || 1,
       }));
 
+      const theaterList = data.data?.theaters || [];
       setStats({
-        total: data.data.totalAll,
-        active: data.data.activeAll,
-        inactive: data.data.inactiveAll,
+        total: theaterList.length,
+        active: theaterList.filter((t) => t.isActive).length,
+        inactive: theaterList.filter((t) => !t.isActive).length,
       });
     } catch (error) {
       console.error("Error fetching theaters:", error);

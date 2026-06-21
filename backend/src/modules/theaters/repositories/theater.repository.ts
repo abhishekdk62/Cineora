@@ -1,10 +1,8 @@
-import { PipelineOptions } from "stream";
+import { FilterQuery, PipelineStage } from "mongoose";
 import { TheaterFilters, CreateTheaterDTO, UpdateTheaterDTO } from "../dtos/dto";
 import { ITheater } from "../interfaces/theater.model.interface";
 import { ITheaterReadRepository, ITheaterWriteRepository, ITheaterRepository } from "../interfaces/theater.repository.interface";
 import { Theater } from "../models/theater.model";
-import { FilterQuery } from "mongoose";
-import { TheaterInfoDto } from "../../chatroom/dtos/dto";
 
 export class TheaterRepository implements ITheaterRepository {
   async create(
@@ -22,6 +20,13 @@ export class TheaterRepository implements ITheaterRepository {
       console.error("Error creating theater:", error);
       throw error;
     }
+  }
+
+  async createTheater(
+    ownerId: string,
+    theaterData: CreateTheaterDTO
+  ): Promise<ITheater> {
+    return this.create(ownerId, theaterData);
   }
 
   async findById(theaterId: string): Promise<ITheater | null> {
@@ -44,7 +49,7 @@ export class TheaterRepository implements ITheaterRepository {
     totalAll: number;
   }> {
     try {
-      const query: FilterQuery = { ownerId };
+      const query: FilterQuery<Record<string, unknown>> = { ownerId };
 
       if (filters?.status === "active") {
         query.isActive = true;
@@ -75,7 +80,7 @@ export class TheaterRepository implements ITheaterRepository {
 
       const sortField = filters?.sortBy || "createdAt";
       const sortOrder = filters?.sortOrder === "desc" ? -1 : 1;
-      const sortOptions: FilterQuery = { [sortField]: sortOrder };
+      const sortOptions: FilterQuery<Record<string, unknown>> = { [sortField]: sortOrder };
 
       const theaters = await Theater.find(query)
         .sort(sortOptions)
@@ -97,7 +102,7 @@ export class TheaterRepository implements ITheaterRepository {
     }
   }
 
-  async incrementTheaterScreenCount(theaterId: string): Promise<void> {
+  async incrementTheaterScreenCount(theaterId: string) {
     try {
       const result = await Theater.findByIdAndUpdate(
         theaterId,
@@ -113,7 +118,7 @@ export class TheaterRepository implements ITheaterRepository {
     }
   }
 
-  async decrementTheaterScreenCount(theaterId: string): Promise<void> {
+  async decrementTheaterScreenCount(theaterId: string) {
     try {
       const result = await Theater.findByIdAndUpdate(
         theaterId,
@@ -133,9 +138,9 @@ export class TheaterRepository implements ITheaterRepository {
     page: number,
     limit: number,
     filters?: TheaterFilters
-  ): Promise<{ theaters: ITheater[]; total: number }> {
+  ): Promise<{ data: ITheater[]; total: number }> {
     try {
-      const query: FilterQuery = {};
+      const query: FilterQuery<Record<string, unknown>> = {};
       this._applyFiltersToQuery(query, filters);
 
       const skipCount = (page - 1) * limit;
@@ -149,7 +154,7 @@ export class TheaterRepository implements ITheaterRepository {
 
       const total = await Theater.countDocuments(query);
 
-      return { theaters, total };
+      return { data: theaters, total };
     } catch (error) {
       console.error("Error getting all theaters:", error);
       throw error;
@@ -160,7 +165,7 @@ export class TheaterRepository implements ITheaterRepository {
     filters: TheaterFilters,
     page: number,
     limit: number
-  ): Promise<{ theaters: ITheater[]; total: number }> {
+  ): Promise<{ data: ITheater[]; total: number }> {
     return this.findAll(page, limit, filters);
   }
 
@@ -261,7 +266,7 @@ export class TheaterRepository implements ITheaterRepository {
     excludeId?: string
   ): Promise<boolean> {
     try {
-      const query: FilterQuery = {
+      const query: FilterQuery<Record<string, unknown>> = {
         name: new RegExp(`^${name.trim()}$`, "i"),
         city: new RegExp(`^${city.trim()}$`, "i"),
         state: new RegExp(`^${state.trim()}$`, "i"),
@@ -323,7 +328,7 @@ export class TheaterRepository implements ITheaterRepository {
     lat: number,
     lon: number
   ): Promise<{ theaters: ITheater[]; total: number; totalPages: number }> {
-    const pipeline: PipelineOptions[] = [
+    const pipeline: PipelineStage[] = [
       {
         $geoNear: {
           near: {
@@ -389,7 +394,7 @@ export class TheaterRepository implements ITheaterRepository {
     lat?: number,
     lon?: number
   ): Promise<{ theaters: ITheater[]; total: number; totalPages: number }> {
-    const query: FilterQuery = {
+    const query: FilterQuery<Record<string, unknown>> = {
       isActive: true,
       isVerified: true,
     };
@@ -432,22 +437,25 @@ export class TheaterRepository implements ITheaterRepository {
       mongooseQuery.skip(skipCount).limit(limitNum).lean(),
     ]);
 
-    const theatersWithDistance = theaters.map((theater: TheaterInfoDto) => {
+    const theatersWithDistance = theaters.map((theater) => {
+      const theaterRecord = theater as ITheater & {
+        location?: { coordinates?: [number, number] };
+      };
       let distance = undefined;
-      if (lat != null && lon != null && theater.location?.coordinates) {
-        const [tLon, tLat] = theater.location.coordinates;
+      if (lat != null && lon != null && theaterRecord.location?.coordinates) {
+        const [tLon, tLat] = theaterRecord.location.coordinates;
         const calculatedDistance = this._calculateDistanceFromLatLonInKm(lat, lon, tLat, tLon);
         distance = `${calculatedDistance.toFixed(1)} km`;
       }
       return {
-        ...theater,
+        ...theaterRecord,
         distance,
       };
     });
 
     const totalPages = Math.ceil(total / limitNum);
 
-    return { theaters: theatersWithDistance, total, totalPages };
+    return { theaters: theatersWithDistance as unknown as ITheater[], total, totalPages };
   }
 
   private _calculateDistanceFromLatLonInKm(
@@ -472,7 +480,7 @@ export class TheaterRepository implements ITheaterRepository {
     return deg * (Math.PI / 180);
   }
 
-  private _applyFiltersToQuery(query: FilterQuery, filters?: TheaterFilters): void {
+  private _applyFiltersToQuery(query: FilterQuery<Record<string, unknown>>, filters?: TheaterFilters): void {
     if (filters?.isActive !== undefined) {
       query.isActive = filters.isActive === "true";
     }

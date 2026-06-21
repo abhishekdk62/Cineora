@@ -7,9 +7,8 @@ import {
   GetUserDetailsResponseDto,
   ToggleUserStatusResponseDto
 } from '../../dtos/user.dto';
-export interface ParamsDto{
+export type ParamsDto = string | number | boolean | undefined | null;
 
-}
 const buildQuery = (params: Record<string, ParamsDto>): string => {
   const searchParams = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
@@ -26,7 +25,7 @@ export const getUserCounts = async (): Promise<GetUserCountsResponseDto> => {
 };
 
 export const getUsers = async (filters: UserFilters): Promise<GetUsersResponseDto> => {
-  const query = buildQuery(filters);
+  const query = buildQuery(filters as Record<string, ParamsDto>);
   const response = await apiClient.get(`${ADMIN_USERS.BASE}?${query}`);
   return response.data;
 };

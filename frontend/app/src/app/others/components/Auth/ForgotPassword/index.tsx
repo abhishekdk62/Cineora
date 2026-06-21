@@ -40,6 +40,8 @@ export default function ForgotPassword({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [timeLeft, setTimeLeft] = useState(300);
+  const [canResend, setCanResend] = useState(false);
 
   const next = (step: Step) => setCurrentStep(step);
 
@@ -89,6 +91,10 @@ export default function ForgotPassword({
           setOtp={setOtp}
           loading={loading}
           error={error}
+          timeLeft={timeLeft}
+          setTimeLeft={setTimeLeft}
+          canResend={canResend}
+          setCanResend={setCanResend}
           onSubmit={async (e) => {
             e.preventDefault();
             setLoading(true);
@@ -110,7 +116,9 @@ export default function ForgotPassword({
             try {
               setLoading(true);
               setError("");
-              setOtp(""); 
+              setOtp("");
+              setTimeLeft(300);
+              setCanResend(false);
               await onSubmitEmail(email); 
             } catch (err: unknown) {
               if(err instanceof AxiosError)

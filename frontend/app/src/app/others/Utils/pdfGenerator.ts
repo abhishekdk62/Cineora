@@ -2,8 +2,12 @@ import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
 import { TicketData } from '../components/User/MyAcount/Tickets/TicketsList';
 
+interface TicketDataWithGroup extends TicketData {
+  allTickets?: TicketData[];
+}
+
 interface PDFTicketData {
-  ticket: TicketData;
+  ticket: TicketDataWithGroup;
   seatGroups: any[];
   totalAmount: number;
   totalSeats: number;
@@ -27,36 +31,36 @@ const calculatePriceWithTaxAndConvenience = (basePrice: number, discountPercenta
   };
 };
 
-const getMovieData = (ticket: TicketData) => {
+const getMovieData = (ticket: TicketDataWithGroup) => {
   return ticket.movie || ticket.movieId || {};
 };
 
-const getTheaterData = (ticket: TicketData) => {
+const getTheaterData = (ticket: TicketDataWithGroup) => {
   return ticket.theater || ticket.theaterId || {};
 };
 
-const getScreenData = (ticket: TicketData) => {
+const getScreenData = (ticket: TicketDataWithGroup) => {
   return ticket.screen || ticket.screenId || {};
 };
 
 // Function to group tickets by seat type and calculate pricing
-const processTicketData = (ticket: TicketData) => {
+const processTicketData = (ticket: TicketDataWithGroup) => {
   const discountPercentage = ticket.coupon?.discountPercentage || 0;
   
   if (ticket.allTickets && ticket.allTickets.length > 0) {
     // Group tickets by seat type
-    const grouped = ticket.allTickets.reduce((acc, singleTicket) => {
+    const grouped = ticket.allTickets.reduce((acc: Record<string, TicketData[]>, singleTicket: TicketData) => {
       const key = singleTicket.seatType;
       if (!acc[key]) {
         acc[key] = [];
       }
       acc[key].push(singleTicket);
       return acc;
-    }, {} as { [key: string]: TicketData[] });
+    }, {});
 
     // Convert grouped data to the format expected by PDF
     const seatGroups = Object.entries(grouped).map(([seatType, tickets]) => {
-      const basePrice = tickets.reduce((sum, t) => sum + (t.price || 0), 0);
+      const basePrice = tickets.reduce((sum: number, t: TicketData) => sum + (t.price || 0), 0);
       const pricing = calculatePriceWithTaxAndConvenience(basePrice, discountPercentage);
       
       return {
@@ -69,7 +73,7 @@ const processTicketData = (ticket: TicketData) => {
         taxAmount: pricing.tax,
         convenienceAmount: pricing.convenience,
         totalPrice: pricing.total,
-        seats: tickets.map(t => `${t.seatRow}${t.seatNumber}`)
+        seats: tickets.map((t: TicketData) => `${t.seatRow}${t.seatNumber}`)
       };
     });
 

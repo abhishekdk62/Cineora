@@ -10,31 +10,15 @@ import {
   SpotlightArticles,
   Footer,
 } from "./others/components/Home";
-import { useRouter } from "next/navigation";
 import OrbClient from "./others/components/Home/OrbClient";
-import Orb from "./others/components/ReactBits/Orb";
 import RouteGuard from "./others/components/Auth/common/RouteGuard";
 import toast from "react-hot-toast";
 import { updateLocation } from "./others/services/userServices/userServices";
 import { useSelector } from "react-redux";
 import { RootState } from "./others/redux/store";
 
-interface Movie {
-  id: string;
-  title: string;
-  genre: string;
-  rating: number;
-  duration: string;
-  poster: string;
-  trailer: string;
-  showtimes: string[];
-  price: number;
-}
-
 export default function LandingPage() {
 
-  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
-  const router = useRouter();
   useEffect(() => {
     requestLocationAccess();
   }, []);
@@ -90,12 +74,7 @@ export default function LandingPage() {
     <RouteGuard allowUnauthenticated={true} allowedRoles={["user"]}>
     <div className="relative min-h-screen bg-black overflow-hidden">
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <Orb
-          hoverIntensity={0.5}
-          rotateOnHover={true}
-          hue={0}
-          forceHoverState={false}
-        />
+        <OrbClient />
       </div>
 
       <div className="relative z-10">

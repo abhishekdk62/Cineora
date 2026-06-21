@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import MoviesPage from "../../others/components/Search/Movies/MoviesPage";
 import { Footer, NavBar } from "../../others/components/Home";
-import Orb from "../../others/components/ReactBits/Orb";
+import DynamicOrb from "../../others/components/ReactBits/DynamicOrb";
 import Pagination from "../../others/components/utils/Pagination";
 import { getMoviesWithFilters } from "@/app/others/services/userServices/movieServices";
 import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
@@ -73,7 +73,7 @@ const Page = () => {
     <RouteGuard allowUnauthenticated={true} excludedRoles={['owner', 'admin']}>
       <div className="relative min-h-screen bg-black overflow-hidden">
         <div className="fixed inset-0 z-0 pointer-events-none">
-          <Orb
+          <DynamicOrb
             hoverIntensity={0.5}
             rotateOnHover={true}
             hue={0}

@@ -10,9 +10,16 @@ const lexendMedium = Lexend({
   subsets: ["latin"],
 });
 
+type SearchSuggestion = {
+  type: "movies" | "theaters";
+  id: string;
+  title?: string;
+  name?: string;
+};
+
 type SearchInputProps = {
   onSearch: (query: string) => void;
-  onSuggestionSelect: (suggestion) => void;
+  onSuggestionSelect: (suggestion: SearchSuggestion) => void;
 };
 
 export default function SearchInput({ onSearch, onSuggestionSelect }: SearchInputProps) {

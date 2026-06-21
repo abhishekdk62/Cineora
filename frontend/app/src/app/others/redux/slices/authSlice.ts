@@ -213,6 +213,20 @@ const authSlice = createSlice({
         state.user = { ...state.user, ...action.payload };
       }
     },
+    loadUserFromStorage: (
+      state,
+      action: PayloadAction<{
+        user: User;
+        token: string;
+        role: "user" | "admin" | "owner";
+      }>
+    ) => {
+      state.user = action.payload.user;
+      state.role = action.payload.role;
+      state.isAuthenticated = true;
+      state.loading = false;
+      state.error = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -299,6 +313,7 @@ export const {
   setError,
   clearError,
   updateUser,
+  loadUserFromStorage,
 } = authSlice.actions;
 
 export default authSlice.reducer;

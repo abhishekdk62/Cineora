@@ -4,8 +4,9 @@
 import React, { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Lexend } from "next/font/google";
- 
+
 import { getOwnerRequestStatus } from "../../../services/ownerServices/ownerServices";
+import { OwnerRequestResponseDto } from "@/app/others/dtos/owner.dto";
 
 const lexendSmall = Lexend({
   weight: "200",
@@ -15,7 +16,7 @@ const lexendSmall = Lexend({
 export default function KYCStatusCheck() {
   const [requestId, setRequestId] = useState("");
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<string>(null);
+  const [status, setStatus] = useState<OwnerRequestResponseDto | null>(null);
   const [error, setError] = useState("");
 
   const handleCheckStatus = async (e: React.FormEvent) => {
@@ -26,14 +27,18 @@ export default function KYCStatusCheck() {
 
     try {
       const result = await getOwnerRequestStatus(requestId);
-      
-      if (result.success) {
+
+      if (result.success && result.data) {
         setStatus(result.data);
       } else {
-        setError(result.message);
+        setError(result.message || "Failed to check status");
       }
-    } catch (error: string) {
-      setError(error.response?.data?.message || "Failed to check status");
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+      setError(message || "Failed to check status");
     } finally {
       setLoading(false);
     }
@@ -41,21 +46,31 @@ export default function KYCStatusCheck() {
 
   const getStatusColor = (statusValue: string) => {
     switch (statusValue) {
-      case 'pending': return 'text-yellow-400';
-      case 'under_review': return 'text-blue-400';
-      case 'approved': return 'text-green-400';
-      case 'rejected': return 'text-red-400';
-      default: return 'text-gray-400';
+      case "pending":
+        return "text-yellow-400";
+      case "under_review":
+        return "text-blue-400";
+      case "approved":
+        return "text-green-400";
+      case "rejected":
+        return "text-red-400";
+      default:
+        return "text-gray-400";
     }
   };
 
   const getStatusIcon = (statusValue: string) => {
     switch (statusValue) {
-      case 'pending': return '⏳';
-      case 'under_review': return '👀';
-      case 'approved': return '✅';
-      case 'rejected': return '❌';
-      default: return '❓';
+      case "pending":
+        return "⏳";
+      case "under_review":
+        return "👀";
+      case "approved":
+        return "✅";
+      case "rejected":
+        return "❌";
+      default:
+        return "❓";
     }
   };
 
@@ -112,18 +127,18 @@ export default function KYCStatusCheck() {
           <div className="text-center">
             <div className="text-4xl mb-2">{getStatusIcon(status.status)}</div>
             <h3 className={`text-lg font-semibold ${getStatusColor(status.status)} mb-2`}>
-              {status.status.charAt(0).toUpperCase() + status.status.slice(1).replace('_', ' ')}
+              {status.status.charAt(0).toUpperCase() + status.status.slice(1).replace("_", " ")}
             </h3>
             <p className={`${lexendSmall.className} text-gray-300 text-sm mb-4`}>
               Submitted: {new Date(status.submittedAt).toLocaleDateString()}
             </p>
-            
+
             {status.reviewedAt && (
               <p className={`${lexendSmall.className} text-gray-300 text-sm mb-2`}>
                 Reviewed: {new Date(status.reviewedAt).toLocaleDateString()}
               </p>
             )}
-            
+
             {status.rejectionReason && (
               <div className="mt-4 p-3 bg-red-900/20 border border-red-500/20 rounded-lg">
                 <p className={`${lexendSmall.className} text-red-300 text-sm`}>

@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { Types } from "mongoose";
 import { IScreen } from "../interfaces/screens.model.interface";
 import { IScreenRepository } from "../interfaces/screens.repository.interface";
@@ -44,13 +45,13 @@ export class ScreenRepository implements IScreenRepository {
     } catch (error) {
       if (error.name === "ValidationError") {
         const validationErrors = Object.values(error.errors).map(
-          (err: unknown) => err.message
+          (err: { message: string }) => err.message
         );
         throw new Error(`Validation failed: ${validationErrors.join(", ")}`);
       }
       throw new Error(
         `Failed to create screen: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -69,7 +70,7 @@ export class ScreenRepository implements IScreenRepository {
     } catch (error) {
       throw new Error(
         `Failed to get screen by ID: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -87,7 +88,7 @@ export class ScreenRepository implements IScreenRepository {
     } catch (error) {
       throw new Error(
         `Failed to get screens by theater ID: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -122,7 +123,7 @@ export class ScreenRepository implements IScreenRepository {
     } catch (error) {
       throw new Error(
         `Failed to get paginated screens: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -143,7 +144,7 @@ export class ScreenRepository implements IScreenRepository {
     } catch (error) {
       throw new Error(
         `Failed to get screen with theater details: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -184,7 +185,7 @@ export class ScreenRepository implements IScreenRepository {
     } catch (error) {
       throw new Error(
         `Failed to get screens with advanced filters: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -206,7 +207,7 @@ export class ScreenRepository implements IScreenRepository {
     } catch (error) {
       throw new Error(
         `Failed to get screen by theater ID and name: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -225,7 +226,7 @@ export class ScreenRepository implements IScreenRepository {
     } catch (error) {
       throw new Error(
         `Failed to get active screens by theater ID: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -256,7 +257,7 @@ export class ScreenRepository implements IScreenRepository {
     } catch (error) {
       throw new Error(
         `Failed to update screen: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -278,7 +279,7 @@ export class ScreenRepository implements IScreenRepository {
     } catch (error) {
       throw new Error(
         `Failed to toggle screen status: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -299,7 +300,7 @@ export class ScreenRepository implements IScreenRepository {
     } catch (error) {
       throw new Error(
         `Failed to delete screen: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -319,7 +320,7 @@ export class ScreenRepository implements IScreenRepository {
     } catch (error) {
       throw new Error(
         `Failed to delete screens by theater ID: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -349,7 +350,7 @@ export class ScreenRepository implements IScreenRepository {
     } catch (error) {
       throw new Error(
         `Failed to check screen existence: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -367,7 +368,7 @@ export class ScreenRepository implements IScreenRepository {
     } catch (error) {
       throw new Error(
         `Failed to count screens by theater ID: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -505,7 +506,7 @@ export class ScreenRepository implements IScreenRepository {
     } catch (error) {
       throw new Error(
         `Failed to get screen statistics: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }

@@ -22,8 +22,8 @@ export interface IPaymentService {
   getUserPayments(userId: string): Promise<ServiceResponse>;
   refundPayment(paymentId: string, refundAmount: number, refundReason: string): Promise<ServiceResponse>;
   getPaymentsByBooking(bookingId: string): Promise<ServiceResponse>;
-  confirmPayout(data: ConfirmPayoutDTO) ;
-   createPayoutOrder(data: CreatePayoutOrderDTO)
+  confirmPayout(data: ConfirmPayoutDTO): Promise<ServiceResponse>;
+  createPayoutOrder(data: CreatePayoutOrderDTO): Promise<ServiceResponse>;
   cancelPayment(paymentId: string): Promise<ServiceResponse>;
   verifyPayment(paymentId: string, gatewayTransactionId: string): Promise<ServiceResponse>;
   getPaymentStatus(paymentId: string): Promise<ServiceResponse>;

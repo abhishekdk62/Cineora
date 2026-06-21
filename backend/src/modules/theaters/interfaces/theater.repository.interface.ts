@@ -2,7 +2,17 @@ import { ITheater } from "./theater.model.interface";
 import { TheaterFilters, CreateTheaterDTO, UpdateTheaterDTO } from "../dtos/dto";
 import { IBaseReadRepository, IBaseRepository, IBaseWriteRepository } from "../../../repositories/baseRepository.interface";
 
-export interface ITheaterReadRepository extends IBaseReadRepository<ITheater> {
+export interface ITheaterReadRepository extends Omit<IBaseReadRepository<ITheater>, "findAll" | "findByStatus"> {
+  findAll(
+    page: number,
+    limit: number,
+    filters?: TheaterFilters
+  ): Promise<{ data: ITheater[]; total: number }>;
+  findByStatus?(
+    status: string,
+    page?: number,
+    limit?: number
+  ): Promise<{ data: ITheater[]; total: number }>;
   getTheatersByOwnerId(
     ownerId: string,
     filters?: TheaterFilters
@@ -17,7 +27,7 @@ export interface ITheaterReadRepository extends IBaseReadRepository<ITheater> {
     filters: TheaterFilters,
     page: number,
     limit: number
-  ): Promise<{ theaters: ITheater[]; total: number }>;
+  ): Promise<{ data: ITheater[]; total: number }>;
   getNearbyTheaters(
     longitude: number,
     latitude: number,
@@ -40,7 +50,9 @@ export interface ITheaterReadRepository extends IBaseReadRepository<ITheater> {
   }>;
 }
 
-export interface ITheaterWriteRepository extends IBaseWriteRepository<ITheater, string, CreateTheaterDTO, UpdateTheaterDTO> {
+export interface ITheaterWriteRepository extends Omit<IBaseWriteRepository<ITheater, string, CreateTheaterDTO, UpdateTheaterDTO>, "create" | "delete"> {
+  create(ownerId: string, theaterData: CreateTheaterDTO): Promise<ITheater>;
+  delete(theaterId: string): Promise<boolean>;
   createTheater(ownerId: string, theaterData: CreateTheaterDTO): Promise<ITheater>; 
   incrementTheaterScreenCount(theaterId: string): Promise<void>;
   decrementTheaterScreenCount(theaterId: string): Promise<void>;

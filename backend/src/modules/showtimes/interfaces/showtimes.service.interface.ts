@@ -73,7 +73,8 @@ export interface IShowtimeService {
   getShowtimesByOwnerIdPaginated(
     ownerId: string,
     page: number,
-    limit: number
+    limit: number,
+    filter?: "upcoming" | "past"
   ): Promise<ServiceResponse<{ items: IMovieShowtime[]; total: number }>>;
 
   getShowtimesByOwnerId(ownerId: string): Promise<ServiceResponse<IMovieShowtime[]>>;

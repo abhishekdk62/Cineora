@@ -1,4 +1,5 @@
 // controllers/inviteGroup.controller.ts
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { Response } from "express";
 import { IInviteGroupService } from "../interfaces/inviteGroup.service.interface";
 import { InviteGroupFilterDTO } from "../dtos/inviteGroup.dto";
@@ -9,7 +10,7 @@ import { Request } from "express";
 export interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
-    role: string;
+    role?: string;
     email?: string;
   };
 }
@@ -65,7 +66,7 @@ export class InviteGroupController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message || INVITE_GROUP_MESSAGES.INTERNAL_SERVER_ERROR
+        getErrorMessage(error) || INVITE_GROUP_MESSAGES.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -101,7 +102,7 @@ export class InviteGroupController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message || INVITE_GROUP_MESSAGES.INTERNAL_SERVER_ERROR
+        getErrorMessage(error) || INVITE_GROUP_MESSAGES.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -137,7 +138,7 @@ export class InviteGroupController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message || INVITE_GROUP_MESSAGES.INTERNAL_SERVER_ERROR
+        getErrorMessage(error) || INVITE_GROUP_MESSAGES.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -187,7 +188,7 @@ export class InviteGroupController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message || INVITE_GROUP_MESSAGES.INTERNAL_SERVER_ERROR
+        getErrorMessage(error) || INVITE_GROUP_MESSAGES.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -237,7 +238,7 @@ export class InviteGroupController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message || INVITE_GROUP_MESSAGES.INTERNAL_SERVER_ERROR
+        getErrorMessage(error) || INVITE_GROUP_MESSAGES.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -299,7 +300,7 @@ export class InviteGroupController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message || INVITE_GROUP_MESSAGES.INTERNAL_SERVER_ERROR
+        getErrorMessage(error) || INVITE_GROUP_MESSAGES.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -352,7 +353,7 @@ export class InviteGroupController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message || INVITE_GROUP_MESSAGES.INTERNAL_SERVER_ERROR
+        getErrorMessage(error) || INVITE_GROUP_MESSAGES.INTERNAL_SERVER_ERROR
       );
     }
   }

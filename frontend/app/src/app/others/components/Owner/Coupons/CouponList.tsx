@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { CouponResponseDto, GetCouponsQueryDto, GetCouponsResponseDto } from "@/app/others/dtos/coupon.dto";
+import { CouponResponseDto, GetCouponsQueryDto, GetCouponsResponseDto, UpdateCouponRequestDto } from "@/app/others/dtos/coupon.dto";
+import { getApiErrorMessage } from "@/app/others/types/common.types";
 import { getOwnerCoupons, deleteCoupon, toggleStatusCoupon } from "@/app/others/services/ownerServices/couponServices";
 import { Tag, Calendar, Percent, Info, Trash2, Edit, MapPin, Users, Clock, CirclePower } from "lucide-react";
 import { confirmAction } from "../../utils/ConfirmDialog";
@@ -27,9 +28,15 @@ const CouponList: React.FC<Props> = ({ onEdit, refreshFlag }) => {
       const response: GetCouponsResponseDto = await getOwnerCoupons(query);
       console.log('the rspo cooupon', response);
 
-      setCoupons(response.data.data);
-      setTotalPages(response.data.totalPages);
-      setPage(response.data.currentPage);
+      const paginated = response.data;
+      if (!paginated) {
+        setCoupons([]);
+        return;
+      }
+
+      setCoupons(paginated.data);
+      setTotalPages(paginated.totalPages);
+      setPage(paginated.currentPage);
     } catch {
       setError("Failed to fetch coupons");
     } finally {
@@ -66,13 +73,11 @@ const CouponList: React.FC<Props> = ({ onEdit, refreshFlag }) => {
     });
     if (!confirmed) return;
     try {
-      let data = { isActive: !isActive }
-      let d = await toggleStatusCoupon(id, data);
-      console.log(d);
-
+      const payload: UpdateCouponRequestDto = { isActive: !isActive };
+      await toggleStatusCoupon(id, payload);
       fetchCoupons(page);
-    } catch {
-      toast.error("Failed to delete coupon");
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Failed to update coupon status"));
     }
   };
 

@@ -1,4 +1,3 @@
-
 "use client";
 import * as XLSX from 'xlsx';
 
@@ -7,15 +6,17 @@ import { ArrowLeft, Search, Download, DollarSign, Users, Eye, Filter, Clock } fr
 import BookingTable from "./BookingTable";
 import SeatLayoutVisualizer from "./SeatLayoutVisualizer";
 import { getBookingDetails } from "@/app/others/services/ownerServices/bookingServices";
+import type { NextFontInstance, OwnerBookingRecord, OwnerShowtimeBooking } from '@/app/others/types';
+import { isPopulatedRef } from '@/app/others/types';
 
 interface ShowDetailsPageProps {
-  showtime: string;
-  theater: string;
-  screen: string;
+  showtime: OwnerShowtimeBooking;
+  theater: { name?: string; _id?: string };
+  screen: { name?: string; _id?: string };
   date: string;
   onBack: () => void;
-  lexendMedium: string;
-  lexendSmall: string;
+  lexendMedium: NextFontInstance;
+  lexendSmall: NextFontInstance;
 }
 
 const ShowDetailsPage: React.FC<ShowDetailsPageProps> = ({
@@ -27,11 +28,21 @@ const ShowDetailsPage: React.FC<ShowDetailsPageProps> = ({
   lexendMedium,
   lexendSmall,
 }) => {
-  const [bookings, setBookings] = useState([]);
-  const [filteredBookings, setFilteredBookings] = useState([]);
+  const [bookings, setBookings] = useState<OwnerBookingRecord[]>([]);
+  const [filteredBookings, setFilteredBookings] = useState<OwnerBookingRecord[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
+
+  const movieTitle = isPopulatedRef(showtime.movieId) ? showtime.movieId.title : 'N/A';
+  const moviePoster = isPopulatedRef(showtime.movieId) ? showtime.movieId.poster : '';
+  const screenName = isPopulatedRef(showtime.screenId) ? showtime.screenId.name : screen?.name || 'N/A';
+
+  const getUserEmail = (booking: OwnerBookingRecord) =>
+    isPopulatedRef(booking.userId) ? booking.userId.email : booking.contactInfo?.email || 'N/A';
+
+  const getUserIdSuffix = (booking: OwnerBookingRecord) =>
+    isPopulatedRef(booking.userId) ? booking.userId._id?.slice(-8) : 'N/A';
 
   useEffect(() => {
     fetchBookingDetails();
@@ -79,8 +90,8 @@ const handleExportExcel = () => {
 const worksheetData = filteredBookings.map(booking => {
   const baseData = {
     'Booking ID': booking.bookingId || 'N/A',
-    'Customer Email': booking.userId?.email || booking.contactInfo?.email || 'N/A',
-    'Customer ID': booking.userId?._id?.slice(-8) || 'N/A',
+    'Customer Email': getUserEmail(booking),
+    'Customer ID': getUserIdSuffix(booking),
     'Selected Seats': booking.selectedSeats?.join(', ') || 'No seats',
     'Number of Seats': booking.selectedSeats?.length || 0,
     'Subtotal': booking.priceDetails?.subtotal || 0,
@@ -90,12 +101,12 @@ const worksheetData = filteredBookings.map(booking => {
     'Payment Status': booking.paymentStatus || 'N/A',
     'Payment Method': booking.paymentMethod || 'N/A',
     'Booking Status': booking.bookingStatus || 'N/A',
-    'Booking Date': new Date(booking.bookedAt).toLocaleDateString('en-IN'),
-    'Booking Time': new Date(booking.bookedAt).toLocaleTimeString('en-IN'),
-    'Show Date': new Date(booking.showDate).toLocaleDateString('en-IN'),
+    'Booking Date': booking.bookedAt ? new Date(booking.bookedAt).toLocaleDateString('en-IN') : 'N/A',
+    'Booking Time': booking.bookedAt ? new Date(booking.bookedAt).toLocaleTimeString('en-IN') : 'N/A',
+    'Show Date': booking.showDate ? new Date(booking.showDate).toLocaleDateString('en-IN') : 'N/A',
     'Show Time': booking.showTime || 'N/A',
     'Cancelled At': booking.cancelledAt ? new Date(booking.cancelledAt).toLocaleDateString('en-IN') : 'N/A',
-    'Movie Title': showtime.movieId?.title || 'N/A',
+    'Movie Title': movieTitle,
     'Theater': theater?.name || 'N/A',
     'Screen': screen?.name || 'N/A',
     'Language': showtime.language?.toUpperCase() || 'N/A',
@@ -105,11 +116,11 @@ const worksheetData = filteredBookings.map(booking => {
   if (booking.couponUsed) {
     return {
       ...baseData,
-      'Coupon Used': booking.couponUsed.couponName || 'N/A',
-      'Coupon Code': booking.couponUsed.couponCode || 'N/A',
+      'Coupon Used': booking.couponUsed.name || 'N/A',
+      'Coupon Code': booking.couponUsed.uniqueId || 'N/A',
       'Discount %': booking.couponUsed.discountPercentage ? `${booking.couponUsed.discountPercentage}%` : 'N/A',
       'Discount Amount': booking.couponUsed.discountAmount || 0,
-      'Coupon Applied At': booking.couponUsed.appliedAt ? new Date(booking.couponUsed.appliedAt).toLocaleDateString('en-IN') : 'N/A'
+      'Coupon Applied At': 'N/A'
     };
   }
 
@@ -162,8 +173,8 @@ const columnWidths = [
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Bookings');
   
   const currentDate = new Date().toISOString().split('T')[0];
-  const movieTitle = showtime.movieId?.title?.replace(/[^a-zA-Z0-9]/g, '_') || 'Movie';
-  const filename = `${movieTitle}_bookings_${currentDate}.xlsx`;
+  const exportMovieTitle = movieTitle.replace(/[^a-zA-Z0-9]/g, '_') || 'Movie';
+  const filename = `${exportMovieTitle}_bookings_${currentDate}.xlsx`;
   
   XLSX.writeFile(workbook, filename);
 };
@@ -204,13 +215,13 @@ const columnWidths = [
           {/* Movie Info */}
           <div className="flex gap-4">
             <img
-              src={showtime.movieId.poster}
-              alt={showtime.movieId.title}
+              src={moviePoster}
+              alt={movieTitle}
               className="w-24 h-32 object-cover rounded-lg border border-gray-500/30"
             />
             <div className="space-y-2">
               <h2 className={`${lexendMedium.className} text-xl text-white`}>
-                {showtime.movieId.title}
+                {movieTitle}
               </h2>
               <p className={`${lexendSmall.className} text-gray-400`}>
                 {showtime.language?.toUpperCase()} • {showtime.format}
@@ -230,7 +241,7 @@ const columnWidths = [
                 </div>
               </div>
               <p className={`${lexendSmall.className} text-gray-400`}>
-                Screen: {showtime.screenId.name}
+                Screen: {screenName}
               </p>
             </div>
           </div>

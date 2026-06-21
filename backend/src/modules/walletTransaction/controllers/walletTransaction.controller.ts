@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { Request, Response } from "express";
 import { IWalletTransactionService } from "../interfaces/walletTransaction.service.interface";
 import { StatusCodes } from "../../../utils/statuscodes";
@@ -17,7 +18,7 @@ export class WalletTransactionController {
   async getUserWalletTransactions(
     req: AuthenticatedRequest,
     res: Response
-  ): Promise<void> {
+  ) {
     try {
       const userId = req.user?.id || req.owner?.ownerId || req.admin.adminId;
       const { page = 1, limit = 10 } = req.query;
@@ -69,7 +70,7 @@ export class WalletTransactionController {
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? getErrorMessage(error)
           : WALLET_TRANSACTION_MESSAGES.INTERNAL_SERVER_ERROR;
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({

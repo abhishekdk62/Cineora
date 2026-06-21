@@ -3,6 +3,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Monitor, Edit, Eye, Trash2, Power } from "lucide-react";
 import { ITheater } from "@/app/others/types";
 import { IScreen } from "@/app/others/types/screen.types";
+import { getApiErrorMessage } from "@/app/others/types/common.types";
+import { ScreenResponseDto } from "@/app/others/dtos/screen.dto";
 import { lexendMedium, lexendSmall } from "@/app/others/Utils/fonts";
 import {
   deleteScreenOwner,
@@ -19,6 +21,19 @@ interface ScreensListProps {
   refreshTrigger: number;
   searchQuery?: string;
 }
+
+const toIScreen = (dto: ScreenResponseDto): IScreen => ({
+  _id: dto._id,
+  theaterId: dto.theaterId,
+  name: dto.name,
+  totalSeats: dto.totalSeats,
+  features: dto.features ?? [],
+  screenType: dto.screenType ?? "Standard",
+  layout: dto.layout as IScreen["layout"],
+  isActive: dto.isActive,
+  createdAt: dto.createdAt ? new Date(dto.createdAt) : new Date(),
+  updatedAt: dto.updatedAt ? new Date(dto.updatedAt) : new Date(),
+});
 
 const ScreensList: React.FC<ScreensListProps> = ({
   theater,
@@ -38,9 +53,9 @@ const ScreensList: React.FC<ScreensListProps> = ({
     try {
       setIsLoading(true);
       const result = await getScreensByTheaterId(theater._id);
-      setScreens(result.data);
+      setScreens((result.data ?? []).map(toIScreen));
     } catch (error) {
-      console.error("Error fetching screens:", error);
+      console.error("Error fetching screens:", getApiErrorMessage(error, "Failed to fetch screens"));
     } finally {
       setIsLoading(false);
     }
@@ -78,13 +93,14 @@ const ScreensList: React.FC<ScreensListProps> = ({
 
       fetchScreens();
       toast.success(message);
-    } catch (error: string) {
-      if (error.response.data.includes("Please enable the theater first")) {
-        toast.error(error.response.data);
+    } catch (error: unknown) {
+      const message = getApiErrorMessage(error, "Failed to toggle screen status");
+      if (message.includes("Please enable the theater first")) {
+        toast.error(message);
         return;
       }
       console.error("Error toggling screen status:", error);
-      toast.error("Failed to toggle screen status");
+      toast.error(message);
     }
   };
   const deleteScreen = async (screenId: string) => {
@@ -98,13 +114,13 @@ const ScreensList: React.FC<ScreensListProps> = ({
       });
       if (!confirmed) return;
 
-      const response = await deleteScreenOwner(screenId); 
+      await deleteScreenOwner(screenId);
 
       toast.success("Screen deleted successfully");
       fetchScreens();
-    } catch (error: string) {
+    } catch (error: unknown) {
       console.error("Error deleting screen:", error);
-      toast.error(error.response?.data?.message || "Failed to delete screen");
+      toast.error(getApiErrorMessage(error, "Failed to delete screen"));
     }
   };
 

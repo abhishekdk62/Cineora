@@ -1,3 +1,4 @@
+import type { NextFontInstance } from '@/app/others/types';
 import React, { useState } from 'react';
 import { Calendar, ChevronDown, AlertCircle } from 'lucide-react';
 
@@ -8,8 +9,8 @@ interface TimeRangeFilterProps {
   onStartDateChange: (date: string) => void;
   onEndDateChange: (date: string) => void;
   onTimeframeChange: (timeframe: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'custom') => void;
-  lexendMedium: string;
-  lexendSmall: string;
+  lexendMedium: NextFontInstance;
+  lexendSmall: NextFontInstance;
 }
 
 export const TimeRangeFilter: React.FC<TimeRangeFilterProps> = ({
@@ -54,7 +55,7 @@ export const TimeRangeFilter: React.FC<TimeRangeFilterProps> = ({
       onEndDateChange(endDate.toISOString().split('T')[0]);
     }
     
-    onTimeframeChange(newTimeframe as string);
+    onTimeframeChange(newTimeframe as 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'custom');
   };
 
   const handleStartDateChange = (date: string) => {

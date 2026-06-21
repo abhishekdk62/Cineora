@@ -1,7 +1,24 @@
 
+interface InviteSeat {
+  seatNumber: string;
+  seatRow?: string;
+  seatType?: "VIP" | "Premium" | "Normal";
+  price: number;
+  isOccupied?: boolean;
+  _id?: string;
+}
+
+interface GroupInvite {
+  requestedSeats: InviteSeat[];
+  participants: Array<{ seatAssigned: string }>;
+  couponUsed?: {
+    discountPercentage: number;
+  };
+}
+
 interface SeatInfo {
   nextSeatIndex: number;
-  nextSeat: string | null;
+  nextSeat: InviteSeat | null;
   actualPriceForJoiner: number;
   priceBreakdown: {
     originalPrice: number;
@@ -17,7 +34,6 @@ export const calculateJoinerSeatPrice = (invite: GroupInvite): SeatInfo => {
   const availableSeats = getAvailableSeats(invite);
 
   if (availableSeats.length === 0) {
-      if (availableSeats.length === 0) {
     return {
       nextSeatIndex: -1,
       nextSeat: null,
@@ -33,11 +49,9 @@ export const calculateJoinerSeatPrice = (invite: GroupInvite): SeatInfo => {
     };
   }
 
-  }
-
   const nextSeat = availableSeats[0];
   const nextSeatIndex = invite.requestedSeats.findIndex(
-    seat => seat.seatNumber === nextSeat.seatNumber
+    (seat) => seat.seatNumber === nextSeat.seatNumber
   );
 
   const originalPrice = nextSeat.price;
@@ -52,8 +66,8 @@ export const calculateJoinerSeatPrice = (invite: GroupInvite): SeatInfo => {
     discountedPrice = originalPrice - discountAmount;
   }
 
-  const convenienceFee = Math.round((originalPrice * 5) / 100); 
-  const tax = Math.round((originalPrice * 18) / 100); 
+  const convenienceFee = Math.round((originalPrice * 5) / 100);
+  const tax = Math.round((originalPrice * 18) / 100);
 
   const finalAmount = discountedPrice + convenienceFee + tax;
 
@@ -76,7 +90,7 @@ export const getOccupiedSeats = (invite: GroupInvite): string[] => {
   return invite.participants.map((participant) => participant.seatAssigned);
 };
 
-export const getAvailableSeats = (invite: GroupInvite): GroupInvite[] => {
+export const getAvailableSeats = (invite: GroupInvite): InviteSeat[] => {
   const occupiedSeats = getOccupiedSeats(invite);
   return invite.requestedSeats.filter(
     (seat) => !occupiedSeats.includes(seat.seatNumber)

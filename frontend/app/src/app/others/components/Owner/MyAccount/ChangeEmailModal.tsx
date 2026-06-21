@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { X, Mail, Loader2, Eye, EyeOff } from "lucide-react";
 
 import toast from "react-hot-toast";
+import { AxiosError } from "axios";
 import { sendEmailChangeOtp, verifyEmailChangeOtp } from "@/app/others/services/ownerServices/ownerServices";
 
 const lexendBold = { className: "font-bold" };
@@ -131,11 +132,13 @@ const ChangeEmailModal = ({ currentEmail, onClose, onEmailChanged }: ChangeEmail
           result.message || "Failed to send OTP. Please try again."
         );
       }
-    } catch (error: string) {
+    } catch (error: unknown) {
       console.error("Send OTP error:", error);
-      setEmailError(
-        error.response?.data?.message || "Failed to send OTP. Please try again."
-      );
+      const message =
+        error instanceof AxiosError
+          ? error.response?.data?.message
+          : undefined;
+      setEmailError(message || "Failed to send OTP. Please try again.");
     } finally {
       setEmailLoading(false);
     }
@@ -164,11 +167,10 @@ const ChangeEmailModal = ({ currentEmail, onClose, onEmailChanged }: ChangeEmail
           result.message || "Failed to resend OTP. Please try again."
         );
       }
-    } catch (error: string) {
+    } catch (error: unknown) {
       console.error("Resend OTP error:", error);
-      setEmailError(
-        error?.message || "Failed to resend OTP. Please try again."
-      );
+      const message = error instanceof Error ? error.message : undefined;
+      setEmailError(message || "Failed to resend OTP. Please try again.");
     } finally {
       setResendLoading(false);
     }
@@ -200,11 +202,15 @@ const ChangeEmailModal = ({ currentEmail, onClose, onEmailChanged }: ChangeEmail
         }));
         inputs.current[0]?.focus();
       }
-    } catch (error: string) {
+    } catch (error: unknown) {
       console.error("Verify OTP error:", error);
-      setEmailError(
-        error?.response?.data?.message || "Invalid OTP. Please try again."
-      );
+      const message =
+        error instanceof AxiosError
+          ? error.response?.data?.message
+          : error instanceof Error
+            ? error.message
+            : undefined;
+      setEmailError(message || "Invalid OTP. Please try again.");
       setEmailData((prev) => ({
         ...prev,
         otp: [],

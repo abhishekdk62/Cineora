@@ -4,7 +4,7 @@ import { ApiResponse } from '../../../utils/createResponse';
 
 export interface IWalletTransactionService {
   createWalletTransaction(data: CreateWalletTransactionDto): Promise<ApiResponse<IWalletTransaction>>;
-  getRecentTransaction(userId:string);
+  getRecentTransaction(userId: string): Promise<ApiResponse<IWalletTransaction | null>>;
   getUserWalletTransactions(
     userId: string,
     page: number,

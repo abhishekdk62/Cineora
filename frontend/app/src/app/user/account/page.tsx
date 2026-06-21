@@ -2,17 +2,21 @@
 
 import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
 import { NavBar } from "@/app/others/components/Home";
-import AccountPage from "@/app/others/components/User/MyAcount/MyAcountManager";
-import DarkVeil from "@/app/others/components/ReactBits/DarkVeil";
-import React from "react";
-import Prism from "@/app/others/components/ReactBits/Prism";
+import DynamicPrism from "@/app/others/components/ReactBits/DynamicPrism";
+import dynamic from "next/dynamic";
+import TabPanelFallback from "@/app/others/components/utils/TabPanelFallback";
+
+const AccountPage = dynamic(
+  () => import("@/app/others/components/User/MyAcount/MyAcountManager"),
+  { loading: () => <TabPanelFallback /> }
+);
 
 const page = () => {
   return (
-    <RouteGuard allowedRoles={['user']}>
+    <RouteGuard allowedRoles={["user"]}>
       <div className="relative min-h-screen bg-black">
         <div className="fixed top-9 inset-0 z-0">
-          <Prism
+          <DynamicPrism
             animationType="rotate"
             timeScale={0.5}
             height={3.5}

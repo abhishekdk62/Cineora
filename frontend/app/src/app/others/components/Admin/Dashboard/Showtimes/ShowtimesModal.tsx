@@ -35,11 +35,11 @@ export interface ShowtimeFilters {
   sortBy?: string;
   sortOrder?: "asc" | "desc";
 }
-export interface ParamsType{
-  page:number;
-  currentFilters:ShowtimeFilters;
-  limit:number
-}
+
+export type ParamsType = ShowtimeFilters & {
+  page: number;
+  limit: number;
+};
 interface ShowtimePagination {
   currentPage: number;
   totalPages: number;
@@ -79,13 +79,22 @@ const ShowtimesModal: React.FC<ShowtimesModalProps> = ({ screen, onClose }) => {
       const data = await getShowTimeByScreenIdAdmin(screen._id, params);
 
       if (data.success && data.data) {
-        setShowtimes(data.data.showtimes || []);
-        setPagination({
-          currentPage: data.data.currentPage || page,
-          totalPages: data.data.totalPages || 1,
-          totalItems: data.data.total || data.data.totalItems || 0,
-          pageSize: data.data.pageSize || 10
-        });
+        setShowtimes((data.data || []) as unknown as IShowtime[]);
+        if (data.meta?.pagination) {
+          setPagination({
+            currentPage: data.meta.pagination.currentPage || page,
+            totalPages: data.meta.pagination.totalPages || 1,
+            totalItems: data.meta.pagination.total || 0,
+            pageSize: data.meta.pagination.limit || pagination.pageSize
+          });
+        } else {
+          setPagination({
+            currentPage: page,
+            totalPages: 1,
+            totalItems: data.data.length,
+            pageSize: pagination.pageSize
+          });
+        }
       } else {
         setShowtimes([]);
         setPagination(prev => ({ ...prev, totalItems: 0, totalPages: 1 }));
@@ -104,7 +113,10 @@ const ShowtimesModal: React.FC<ShowtimesModalProps> = ({ screen, onClose }) => {
     fetchShowtimes(1, filters);
   }, [screen._id]);
 
-  const handleFilterChange = (field: keyof ShowtimeFilters, value: ShowtimeFilters) => {
+  const handleFilterChange = <K extends keyof ShowtimeFilters>(
+    field: K,
+    value: ShowtimeFilters[K]
+  ) => {
     const updatedFilters = { ...filters, [field]: value };
     setFilters(updatedFilters);
     setPagination(prev => ({ ...prev, currentPage: 1 }));
@@ -229,8 +241,14 @@ const ShowtimesModal: React.FC<ShowtimesModalProps> = ({ screen, onClose }) => {
               value={`${filters.sortBy}-${filters.sortOrder}`}
               onChange={(e) => {
                 const [sortBy, sortOrder] = e.target.value.split("-");
-                handleFilterChange("sortBy", sortBy);
-                handleFilterChange("sortOrder", sortOrder as "asc" | "desc");
+                const updatedFilters = {
+                  ...filters,
+                  sortBy,
+                  sortOrder: sortOrder as "asc" | "desc",
+                };
+                setFilters(updatedFilters);
+                setPagination((prev) => ({ ...prev, currentPage: 1 }));
+                fetchShowtimes(1, updatedFilters);
               }}
               className="bg-gray-800/50 border border-yellow-500/30 rounded-lg text-white px-3 py-2 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500/20 transition-all duration-200"
             >

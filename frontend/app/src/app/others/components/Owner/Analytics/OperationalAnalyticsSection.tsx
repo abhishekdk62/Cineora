@@ -1,15 +1,17 @@
+import type { NextFontInstance } from '@/app/others/types';
+import { GrowthRateDto, TimeSlotDto } from '../../../dtos/analytics.dto';
 import React, { useState, useEffect } from 'react';
 import { Activity, AlertTriangle, TrendingUp, Clock } from 'lucide-react';
 
-import { AnalyticsQueryDto } from '../../../dtos/analytics.dto';
+import { AnalyticsQueryDto, OperationalAnalyticsDto } from '../../../dtos/analytics.dto';
 import { getOperationalAnalyticsApi } from '@/app/others/services/commonServices/analyticServices';
 import { LoadingCard } from './LoadingCard';
 import { MetricCard } from './MetricCard';
 
 interface OperationalAnalyticsSectionProps {
   dateRange: AnalyticsQueryDto;
-  lexendMedium: string;
-  lexendSmall: string;
+  lexendMedium: NextFontInstance;
+  lexendSmall: NextFontInstance;
 }
 
 export const OperationalAnalyticsSection: React.FC<OperationalAnalyticsSectionProps> = ({
@@ -18,7 +20,7 @@ export const OperationalAnalyticsSection: React.FC<OperationalAnalyticsSectionPr
   lexendSmall
 }) => {
   const [loading, setLoading] = useState(true);
-  const [operationalData, setOperationalData] = useState<string>(null);
+  const [operationalData, setOperationalData] = useState<OperationalAnalyticsDto | null>(null);
 
   useEffect(() => {
     if (dateRange.startDate && dateRange.endDate) {
@@ -30,7 +32,7 @@ export const OperationalAnalyticsSection: React.FC<OperationalAnalyticsSectionPr
     setLoading(true);
     try {
       const response = await getOperationalAnalyticsApi(dateRange);
-      setOperationalData(response.data);
+      setOperationalData(response.data ?? null);
     } catch (error) {
       console.error('Error fetching operational analytics:', error);
     } finally {
@@ -52,16 +54,16 @@ export const OperationalAnalyticsSection: React.FC<OperationalAnalyticsSectionPr
   }
 
   const avgGrowthRate = operationalData.revenueGrowthRate.length > 0 
-    ? operationalData.revenueGrowthRate.reduce((sum: number, item: string) => sum + item.growthRate, 0) / operationalData.revenueGrowthRate.length 
+    ? operationalData.revenueGrowthRate.reduce((sum: number, item: GrowthRateDto) => sum + item.growthRate, 0) / operationalData.revenueGrowthRate.length 
     : 0;
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className={`text-2xl text-white mb-2`} style={lexendMedium}>
+        <h2 className={`text-2xl text-white mb-2`} style={lexendMedium.style}>
           Operational Analytics
         </h2>
-        <p className={`text-gray-400`} style={lexendSmall}>
+        <p className={`text-gray-400`} style={lexendSmall.style}>
           Monitor operational efficiency and growth trends
         </p>
       </div>
@@ -101,7 +103,7 @@ export const OperationalAnalyticsSection: React.FC<OperationalAnalyticsSectionPr
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Low Performing Time Slots */}
         <div className="bg-black/90 backdrop-blur-sm border border-gray-500/30 rounded-2xl p-6">
-          <h3 className={`text-lg text-white mb-4 flex items-center gap-2`} style={lexendMedium}>
+          <h3 className={`text-lg text-white mb-4 flex items-center gap-2`} style={lexendMedium.style}>
             <AlertTriangle className="w-5 h-5 text-red-400" />
             Low Performing Time Slots
           </h3>
@@ -109,31 +111,31 @@ export const OperationalAnalyticsSection: React.FC<OperationalAnalyticsSectionPr
             {operationalData.lowPerformingTimeSlots.length === 0 ? (
               <div className="text-center py-8">
                 <Activity className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                <p className={`text-gray-400`} style={lexendMedium}>
+                <p className={`text-gray-400`} style={lexendMedium.style}>
                   All time slots performing well!
                 </p>
               </div>
             ) : (
-              operationalData.lowPerformingTimeSlots.map((slot: string) => (
+              operationalData.lowPerformingTimeSlots.map((slot: TimeSlotDto) => (
                 <div key={slot.timeSlot} className="flex items-center justify-between p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-red-500/20 rounded-lg">
                       <Clock className="w-4 h-4 text-red-400" />
                     </div>
                     <div>
-                      <p className={`text-white font-medium`} style={lexendMedium}>
+                      <p className={`text-white font-medium`} style={lexendMedium.style}>
                         {slot.timeSlot}
                       </p>
-                      <p className={`text-red-400 text-xs`} style={lexendSmall}>
+                      <p className={`text-red-400 text-xs`} style={lexendSmall.style}>
                         {slot.performance} performance
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`text-white text-sm`} style={lexendMedium}>
+                    <p className={`text-white text-sm`} style={lexendMedium.style}>
                       {slot.avgOccupancy.toFixed(1)}% Occupancy
                     </p>
-                    <p className={`text-gray-400 text-xs`} style={lexendSmall}>
+                    <p className={`text-gray-400 text-xs`} style={lexendSmall.style}>
                       ₹{slot.totalRevenue.toLocaleString('en-IN')}
                     </p>
                   </div>
@@ -145,12 +147,12 @@ export const OperationalAnalyticsSection: React.FC<OperationalAnalyticsSectionPr
 
         {/* Revenue Growth Trends */}
         <div className="bg-black/90 backdrop-blur-sm border border-gray-500/30 rounded-2xl p-6">
-          <h3 className={`text-lg text-white mb-4 flex items-center gap-2`} style={lexendMedium}>
+          <h3 className={`text-lg text-white mb-4 flex items-center gap-2`} style={lexendMedium.style}>
             <TrendingUp className="w-5 h-5 text-green-400" />
             Revenue Growth Trends
           </h3>
           <div className="space-y-3">
-            {operationalData.revenueGrowthRate.slice(-6).map((period: string, index: number) => (
+            {operationalData.revenueGrowthRate.slice(-6).map((period: GrowthRateDto, index: number) => (
               <div key={period.period} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className={`w-8 h-8 ${
@@ -162,28 +164,28 @@ export const OperationalAnalyticsSection: React.FC<OperationalAnalyticsSectionPr
                       period.trend === 'positive' ? 'text-green-400' : 
                       period.trend === 'negative' ? 'text-red-400' : 
                       'text-gray-400'
-                    }`} style={lexendMedium}>
+                    }`} style={lexendMedium.style}>
                       {index + 1}
                     </span>
                   </div>
                   <div>
-                    <p className={`text-white font-medium`} style={lexendMedium}>
+                    <p className={`text-white font-medium`} style={lexendMedium.style}>
                       {period.period}
                     </p>
-                    <p className={`text-gray-400 text-xs capitalize`} style={lexendSmall}>
+                    <p className={`text-gray-400 text-xs capitalize`} style={lexendSmall.style}>
                       {period.trend} trend
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className={`text-white text-sm font-medium`} style={lexendMedium}>
+                  <p className={`text-white text-sm font-medium`} style={lexendMedium.style}>
                     ₹{period.totalRevenue.toLocaleString('en-IN')}
                   </p>
                   <p className={`text-xs ${
                     period.growthRate > 0 ? 'text-green-400' : 
                     period.growthRate < 0 ? 'text-red-400' : 
                     'text-gray-400'
-                  }`} style={lexendSmall}>
+                  }`} style={lexendSmall.style}>
                     {period.growthRate > 0 ? '+' : ''}{period.growthRate.toFixed(1)}%
                   </p>
                 </div>

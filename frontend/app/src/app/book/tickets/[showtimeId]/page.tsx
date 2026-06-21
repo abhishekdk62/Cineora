@@ -10,14 +10,48 @@ import CurvedScreen from "@/app/others/components/User/Ticket/CurvedScreen";
 import SeatLayout from "@/app/others/components/User/Ticket/SeatLayout";
 import Legend from "@/app/others/components/User/Ticket/Legend";
 import SelectionSummary from "@/app/others/components/User/Ticket/SelectionSummary";
-import Prism from "@/app/others/components/ReactBits/Prism";
+import DynamicPrism from "@/app/others/components/ReactBits/DynamicPrism";
 import { NavBar } from "@/app/others/components/Home";
 import Loader from "@/app/others/components/utils/Loader";
 import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "@/app/others/redux/store";
 import { setBookingData } from "@/app/others/redux/slices/bookingSlice";
 import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
-import { ShowtimeResponseDto } from "@/app/others/dtos";
+import { RowPricingDto, ShowtimeResponseDto } from "@/app/others/dtos";
 import { useSocket } from "@/app/others/Utils/useSocket";
+import { RowPricing as BookingRowPricing } from "@/app/others/types";
+
+const mapRowPricing = (rowPricing: RowPricingDto[]): BookingRowPricing[] =>
+  rowPricing.map((rp) => ({
+    _id: rp._id,
+    rowLabel: rp.rowLabel,
+    seatType: rp.seatType,
+    basePrice: rp.basePrice,
+    showtimePrice: rp.showtimePrice,
+    totalSeats: rp.totalSeats,
+    availableSeats: rp.availableSeats,
+    bookedSeats: rp.bookedSeats ?? [],
+  }));
+
+type AisleLayout = {
+  vertical?: Array<{ position: number; width: number }>;
+  horizontal?: Array<{ afterRow: number; width: number }>;
+};
+
+const parseAisles = (aisles: unknown): AisleLayout | undefined => {
+  if (!aisles) return undefined;
+  if (typeof aisles === "string") {
+    try {
+      return JSON.parse(aisles) as AisleLayout;
+    } catch {
+      return undefined;
+    }
+  }
+  if (typeof aisles === "object") {
+    return aisles as AisleLayout;
+  }
+  return undefined;
+};
 
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
 const lexendMedium = Lexend({ weight: "400", subsets: ["latin"] });
@@ -146,8 +180,8 @@ export default function SeatSelectionPage() {
   const router = useRouter();
   const dispatch = useDispatch();
 
-  const user = useSelector((state: string) => state.auth.user);
-  const bookingDatasRedux = useSelector((state: string) => state.booking.bookingData);
+  const user = useSelector((state: RootState) => state.auth.user);
+  const bookingDatasRedux = useSelector((state: RootState) => state.booking.bookingData);
 
   const showtimeId = params?.showtimeId as string;
   const [showtimeData, setShowtimeData] = useState<ShowtimeResponseDto | null>(null);
@@ -322,7 +356,15 @@ export default function SeatSelectionPage() {
       }
 
       return acc;
-    }, [] as string[]);
+    }, [] as Array<{
+      rowId: string;
+      rowLabel: string;
+      seatsSelected: string[];
+      seatCount: number;
+      seatType: "VIP" | "Premium" | "Normal";
+      pricePerSeat: number;
+      totalPrice: number;
+    }>);
 
     const totalAmount = calculateTotalAmount();
     const convenienceFee = Math.round(totalAmount * 0.05);
@@ -335,7 +377,7 @@ export default function SeatSelectionPage() {
       theaterId: (showtimeData.theaterId as { _id: string })._id,
       screenId: (showtimeData.screenId as { _id: string })._id,
 
-      userId: user?.id || user?.userId || user?._id,
+      userId: (user as { id?: string; userId?: string; _id?: string })?.id || (user as { userId?: string })?.userId || (user as { _id?: string })?._id,
 
       movieTitle: (showtimeData.movieId as { title: string }).title,
       movieDetails: {
@@ -391,11 +433,11 @@ export default function SeatSelectionPage() {
         ownerId: showtimeData.ownerId,
       },
 
-      allRowPricing: showtimeData.rowPricing,
+      allRowPricing: mapRowPricing(showtimeData.rowPricing),
 
       contactInfo: {
         email: user?.email || "",
-        phone: user?.phone || ""
+        phone: (user as { phone?: string })?.phone || ""
       },
 
       selectedRows: selectedRowsGrouped,
@@ -553,7 +595,15 @@ console.log('seat-update',data);
       }
 
       return acc;
-    }, [] as string[]);
+    }, [] as Array<{
+      rowId: string;
+      rowLabel: string;
+      seatsSelected: string[];
+      seatCount: number;
+      seatType: "VIP" | "Premium" | "Normal";
+      pricePerSeat: number;
+      totalPrice: number;
+    }>);
 
     const totalAmount = calculateTotalAmount();
     const convenienceFee = Math.round(totalAmount * 0.05);
@@ -566,7 +616,7 @@ console.log('seat-update',data);
       theaterId: (showtimeData.theaterId as { _id: string })._id,
       screenId: (showtimeData.screenId as { _id: string })._id,
 
-      userId: user?.id || user?.userId || user?._id,
+      userId: (user as { id?: string; userId?: string; _id?: string })?.id || (user as { userId?: string })?.userId || (user as { _id?: string })?._id,
 
       movieTitle: (showtimeData.movieId as { title: string }).title,
       movieDetails: {
@@ -622,11 +672,11 @@ console.log('seat-update',data);
         ownerId: showtimeData.ownerId,
       },
 
-      allRowPricing: showtimeData.rowPricing,
+      allRowPricing: mapRowPricing(showtimeData.rowPricing),
 
       contactInfo: {
         email: user?.email || "",
-        phone: user?.phone || ""
+        phone: (user as { phone?: string })?.phone || ""
       },
 
       selectedRows: selectedRowsGrouped,
@@ -690,7 +740,7 @@ console.log('seat-update',data);
         </div>
 
         <div className="fixed inset-0 z-10 opacity-30">
-          <Prism
+          <DynamicPrism
             animationType="rotate"
             timeScale={0.5}
             height={3.5}
@@ -771,14 +821,11 @@ console.log('seat-update',data);
                         features: string[];
                         theaterId: string;
                       }).layout.advancedLayout.rows)}
-                      aisles={(showtimeData.screenId as {
-                        _id: string;
-                        name: string;
-                        layout: { advancedLayout: { rows: Row[]; aisles?: string } };
-                        totalSeats: number;
-                        features: string[];
-                        theaterId: string;
-                      }).layout.advancedLayout.aisles}
+                      aisles={parseAisles(
+                        (showtimeData.screenId as {
+                          layout: { advancedLayout: { aisles?: unknown } };
+                        }).layout.advancedLayout.aisles
+                      )}
                     />
 
                     <Legend lexendSmallClassName={lexendSmall.className} />

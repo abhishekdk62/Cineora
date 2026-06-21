@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { Request, Response } from "express";
 import { createResponse } from "../../../utils/createResponse";
 import { IMovieService } from "../interfaces/movies.service.interface";
@@ -44,7 +45,7 @@ export class MoviesController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message
+        getErrorMessage(error)
       );
     }
   }
@@ -71,7 +72,7 @@ export class MoviesController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message
+        getErrorMessage(error)
       );
     }
   }
@@ -95,7 +96,7 @@ export class MoviesController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message
+        getErrorMessage(error)
       );
     }
   }
@@ -122,7 +123,7 @@ export class MoviesController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message
+        getErrorMessage(error)
       );
     }
   }
@@ -159,7 +160,7 @@ export class MoviesController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message
+        getErrorMessage(error)
       );
     }
   }
@@ -186,7 +187,7 @@ export class MoviesController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message
+        getErrorMessage(error)
       );
     }
   }
@@ -212,7 +213,7 @@ export class MoviesController {
       return this._sendErrorResponse(
         res,
         StatusCodes.INTERNAL_SERVER_ERROR,
-        error.message
+        getErrorMessage(error)
       );
     }
   }
@@ -233,7 +234,8 @@ export class MoviesController {
     return body as UpdateMovieDto;
   }
 
-  private _mapParamsToMovieParams(params: MovieParamsDto): MovieParamsDto {
+  private _mapParamsToMovieParams(params: { movieId?: string }): MovieParamsDto {
+    return { movieId: params.movieId as string };
     return params as MovieParamsDto;
   }
 

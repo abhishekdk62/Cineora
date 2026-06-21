@@ -1,10 +1,11 @@
+import { PaginatedResult } from "../types/pagination.types";
 
 export interface IBaseReadRepository<T, TId = string> {
   findById(id: TId): Promise<T | null>;
   findByEmail?(email: string): Promise<T | null>;
   findByPhone?(phone: string): Promise<T | null>;
-  findAll(page?: number, limit?: number): Promise<{ data: T[]; total: number }>;
-  findByStatus?(status: string, page?: number, limit?: number): Promise<{ data: T[]; total: number }>;
+  findAll(page?: number, limit?: number): Promise<PaginatedResult<T>>;
+  findByStatus?(status: string, page?: number, limit?: number): Promise<PaginatedResult<T>>;
 }
 
 export interface IBaseWriteRepository<T, TId = string, TCreateDto = Partial<T>, TUpdateDto = Partial<T>> {

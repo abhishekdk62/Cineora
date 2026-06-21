@@ -5,7 +5,23 @@ import {
   fetchPopularMovies,
   searchMoviesFromDb
 } from "@/app/others/services/adminServices/tmdbServices";
+import { TMDBMovieDto } from "@/app/others/dtos/tmdb.dto";
 import { useAdmin } from "../../AdminContext";
+
+const mapToTMDBMovie = (movie: TMDBMovieDto): TMDBMovie => ({
+  id: movie.id,
+  title: movie.title,
+  overview: movie.overview,
+  release_date: movie.release_date,
+  poster_path: movie.poster_path ?? "",
+  backdrop_path: movie.backdrop_path ?? undefined,
+  genre_ids: movie.genre_ids,
+  vote_average: movie.vote_average,
+  vote_count: movie.vote_count,
+  popularity: movie.popularity,
+  original_language: movie.original_language,
+  adult: movie.adult,
+});
 
 export const useTMDBMovies = () => {
   const { tmdbMovies, setTmdbMovies, loading, setLoading } = useAdmin();
@@ -38,7 +54,7 @@ export const useTMDBMovies = () => {
         fetchPopularMovies(page),
         fetchGenres(),
       ]);
-      setTmdbMovies(moviesData.results);
+      setTmdbMovies(moviesData.results.map(mapToTMDBMovie));
       setGenres(genresData);
       setTotalPages(moviesData.total_pages);
     } catch (err) {
@@ -53,7 +69,7 @@ export const useTMDBMovies = () => {
     setLoading(true);
     try {
       const data = await searchMoviesFromDb(term, page);
-      setTmdbMovies(data.results);
+      setTmdbMovies(data.results.map(mapToTMDBMovie));
       setTotalPages(data.total_pages);
     } catch (err) {
       console.error(err);

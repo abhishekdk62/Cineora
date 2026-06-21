@@ -2,7 +2,7 @@
 
 import { Footer, NavBar } from '@/app/others/components/Home'
 import TheatersPage from '@/app/others/components/Search/Theaters/TheatersPage'
-import Orb from '@/app/others/components/ReactBits/Orb'
+import DynamicOrb from '@/app/others/components/ReactBits/DynamicOrb'
 import React from 'react'
 
 const page = () => {
@@ -10,7 +10,7 @@ const page = () => {
         <div>
             <div className="relative min-h-screen bg-black overflow-hidden">
                 <div className="fixed inset-0 z-0 pointer-events-none">
-                    <Orb
+                    <DynamicOrb
                         hoverIntensity={0.5}
                         rotateOnHover={true}
                         hue={0}

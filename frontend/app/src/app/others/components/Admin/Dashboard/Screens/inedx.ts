@@ -25,6 +25,10 @@ export interface IScreen {
         }>;
         offset?: number;    
       }>;
+      aisles?: {
+        vertical?: number[];
+        horizontal?: number[];
+      };
     };
     seatMap?: string;          
   };

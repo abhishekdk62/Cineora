@@ -4,7 +4,13 @@ import { Star } from 'lucide-react';
 interface ReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  selectedBooking: {movie:string;theater:string;theaterId:string;movieId:string;showDate:string};
+  selectedBooking: {
+    movie?: { _id?: string; title?: string };
+    theater?: { _id?: string; name?: string };
+    movieId?: string;
+    theaterId?: string;
+    showDate?: string;
+  } | null;
   rating: number;
   setRating: (rating: number) => void;
   reviewText: string;
@@ -28,14 +34,14 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
   reviewType,
   setReviewType
 }) => {
-  if (!isOpen) return null;
+  if (!isOpen || !selectedBooking) return null;
 
-  const getMovieData = (booking: {movie:string;theater:string;theaterId:string;movieId:string;showDate:string|Date}) => {
-    return booking.movie || booking.movieId || {};
+  const getMovieData = (booking: NonNullable<ReviewModalProps['selectedBooking']>) => {
+    return booking.movie || {};
   };
 
-  const getTheaterData = (booking:{movie:string;theater:string;theaterId:string;movieId:string;showDate:string|Date}) => {
-    return booking.theater || booking.theaterId || {};
+  const getTheaterData = (booking: NonNullable<ReviewModalProps['selectedBooking']>) => {
+    return booking.theater || {};
   };
 
   const formatDate = (dateString: string) => {

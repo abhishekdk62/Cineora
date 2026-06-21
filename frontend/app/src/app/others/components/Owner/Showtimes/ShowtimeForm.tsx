@@ -5,14 +5,21 @@ import { X, Building, Film, Monitor } from "lucide-react";
 import { IRowPricing, IShowtime } from "./showtime.interfaces";
 import TheaterSelectionModal from "./TheaterSelectionModal";
 import MovieSelectionModal from "./MovieSelectionModal";
-import ScreenSelectionModal, { Screen } from "./ScreenSelectionModal";
 import toast from "react-hot-toast";
-import { RowPricingDto, ShowtimeResponseDto } from "@/app/others/dtos";
+import { MovieResponseDto, Row, RowPricingDto, ShowtimeResponseDto } from "@/app/others/dtos";
 import { lexendMedium, lexendSmall } from "@/app/others/Utils/fonts";
-import { Movie } from "../../Admin/Dashboard/Movies/MoviesList";
-import { Theater } from "@/app/others/services/userServices/interfaces";
-import { LayoutProps } from ".next/types/app/layout";
-import { Row, ShowtimeData } from "@/app/book/tickets/[showtimeId]/page";
+import { OwnerShowtimeSubmitPayload } from "./showtime.interfaces";
+import { getRefId, isPopulatedRef } from "@/app/others/types";
+import ScreenSelectionModal, { Screen } from "./ScreenSelectionModal";
+
+type SelectedTheater = {
+  _id: string;
+  name: string;
+  city: string;
+  state: string;
+  isActive?: boolean;
+  screens?: number;
+};
 
 function getDatesInRange(startStr: string, endStr: string): string[] {
   const result: string[] = [];
@@ -32,10 +39,11 @@ function toMinutes(t: string) {
 interface ShowtimeFormProps {
   showtime?: ShowtimeResponseDto | null;
   onClose: () => void;
-  onSubmit: (data: ShowtimeData) => void;
-
+  onSubmit: (data: OwnerShowtimeSubmitPayload) => void;
   submitting: boolean;
   mode: "create" | "edit" | "view";
+  lexendMedium?: import('@/app/others/types').NextFontInstance;
+  lexendSmall?: import('@/app/others/types').NextFontInstance;
 }
 
 const ShowtimeForm: React.FC<ShowtimeFormProps> = ({
@@ -65,9 +73,9 @@ const ShowtimeForm: React.FC<ShowtimeFormProps> = ({
   const [singleDate, setSingleDate] = useState("");
   const [singleTime, setSingleTime] = useState("");
 
-  const [selectedTheater, setSelectedTheater] = useState<Movie>(null);
-  const [selectedMovie, setSelectedMovie] = useState<Movie>(null);
-  const [selectedScreen, setSelectedScreen] = useState<Screen>(null);
+  const [selectedTheater, setSelectedTheater] = useState<SelectedTheater | null>(null);
+  const [selectedMovie, setSelectedMovie] = useState<MovieResponseDto | null>(null);
+  const [selectedScreen, setSelectedScreen] = useState<Screen | null>(null);
 
   const [isTheaterModalOpen, setIsTheaterModalOpen] = useState(false);
   const [isMovieModalOpen, setIsMovieModalOpen] = useState(false);
@@ -75,8 +83,7 @@ const ShowtimeForm: React.FC<ShowtimeFormProps> = ({
 
   useEffect(() => {
     if (showtime) {
-      const getId = (value: string) =>
-        typeof value === "object" && value !== null ? value._id : value;
+      const getId = (value: string | { _id: string }) => getRefId(value);
 
       setFormData({
         movieId: getId(showtime.movieId),
@@ -91,17 +98,17 @@ const ShowtimeForm: React.FC<ShowtimeFormProps> = ({
         rowPricing: showtime.rowPricing || [],
       });
 
-      if (typeof showtime.movieId === "object" && showtime.movieId !== null) {
-        setSelectedMovie(showtime.movieId);
+      if (isPopulatedRef(showtime.movieId)) {
+        setSelectedMovie(showtime.movieId as unknown as MovieResponseDto);
       }
-      if (typeof showtime.theaterId === "object" && showtime.theaterId !== null) {
-        setSelectedTheater(showtime.theaterId);
+      if (isPopulatedRef(showtime.theaterId)) {
+        setSelectedTheater(showtime.theaterId as unknown as SelectedTheater);
       }
-      if (typeof showtime.screenId === "object" && showtime.screenId !== null) {
-        setSelectedScreen(showtime.screenId);
+      if (isPopulatedRef(showtime.screenId)) {
+        setSelectedScreen(showtime.screenId as unknown as Screen);
       }
 
-      const formatDateInput = (d: string) => {
+      const formatDateInput = (d: string | Date) => {
         if (!d) return "";
         if (typeof d === "string") return d.slice(0, 10);
         if (d instanceof Date) return d.toISOString().slice(0, 10);
@@ -121,7 +128,7 @@ const ShowtimeForm: React.FC<ShowtimeFormProps> = ({
     }
   }, [showtime, mode]);
 
-  const handleTheaterSelect = (theater: Theater) => {
+  const handleTheaterSelect = (theater: SelectedTheater) => {
     if (mode === "view") return;
     setSelectedTheater(theater);
     setFormData((prev) => ({ ...prev, theaterId: theater._id }));
@@ -130,7 +137,7 @@ const ShowtimeForm: React.FC<ShowtimeFormProps> = ({
     setFormData((prev) => ({ ...prev, screenId: "" }));
   };
 
-  const handleMovieSelect = (movie: Movie) => {
+  const handleMovieSelect = (movie: MovieResponseDto) => {
     if (mode === "view") return;
     setSelectedMovie(movie);
     setFormData((prev) => ({
@@ -151,15 +158,15 @@ const ShowtimeForm: React.FC<ShowtimeFormProps> = ({
     }
   };
 
-  const populateRowPricing = (layout: LayoutProps) => {
+  const populateRowPricing = (layout: Screen["layout"]) => {
     if (!layout || !layout.advancedLayout || !layout.advancedLayout.rows) {
       console.error("Invalid layout structure:", layout);
       return;
     }
     const rowPricing: IRowPricing[] = layout.advancedLayout.rows.map((row: Row) => {
       const firstSeat = row.seats && row.seats.length > 0 ? row.seats[0] : null;
-      const seatType = firstSeat ? firstSeat.type : "Normal";
-      const basePrice = firstSeat ? firstSeat.price : 0;
+      const seatType = (firstSeat ? firstSeat.type : "Normal") as IRowPricing["seatType"];
+      const basePrice = firstSeat?.price ?? 0;
       return {
         rowLabel: row.rowLabel,
         seatType,
@@ -176,10 +183,11 @@ const ShowtimeForm: React.FC<ShowtimeFormProps> = ({
   const updateRowPricing = (index: number, field: string, value: string) => {
     if (mode === "view") return;
     const updatedRows = [...formData.rowPricing];
+    let parsedValue: string | number = value;
     if (field === "showtimePrice" || field === "basePrice" || field === "totalSeats") {
-      value = value === "" ? 0 : Number(value);
+      parsedValue = value === "" ? 0 : Number(value);
     }
-    updatedRows[index] = { ...updatedRows[index], [field]: value };
+    updatedRows[index] = { ...updatedRows[index], [field]: parsedValue };
     if (field === "totalSeats") {
       updatedRows[index].availableSeats = Number(value);
     }
@@ -282,7 +290,7 @@ const ShowtimeForm: React.FC<ShowtimeFormProps> = ({
           return toast.error("Show dates must be in the future");
       }
 
-      let bulkShowtimes: ShowtimeData[] = [];
+      const bulkShowtimes: Record<string, unknown>[] = [];
       for (const day of dateList) {
         let daySlots = [...timeSlots].sort();
         let lastEndTime = null;
@@ -604,16 +612,12 @@ const ShowtimeForm: React.FC<ShowtimeFormProps> = ({
         <TheaterSelectionModal
           onSelect={handleTheaterSelect}
           onClose={() => setIsTheaterModalOpen(false)}
-          lexendMedium={lexendMedium}
-          lexendSmall={lexendSmall}
         />
       )}
       {isMovieModalOpen && (
         <MovieSelectionModal
           onSelect={handleMovieSelect}
           onClose={() => setIsMovieModalOpen(false)}
-          lexendMedium={lexendMedium}
-          lexendSmall={lexendSmall}
         />
       )}
       {isScreenModalOpen && selectedTheater && (

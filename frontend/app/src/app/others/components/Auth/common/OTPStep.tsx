@@ -10,12 +10,10 @@ export default function OTPStep({
   error,
   onSubmit,
   onResend,
-  timeLeft,
-  setTimeLeft,
-  canResend,
-  setCanResend,
-
-
+  timeLeft: timeLeftProp,
+  setTimeLeft: setTimeLeftProp,
+  canResend: canResendProp,
+  setCanResend: setCanResendProp,
   resendLoading = false,
 }: {
   email: string;
@@ -25,10 +23,20 @@ export default function OTPStep({
   error: string;
   onSubmit: (e: React.FormEvent) => void;
   onResend: () => void;
-
+  timeLeft?: number;
+  setTimeLeft?: React.Dispatch<React.SetStateAction<number>>;
+  canResend?: boolean;
+  setCanResend?: React.Dispatch<React.SetStateAction<boolean>>;
   resendLoading?: boolean;
 }) {
   const inputs = useRef<HTMLInputElement[]>([]);
+  const [internalTimeLeft, setInternalTimeLeft] = useState(120);
+  const [internalCanResend, setInternalCanResend] = useState(false);
+
+  const timeLeft = timeLeftProp ?? internalTimeLeft;
+  const setTimeLeft = setTimeLeftProp ?? setInternalTimeLeft;
+  const canResend = canResendProp ?? internalCanResend;
+  const setCanResend = setCanResendProp ?? setInternalCanResend;
 
 
   useEffect(() => {

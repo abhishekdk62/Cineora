@@ -7,6 +7,8 @@ import { Lexend } from "next/font/google";
 import { X, Search, Film, MapPin, Loader2 } from "lucide-react";
 import { getMoviesWithFilters } from "@/app/others/services/userServices/movieServices";
 import { useRouter } from "next/navigation";
+import { MovieResponseDto } from "@/app/others/dtos/movie.dto";
+import type { TheaterSearchResult } from "@/app/others/types";
 
 const lexendSmall = Lexend({
   weight: "200",
@@ -36,9 +38,9 @@ export default function SearchModal({
 }: SearchModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchType, setSearchType] = useState<"movies" | "theaters">("movies");
-  const [filteredResults, setFilteredResults] = useState<string[]>([]);
+  const [filteredResults, setFilteredResults] = useState<Array<MovieResponseDto | TheaterSearchResult>>([]);
   const [mounted, setMounted] = useState(false);
-  const [movies, setMovies] = useState<string[]>([]);
+  const [movies, setMovies] = useState<MovieResponseDto[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const getAllMovies = async () => {
@@ -83,7 +85,7 @@ export default function SearchModal({
     }
   }, [isOpen, searchType]);
 
-  const theaters = [
+  const theaters: TheaterSearchResult[] = [
     {
       id: 1,
       name: "IMAX Downtown",
@@ -133,7 +135,7 @@ export default function SearchModal({
                     .toLowerCase()
                     .includes(searchQuery.toLowerCase()) ||
                   theater.location
-                    .toLowerCase()
+                    ?.toLowerCase()
                     .includes(searchQuery.toLowerCase())
               );
         setFilteredResults(results);
@@ -155,13 +157,22 @@ export default function SearchModal({
 
   const displayResults = filteredResults.slice(0, 6);
 
-    const handleClick=(item:string)=>{
+  const getResultKey = (item: MovieResponseDto | TheaterSearchResult): string => {
+    if ("_id" in item && item._id) return item._id;
+    if ("id" in item && item.id != null) return String(item.id);
+    return "";
+  };
 
-    router.push(`/search/movies/${item._id}`)
-
-onClose()
-
-  }
+  const handleClick = (item: MovieResponseDto | TheaterSearchResult) => {
+    if (searchType === "movies") {
+      const movie = item as MovieResponseDto;
+      router.push(`/search/movies/${movie._id}`);
+    } else {
+      const theater = item as TheaterSearchResult;
+      router.push(`/search/theaters/${theater._id ?? theater.id}`);
+    }
+    onClose();
+  };
 
   const modalContent = (
     <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-10 pb-10">
@@ -265,73 +276,98 @@ onClose()
                 </div>
 
                 <div className="space-y-3 pb-4">
-                  {displayResults.map((item) => (
-                    <div
-                      key={item.id || item._id}
-                      className="flex items-center p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors duration-200 cursor-pointer"
-                      onClick={() => {
-
-                        handleClick(item)
-                      }}
-                    >
-                      <img
-                        src={
-                          item.poster ||
-                          item.image ||
-                          "/api/placeholder/300/400"
-                        }
-                        alt={searchType === "movies" ? item.title : item.name}
-                        className="w-16 h-20 object-cover rounded-lg mr-4"
-                      />
-                      <div className="flex-1">
-                        <h3
-                          className={`${lexendMedium.className} text-white text-lg mb-1`}
-                        >
-                          {searchType === "movies" ? item.title : item.name}
-                        </h3>
-                        {searchType === "movies" ? (
-                          <div className="flex items-center gap-4">
-                            <span
-                              className={`${lexendSmall.className} text-gray-300`}
-                            >
-                              {Array.isArray(item.genre)
-                                ? item.genre[0]
-                                : item.genre}
-                            </span>
-                            <span
-                              className={`${lexendSmall.className} text-gray-300`}
-                            >
-                              {item.rating}
-                            </span>
-                            <span
-                              className={`${lexendSmall.className} text-gray-300`}
-                            >
-                              {item.duration}m
-                            </span>
+                  {displayResults.map((item) =>
+                    searchType === "movies" ? (
+                      (() => {
+                        const movie = item as MovieResponseDto;
+                        return (
+                          <div
+                            key={getResultKey(movie)}
+                            className="flex items-center p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors duration-200 cursor-pointer"
+                            onClick={() => handleClick(movie)}
+                          >
+                            <img
+                              src={movie.poster || "/api/placeholder/300/400"}
+                              alt={movie.title}
+                              className="w-16 h-20 object-cover rounded-lg mr-4"
+                            />
+                            <div className="flex-1">
+                              <h3
+                                className={`${lexendMedium.className} text-white text-lg mb-1`}
+                              >
+                                {movie.title}
+                              </h3>
+                              <div className="flex items-center gap-4">
+                                <span
+                                  className={`${lexendSmall.className} text-gray-300`}
+                                >
+                                  {Array.isArray(movie.genre)
+                                    ? movie.genre[0]
+                                    : movie.genre}
+                                </span>
+                                <span
+                                  className={`${lexendSmall.className} text-gray-300`}
+                                >
+                                  {movie.rating}
+                                </span>
+                                <span
+                                  className={`${lexendSmall.className} text-gray-300`}
+                                >
+                                  {movie.duration}m
+                                </span>
+                              </div>
+                            </div>
+                            <Search className="w-4 h-4 text-gray-400" />
                           </div>
-                        ) : (
-                          <div className="flex items-center gap-4">
-                            <span
-                              className={`${lexendSmall.className} text-gray-300`}
-                            >
-                              {item.location}
-                            </span>
-                            <span
-                              className={`${lexendSmall.className} text-gray-300`}
-                            >
-                              {item.screens} screens
-                            </span>
-                            <span
-                              className={`${lexendSmall.className} text-gray-300`}
-                            >
-                              {item.distance}
-                            </span>
+                        );
+                      })()
+                    ) : (
+                      (() => {
+                        const theater = item as TheaterSearchResult;
+                        return (
+                          <div
+                            key={getResultKey(theater)}
+                            className="flex items-center p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors duration-200 cursor-pointer"
+                            onClick={() => handleClick(theater)}
+                          >
+                            <img
+                              src={
+                                theater.image ||
+                                "/api/placeholder/300/400"
+                              }
+                              alt={theater.name}
+                              className="w-16 h-20 object-cover rounded-lg mr-4"
+                            />
+                            <div className="flex-1">
+                              <h3
+                                className={`${lexendMedium.className} text-white text-lg mb-1`}
+                              >
+                                {theater.name}
+                              </h3>
+                              <div className="flex items-center gap-4">
+                                <span
+                                  className={`${lexendSmall.className} text-gray-300`}
+                                >
+                                  {theater.location}
+                                </span>
+                                <span
+                                  className={`${lexendSmall.className} text-gray-300`}
+                                >
+                                  {theater.screens} screens
+                                </span>
+                                <span
+                                  className={`${lexendSmall.className} text-gray-300`}
+                                >
+                                  {theater.distance}
+                                </span>
+                              </div>
+                            </div>
+                            <Search className="w-4 h-4 text-gray-400" />
                           </div>
-                        )}
-                      </div>
-                      <Search className="w-4 h-4 text-gray-400" />
-                    </div>
-                  ))}
+                        );
+                      })()
+                    )
+                  )}
                 </div>
               </>
             )}

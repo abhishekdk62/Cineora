@@ -1,7 +1,7 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
 
 export interface IWallet extends Document {
-  _id?:string;
+  _id: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
   userModel: 'User' | 'Owner'|'Admin';
   isVerified:boolean,

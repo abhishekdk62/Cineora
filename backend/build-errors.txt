@@ -1,0 +1,550 @@
+﻿
+> build
+> tsc
+
+src/app.ts(204,47): error TS2345: Argument of type 'TheaterRepository' is not assignable to parameter of type 'ITheaterRepository'.
+  The types returned by 'getTheatersByFilters(...)' are incompatible between these types.
+    Type 'Promise<{ data: ITheater[]; total: number; }>' is not assignable to type 'Promise<{ theaters: ITheater[]; total: number; }>'.
+      Property 'theaters' is missing in type '{ data: ITheater[]; total: number; }' but required in type '{ theaters: ITheater[]; total: number; }'.
+src/app.ts(205,57): error TS2345: Argument of type 'TheaterRepository' is not assignable to parameter of type 'ITheaterRepository'.
+  The types returned by 'getTheatersByFilters(...)' are incompatible between these types.
+    Type 'Promise<{ data: ITheater[]; total: number; }>' is not assignable to type 'Promise<{ theaters: ITheater[]; total: number; }>'.
+      Property 'theaters' is missing in type '{ data: ITheater[]; total: number; }' but required in type '{ theaters: ITheater[]; total: number; }'.
+src/app.ts(241,51): error TS2345: Argument of type 'AnalyticsRepository' is not assignable to parameter of type 'IAnalyticsRepository'.
+  The types returned by 'getMonthlyRevenueTrends(...)' are incompatible between these types.
+    Type 'Promise<IMonthlyRevenueDTO[]>' is not assignable to type 'Promise<IMonthlyRevenueAggregation[]>'.
+      Type 'IMonthlyRevenueDTO[]' is not assignable to type 'IMonthlyRevenueAggregation[]'.
+        Property '_id' is missing in type 'IMonthlyRevenueDTO' but required in type 'IMonthlyRevenueAggregation'.
+src/modules/analytics/repository/analytics.repository.ts(37,9): error TS2416: Property 'getMonthlyRevenueTrends' in type 'AnalyticsRepository' is not assignable to the same property in base type 'IAnalyticsRepository'.
+  Type '(ownerId: string, months?: number) => Promise<IMonthlyRevenueDTO[]>' is not assignable to type '(ownerId: string, months?: number) => Promise<IMonthlyRevenueAggregation[]>'.
+    Type 'Promise<IMonthlyRevenueDTO[]>' is not assignable to type 'Promise<IMonthlyRevenueAggregation[]>'.
+      Type 'IMonthlyRevenueDTO[]' is not assignable to type 'IMonthlyRevenueAggregation[]'.
+        Property '_id' is missing in type 'IMonthlyRevenueDTO' but required in type 'IMonthlyRevenueAggregation'.
+src/modules/analytics/repository/analytics.repository.ts(73,9): error TS2416: Property 'getWeeklyRevenue' in type 'AnalyticsRepository' is not assignable to the same property in base type 'IAnalyticsRepository'.
+  Type '(ownerId: string, weeks?: number) => Promise<IMonthlyRevenueDTO[]>' is not assignable to type '(ownerId: string, weeks?: number) => Promise<IMonthlyRevenueAggregation[]>'.
+    Type 'Promise<IMonthlyRevenueDTO[]>' is not assignable to type 'Promise<IMonthlyRevenueAggregation[]>'.
+      Type 'IMonthlyRevenueDTO[]' is not assignable to type 'IMonthlyRevenueAggregation[]'.
+        Property '_id' is missing in type 'IMonthlyRevenueDTO' but required in type 'IMonthlyRevenueAggregation'.
+src/modules/analytics/repository/analytics.repository.ts(109,9): error TS2416: Property 'getDailyRevenue' in type 'AnalyticsRepository' is not assignable to the same property in base type 'IAnalyticsRepository'.
+  Type '(ownerId: string, days?: number) => Promise<IMonthlyRevenueDTO[]>' is not assignable to type '(ownerId: string, days?: number) => Promise<IMonthlyRevenueAggregation[]>'.
+    Type 'Promise<IMonthlyRevenueDTO[]>' is not assignable to type 'Promise<IMonthlyRevenueAggregation[]>'.
+      Type 'IMonthlyRevenueDTO[]' is not assignable to type 'IMonthlyRevenueAggregation[]'.
+        Property '_id' is missing in type 'IMonthlyRevenueDTO' but required in type 'IMonthlyRevenueAggregation'.
+src/modules/analytics/repository/analytics.repository.ts(345,9): error TS2416: Property 'getRevenuePerShow' in type 'AnalyticsRepository' is not assignable to the same property in base type 'IAnalyticsRepository'.
+  Type '(ownerId: string, dateRange?: IDateRange) => Promise<IMonthlyRevenueDTO[]>' is not assignable to type '(ownerId: string, dateRange?: IDateRange) => Promise<IMonthlyRevenueAggregation[]>'.
+    Type 'Promise<IMonthlyRevenueDTO[]>' is not assignable to type 'Promise<IMonthlyRevenueAggregation[]>'.
+      Type 'IMonthlyRevenueDTO[]' is not assignable to type 'IMonthlyRevenueAggregation[]'.
+        Property '_id' is missing in type 'IMonthlyRevenueDTO' but required in type 'IMonthlyRevenueAggregation'.
+src/modules/analytics/repository/analytics.repository.ts(378,9): error TS2416: Property 'getTimeSlotPerformance' in type 'AnalyticsRepository' is not assignable to the same property in base type 'IAnalyticsRepository'.
+  Type '(ownerId: string, dateRange?: IDateRange) => Promise<ITimeSlotDTO[]>' is not assignable to type '(ownerId: string, dateRange?: IDateRange) => Promise<ITimeSlotAggregation[]>'.
+    Type 'Promise<ITimeSlotDTO[]>' is not assignable to type 'Promise<ITimeSlotAggregation[]>'.
+      Type 'ITimeSlotDTO[]' is not assignable to type 'ITimeSlotAggregation[]'.
+        Property '_id' is missing in type 'ITimeSlotDTO' but required in type 'ITimeSlotAggregation'.
+src/modules/analytics/repository/analytics.repository.ts(411,9): error TS2416: Property 'getWeekdayWeekendComparison' in type 'AnalyticsRepository' is not assignable to the same property in base type 'IAnalyticsRepository'.
+  Type '(ownerId: string, dateRange?: IDateRange) => Promise<IMonthlyRevenueDTO[]>' is not assignable to type '(ownerId: string, dateRange?: IDateRange) => Promise<IMonthlyRevenueAggregation[]>'.
+    Type 'Promise<IMonthlyRevenueDTO[]>' is not assignable to type 'Promise<IMonthlyRevenueAggregation[]>'.
+      Type 'IMonthlyRevenueDTO[]' is not assignable to type 'IMonthlyRevenueAggregation[]'.
+        Property '_id' is missing in type 'IMonthlyRevenueDTO' but required in type 'IMonthlyRevenueAggregation'.
+src/modules/analytics/repository/analytics.repository.ts(451,9): error TS2416: Property 'getTopPerformingMovies' in type 'AnalyticsRepository' is not assignable to the same property in base type 'IAnalyticsRepository'.
+  Type '(ownerId: string, limit?: number, dateRange?: IDateRange) => Promise<ITopMovieDTO[]>' is not assignable to type '(ownerId: string, limit?: number, dateRange?: IDateRange) => Promise<ITopMovieAggregation[]>'.
+    Type 'Promise<ITopMovieDTO[]>' is not assignable to type 'Promise<ITopMovieAggregation[]>'.
+      Type 'ITopMovieDTO[]' is not assignable to type 'ITopMovieAggregation[]'.
+        Property '_id' is missing in type 'ITopMovieDTO' but required in type 'ITopMovieAggregation'.
+src/modules/analytics/repository/analytics.repository.ts(500,9): error TS2416: Property 'getFormatPerformance' in type 'AnalyticsRepository' is not assignable to the same property in base type 'IAnalyticsRepository'.
+  Type '(ownerId: string, dateRange?: IDateRange) => Promise<IFormatPerformanceDTO[]>' is not assignable to type '(ownerId: string, dateRange?: IDateRange) => Promise<IFormatPerformanceAggregation[]>'.
+    Type 'Promise<IFormatPerformanceDTO[]>' is not assignable to type 'Promise<IFormatPerformanceAggregation[]>'.
+      Type 'IFormatPerformanceDTO[]' is not assignable to type 'IFormatPerformanceAggregation[]'.
+        Property '_id' is missing in type 'IFormatPerformanceDTO' but required in type 'IFormatPerformanceAggregation'.
+src/modules/analytics/repository/analytics.repository.ts(541,9): error TS2416: Property 'getLanguagePerformance' in type 'AnalyticsRepository' is not assignable to the same property in base type 'IAnalyticsRepository'.
+  Type '(ownerId: string, dateRange?: IDateRange) => Promise<IFormatPerformanceDTO[]>' is not assignable to type '(ownerId: string, dateRange?: IDateRange) => Promise<IFormatPerformanceAggregation[]>'.
+    Type 'Promise<IFormatPerformanceDTO[]>' is not assignable to type 'Promise<IFormatPerformanceAggregation[]>'.
+      Type 'IFormatPerformanceDTO[]' is not assignable to type 'IFormatPerformanceAggregation[]'.
+        Property '_id' is missing in type 'IFormatPerformanceDTO' but required in type 'IFormatPerformanceAggregation'.
+src/modules/analytics/repository/analytics.repository.ts(582,9): error TS2416: Property 'getMovieLifecycleTrends' in type 'AnalyticsRepository' is not assignable to the same property in base type 'IAnalyticsRepository'.
+  Type '(ownerId: string, movieId: string, dateRange?: IDateRange) => Promise<IMonthlyRevenueDTO[]>' is not assignable to type '(ownerId: string, movieId: string, dateRange?: IDateRange) => Promise<IMonthlyRevenueAggregation[]>'.
+    Type 'Promise<IMonthlyRevenueDTO[]>' is not assignable to type 'Promise<IMonthlyRevenueAggregation[]>'.
+      Type 'IMonthlyRevenueDTO[]' is not assignable to type 'IMonthlyRevenueAggregation[]'.
+        Property '_id' is missing in type 'IMonthlyRevenueDTO' but required in type 'IMonthlyRevenueAggregation'.
+src/modules/analytics/repository/analytics.repository.ts(620,9): error TS2416: Property 'getCustomerSatisfactionRatings' in type 'AnalyticsRepository' is not assignable to the same property in base type 'IAnalyticsRepository'.
+  Type '(ownerId: string, dateRange?: IDateRange) => Promise<ICustomerSatisfactionDTO[]>' is not assignable to type '(ownerId: string, dateRange?: IDateRange) => Promise<ICustomerSatisfactionAggregation[]>'.
+    Type 'Promise<ICustomerSatisfactionDTO[]>' is not assignable to type 'Promise<ICustomerSatisfactionAggregation[]>'.
+      Type 'ICustomerSatisfactionDTO[]' is not assignable to type 'ICustomerSatisfactionAggregation[]'.
+        Property '_id' is missing in type 'ICustomerSatisfactionDTO' but required in type 'ICustomerSatisfactionAggregation'.
+src/modules/analytics/repository/analytics.repository.ts(712,9): error TS2416: Property 'getAdvanceBookingTrends' in type 'AnalyticsRepository' is not assignable to the same property in base type 'IAnalyticsRepository'.
+  Type '(ownerId: string, dateRange?: IDateRange) => Promise<IAdvanceBookingDTO[]>' is not assignable to type '(ownerId: string, dateRange?: IDateRange) => Promise<IAdvanceBookingAggregation[]>'.
+    Type 'Promise<IAdvanceBookingDTO[]>' is not assignable to type 'Promise<IAdvanceBookingAggregation[]>'.
+      Type 'IAdvanceBookingDTO[]' is not assignable to type 'IAdvanceBookingAggregation[]'.
+        Property '_id' is missing in type 'IAdvanceBookingDTO' but required in type 'IAdvanceBookingAggregation'.
+src/modules/analytics/repository/analytics.repository.ts(1003,9): error TS2416: Property 'getSeasonalRevenuePatterns' in type 'AnalyticsRepository' is not assignable to the same property in base type 'IAnalyticsRepository'.
+  Type '(ownerId: string, months?: number) => Promise<IMonthlyRevenueDTO[]>' is not assignable to type '(ownerId: string, months?: number) => Promise<IMonthlyRevenueAggregation[]>'.
+    Type 'Promise<IMonthlyRevenueDTO[]>' is not assignable to type 'Promise<IMonthlyRevenueAggregation[]>'.
+      Type 'IMonthlyRevenueDTO[]' is not assignable to type 'IMonthlyRevenueAggregation[]'.
+        Property '_id' is missing in type 'IMonthlyRevenueDTO' but required in type 'IMonthlyRevenueAggregation'.
+src/modules/analytics/repository/analytics.repository.ts(1012,9): error TS2416: Property 'getShowUtilizationRate' in type 'AnalyticsRepository' is not assignable to the same property in base type 'IAnalyticsRepository'.
+  Type '(ownerId: string, dateRange?: IDateRange) => Promise<IMonthlyRevenueDTO[]>' is not assignable to type '(ownerId: string, dateRange?: IDateRange) => Promise<IMonthlyRevenueAggregation[]>'.
+    Type 'Promise<IMonthlyRevenueDTO[]>' is not assignable to type 'Promise<IMonthlyRevenueAggregation[]>'.
+      Type 'IMonthlyRevenueDTO[]' is not assignable to type 'IMonthlyRevenueAggregation[]'.
+        Property '_id' is missing in type 'IMonthlyRevenueDTO' but required in type 'IMonthlyRevenueAggregation'.
+src/modules/analytics/repository/analytics.repository.ts(1020,9): error TS2416: Property 'getLowPerformingTimeSlots' in type 'AnalyticsRepository' is not assignable to the same property in base type 'IAnalyticsRepository'.
+  Type '(ownerId: string, threshold?: number, dateRange?: IDateRange) => Promise<ITimeSlotDTO[]>' is not assignable to type '(ownerId: string, threshold?: number, dateRange?: IDateRange) => Promise<ITimeSlotAggregation[]>'.
+    Type 'Promise<ITimeSlotDTO[]>' is not assignable to type 'Promise<ITimeSlotAggregation[]>'.
+      Type 'ITimeSlotDTO[]' is not assignable to type 'ITimeSlotAggregation[]'.
+        Property '_id' is missing in type 'ITimeSlotDTO' but required in type 'ITimeSlotAggregation'.
+src/modules/analytics/repository/analytics.repository.ts(1038,9): error TS2416: Property 'getRevenueGrowthRate' in type 'AnalyticsRepository' is not assignable to the same property in base type 'IAnalyticsRepository'.
+  Type '(ownerId: string, period: "monthly" | "quarterly") => Promise<IMonthlyRevenueDTO[]>' is not assignable to type '(ownerId: string, period: "monthly" | "quarterly") => Promise<IMonthlyRevenueAggregation[]>'.
+    Type 'Promise<IMonthlyRevenueDTO[]>' is not assignable to type 'Promise<IMonthlyRevenueAggregation[]>'.
+      Type 'IMonthlyRevenueDTO[]' is not assignable to type 'IMonthlyRevenueAggregation[]'.
+        Property '_id' is missing in type 'IMonthlyRevenueDTO' but required in type 'IMonthlyRevenueAggregation'.
+src/modules/analytics/services/analytics.service.ts(569,26): error TS2339: Property 'movieTitle' does not exist on type 'ITopMovieAggregation'.
+src/modules/analytics/services/analytics.service.ts(572,26): error TS2339: Property 'totalShows' does not exist on type 'ITopMovieAggregation'.
+src/modules/analytics/services/analytics.service.ts(720,27): error TS2339: Property 'theaterName' does not exist on type 'ICustomerSatisfactionAggregation'.
+src/modules/analytics/services/analytics.service.ts(723,62): error TS2345: Argument of type '{ star1: number; star2: number; star3: number; star4: number; star5: number; }' is not assignable to parameter of type 'number[]'.
+  Type '{ star1: number; star2: number; star3: number; star4: number; star5: number; }' is missing the following properties from type 'number[]': length, pop, push, concat, and 28 more.
+src/modules/analytics/services/analytics.service.ts(779,26): error TS2339: Property 'percentage' does not exist on type 'IAdvanceBookingAggregation'.
+src/modules/analytics/services/analytics.service.ts(780,41): error TS2339: Property 'percentage' does not exist on type 'IAdvanceBookingAggregation'.
+src/modules/analytics/services/analytics.service.ts(1138,111): error TS2339: Property 'quarter' does not exist on type '{ year: number; month: number; day?: number; week?: number; }'.
+src/modules/auth/controllers/auth.controller.ts(269,32): error TS2339: Property 'userId' does not exist on type '{ id: string; email?: string; role?: string; }'.
+src/modules/auth/controllers/auth.controller.ts(269,52): error TS2339: Property 'adminId' does not exist on type '{ id: string; email?: string; role?: string; }'.
+src/modules/auth/controllers/auth.controller.ts(269,73): error TS2339: Property 'ownerId' does not exist on type '{ id: string; email?: string; role?: string; }'.
+src/modules/auth/controllers/auth.controller.ts(273,33): error TS2554: Expected 3 arguments, but got 2.
+src/modules/auth/controllers/auth.controller.ts(316,9): error TS2322: Type 'Response<any, Record<string, any>>' is not assignable to type 'void'.
+src/modules/auth/controllers/auth.controller.ts(327,9): error TS2322: Type 'Response<any, Record<string, any>>' is not assignable to type 'void'.
+src/modules/auth/controllers/auth.controller.ts(335,7): error TS2322: Type 'Response<any, Record<string, any>>' is not assignable to type 'void'.
+src/modules/auth/controllers/auth.controller.ts(350,6): error TS2322: Type 'Response<any, Record<string, any>>' is not assignable to type 'void'.
+src/modules/auth/services/auth.service.ts(73,11): error TS2345: Argument of type 'IAdmin' is not assignable to parameter of type 'UserDataDto'.
+  Property 'role' is missing in type 'IAdmin' but required in type 'UserDataDto'.
+src/modules/auth/services/auth.service.ts(123,11): error TS2345: Argument of type 'IOwner' is not assignable to parameter of type 'UserDataDto'.
+  Type 'IOwner' is missing the following properties from type 'UserDataDto': id, role
+src/modules/auth/services/auth.service.ts(167,11): error TS2345: Argument of type 'Document<unknown, {}, IStaff, {}, {}> & IStaff & Required<{ _id: unknown; }> & { __v: number; }' is not assignable to parameter of type 'UserDataDto'.
+  Property 'id' is optional in type 'Document<unknown, {}, IStaff, {}, {}> & IStaff & Required<{ _id: unknown; }> & { __v: number; }' but required in type 'UserDataDto'.
+src/modules/auth/services/auth.service.ts(218,11): error TS2345: Argument of type 'IUser' is not assignable to parameter of type 'UserDataDto'.
+  Property 'role' is missing in type 'IUser' but required in type 'UserDataDto'.
+src/modules/auth/services/auth.service.ts(264,15): error TS2339: Property 'adminId' does not exist on type '{ email: string; role: string; }'.
+src/modules/auth/services/auth.service.ts(266,15): error TS2339: Property 'ownerId' does not exist on type '{ email: string; role: string; }'.
+src/modules/auth/services/auth.service.ts(268,15): error TS2339: Property 'userId' does not exist on type '{ email: string; role: string; }'.
+src/modules/auth/services/auth.service.ts(270,15): error TS2339: Property 'staffId' does not exist on type '{ email: string; role: string; }'.
+src/modules/auth/services/auth.service.ts(383,7): error TS2741: Property 'role' is missing in type 'IUser' but required in type 'UserDataDto'.
+src/modules/auth/services/auth.service.ts(404,11): error TS2739: Type 'IOwner' is missing the following properties from type 'UserDataDto': id, role
+src/modules/auth/services/auth.service.ts(444,11): error TS2353: Object literal may only specify known properties, and 'userId' does not exist in type 'UserDto'.
+src/modules/auth/services/auth.service.ts(508,41): error TS2339: Property 'userType' does not exist on type 'UserDto'.
+src/modules/auth/services/auth.service.ts(598,31): error TS2551: Property 'userName' does not exist on type 'UserDto'. Did you mean 'username'?
+src/modules/auth/services/auth.service.ts(669,9): error TS2740: Type 'UserResponseDto' is missing the following properties from type 'IUser': groupBookingStats, authProvider, updatedAt, $assertPopulated, and 53 more.
+src/modules/auth/services/auth.service.ts(672,9): error TS2740: Type 'UserResponseDto' is missing the following properties from type 'IUser': groupBookingStats, authProvider, updatedAt, $assertPopulated, and 53 more.
+src/modules/auth/services/auth.service.ts(676,9): error TS2345: Argument of type 'IUser' is not assignable to parameter of type 'UserDataDto'.
+  Property 'role' is missing in type 'IUser' but required in type 'UserDataDto'.
+src/modules/auth/services/auth.service.ts(718,19): error TS2339: Property 'tokenType' does not exist on type 'string | JwtPayload'.
+  Property 'tokenType' does not exist on type 'string'.
+src/modules/auth/services/auth.service.ts(723,30): error TS2339: Property 'role' does not exist on type 'string | JwtPayload'.
+  Property 'role' does not exist on type 'string'.
+src/modules/auth/services/auth.service.ts(726,54): error TS2339: Property 'userId' does not exist on type 'string | JwtPayload'.
+  Property 'userId' does not exist on type 'string'.
+src/modules/auth/services/auth.service.ts(728,55): error TS2339: Property 'ownerId' does not exist on type 'string | JwtPayload'.
+  Property 'ownerId' does not exist on type 'string'.
+src/modules/auth/services/auth.service.ts(730,55): error TS2339: Property 'adminId' does not exist on type 'string | JwtPayload'.
+  Property 'adminId' does not exist on type 'string'.
+src/modules/auth/services/auth.service.ts(732,45): error TS2339: Property 'staffId' does not exist on type 'string | JwtPayload'.
+  Property 'staffId' does not exist on type 'string'.
+src/modules/auth/services/auth.service.ts(873,35): error TS2314: Generic type 'UserInfo<T>' requires 1 type argument(s).
+src/modules/bookings/controllers/bookings.controller.ts(131,22): error TS2339: Property 'couponService' does not exist on type 'BookingController'.
+src/modules/bookings/controllers/bookings.controller.ts(142,11): error TS2353: Object literal may only specify known properties, and 'booking' does not exist in type 'bookingInfo'.
+src/modules/bookings/controllers/bookings.controller.ts(154,15): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/bookings/controllers/bookings.controller.ts(191,15): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/bookings/controllers/bookings.controller.ts(254,15): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/bookings/controllers/bookings.controller.ts(282,15): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/bookings/controllers/bookings.controller.ts(313,15): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/bookings/controllers/bookings.controller.ts(355,15): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/bookings/controllers/bookings.controller.ts(388,15): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/bookings/controllers/bookings.controller.ts(419,15): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/bookings/controllers/bookings.controller.ts(451,15): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/bookings/controllers/bookings.controller.ts(476,15): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/bookings/controllers/bookings.controller.ts(541,32): error TS2339: Property '_id' does not exist on type 'bookingInfo'.
+src/modules/bookings/controllers/bookings.controller.ts(576,30): error TS2339: Property '_id' does not exist on type 'bookingInfo'.
+src/modules/bookings/controllers/bookings.controller.ts(606,30): error TS2339: Property 'bookingId' does not exist on type 'bookingInfo'.
+src/modules/bookings/controllers/bookings.controller.ts(606,55): error TS2339: Property '_id' does not exist on type 'bookingInfo'.
+src/modules/bookings/repositories/bookings.repository.ts(232,32): error TS2339: Property 'bookingId' does not exist on type 'bookingInfo'.
+src/modules/bookings/repositories/bookings.repository.ts(238,36): error TS2339: Property 'selectedSeats' does not exist on type 'bookingInfo'.
+src/modules/bookings/repositories/bookings.repository.ts(239,38): error TS2339: Property 'selectedSeatIds' does not exist on type 'bookingInfo'.
+src/modules/bookings/repositories/bookings.repository.ts(240,34): error TS2339: Property 'seatPricing' does not exist on type 'bookingInfo'.
+src/modules/bookings/repositories/bookings.repository.ts(241,35): error TS2339: Property 'priceDetails' does not exist on type 'bookingInfo'.
+src/modules/bookings/repositories/bookings.repository.ts(242,36): error TS2339: Property 'paymentStatus' does not exist on type 'bookingInfo'.
+src/modules/bookings/repositories/bookings.repository.ts(243,36): error TS2339: Property 'paymentMethod' does not exist on type 'bookingInfo'.
+src/modules/bookings/repositories/bookings.repository.ts(244,36): error TS2339: Property 'bookingStatus' does not exist on type 'bookingInfo'.
+src/modules/bookings/repositories/bookings.repository.ts(247,34): error TS2339: Property 'contactInfo' does not exist on type 'bookingInfo'.
+src/modules/bookings/repositories/bookings.repository.ts(250,23): error TS2339: Property 'appliedCoupon' does not exist on type 'bookingInfo'.
+src/modules/bookings/repositories/bookings.repository.ts(251,32): error TS2339: Property 'couponUsed' does not exist on type '{ bookingId: any; userId: string; movieId: string; theaterId: string; screenId: string; showtimeId: string; selectedSeats: any; selectedSeatIds: any; seatPricing: any; priceDetails: any; paymentStatus: any; ... 4 more ...; contactInfo: any; }'.
+src/modules/bookings/repositories/bookings.repository.ts(252,33): error TS2339: Property 'appliedCoupon' does not exist on type 'bookingInfo'.
+src/modules/bookings/repositories/bookings.repository.ts(253,35): error TS2339: Property 'appliedCoupon' does not exist on type 'bookingInfo'.
+src/modules/bookings/repositories/bookings.repository.ts(254,35): error TS2339: Property 'appliedCoupon' does not exist on type 'bookingInfo'.
+src/modules/bookings/repositories/bookings.repository.ts(255,43): error TS2339: Property 'appliedCoupon' does not exist on type 'bookingInfo'.
+src/modules/bookings/repositories/bookings.repository.ts(256,39): error TS2339: Property 'discountApplied' does not exist on type 'bookingInfo'.
+src/modules/bookings/services/bookings.service.ts(279,9): error TS2559: Type 'bookingInfo' has no properties in common with type 'UpdateBookingDto'.
+src/modules/bookings/services/bookings.service.ts(332,9): error TS2345: Argument of type '{ cancelledAt: Date; selectedSeats: string[]; selectedSeatIds: string[]; seatPricing: number[]; priceDetails: number; bookingStatus: string; }' is not assignable to parameter of type 'UpdateBookingDto'.
+  Types of property 'bookingStatus' are incompatible.
+    Type 'string' is not assignable to type '"expired" | "cancelled" | "confirmed"'.
+src/modules/coupons/controllers/coupons.controller.ts(15,11): error TS2430: Interface 'AuthenticatedRequest' incorrectly extends interface 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+  Types of property 'admin' are incompatible.
+    Property 'email' is missing in type '{ adminId: string; role?: string; }' but required in type '{ adminId: string; email: string; role: string; }'.
+src/modules/favorites/controllers/favorite.controller.ts(29,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/favorites/controllers/favorite.controller.ts(51,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/favorites/controllers/favorite.controller.ts(73,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/favorites/controllers/favorite.controller.ts(99,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/favorites/controllers/favorite.controller.ts(124,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/favorites/controllers/favorite.controller.ts(142,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/favorites/services/favorite.service.ts(33,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/favorites/services/favorite.service.ts(59,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/favorites/services/favorite.service.ts(92,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/favorites/services/favorite.service.ts(124,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/inviteGroup/controllers/inviteGroup.controller.ts(68,15): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/inviteGroup/controllers/inviteGroup.controller.ts(104,15): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/inviteGroup/controllers/inviteGroup.controller.ts(140,15): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/inviteGroup/controllers/inviteGroup.controller.ts(190,15): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/inviteGroup/controllers/inviteGroup.controller.ts(240,15): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/inviteGroup/controllers/inviteGroup.controller.ts(302,15): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/inviteGroup/controllers/inviteGroup.controller.ts(355,15): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/messages/controllers/messages.controller.ts(31,11): error TS2430: Interface 'AuthenticatedRequest' incorrectly extends interface 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+  Types of property 'admin' are incompatible.
+    Property 'email' is missing in type '{ adminId: string; role?: string; }' but required in type '{ adminId: string; email: string; role: string; }'.
+src/modules/messages/services/messages.service.ts(178,38): error TS2352: Conversion of type 'ObjectId' to type 'string' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/modules/messages/services/messages.service.ts(178,74): error TS2339: Property 'content' does not exist on type 'string'.
+src/modules/messages/services/messages.service.ts(180,15): error TS2352: Conversion of type 'ObjectId' to type 'string' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/modules/messages/services/messages.service.ts(180,51): error TS2339: Property '_id' does not exist on type 'string'.
+src/modules/messages/services/messages.service.ts(181,19): error TS2352: Conversion of type 'ObjectId' to type 'string' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/modules/messages/services/messages.service.ts(181,55): error TS2339: Property 'content' does not exist on type 'string'.
+src/modules/messages/services/messages.service.ts(182,22): error TS2352: Conversion of type 'ObjectId' to type 'string' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/modules/messages/services/messages.service.ts(182,58): error TS2339: Property 'senderName' does not exist on type 'string'.
+src/modules/movies/controllers/movies.controllers.ts(105,56): error TS2345: Argument of type 'ParamsDictionary' is not assignable to parameter of type 'MovieParamsDto'.
+  Property 'movieId' is missing in type 'ParamsDictionary' but required in type 'MovieParamsDto'.
+src/modules/movies/controllers/movies.controllers.ts(132,56): error TS2345: Argument of type 'ParamsDictionary' is not assignable to parameter of type 'MovieParamsDto'.
+  Property 'movieId' is missing in type 'ParamsDictionary' but required in type 'MovieParamsDto'.
+src/modules/movies/controllers/movies.controllers.ts(169,56): error TS2345: Argument of type 'ParamsDictionary' is not assignable to parameter of type 'MovieParamsDto'.
+  Property 'movieId' is missing in type 'ParamsDictionary' but required in type 'MovieParamsDto'.
+src/modules/movies/controllers/movies.controllers.ts(196,56): error TS2345: Argument of type 'ParamsDictionary' is not assignable to parameter of type 'MovieParamsDto'.
+  Property 'movieId' is missing in type 'ParamsDictionary' but required in type 'MovieParamsDto'.
+src/modules/movies/repositories/movie.repository.ts(34,7): error TS2739: Type '(Document<unknown, {}, IMovie, {}, {}> & IMovie & Required<{ _id: unknown; }> & { __v: number; })[]' is missing the following properties from type '{ data: IMovie[]; total: number; }': data, total
+src/modules/movies/services/movies.service.ts(107,7): error TS2740: Type '{ data: IMovie[]; total: number; }' is missing the following properties from type 'MovieResponseDto[]': length, pop, push, concat, and 28 more.
+src/modules/movies/services/movies.service.ts(166,7): error TS2322: Type 'IMovie' is not assignable to type 'boolean'.
+src/modules/owner/interfaces/owner.model.interface.ts(3,40): error TS2304: Cannot find name 'Document'.
+src/modules/owner/interfaces/owner.model.interface.ts(30,33): error TS2304: Cannot find name 'Document'.
+src/modules/owner/routes/owner.routes.ts(159,64): error TS2345: Argument of type 'Request<{}, any, any, ParsedQs, Record<string, any>>' is not assignable to parameter of type 'AuthenticatedRequest'.
+  Types of property 'user' are incompatible.
+    Type '{ id: string; email?: string; role?: string; }' is not assignable to type '{ id: string; email: string; }'.
+      Property 'email' is optional in type '{ id: string; email?: string; role?: string; }' but required in type '{ id: string; email: string; }'.
+src/modules/owner/routes/owner.routes.ts(162,56): error TS2345: Argument of type 'Request<{ showtimeId: string; }, any, any, ParsedQs, Record<string, any>>' is not assignable to parameter of type 'AuthenticatedRequest'.
+  Types of property 'user' are incompatible.
+    Type '{ id: string; email?: string; role?: string; }' is not assignable to type '{ id: string; email: string; }'.
+      Property 'email' is optional in type '{ id: string; email?: string; role?: string; }' but required in type '{ id: string; email: string; }'.
+src/modules/owner/services/owner.service.ts(307,45): error TS2339: Property 'id' does not exist on type 'UserDto'.
+src/modules/owner/services/owner.service.ts(336,31): error TS2339: Property 'oldEmail' does not exist on type 'UserDto'.
+src/modules/owner/services/owner.service.ts(350,41): error TS2339: Property 'oldEmail' does not exist on type 'UserDto'.
+src/modules/owner/services/owner.service.ts(545,7): error TS2741: Property 'owners' is missing in type '{ data: IOwner[]; total: number; }' but required in type '{ owners: IOwner[]; total: number; }'.
+src/modules/owner/services/owner.service.ts(551,7): error TS2741: Property 'owners' is missing in type '{ data: IOwner[]; total: number; }' but required in type '{ owners: IOwner[]; total: number; }'.
+src/modules/owner/services/owner.service.ts(581,23): error TS2352: Conversion of type 'IOwner' to type 'string' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/modules/owner/services/owner.service.ts(582,23): error TS2352: Conversion of type 'IOwner' to type 'string' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/modules/owner/services/owner.service.ts(625,9): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'UserDto'.
+src/modules/owner/services/ownerRequest.service.ts(645,7): error TS2741: Property 'requests' is missing in type '{ data: IOwnerRequest[]; total: number; }' but required in type '{ requests: IOwnerRequest[]; total: number; }'.
+src/modules/owner/services/ownerRequest.service.ts(647,7): error TS2741: Property 'requests' is missing in type '{ data: IOwnerRequest[]; total: number; }' but required in type '{ requests: IOwnerRequest[]; total: number; }'.
+src/modules/owner/services/ownerRequest.service.ts(671,23): error TS2352: Conversion of type 'IOwnerRequest' to type 'string' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/modules/owner/services/ownerRequest.service.ts(672,23): error TS2352: Conversion of type 'IOwnerRequest' to type 'string' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/modules/payment/repositories/payment.repository.ts(22,7): error TS2739: Type 'Document<unknown, {}, IPayment, {}, {}> & IPayment & Required<{ _id: ObjectId; }> & { __v: number; }' is missing the following properties from type 'IPayment': paymentMethod, paymentGateway, initiatedAt
+src/modules/payment/repositories/payment.repository.ts(34,7): error TS2739: Type 'Document<unknown, {}, IPayment, {}, {}> & IPayment & Required<{ _id: ObjectId; }> & { __v: number; }' is missing the following properties from type 'IPayment': paymentMethod, paymentGateway, initiatedAt
+src/modules/payment/repositories/payment.repository.ts(46,7): error TS2739: Type 'Document<unknown, {}, IPayment, {}, {}> & IPayment & Required<{ _id: ObjectId; }> & { __v: number; }' is missing the following properties from type 'IPayment': paymentMethod, paymentGateway, initiatedAt
+src/modules/payment/repositories/payment.repository.ts(67,7): error TS2739: Type 'Document<unknown, {}, IPayment, {}, {}> & IPayment & Required<{ _id: ObjectId; }> & { __v: number; }' is missing the following properties from type 'IPayment': paymentMethod, paymentGateway, initiatedAt
+src/modules/payment/repositories/payment.repository.ts(89,7): error TS2739: Type 'Document<unknown, {}, IPayment, {}, {}> & IPayment & Required<{ _id: ObjectId; }> & { __v: number; }' is missing the following properties from type 'IPayment': paymentMethod, paymentGateway, initiatedAt
+src/modules/payment/repositories/payment.repository.ts(106,7): error TS2739: Type 'Document<unknown, {}, IPayment, {}, {}> & IPayment & Required<{ _id: ObjectId; }> & { __v: number; }' is missing the following properties from type 'IPayment': paymentMethod, paymentGateway, initiatedAt
+src/modules/payment/repositories/payment.repository.ts(116,7): error TS2739: Type 'Document<unknown, {}, IPayment, {}, {}> & IPayment & Required<{ _id: ObjectId; }> & { __v: number; }' is missing the following properties from type 'IPayment': paymentMethod, paymentGateway, initiatedAt
+src/modules/payment/repositories/payment.repository.ts(126,7): error TS2322: Type '(Document<unknown, {}, IPayment, {}, {}> & IPayment & Required<{ _id: ObjectId; }> & { __v: number; })[]' is not assignable to type 'IPayment[]'.
+  Type 'Document<unknown, {}, IPayment, {}, {}> & IPayment & Required<{ _id: ObjectId; }> & { __v: number; }' is missing the following properties from type 'IPayment': paymentMethod, paymentGateway, initiatedAt
+src/modules/payment/repositories/payment.repository.ts(136,7): error TS2322: Type '(Document<unknown, {}, IPayment, {}, {}> & IPayment & Required<{ _id: ObjectId; }> & { __v: number; })[]' is not assignable to type 'IPayment[]'.
+  Type 'Document<unknown, {}, IPayment, {}, {}> & IPayment & Required<{ _id: ObjectId; }> & { __v: number; }' is missing the following properties from type 'IPayment': paymentMethod, paymentGateway, initiatedAt
+src/modules/payment/repositories/payment.repository.ts(146,7): error TS2322: Type '(Document<unknown, {}, IPayment, {}, {}> & IPayment & Required<{ _id: ObjectId; }> & { __v: number; })[]' is not assignable to type 'IPayment[]'.
+  Type 'Document<unknown, {}, IPayment, {}, {}> & IPayment & Required<{ _id: ObjectId; }> & { __v: number; }' is missing the following properties from type 'IPayment': paymentMethod, paymentGateway, initiatedAt
+src/modules/payment/repositories/payment.repository.ts(157,7): error TS2322: Type '(Document<unknown, {}, IPayment, {}, {}> & IPayment & Required<{ _id: ObjectId; }> & { __v: number; })[]' is not assignable to type 'IPayment[]'.
+  Type 'Document<unknown, {}, IPayment, {}, {}> & IPayment & Required<{ _id: ObjectId; }> & { __v: number; }' is missing the following properties from type 'IPayment': paymentMethod, paymentGateway, initiatedAt
+src/modules/payment/repositories/payment.repository.ts(170,7): error TS2322: Type '(Document<unknown, {}, IPayment, {}, {}> & IPayment & Required<{ _id: ObjectId; }> & { __v: number; })[]' is not assignable to type 'IPayment[]'.
+  Type 'Document<unknown, {}, IPayment, {}, {}> & IPayment & Required<{ _id: ObjectId; }> & { __v: number; }' is missing the following properties from type 'IPayment': paymentMethod, paymentGateway, initiatedAt
+src/modules/payment/repositories/payment.repository.ts(181,7): error TS2322: Type '(Document<unknown, {}, IPayment, {}, {}> & IPayment & Required<{ _id: ObjectId; }> & { __v: number; })[]' is not assignable to type 'IPayment[]'.
+  Type 'Document<unknown, {}, IPayment, {}, {}> & IPayment & Required<{ _id: ObjectId; }> & { __v: number; }' is missing the following properties from type 'IPayment': paymentMethod, paymentGateway, initiatedAt
+src/modules/payment/repositories/payment.repository.ts(212,5): error TS2739: Type 'Document<unknown, {}, IPayment, {}, {}> & IPayment & Required<{ _id: ObjectId; }> & { __v: number; }' is missing the following properties from type 'IPayment': paymentMethod, paymentGateway, initiatedAt
+src/modules/payment/repositories/payment.repository.ts(230,5): error TS2739: Type 'Document<unknown, {}, IPayment, {}, {}> & IPayment & Required<{ _id: ObjectId; }> & { __v: number; }' is missing the following properties from type 'IPayment': paymentMethod, paymentGateway, initiatedAt
+src/modules/payment/services/payment.service.ts(682,34): error TS2339: Property 'razorpayOrderId' does not exist on type 'IPayment'.
+src/modules/reviews/controllers/review.controller.ts(28,66): error TS2345: Argument of type 'AddReviewDto' is not assignable to parameter of type 'ReviewResponseDto'.
+  Property 'success' is missing in type 'AddReviewDto' but required in type 'ReviewResponseDto'.
+src/modules/reviews/controllers/review.controller.ts(35,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/reviews/controllers/review.controller.ts(51,79): error TS2345: Argument of type 'UpdateReviewDto' is not assignable to parameter of type 'ReviewResponseDto'.
+  Property 'success' is missing in type 'UpdateReviewDto' but required in type 'ReviewResponseDto'.
+src/modules/reviews/controllers/review.controller.ts(58,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/reviews/controllers/review.controller.ts(80,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/reviews/controllers/review.controller.ts(98,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/reviews/controllers/review.controller.ts(115,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/reviews/controllers/review.controller.ts(137,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/reviews/controllers/review.controller.ts(152,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/reviews/controllers/review.controller.ts(167,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/reviews/controllers/review.controller.ts(183,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/reviews/controllers/review.controller.ts(199,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/reviews/services/review.service.ts(8,17): error TS2304: Cannot find name 'ReviewResponseDto'.
+src/modules/reviews/services/review.service.ts(12,12): error TS2304: Cannot find name 'ReviewResponseDto'.
+src/modules/reviews/services/review.service.ts(42,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/reviews/services/review.service.ts(51,17): error TS2304: Cannot find name 'ReviewResponseDto'.
+src/modules/reviews/services/review.service.ts(55,12): error TS2304: Cannot find name 'ReviewResponseDto'.
+src/modules/reviews/services/review.service.ts(75,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/reviews/services/review.service.ts(104,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/reviews/services/review.service.ts(116,12): error TS2304: Cannot find name 'ReviewResponseDto'.
+src/modules/reviews/services/review.service.ts(138,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/reviews/services/review.service.ts(200,12): error TS2304: Cannot find name 'ReviewResponseDto'.
+src/modules/reviews/services/review.service.ts(222,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/reviews/services/review.service.ts(233,12): error TS2304: Cannot find name 'ReviewResponseDto'.
+src/modules/reviews/services/review.service.ts(251,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/reviews/services/review.service.ts(258,12): error TS2304: Cannot find name 'ReviewResponseDto'.
+src/modules/reviews/services/review.service.ts(276,12): error TS2304: Cannot find name 'ReviewResponseDto'.
+src/modules/reviews/services/review.service.ts(313,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/reviews/services/review.service.ts(339,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/screens/repositories/screens.repositories.ts(47,33): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/screens/repositories/screens.repositories.ts(116,9): error TS2322: Type '(Document<unknown, {}, IScreen, {}, {}> & IScreen & Required<{ _id: unknown; }> & { __v: number; })[]' is not assignable to type 'ScreenInfoDto[]'.
+  Type 'Document<unknown, {}, IScreen, {}, {}> & IScreen & Required<{ _id: unknown; }> & { __v: number; }' is not assignable to type 'ScreenInfoDto'.
+    Types of property '_id' are incompatible.
+      Type 'unknown' is not assignable to type 'string'.
+src/modules/screens/repositories/screens.repositories.ts(178,9): error TS2322: Type '(Document<unknown, {}, IScreen, {}, {}> & IScreen & Required<{ _id: unknown; }> & { __v: number; })[]' is not assignable to type 'ScreenInfoDto[]'.
+  Type 'Document<unknown, {}, IScreen, {}, {}> & IScreen & Required<{ _id: unknown; }> & { __v: number; }' is not assignable to type 'ScreenInfoDto'.
+    Types of property '_id' are incompatible.
+      Type 'unknown' is not assignable to type 'string'.
+src/modules/screens/services/screens.service.ts(56,9): error TS2322: Type 'ObjectId' is not assignable to type 'string'.
+src/modules/showtimes/controllers/showtimes.controller.ts(219,11): error TS2554: Expected 3 arguments, but got 4.
+src/modules/showtimes/dtos/dto.ts(134,3): error TS2717: Subsequent property declarations must have the same type.  Property 'showtimes' must be of type 'any[]', but here has type 'ShowtimeListResponseDTO[]'.
+src/modules/showtimes/repositories/showtimes.repository.ts(430,26): error TS18004: No value exists in scope for the shorthand property 'ownerId'. Either declare one or provide an initializer.
+src/modules/showtimes/services/showtimes.service.ts(552,11): error TS2554: Expected 3 arguments, but got 4.
+src/modules/showtimes/services/showtimes.service.ts(554,66): error TS2554: Expected 1 arguments, but got 2.
+src/modules/showtimes/services/showtimes.service.ts(1272,22): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/staff/controller/staff.controller.ts(34,10): error TS2367: This comparison appears to be unintentional because the types 'StaffResponseDTO' and 'string' have no overlap.
+src/modules/staff/services/staff.service.ts(41,7): error TS2322: Type 'string' is not assignable to type 'StaffResponseDTO'.
+src/modules/staff/services/staff.service.ts(105,7): error TS2322: Type 'IStaff[]' is not assignable to type 'StaffResponseDTO[]'.
+  Type 'IStaff' is not assignable to type 'StaffResponseDTO'.
+    Property 'id' is optional in type 'IStaff' but required in type 'StaffResponseDTO'.
+src/modules/theaters/controllers/theaters.controller.ts(410,22): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/theaters/interfaces/theater.service.interface.ts(2,3): error TS2724: '"../dtos/dto"' has no exported member named 'CreateTheaterDto'. Did you mean 'CreateTheaterDTO'?
+src/modules/theaters/interfaces/theater.service.interface.ts(3,3): error TS2724: '"../dtos/dto"' has no exported member named 'UpdateTheaterDto'. Did you mean 'UpdateTheaterDTO'?
+src/modules/theaters/interfaces/theater.service.interface.ts(5,3): error TS2724: '"../dtos/dto"' has no exported member named 'TheaterResponseDto'. Did you mean 'TheaterListResponseDTO'?
+src/modules/theaters/interfaces/theater.service.interface.ts(6,3): error TS2305: Module '"../dtos/dto"' has no exported member 'TheatersByOwnerDto'.
+src/modules/theaters/interfaces/theater.service.interface.ts(7,3): error TS2724: '"../dtos/dto"' has no exported member named 'PaginatedTheatersDto'. Did you mean 'UpdateTheaterDTO'?
+src/modules/theaters/repositories/theater.repository.ts(10,9): error TS2416: Property 'create' in type 'TheaterRepository' is not assignable to the same property in base type 'ITheaterRepository'.
+  Type '(ownerId: string, theaterData: CreateTheaterDTO) => Promise<ITheater>' is not assignable to type '(data: CreateTheaterDTO) => Promise<ITheater>'.
+    Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/modules/theaters/repositories/theater.repository.ts(166,9): error TS2416: Property 'getTheatersByFilters' in type 'TheaterRepository' is not assignable to the same property in base type 'ITheaterRepository'.
+  Type '(filters: TheaterFilters, page: number, limit: number) => Promise<{ data: ITheater[]; total: number; }>' is not assignable to type '(filters: TheaterFilters, page: number, limit: number) => Promise<{ theaters: ITheater[]; total: number; }>'.
+    Type 'Promise<{ data: ITheater[]; total: number; }>' is not assignable to type 'Promise<{ theaters: ITheater[]; total: number; }>'.
+      Property 'theaters' is missing in type '{ data: ITheater[]; total: number; }' but required in type '{ theaters: ITheater[]; total: number; }'.
+src/modules/theaters/repositories/theater.repository.ts(229,9): error TS2416: Property 'delete' in type 'TheaterRepository' is not assignable to the same property in base type 'ITheaterRepository'.
+  Type '(theaterId: string) => Promise<boolean>' is not assignable to type '(id: string) => Promise<ITheater>'.
+    Type 'Promise<boolean>' is not assignable to type 'Promise<ITheater>'.
+      Type 'boolean' is not assignable to type 'ITheater'.
+src/modules/theaters/repositories/theater.repository.ts(335,9): error TS2353: Object literal may only specify known properties, and '$geoNear' does not exist in type 'PipelineOptions'.
+src/modules/theaters/repositories/theater.repository.ts(355,9): error TS2353: Object literal may only specify known properties, and '$match' does not exist in type 'PipelineOptions'.
+src/modules/theaters/repositories/theater.repository.ts(366,7): error TS2353: Object literal may only specify known properties, and '$addFields' does not exist in type 'PipelineOptions'.
+src/modules/theaters/repositories/theater.repository.ts(378,21): error TS2353: Object literal may only specify known properties, and '$skip' does not exist in type 'PipelineOptions'.
+src/modules/theaters/repositories/theater.repository.ts(379,21): error TS2353: Object literal may only specify known properties, and '$limit' does not exist in type 'PipelineOptions'.
+src/modules/theaters/repositories/theater.repository.ts(382,25): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(pipeline?: PipelineStage[], options?: AggregateOptions): Aggregate<any[]>', gave the following error.
+    Argument of type 'PipelineOptions[]' is not assignable to parameter of type 'PipelineStage[]'.
+      Type 'PipelineOptions' is not assignable to type 'PipelineStage'.
+  Overload 2 of 2, '(pipeline: PipelineStage[]): Aggregate<any[]>', gave the following error.
+    Argument of type 'PipelineOptions[]' is not assignable to parameter of type 'PipelineStage[]'.
+      Type 'PipelineOptions' is not assignable to type 'PipelineStage'.
+src/modules/theaters/repositories/theater.repository.ts(383,25): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(pipeline?: PipelineStage[], options?: AggregateOptions): Aggregate<any[]>', gave the following error.
+    Argument of type '(PipelineOptions | { $count: string; })[]' is not assignable to parameter of type 'PipelineStage[]'.
+      Type 'PipelineOptions | { $count: string; }' is not assignable to type 'PipelineStage'.
+        Type 'PipelineOptions' is not assignable to type 'PipelineStage'.
+  Overload 2 of 2, '(pipeline: PipelineStage[]): Aggregate<any[]>', gave the following error.
+    Argument of type '(PipelineOptions | { $count: string; })[]' is not assignable to parameter of type 'PipelineStage[]'.
+      Type 'PipelineOptions | { $count: string; }' is not assignable to type 'PipelineStage'.
+        Type 'PipelineOptions' is not assignable to type 'PipelineStage'.
+src/modules/theaters/repositories/theater.repository.ts(442,47): error TS2345: Argument of type '(theater: TheaterInfoDto) => { distance: any; _id: string; name: string; location?: { address: string; city: string; }; }' is not assignable to parameter of type '(value: FlattenMaps<ITheater> & Required<{ _id: FlattenMaps<unknown>; }> & { __v: number; }, index: number, array: (FlattenMaps<ITheater> & Required<...> & { ...; })[]) => { ...; }'.
+  Types of parameters 'theater' and 'value' are incompatible.
+    Type 'FlattenMaps<ITheater> & Required<{ _id: FlattenMaps<unknown>; }> & { __v: number; }' is not assignable to type 'TheaterInfoDto'.
+      Types of property '_id' are incompatible.
+        Type 'FlattenMaps<unknown>' is not assignable to type 'string'.
+src/modules/theaters/repositories/theater.repository.ts(444,59): error TS2339: Property 'coordinates' does not exist on type '{ address: string; city: string; }'.
+src/modules/theaters/repositories/theater.repository.ts(445,47): error TS2339: Property 'coordinates' does not exist on type '{ address: string; city: string; }'.
+src/modules/theaters/repositories/theater.repository.ts(457,14): error TS2322: Type '{ distance: any; _id: string; name: string; location?: { address: string; city: string; }; }[]' is not assignable to type 'ITheater[]'.
+  Type '{ distance: any; _id: string; name: string; location?: { address: string; city: string; }; }' is missing the following properties from type 'ITheater': ownerId, address, city, state, and 63 more.
+src/modules/theaters/services/theater.service.ts(46,68): error TS2554: Expected 1 arguments, but got 2.
+src/modules/theaters/services/theater.service.ts(136,9): error TS2741: Property 'theaters' is missing in type '{ data: ITheater[]; total: number; }' but required in type '{ theaters: ITheater[]; total: number; }'.
+src/modules/theaters/services/theater.service.ts(476,12): error TS2352: Conversion of type 'ObjectId' to type 'string' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/modules/theaters/services/theater.service.ts(476,39): error TS2339: Property 'email' does not exist on type 'string'.
+src/modules/theaters/services/theater.service.ts(489,12): error TS2352: Conversion of type 'ObjectId' to type 'string' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/modules/theaters/services/theater.service.ts(489,39): error TS2339: Property 'email' does not exist on type 'string'.
+src/modules/theaters/services/theater.service.ts(530,15): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/theaters/services/theater.service.ts(533,24): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/theaters/services/theater.service.ts(539,22): error TS2339: Property 'message' does not exist on type 'unknown'.
+src/modules/tickets/controllers/ticket.controller.ts(141,37): error TS2345: Argument of type 'ITicket[]' is not assignable to parameter of type 'TicketResponseDto[]'.
+  Property 'id' is missing in type 'ITicket' but required in type 'TicketResponseDto'.
+src/modules/tickets/controllers/ticket.controller.ts(144,9): error TS2345: Argument of type 'ITicket[]' is not assignable to parameter of type 'TicketResponseDto[]'.
+  Property 'id' is missing in type 'ITicket' but required in type 'TicketResponseDto'.
+src/modules/tickets/controllers/ticket.controller.ts(151,11): error TS2345: Argument of type 'ITicket' is not assignable to parameter of type 'TicketResponseDto'.
+  Property 'id' is missing in type 'ITicket' but required in type 'TicketResponseDto'.
+src/modules/tickets/controllers/ticket.controller.ts(158,9): error TS2345: Argument of type 'ITicket[]' is not assignable to parameter of type 'TicketResponseDto[]'.
+  Property 'id' is missing in type 'ITicket' but required in type 'TicketResponseDto'.
+src/modules/tickets/controllers/ticket.controller.ts(177,9): error TS2345: Argument of type 'ITicket[]' is not assignable to parameter of type 'TicketResponseDto[]'.
+  Property 'id' is missing in type 'ITicket' but required in type 'TicketResponseDto'.
+src/modules/tickets/controllers/ticket.controller.ts(183,9): error TS2345: Argument of type 'RefundCalculationDto' is not assignable to parameter of type 'TicketResponseDto'.
+  Type 'RefundCalculationDto' is missing the following properties from type 'TicketResponseDto': id, ticketId, bookingId, userId, and 10 more.
+src/modules/tickets/controllers/ticket.controller.ts(267,47): error TS2339: Property '_id' does not exist on type 'string'.
+src/modules/tickets/controllers/ticket.controller.ts(268,33): error TS2339: Property '_id' does not exist on type 'string'.
+src/modules/tickets/controllers/ticket.controller.ts(351,62): error TS2345: Argument of type '{ cancelledAt: Date; selectedSeats: any; selectedSeatIds: any; seatPricing: any; priceDetails: { subtotal: number; convenienceFee: number; taxes: number; discount: any; total: number; }; bookingStatus: any; }' is not assignable to parameter of type 'bookingInfo'.
+  Type '{ cancelledAt: Date; selectedSeats: any; selectedSeatIds: any; seatPricing: any; priceDetails: { subtotal: number; convenienceFee: number; taxes: number; discount: any; total: number; }; bookingStatus: any; }' is missing the following properties from type 'bookingInfo': userId, movieId, theaterId, screenId, and 4 more.
+src/modules/tickets/controllers/ticket.controller.ts(426,25): error TS2352: Conversion of type 'IWallet' to type 'string' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/modules/tickets/controllers/ticket.controller.ts(426,48): error TS2339: Property '_id' does not exist on type 'string'.
+src/modules/tickets/controllers/ticket.controller.ts(470,40): error TS2339: Property 'refundAmount' does not exist on type 'TicketResponseDto'.
+src/modules/tickets/controllers/ticket.controller.ts(485,7): error TS2339: Property 'refundAmount' does not exist on type 'TicketResponseDto'.
+src/modules/tickets/controllers/ticket.controller.ts(486,7): error TS2339: Property 'refundPercentage' does not exist on type 'TicketResponseDto'.
+src/modules/tickets/controllers/ticket.controller.ts(487,7): error TS2339: Property 'cancelledTickets' does not exist on type 'TicketResponseDto'.
+src/modules/tickets/controllers/ticket.controller.ts(495,5): error TS2740: Type 'ApiResponse<{ cancelledTickets: any; ticketCount: any; refundDetails: { originalAmount: number; refundAmount: any; refundPercentage: any; cancellationFee: number; }; showDetails: { showDate: Date; showTime: string; }; walletCredited: boolean; }>' is missing the following properties from type 'TicketResponseDto': id, ticketId, bookingId, userId, and 14 more.
+src/modules/tickets/controllers/ticket.controller.ts(560,63): error TS2345: Argument of type 'string | ParsedQs | (string | ParsedQs)[]' is not assignable to parameter of type 'string'.
+  Type 'ParsedQs' is not assignable to type 'string'.
+src/modules/tickets/controllers/ticket.controller.ts(738,25): error TS2352: Conversion of type 'IWallet' to type 'string' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/modules/tickets/controllers/ticket.controller.ts(738,48): error TS2339: Property '_id' does not exist on type 'string'.
+src/modules/tickets/controllers/ticket.controller.ts(798,29): error TS2339: Property 'movieTitle' does not exist on type 'TicketResponseDto'.
+src/modules/tickets/controllers/ticket.controller.ts(836,29): error TS2339: Property 'movieTitle' does not exist on type 'TicketResponseDto'.
+src/modules/tickets/controllers/ticket.controller.ts(869,40): error TS2339: Property 'refundAmount' does not exist on type 'TicketResponseDto'.
+src/modules/tickets/controllers/ticket.controller.ts(884,7): error TS2339: Property 'refundAmount' does not exist on type 'TicketResponseDto'.
+src/modules/tickets/controllers/ticket.controller.ts(885,7): error TS2339: Property 'refundPercentage' does not exist on type 'TicketResponseDto'.
+src/modules/tickets/controllers/ticket.controller.ts(886,7): error TS2339: Property 'cancelledTickets' does not exist on type 'TicketResponseDto'.
+src/modules/tickets/controllers/ticket.controller.ts(896,5): error TS2740: Type 'ApiResponse<{ bookingId: string; cancelledTickets: any; refundDetails: { originalAmount: number; refundAmount: any; refundPercentage: any; cancellationFee: number; }; showDetails: { showDate: Date; showTime: string; }; walletCredited: boolean; }>' is missing the following properties from type 'TicketResponseDto': id, ticketId, bookingId, userId, and 14 more.
+src/modules/tickets/controllers/ticket.controller.ts(922,5): error TS2740: Type 'ApiResponse<any>' is missing the following properties from type 'TicketResponseDto': id, ticketId, bookingId, userId, and 14 more.
+src/modules/tickets/controllers/ticket.controller.ts(924,23): error TS2339: Property 'message' does not exist on type 'TicketResponseDto'.
+src/modules/tickets/controllers/ticket.controller.ts(925,20): error TS2339: Property 'data' does not exist on type 'TicketResponseDto'.
+src/modules/tickets/controllers/ticket.controller.ts(925,44): error TS2339: Property 'data' does not exist on type 'TicketResponseDto'.
+src/modules/tickets/controllers/ticket.controller.ts(930,20): error TS2339: Property 'data' does not exist on type 'TicketResponseDto'.
+src/modules/tickets/controllers/ticket.controller.ts(931,31): error TS2339: Property 'data' does not exist on type 'TicketResponseDto'.
+src/modules/tickets/controllers/ticket.controller.ts(932,25): error TS2339: Property 'data' does not exist on type 'TicketResponseDto'.
+src/modules/tickets/controllers/ticket.controller.ts(934,39): error TS2339: Property 'data' does not exist on type 'TicketResponseDto'.
+src/modules/tickets/controllers/ticket.controller.ts(985,9): error TS2322: Type '("cancelled" | "upcoming" | "all" | "past")[]' is not assignable to type '("cancelled" | "upcoming" | "history" | "all")[]'.
+  Type '"cancelled" | "upcoming" | "all" | "past"' is not assignable to type '"cancelled" | "upcoming" | "history" | "all"'.
+    Type '"past"' is not assignable to type '"cancelled" | "upcoming" | "history" | "all"'.
+src/modules/tickets/controllers/ticket.controller.ts(996,9): error TS2345: Argument of type 'ApiResponse<PaginatedTicketsResponseDto>' is not assignable to parameter of type 'TicketResponseDto'.
+  Type 'ApiResponse<PaginatedTicketsResponseDto>' is missing the following properties from type 'TicketResponseDto': id, ticketId, bookingId, userId, and 14 more.
+src/modules/tickets/interfaces/ticket.model.interface.ts(3,34): error TS2304: Cannot find name 'Document'.
+src/modules/tickets/services/ticket.service.ts(302,23): error TS2339: Property 'tid' does not exist on type 'string'.
+src/modules/tickets/services/ticket.service.ts(313,9): error TS2322: Type 'ApiResponse<{ usedAt: Date; ticketDetails: { ticketId: string; movieTitle: any; theater: any; screen: any; seat: string; showDate: Date; showTime: string; }; }>' is not assignable to type 'ApiResponse<TicketResponseDto>'.
+  Type '{ usedAt: Date; ticketDetails: { ticketId: string; movieTitle: any; theater: any; screen: any; seat: string; showDate: Date; showTime: string; }; }' is missing the following properties from type 'TicketResponseDto': id, ticketId, bookingId, userId, and 14 more.
+src/modules/tickets/services/ticket.service.ts(320,43): error TS2339: Property 'title' does not exist on type 'ObjectId'.
+src/modules/tickets/services/ticket.service.ts(321,42): error TS2339: Property 'name' does not exist on type 'ObjectId'.
+src/modules/tickets/services/ticket.service.ts(322,40): error TS2339: Property 'name' does not exist on type 'ObjectId'.
+src/modules/tickets/services/ticket.service.ts(362,7): error TS2322: Type 'ApiResponse<{ ticket: { ticketId: string; movieTitle: any; theater: any; screen: any; seat: string; seatType: "VIP" | "Premium" | "Normal"; showDate: Date; showTime: string; price: number; verifiedAt: Date; verifiedBy: string; }; customer: { ...; }; }>' is not assignable to type 'ApiResponse<TicketResponseDto>'.
+  Type '{ ticket: { ticketId: string; movieTitle: any; theater: any; screen: any; seat: string; seatType: "VIP" | "Premium" | "Normal"; showDate: Date; showTime: string; price: number; verifiedAt: Date; verifiedBy: string; }; customer: { ...; }; }' is missing the following properties from type 'TicketResponseDto': id, ticketId, bookingId, userId, and 14 more.
+src/modules/tickets/services/ticket.service.ts(368,41): error TS2339: Property 'title' does not exist on type 'ObjectId'.
+src/modules/tickets/services/ticket.service.ts(369,40): error TS2339: Property 'name' does not exist on type 'ObjectId'.
+src/modules/tickets/services/ticket.service.ts(370,38): error TS2339: Property 'name' does not exist on type 'ObjectId'.
+src/modules/tickets/services/ticket.service.ts(380,34): error TS2339: Property 'firstName' does not exist on type 'ObjectId'.
+src/modules/tickets/services/ticket.service.ts(381,35): error TS2339: Property 'email' does not exist on type 'ObjectId'.
+src/modules/tickets/services/ticket.service.ts(420,7): error TS2322: Type 'ApiResponse<ITicket>' is not assignable to type 'ApiResponse<TicketResponseDto>'.
+  Property 'id' is missing in type 'ITicket' but required in type 'TicketResponseDto'.
+src/modules/tickets/services/ticket.service.ts(443,7): error TS2322: Type 'ApiResponse<{ tickets: ITicket[]; total: number; page: number; totalPages: number; }>' is not assignable to type 'ApiResponse<PaginatedTicketsResponseDto>'.
+  Type '{ tickets: ITicket[]; total: number; page: number; totalPages: number; }' is not assignable to type 'PaginatedTicketsResponseDto'.
+    Types of property 'tickets' are incompatible.
+      Type 'ITicket[]' is not assignable to type 'TicketResponseDto[]'.
+        Property 'id' is missing in type 'ITicket' but required in type 'TicketResponseDto'.
+src/modules/tickets/services/ticket.service.ts(468,7): error TS2322: Type 'ApiResponse<ITicket>' is not assignable to type 'ApiResponse<TicketResponseDto>'.
+  Property 'id' is missing in type 'ITicket' but required in type 'TicketResponseDto'.
+src/modules/tickets/services/ticket.service.ts(496,7): error TS2322: Type 'ApiResponse<ITicket>' is not assignable to type 'ApiResponse<TicketResponseDto>'.
+  Property 'id' is missing in type 'ITicket' but required in type 'TicketResponseDto'.
+src/modules/tickets/services/ticket.service.ts(634,63): error TS2345: Argument of type 'string' is not assignable to parameter of type 'TicketResponseDto'.
+src/modules/tickets/services/ticket.service.ts(636,22): error TS2345: Argument of type '{ couponId: string; ticketId: string; isInvited: boolean; bookingId: mongoose.Types.ObjectId; userId: mongoose.Types.ObjectId; movieId: mongoose.Types.ObjectId; ... 11 more ...; isUsed: false; }' is not assignable to parameter of type 'Partial<ITicket>'.
+  Types of property 'couponId' are incompatible.
+    Type 'string' is not assignable to type 'ObjectId'.
+src/modules/tickets/services/ticket.service.ts(667,5): error TS2322: Type '{ ticketId: string; bookingId: ObjectId; userId: ObjectId; movieId: ObjectId; theaterId: ObjectId; screenId: ObjectId; showtimeId: ObjectId; ... 9 more ...; couponId: string; }[]' is not assignable to type 'Partial<ITicket>[]'.
+  Type '{ ticketId: string; bookingId: mongoose.Types.ObjectId; userId: mongoose.Types.ObjectId; movieId: mongoose.Types.ObjectId; theaterId: mongoose.Types.ObjectId; ... 11 more ...; couponId: string; }' is not assignable to type 'Partial<ITicket>'.
+    Types of property 'couponId' are incompatible.
+      Type 'string' is not assignable to type 'ObjectId'.
+src/modules/tickets/services/ticket.service.ts(671,61): error TS2345: Argument of type '{ ticketId: string; }' is not assignable to parameter of type 'TicketResponseDto'.
+  Type '{ ticketId: string; }' is missing the following properties from type 'TicketResponseDto': id, bookingId, userId, movieId, and 13 more.
+src/modules/tickets/services/ticket.service.ts(745,10): error TS2352: Conversion of type 'ITicket' to type 'TicketResponseDto' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Property 'id' is missing in type 'ITicket' but required in type 'TicketResponseDto'.
+src/modules/tickets/services/ticket.service.ts(745,39): error TS2339: Property '_id' does not exist on type 'TicketResponseDto'.
+src/modules/tickets/services/ticket.service.ts(771,55): error TS2345: Argument of type 'ITicket[]' is not assignable to parameter of type 'TicketResponseDto[]'.
+  Property 'id' is missing in type 'ITicket' but required in type 'TicketResponseDto'.
+src/modules/user/controllers/user.controller.ts(33,11): error TS2430: Interface 'AuthenticatedRequest' incorrectly extends interface 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+  Types of property 'owner' are incompatible.
+    Type '{ ownerId: string; }' is missing the following properties from type '{ ownerId: string; email: string; role: string; }': email, role
+src/modules/user/controllers/user.controller.ts(736,9): error TS2345: Argument of type 'IUser' is not assignable to parameter of type 'UserDataDto'.
+  Property 'role' is missing in type 'IUser' but required in type 'UserDataDto'.
+src/modules/user/repositories/user.repository.ts(188,14): error TS2353: Object literal may only specify known properties, and 'data' does not exist in type '{ users: IUser[]; total: number; }'.
+src/modules/user/routes/user.routes.ts(57,46): error TS2345: Argument of type 'Request<{}, any, any, ParsedQs, Record<string, any>>' is not assignable to parameter of type 'AuthenticatedRequest'.
+  Types of property 'user' are incompatible.
+    Type '{ id: string; email?: string; role?: string; }' is not assignable to type '{ id: string; role?: string; email: string; }'.
+      Property 'email' is optional in type '{ id: string; email?: string; role?: string; }' but required in type '{ id: string; role?: string; email: string; }'.
+src/modules/user/routes/user.routes.ts(60,46): error TS2345: Argument of type 'Request<{ chatRoomId: string; }, any, any, ParsedQs, Record<string, any>>' is not assignable to parameter of type 'AuthenticatedRequest'.
+  Types of property 'user' are incompatible.
+    Type '{ id: string; email?: string; role?: string; }' is not assignable to type '{ id: string; role?: string; email: string; }'.
+      Property 'email' is optional in type '{ id: string; email?: string; role?: string; }' but required in type '{ id: string; role?: string; email: string; }'.
+src/modules/user/routes/user.routes.ts(63,46): error TS2345: Argument of type 'Request<{ messageId: string; }, any, any, ParsedQs, Record<string, any>>' is not assignable to parameter of type 'AuthenticatedRequest'.
+  Types of property 'user' are incompatible.
+    Type '{ id: string; email?: string; role?: string; }' is not assignable to type '{ id: string; role?: string; email: string; }'.
+      Property 'email' is optional in type '{ id: string; email?: string; role?: string; }' but required in type '{ id: string; role?: string; email: string; }'.
+src/modules/user/routes/user.routes.ts(66,48): error TS2345: Argument of type 'Request<{ messageId: string; }, any, any, ParsedQs, Record<string, any>>' is not assignable to parameter of type 'AuthenticatedRequest'.
+  Types of property 'user' are incompatible.
+    Type '{ id: string; email?: string; role?: string; }' is not assignable to type '{ id: string; role?: string; email: string; }'.
+      Property 'email' is optional in type '{ id: string; email?: string; role?: string; }' but required in type '{ id: string; role?: string; email: string; }'.
+src/modules/user/routes/user.routes.ts(69,54): error TS2345: Argument of type 'Request<{}, any, any, ParsedQs, Record<string, any>>' is not assignable to parameter of type 'AuthenticatedRequest'.
+  Types of property 'user' are incompatible.
+    Type '{ id: string; email?: string; role?: string; }' is not assignable to type '{ id: string; role?: string; email: string; }'.
+      Property 'email' is optional in type '{ id: string; email?: string; role?: string; }' but required in type '{ id: string; role?: string; email: string; }'.
+src/modules/user/routes/user.routes.ts(93,53): error TS2345: Argument of type 'Request<{}, any, any, ParsedQs, Record<string, any>>' is not assignable to parameter of type 'AuthenticatedRequest'.
+  Types of property 'user' are incompatible.
+    Type '{ id: string; email?: string; role?: string; }' is not assignable to type '{ id: string; role: string; email?: string; }'.
+      Property 'role' is optional in type '{ id: string; email?: string; role?: string; }' but required in type '{ id: string; role: string; email?: string; }'.
+src/modules/user/routes/user.routes.ts(97,55): error TS2345: Argument of type 'Request<{}, any, any, ParsedQs, Record<string, any>>' is not assignable to parameter of type 'AuthenticatedRequest'.
+  Types of property 'user' are incompatible.
+    Type '{ id: string; email?: string; role?: string; }' is not assignable to type '{ id: string; role: string; email?: string; }'.
+      Property 'role' is optional in type '{ id: string; email?: string; role?: string; }' but required in type '{ id: string; role: string; email?: string; }'.
+src/modules/user/routes/user.routes.ts(101,55): error TS2345: Argument of type 'Request<{}, any, any, ParsedQs, Record<string, any>>' is not assignable to parameter of type 'AuthenticatedRequest'.
+  Types of property 'user' are incompatible.
+    Type '{ id: string; email?: string; role?: string; }' is not assignable to type '{ id: string; role: string; email?: string; }'.
+      Property 'role' is optional in type '{ id: string; email?: string; role?: string; }' but required in type '{ id: string; role: string; email?: string; }'.
+src/modules/user/routes/user.routes.ts(105,54): error TS2345: Argument of type 'Request<{ inviteId: string; }, any, any, ParsedQs, Record<string, any>>' is not assignable to parameter of type 'AuthenticatedRequest'.
+  Types of property 'user' are incompatible.
+    Type '{ id: string; email?: string; role?: string; }' is not assignable to type '{ id: string; role: string; email?: string; }'.
+      Property 'role' is optional in type '{ id: string; email?: string; role?: string; }' but required in type '{ id: string; role: string; email?: string; }'.
+src/modules/user/routes/user.routes.ts(109,59): error TS2345: Argument of type 'Request<{}, any, any, ParsedQs, Record<string, any>>' is not assignable to parameter of type 'AuthenticatedRequest'.
+  Types of property 'user' are incompatible.
+    Type '{ id: string; email?: string; role?: string; }' is not assignable to type '{ id: string; role: string; email?: string; }'.
+      Property 'role' is optional in type '{ id: string; email?: string; role?: string; }' but required in type '{ id: string; role: string; email?: string; }'.
+src/modules/user/routes/user.routes.ts(114,52): error TS2345: Argument of type 'Request<{ inviteId: string; }, any, any, ParsedQs, Record<string, any>>' is not assignable to parameter of type 'AuthenticatedRequest'.
+  Types of property 'user' are incompatible.
+    Type '{ id: string; email?: string; role?: string; }' is not assignable to type '{ id: string; role: string; email?: string; }'.
+      Property 'role' is optional in type '{ id: string; email?: string; role?: string; }' but required in type '{ id: string; role: string; email?: string; }'.
+src/modules/user/routes/user.routes.ts(119,53): error TS2345: Argument of type 'Request<{ inviteId: string; }, any, any, ParsedQs, Record<string, any>>' is not assignable to parameter of type 'AuthenticatedRequest'.
+  Types of property 'user' are incompatible.
+    Type '{ id: string; email?: string; role?: string; }' is not assignable to type '{ id: string; role: string; email?: string; }'.
+      Property 'role' is optional in type '{ id: string; email?: string; role?: string; }' but required in type '{ id: string; role: string; email?: string; }'.
+src/modules/user/routes/user.routes.ts(142,45): error TS2345: Argument of type 'Request<{}, any, any, ParsedQs, Record<string, any>>' is not assignable to parameter of type 'AuthenticatedRequest'.
+  Types of property 'user' are incompatible.
+    Type '{ id: string; email?: string; role?: string; }' is not assignable to type '{ id: string; email: string; }'.
+      Property 'email' is optional in type '{ id: string; email?: string; role?: string; }' but required in type '{ id: string; email: string; }'.
+src/modules/user/services/user.service.ts(65,11): error TS2353: Object literal may only specify known properties, and 'password' does not exist in type 'UserDto'.
+src/modules/user/services/user.service.ts(122,56): error TS2345: Argument of type '{ isVerified: true; xpPoints: number; joinedAt: Date; lastActive: Date; isActive: true; _id: string; username: string; email: string; googleId?: string; authProvider: string; avatar?: string; ... 11 more ...; updatedAt: Date; }' is not assignable to parameter of type 'Partial<IUser>'.
+  Types of property 'gender' are incompatible.
+    Type 'string' is not assignable to type '"male" | "female" | "other"'.
+src/modules/user/services/user.service.ts(436,11): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'UserDto'.
+src/modules/user/services/user.service.ts(486,31): error TS2339: Property 'id' does not exist on type 'UserDto'.
+src/modules/user/services/user.service.ts(527,31): error TS2339: Property 'oldEmail' does not exist on type 'UserDto'.
+src/modules/user/services/user.service.ts(545,41): error TS2339: Property 'oldEmail' does not exist on type 'UserDto'.
+src/modules/wallet/dtos/controllers/wallet.controller.ts(11,11): error TS2430: Interface 'AuthenticatedRequest' incorrectly extends interface 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+  Types of property 'owner' are incompatible.
+    Property 'email' is missing in type '{ ownerId: string; role?: string; }' but required in type '{ ownerId: string; email: string; role: string; }'.
+src/modules/wallet/interfaces/wallet.model.interface.ts(3,34): error TS2304: Cannot find name 'Document'.
+src/modules/walletTransaction/controllers/walletTransaction.controller.ts(7,11): error TS2430: Interface 'AuthenticatedRequest' incorrectly extends interface 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+  Types of property 'owner' are incompatible.
+    Type '{ ownerId: string; }' is missing the following properties from type '{ ownerId: string; email: string; role: string; }': email, role
+src/services/scheduler.service.ts(24,51): error TS2345: Argument of type 'Document<unknown, {}, INotification, {}, {}> & INotification & Required<{ _id: unknown; }> & { __v: number; }' is not assignable to parameter of type 'NotificationResponseDTO'.
+  Types of property 'userId' are incompatible.
+    Type 'ObjectId' is not assignable to type 'string'.
+src/services/scheduler.service.ts(41,11): error TS2345: Argument of type 'Record<string, unknown>' is not assignable to parameter of type 'ReminderNotificationDataDTO'.
+  Property 'movieTitle' is missing in type 'Record<string, unknown>' but required in type 'ReminderNotificationDataDTO'.
+src/services/scheduler.service.ts(45,20): error TS2339: Property 'sent' does not exist on type 'NotificationResponseDTO'.
+src/services/scheduler.service.ts(46,26): error TS2339: Property 'save' does not exist on type 'NotificationResponseDTO'.
+src/services/scheduler.service.ts(64,42): error TS2339: Property 'movieTitle' does not exist on type 'MovieInfoDto'.
+src/services/scheduler.service.ts(71,80): error TS2339: Property 'movieTitle' does not exist on type 'MovieInfoDto'.
+src/services/socket.service.ts(16,70): error TS2339: Property 'adapter' does not exist on type 'Namespace<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>'.
+src/services/socket.service.ts(35,56): error TS2339: Property 'adapter' does not exist on type 'Namespace<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>'.
+src/services/socket.service.ts(47,56): error TS2339: Property 'adapter' does not exist on type 'Namespace<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>'.
+src/services/socket.service.ts(135,59): error TS2339: Property 'adapter' does not exist on type 'Namespace<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>'.

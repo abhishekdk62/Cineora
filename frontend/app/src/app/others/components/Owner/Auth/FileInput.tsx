@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Upload, X, CheckCircle, Loader2 } from 'lucide-react';
 import { uploadKYCImage } from '@/app/others/services/ownerServices/uploadKYCImages';
+import { getApiErrorMessage } from '@/app/others/types/common.types';
 
 
 interface FileUploadInputProps {
@@ -98,8 +99,8 @@ const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     } else {
       throw new Error(result.error || 'Upload failed');
     }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+  } catch (error: unknown) {
+    const errorMessage = getApiErrorMessage(error, 'Upload failed');
     setFileState({
       file,
       url: null,

@@ -51,7 +51,7 @@ export interface UpdateCouponRequestDto {
   expiryDate?: string;
   maxUsageCount?: number;
   isActive?: boolean;
-  minAmount:Number;
+  minAmount?: number;
 }
 
 export interface CreateCouponResponseDto extends ApiResponse<CouponResponseDto> {}

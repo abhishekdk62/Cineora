@@ -2,9 +2,7 @@
 
 import React from 'react';
 import { OperationalAnalyticsSection } from './OperationalAnalyticsSection';
-
-const lexendMedium = { fontFamily: 'Lexend', fontSize: '16px' };
-const lexendSmall = { fontFamily: 'Lexend', fontSize: '14px' };
+import { lexendMedium, lexendSmall } from '@/app/others/Utils/fonts';
 
 interface DateFilter {
   startDate?: string;

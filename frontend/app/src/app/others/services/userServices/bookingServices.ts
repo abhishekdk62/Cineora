@@ -2,12 +2,16 @@ import { ShowtimeData } from "@/app/book/tickets/[showtimeId]/page";
 import apiClient from "../../Utils/apiClient";
 import USER_BOOKING_ROUTES from "../../constants/userConstants/bookingConstants";
 import {
+  BookTicketRequestDto,
   BookTicketResponseDto,
   WalletBookRequestDto,
   WalletBookResponseDto
 } from '../../dtos/booking.dto';
 
-export const bookTicket = async (bookingDatasRedux: ShowtimeData,walletTransactionId:string): Promise<BookTicketResponseDto> => {
+export const bookTicket = async (
+  bookingDatasRedux: ShowtimeData | BookTicketRequestDto,
+  walletTransactionId: string
+): Promise<BookTicketResponseDto> => {
   console.log('transction id is bokd',walletTransactionId
   );
   

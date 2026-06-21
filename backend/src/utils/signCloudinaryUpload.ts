@@ -1,4 +1,5 @@
 const { v2: cloudinary } = require("cloudinary");
+import { getErrorMessage } from "./errorUtil";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -89,7 +90,7 @@ export const uploadToCloudinary = async (
     };
   } catch (error) {
     console.error("Cloudinary upload error:", error);
-    throw new Error(`Image upload failed: ${error.message}`);
+    throw new Error(`Image upload failed: ${getErrorMessage(error)}`);
   }
 };
 
@@ -118,7 +119,7 @@ export const uploadMultipleToCloudinary = async (
     return results;
   } catch (error) {
     console.error("Multiple upload error:", error);
-    throw new Error(`Multiple file upload failed: ${error.message}`);
+    throw new Error(`Multiple file upload failed: ${getErrorMessage(error)}`);
   }
 };
 
@@ -149,7 +150,10 @@ export const generateSignedUrl = (publicId: string, options: any = {}) => {
   }
 };
 
-export const getSignedUrl = async (req, res) => {
+export const getSignedUrl = async (
+  req: import("express").Request,
+  res: import("express").Response
+) => {
   try {
     const { publicId, width, height, crop } = req.body;
 

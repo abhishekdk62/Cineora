@@ -9,7 +9,6 @@ import {
   ResetPasswordWithOtpResponseDto,
   SendPasswordResetOtpResponseDto,
   TokenPairDto,
-  UserDataDto,
   UserLookupResponseDto,
   VerifyPasswordResetOtpResponseDto,
 } from "../dtos/dtos";
@@ -21,7 +20,7 @@ export interface IAuthService {
   ): Promise<LoginResponseDto>;
 
   generateTokenPair(
-    user: UserDataDto,
+    user: { email: string; id?: string; _id?: unknown },
     role: string
   ): TokenPairDto;
 
@@ -33,7 +32,7 @@ export interface IAuthService {
   storeRefreshToken(
     userId: string,
     refreshToken: string,
-    userType: "user" | "admin" | "owner"
+    userType: "user" | "admin" | "owner" | "staff"
   ): Promise<void>;
 
   sendPasswordResetOTP(
@@ -61,8 +60,8 @@ export interface IAuthService {
 
   logout(
     userId: string,
-    userType: "user" | "admin" | "owner",
-    refreshToken:string
+    userType: "user" | "admin" | "owner" | "staff",
+    refreshToken?: string
   ): Promise<AuthSuccessResponseDto | AuthErrorResponseDto>;
 
   checkAuthProvider(

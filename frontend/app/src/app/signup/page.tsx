@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import type React from "react";
 import { useState } from "react";
 import Image from "next/image";
-import Aurora from "../others/components/ReactBits/Aurora";
+import DynamicAurora from "../others/components/ReactBits/DynamicAurora";
 import { Lexend } from "next/font/google";
 import { Eye, EyeClosed } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -24,7 +24,8 @@ import RouteGuard from "../others/components/Auth/common/RouteGuard";
 import { useDispatch } from "react-redux";
 import { verifyOtp } from "../others/redux/slices/authSlice";
 import { useAppDispatch } from "../others/redux/hooks/redux";
-import { GoogleCredentialResponse, SignupFormData } from "../others/types";
+import { CredentialResponse } from "@react-oauth/google";
+import { AxiosError } from "axios";
 
 const lexend = Lexend({
   weight: "500",
@@ -48,11 +49,20 @@ export default function SignUp() {
 
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const handleSubmit = async (data: SignupFormData) => {
+  const handleSubmit = async (
+    data:
+      | { email: string; username: string; password: string; confirmPassword: string }
+      | { email: string; password: string }
+  ) => {
     setLoading(true);
     setError("");
     try {
-      if (data.confirmPassword && data.password !== data.confirmPassword) {
+      if (!("confirmPassword" in data)) {
+        setLoading(false);
+        return;
+      }
+
+      if (data.password !== data.confirmPassword) {
         setError("Passwords don't match");
         setLoading(false);
         return;
@@ -60,13 +70,13 @@ export default function SignUp() {
 
       const username = data.username || data.email.split("@")[0];
 
-      const signupData = {
+      const result = await signup({
         email: data.email,
         password: data.password,
+        confirmpassword: data.confirmPassword,
         username,
         language: "en",
-      };
-      const result = await signup(signupData);
+      });
 
       if (result.success) {
         setTimeLeft(120);
@@ -76,17 +86,14 @@ export default function SignUp() {
         console.log("Signup successful, moving to OTP step");
       }
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        if (err.message.includes('Request failed with status code')) {
-          setError(err.response.data.message)
-        } else {
-          setError(
-            err?.message
-          );
-
-        }
-        console.error("Signup error:", err);
+      if (err instanceof AxiosError) {
+        setError(err.response?.data?.message || "Signup failed. Please try again.");
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Signup failed. Please try again.");
       }
+      console.error("Signup error:", err);
     } finally {
       setLoading(false);
     }
@@ -145,7 +152,7 @@ export default function SignUp() {
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse: GoogleCredentialResponse) => {
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     dispatch(clearError());
 
     try {
@@ -154,7 +161,9 @@ export default function SignUp() {
 
       if (googleLogin.fulfilled.match(resultAction)) {
         const data = resultAction.payload;
-        redirectBasedOnRole(data.user.role);
+        if (data?.user?.role) {
+          redirectBasedOnRole(data.user.role);
+        }
       } else {
         console.error("Google auth failed:", resultAction);
       }
@@ -178,7 +187,7 @@ export default function SignUp() {
     <RouteGuard excludedRoles={["owner", "user", "admin"]}>
       <div className="min-h-screen relative flex items-center justify-center bg-black overflow-hidden p-4">
         <div className="absolute inset-0 z-0">
-          <Aurora
+          <DynamicAurora
             colorStops={["#5B2EFF", "#FF5A3C", "#2EFF68"]}
             blend={0.5}
             amplitude={1.0}
@@ -221,8 +230,6 @@ export default function SignUp() {
               error={error}
               onSubmit={handleVerifyOTP}
               onResend={handleResendOTP}
-              lexend={lexend}
-              lexendSmall={lexendSmall}
               resendLoading={resendLoading}
               timeLeft={timeLeft}
               setTimeLeft={setTimeLeft}

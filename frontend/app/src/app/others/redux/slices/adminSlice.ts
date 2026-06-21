@@ -1,9 +1,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { MovieResponseDto } from '../../dtos';
-import { UserResponse } from '../../components/Admin/Dashboard/User/UserManager';
+import { IUser } from '../../components/Admin/Dashboard/User/UserManager';
 
 interface AdminState {
-  users: UserResponse[];
+  users: IUser[];
   movies: MovieResponseDto[];
   analytics:  null;
   loading: boolean;
@@ -24,7 +24,7 @@ const adminSlice = createSlice({
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
     },
-    setUsers: (state, action: PayloadAction<UserResponse[]>) => {
+    setUsers: (state, action: PayloadAction<IUser[]>) => {
       state.users = action.payload;
     },
     setMovies: (state, action: PayloadAction<MovieResponseDto[]>) => {

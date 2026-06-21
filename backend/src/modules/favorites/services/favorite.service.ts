@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { IFavoriteRepository } from "../interfaces/favorite.repository.interface";
 import { IFavoriteService } from "../interfaces/favorite.service.interface";
 
@@ -30,7 +31,7 @@ export class FavoriteService implements IFavoriteService {
     } catch (error: unknown) {
       return {
         success: false,
-        message: error.message || "Failed to add movie to favorites",
+        message: getErrorMessage(error) || "Failed to add movie to favorites",
       };
     }
   }
@@ -56,7 +57,7 @@ export class FavoriteService implements IFavoriteService {
     } catch (error: unknown) {
       return {
         success: false,
-        message: error.message || "Failed to remove movie from favorites",
+        message: getErrorMessage(error) || "Failed to remove movie from favorites",
       };
     }
   }
@@ -89,7 +90,7 @@ export class FavoriteService implements IFavoriteService {
     } catch (error: unknown) {
       return {
         success: false,
-        message: error.message || "Failed to get user favorites",
+        message: getErrorMessage(error) || "Failed to get user favorites",
       };
     }
   }
@@ -121,7 +122,7 @@ export class FavoriteService implements IFavoriteService {
       return {
         success: false,
         isFavorite: false,
-        message: error.message || "Failed to toggle favorite",
+        message: getErrorMessage(error) || "Failed to toggle favorite",
       };
     }
   }

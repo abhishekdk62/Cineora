@@ -1,24 +1,9 @@
 import React, { createContext, useContext, useState, Dispatch, SetStateAction } from "react";
-import { Movie } from "./Movies/MoviesList";
 import { MovieResponseDto } from "@/app/others/dtos";
-export interface TMDBMovie {
-  id: number;
-  title: string;
-  overview: string;
-  release_date: string;
-  poster_path: string;
-  backdrop_path?: string;
-  genre_ids: number[];
-  vote_average: number;
-  vote_count?: number;
-  popularity?: number;
-  original_language: string;
-  adult?: boolean;
-}
-export interface TMDBGenre {
-  id: number;
-  name: string;
-}
+import { TMDBMovie, TMDBGenre } from "./Movies/types/tmdb";
+
+export type { TMDBMovie, TMDBGenre };
+
 interface AdminContextType {
   movies: MovieResponseDto[];
   setMovies: Dispatch<SetStateAction<MovieResponseDto[]>>;

@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { Request, Response } from "express";
 import { IPaymentService } from "../interfaces/payment.service.interface";
 import {
@@ -18,7 +19,7 @@ export class PaymentController {
     private readonly _notificationService: INotificationService
   ) {}
 
-  async initiatePayment(req: Request, res: Response): Promise<void> {
+  async initiatePayment(req: Request, res: Response) {
     try {
       const paymentData: InitiatePaymentDTO = req.body;
       
@@ -44,13 +45,13 @@ export class PaymentController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async createRazorpayOrder(req: Request, res: Response): Promise<void> {
+  async createRazorpayOrder(req: Request, res: Response) {
     try {
       const userId=req.user.id
       const orderData: CreateRazorpayOrderDTO = {
@@ -81,13 +82,13 @@ export class PaymentController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async verifyRazorpayPayment(req: Request, res: Response): Promise<void> {
+  async verifyRazorpayPayment(req: Request, res: Response) {
     try {
       const verificationData: VerifyRazorpayPaymentDTO = {
         razorpay_payment_id: req.body.razorpay_payment_id,
@@ -131,13 +132,13 @@ export class PaymentController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async processPaymentCallback(req: Request, res: Response): Promise<void> {
+  async processPaymentCallback(req: Request, res: Response) {
     try {
       const { paymentId } = req.params;
       const gatewayResponse: PaymentCallbackDTO = req.body;
@@ -156,13 +157,13 @@ export class PaymentController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async getPaymentById(req: Request, res: Response): Promise<void> {
+  async getPaymentById(req: Request, res: Response) {
     try {
       const { paymentId } = req.params;
       const result = await this._paymentService.getPaymentById(paymentId);
@@ -179,13 +180,13 @@ export class PaymentController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async getUserPayments(req: Request, res: Response): Promise<void> {
+  async getUserPayments(req: Request, res: Response) {
     try {
       const { userId } = req.params;
       const result = await this._paymentService.getUserPayments(userId);
@@ -202,13 +203,13 @@ export class PaymentController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async refundPayment(req: Request, res: Response): Promise<void> {
+  async refundPayment(req: Request, res: Response) {
     try {
       const { paymentId } = req.params;
       const { refundAmount, refundReason } = req.body;
@@ -227,13 +228,13 @@ export class PaymentController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async getPaymentsByBooking(req: Request, res: Response): Promise<void> {
+  async getPaymentsByBooking(req: Request, res: Response) {
     try {
       const { bookingId } = req.params;
       const result = await this._paymentService.getPaymentsByBooking(bookingId);
@@ -250,13 +251,13 @@ export class PaymentController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async cancelPayment(req: Request, res: Response): Promise<void> {
+  async cancelPayment(req: Request, res: Response) {
     try {
       const { paymentId } = req.params;
       const result = await this._paymentService.cancelPayment(paymentId);
@@ -273,13 +274,13 @@ export class PaymentController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async verifyPayment(req: Request, res: Response): Promise<void> {
+  async verifyPayment(req: Request, res: Response) {
     try {
       const { paymentId } = req.params;
       const { gatewayTransactionId } = req.body;
@@ -298,7 +299,7 @@ export class PaymentController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
@@ -310,7 +311,7 @@ export class PaymentController {
 //!payout 
 
 
-  async createPayoutOrder(req: Request, res: Response): Promise<void> {
+  async createPayoutOrder(req: Request, res: Response) {
     try {
       const { amount, mode, purpose } = req.body;
       const ownerId = req.owner?.ownerId;
@@ -362,7 +363,7 @@ export class PaymentController {
     }
   }
 
-  async confirmPayout(req: Request, res: Response): Promise<void> {
+  async confirmPayout(req: Request, res: Response) {
     try {
       const { razorpay_payment_id, amount, mode, order_id } = req.body;
       const ownerId = req.owner?.ownerId;
@@ -420,7 +421,7 @@ export class PaymentController {
 
 
 
-  async getPaymentStatus(req: Request, res: Response): Promise<void> {
+  async getPaymentStatus(req: Request, res: Response) {
     try {
       const { paymentId } = req.params;
       const result = await this._paymentService.getPaymentStatus(paymentId);
@@ -437,13 +438,13 @@ export class PaymentController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async retryPayment(req: Request, res: Response): Promise<void> {
+  async retryPayment(req: Request, res: Response) {
     try {
       const { paymentId } = req.params;
       const result = await this._paymentService.retryPayment(paymentId);
@@ -460,13 +461,13 @@ export class PaymentController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async getFailedPayments(req: Request, res: Response): Promise<void> {
+  async getFailedPayments(req: Request, res: Response) {
     try {
       const result = await this._paymentService.getFailedPayments();
 
@@ -482,13 +483,13 @@ export class PaymentController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async getPendingPayments(req: Request, res: Response): Promise<void> {
+  async getPendingPayments(req: Request, res: Response) {
     try {
       const result = await this._paymentService.getPendingPayments();
 
@@ -504,7 +505,7 @@ export class PaymentController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : PAYMENT_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }

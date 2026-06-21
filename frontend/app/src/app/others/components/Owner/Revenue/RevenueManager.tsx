@@ -63,8 +63,8 @@ export const RevenueManager: React.FC = () => {
   const handleExportCompleteReport = () => {
     if (allBookingsData.length > 0) {
       console.log('Exporting report with date range:', dateRange);
-      const processedDataResult = processBookingsForExcel(allBookingsData, dateRange);
-      exportTheaterRevenueReport(processedDataResult, dateRange);
+      const processedDataResult = processBookingsForExcel(allBookingsData, dateRange ?? undefined);
+      exportTheaterRevenueReport(processedDataResult, dateRange ?? undefined);
     }
   };
 

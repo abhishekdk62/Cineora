@@ -1,11 +1,13 @@
 import * as cron from 'node-cron';
 import { NotificationService } from '../modules/notification/services/notification.service';
-import Notification from '../modules/notification/models/notification.model'
-import { NotificationResponseDTO } from '../modules/notification/dtos/dto';
+import Notification from '../modules/notification/models/notification.model';
+import { INotification } from '../modules/notification/interfaces/notification.model.interface';
+import { ReminderNotificationDataDTO } from '../modules/notification/dtos/dto';
 import { MovieInfoDto } from '../modules/chatroom/dtos/dto';
 
 export class NotificationScheduler {
   constructor(private readonly notificationService: NotificationService) {
+    this.startScheduler();
   }
 
   private startScheduler() {
@@ -33,12 +35,12 @@ export class NotificationScheduler {
     console.log(' Notification scheduler started! Checking every minute...');
   }
 
-  private async _sendScheduledNotification(notification: NotificationResponseDTO) {
+  private async _sendScheduledNotification(notification: INotification) {
     try {
       if (notification.type === 'reminder') {
         await this.notificationService.sendReminderNotification(
-          notification.userId,
-          notification.data
+          notification.userId.toString(),
+          notification.data as ReminderNotificationDataDTO
         );
       }
       
@@ -61,14 +63,14 @@ export class NotificationScheduler {
         notificationId,
         userId,
         title: "Movie Reminder! 🍿",
-        message: `Your movie ${movieData.movieTitle} starts in 2 hours.`,
+        message: `Your movie ${movieData.title} starts in 2 hours.`,
         type: "reminder",
         scheduledTime: reminderTime,
         sent: false,               
-        data: movieData
+        data: { ...movieData, movieTitle: movieData.title }
       });
       
-      console.log(`Scheduled reminder for ${reminderTime} - Movie: ${movieData.movieTitle}`);
+      console.log(`Scheduled reminder for ${reminderTime} - Movie: ${movieData.title}`);
     }
   }
     async cancelReminderByBookingId(bookingId: string) {

@@ -29,8 +29,8 @@ export interface OwnerDto {
 }
 
 export class OwnerMapper {
-  static toDto(owner: IOwner): OwnerDto {
-    const data = (owner as string)._doc || owner;
+  static toDto(owner: Partial<IOwner> | IOwner): OwnerDto {
+    const data = (owner as unknown as { _doc?: IOwner })._doc || owner;
 
     return {
       id: data._id?.toString() || "",
@@ -73,9 +73,7 @@ export class OwnerMapper {
       isActive: data.isActive || false,
       isVerified: data.isVerified || false,
       theatres:
-        data.theatres
-          ?.map((t: TheaterInfoDto) => t?.toString())
-          .filter(Boolean) || [],
+        data.theatres?.map((t) => t?.toString()).filter(Boolean) || [],
       lastLogin: data.lastLogin || null,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,

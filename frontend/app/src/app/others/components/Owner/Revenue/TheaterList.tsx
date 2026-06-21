@@ -1,7 +1,8 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { Building2, ChevronRight, Loader2 } from 'lucide-react';
-import { GetTheatersByOwnerIdResponseDto, TheaterFilters } from '@/app/others/dtos';
+import { TheaterResponseDto, TheaterFilters } from '@/app/others/dtos';
+import { getApiErrorMessage } from '@/app/others/types/common.types';
 import { getTheatersByOwnerId } from '@/app/others/services/ownerServices/theaterServices';
 import { lexendMedium, lexendSmall } from '@/app/others/Utils/fonts';
 
@@ -14,7 +15,7 @@ interface TheaterListProps {
 }
 
 export const TheaterList: React.FC<TheaterListProps> = ({ onTheaterSelect }) => {
-  const [theaters, setTheaters] = useState<GetTheatersByOwnerIdResponseDto['data']>([]);
+  const [theaters, setTheaters] = useState<TheaterResponseDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,9 +27,9 @@ export const TheaterList: React.FC<TheaterListProps> = ({ onTheaterSelect }) => 
         const response = await getTheatersByOwnerId(filters);
         console.log(response.data);
 
-        setTheaters(response.data.theaters);
+        setTheaters(response.data?.theaters ?? []);
       } catch (err) {
-        console.error('Error fetching theaters:', err);
+        console.error('Error fetching theaters:', getApiErrorMessage(err, 'Failed to load theaters'));
         setError('Failed to load theaters');
       } finally {
         setLoading(false);

@@ -38,6 +38,14 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
 };
 
 export const errorLogger = (err: unknown, req: Request, res: Response, next: NextFunction) => {
-  logger.error(err.stack || err.message);   
-  res.status(err.status || 500).send('Internal Server Error');
+  const message = err instanceof Error ? err.stack || err.message : String(err);
+  const status =
+    typeof err === "object" &&
+    err !== null &&
+    "status" in err &&
+    typeof (err as { status: unknown }).status === "number"
+      ? (err as { status: number }).status
+      : 500;
+  logger.error(message);
+  res.status(status).send("Internal Server Error");
 };

@@ -4,7 +4,7 @@ import { TheaterController } from "../../theaters/controllers/theaters.controlle
 import { ShowtimeController } from "../../showtimes/controllers/showtimes.controller";
 import { BookingController } from "../../bookings/controllers/bookings.controller";
 import { TicketController } from "../../tickets/controllers/ticket.controller";
-import { WalletController } from "../../wallet/dtos/controllers/wallet.controller";
+import { WalletController } from "../../wallet/controllers/wallet.controller";
 import { PaymentController } from "../../payment/controllers/payment.controller";
 import { WalletTransactionController } from "../../walletTransaction/controllers/walletTransaction.controller";
 import { NotificationController } from "../../notification/controllers/notification.controller";

@@ -1,22 +1,21 @@
 import {
-  CreateTheaterDto,
-  UpdateTheaterDto,
+  CreateTheaterDTO as CreateTheaterDto,
+  UpdateTheaterDTO as UpdateTheaterDto,
   TheaterFilters,
-  TheaterResponseDto,
   TheatersByOwnerDto,
-  PaginatedTheatersDto,
 } from "../dtos/dto";
+import { ITheater } from "./theater.model.interface";
 import { ServiceResponse } from "../../../interfaces/interface";
 
 export interface ITheaterService {
   createTheater(
     ownerId: string,
     theaterData: CreateTheaterDto
-  ): Promise<ServiceResponse>;
+  ): Promise<ServiceResponse<ITheater>>;
 
   getTheaterById(
     theaterId: string
-  ): Promise<ServiceResponse<TheaterResponseDto>>;
+  ): Promise<ServiceResponse<ITheater>>;
 
   getTheatersByOwnerId(
     ownerId: string,
@@ -27,20 +26,20 @@ export interface ITheaterService {
     page: number,
     limit: number,
     filters?: TheaterFilters
-  ): Promise<ServiceResponse>;
+  ): Promise<ServiceResponse<{ theaters: ITheater[]; total: number }>>;
 
   updateTheater(
     theaterId: string,
     updateData: UpdateTheaterDto
-  ): Promise<ServiceResponse<TheaterResponseDto>>;
+  ): Promise<ServiceResponse<ITheater>>;
 
   toggleTheaterStatus(
     theaterId: string
-  ): Promise<ServiceResponse<TheaterResponseDto>>;
+  ): Promise<ServiceResponse<ITheater>>;
 
   verifyTheater(
     theaterId: string
-  ): Promise<ServiceResponse<TheaterResponseDto>>;
+  ): Promise<ServiceResponse<ITheater>>;
 
   rejectTheater(
     theaterId: string,
@@ -55,15 +54,21 @@ export interface ITheaterService {
     longitude: number,
     latitude: number,
     maxDistance: number
-  ): Promise<ServiceResponse<TheaterResponseDto[]>>;
-
+  ): Promise<ServiceResponse<ITheater[]>>;
 
   getTheatersWithFilters(
     filters: TheaterFilters
-  ): Promise<PaginatedTheatersDto>;
+  ): Promise<{
+    theaters: ITheater[];
+    total: number;
+    totalPages: number;
+    currentPage: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  }>;
 
   getTheaterByOwnerAndName(
     ownerId: string,
     name: string
-  ): Promise<ServiceResponse<TheaterResponseDto>>;
+  ): Promise<ServiceResponse<ITheater>>;
 }

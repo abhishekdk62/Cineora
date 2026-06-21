@@ -64,12 +64,14 @@ export interface JwtPayloadDto {
   adminId?: string;
   ownerId?: string;
   userId?: string;
+  staffId?: string;
   tokenType?: string;
 }
 export interface UserDataDto {
-  id: string;
+  id?: string;
+  _id?: string;
   email: string;
-  role: string;
+  role?: string;
   username?: string;
   firstName?: string;
   lastName?: string;

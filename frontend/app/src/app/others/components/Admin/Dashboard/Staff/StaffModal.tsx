@@ -1,40 +1,9 @@
 import React from 'react';
 import { X, User, Mail, Calendar, Building, Shield, Power, PowerOff, Crown, MapPin, Phone } from 'lucide-react';
 import { Lexend } from 'next/font/google';
+import { StaffMember } from './staff.types';
 
 const lexend = Lexend({ subsets: ['latin'] });
-
-interface StaffMember {
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: string;
-  isActive: boolean;
-  ownerId?: {
-    ownerName?: string;
-    email?: string;
-    phone?: string;
-    bankName?: string;
-    accountHolder?: string;
-    isVerified?: boolean;
-    lastLogin?: string;
-    createdAt?: string;
-  };
-  theaterId?: {
-    name?: string;
-    address?: string;
-    city?: string;
-    state?: string;
-    pincode?: string;
-    phone?: string;
-    screens?: number;
-    facilities?: string[];
-    isVerified?: boolean;
-    createdAt?: string;
-  };
-  createdAt?: string;
-  updatedAt?: string;
-}
 
 interface StaffModalProps {
   staff: StaffMember;

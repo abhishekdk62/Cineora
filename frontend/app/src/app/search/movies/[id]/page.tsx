@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Footer, NavBar } from "../../../others/components/Home";
-import Orb from "../../../others/components/ReactBits/Orb";
+import DynamicOrb from "../../../others/components/ReactBits/DynamicOrb";
 import { getMovieById } from "@/app/others/services/userServices/movieServices";
 import { addToFavorites, checkIsFavorite, removeFromFavorites } from "@/app/others/services/userServices/favoriteServices";
 import { getMovieRatingApi, getMovieReviewStats } from "@/app/others/services/commonServices/ratingServices";
@@ -124,11 +124,11 @@ export default function MovieDetailsPage() {
   }
 
   return (
-    <RouteGuard allowUnauthenticated={true} excludedRoles={['admin,owner']}>
+    <RouteGuard allowUnauthenticated={true} excludedRoles={['admin', 'owner']}>
 
       <div className="relative min-h-screen bg-black overflow-hidden">
         <div className="fixed inset-0 z-0 pointer-events-none">
-          <Orb hoverIntensity={0.5} rotateOnHover={true} hue={0} forceHoverState={false} />
+          <DynamicOrb hoverIntensity={0.5} rotateOnHover={true} hue={0} forceHoverState={false} />
         </div>
 
         <div className="relative z-10">

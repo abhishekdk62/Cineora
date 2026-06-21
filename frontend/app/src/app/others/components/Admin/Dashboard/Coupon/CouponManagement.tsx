@@ -1,56 +1,12 @@
+import type { LexendFontStyle, NextFontInstance } from '@/app/others/types';
 import { useState, useEffect, useCallback } from 'react';
 import { Ticket, Search, RefreshCw, AlertCircle } from 'lucide-react';
 import { getOwnerCoupons, toggleStatus } from '@/app/others/services/adminServices/couponService';
+import { CouponResponseDto, GetCouponsResponseDto } from '@/app/others/dtos/coupon.dto';
 import CouponModal from './CouponModal';
 import CouponCard from './CouponCard';
 import { confirmAction } from '../../../utils/ConfirmDialog';
 import toast from 'react-hot-toast';
-
-interface Theater {
-    _id: string;
-    name: string;
-    city: string;
-    state: string;
-    location: {
-        type: string;
-        coordinates: number[];
-    };
-}
-
-interface Coupon {
-    _id: string;
-    name: string;
-    uniqueId: string;
-    theaterIds: Theater[];
-    discountPercentage: number;
-    description: string;
-    expiryDate: string;
-    isActive: boolean;
-    isUsed: boolean;
-    maxUsageCount: number;
-    currentUsageCount: number;
-    minAmount: number;
-    createdBy: string;
-    createdAt: string;
-    updatedAt: string;
-    __v: number;
-}
-
-interface ApiResponseData {
-    data: Coupon[];
-    currentPage: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-    totalCount: number;
-}
-
-interface ApiResponse {
-    success: boolean;
-    data: ApiResponseData;
-    message: string;
-    timestamp: string;
-}
 
 interface CouponStats {
     active: number;
@@ -59,12 +15,14 @@ interface CouponStats {
     total: number;
 }
 
+type AdminCoupon = CouponResponseDto & { minAmount?: number };
+
 interface CouponManagementProps {
-    lexend: string;
+    lexend: NextFontInstance;
 }
 
 const CouponManagement: React.FC<CouponManagementProps> = ({ lexend }) => {
-    const [couponsData, setCouponsData] = useState<Coupon[]>([]);
+    const [couponsData, setCouponsData] = useState<AdminCoupon[]>([]);
     const [paginationData, setPaginationData] = useState<{
         currentPage: number;
         totalPages: number;
@@ -72,7 +30,7 @@ const CouponManagement: React.FC<CouponManagementProps> = ({ lexend }) => {
         hasPreviousPage: boolean;
         totalCount: number;
     } | null>(null);
-    const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
+    const [selectedCoupon, setSelectedCoupon] = useState<AdminCoupon | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
@@ -89,7 +47,7 @@ const CouponManagement: React.FC<CouponManagementProps> = ({ lexend }) => {
         try {
             setLoading(true);
             setError(null);
-            const response: ApiResponse = await getOwnerCoupons({ page, limit });
+            const response: GetCouponsResponseDto = await getOwnerCoupons({ page, limit });
             console.log(response);
 
             if (response.success && response.data) {
@@ -106,7 +64,7 @@ const CouponManagement: React.FC<CouponManagementProps> = ({ lexend }) => {
             }
         } catch (error: unknown) {
             setError('Failed to fetch coupons. Please try again.');
-            console.error('Error fetching coupons:', err);
+            console.error('Error fetching coupons:', error);
         } finally {
             setLoading(false);
         }
@@ -116,7 +74,7 @@ const CouponManagement: React.FC<CouponManagementProps> = ({ lexend }) => {
         fetchCoupons(currentPage);
     }, [fetchCoupons, currentPage]);
 
-    const getFilteredCoupons = useCallback((): Coupon[] => {
+    const getFilteredCoupons = useCallback((): AdminCoupon[] => {
         if (!couponsData || couponsData.length === 0) return [];
 
         let filtered = [...couponsData];
@@ -192,7 +150,7 @@ const CouponManagement: React.FC<CouponManagementProps> = ({ lexend }) => {
         return stats;
     }, [couponsData]);
 
-    const handleViewDetails = useCallback((coupon: Coupon) => {
+    const handleViewDetails = useCallback((coupon: AdminCoupon) => {
         setSelectedCoupon(coupon);
         setIsModalOpen(true);
     }, []);
@@ -230,7 +188,7 @@ let val=!f
 toast.success('Status changed')
         } catch (error: unknown) {
             setError('Failed to update coupon status. Please try again.');
-            console.error('Error toggling coupon status:', err);
+            console.error('Error toggling coupon status:', error);
         } finally {
             setActionLoading(false);
         }
@@ -387,7 +345,7 @@ toast.success('Status changed')
 
                         <select
                             value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value as string)}
+                            onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'expired' | 'used')}
                             className="px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white focus:border-yellow-500/50 focus:outline-none"
                             style={{ fontFamily: lexend.style.fontFamily }}
                         >
@@ -404,7 +362,7 @@ toast.success('Status changed')
                             style={{ fontFamily: lexend.style.fontFamily }}
                         >
                             <option value="all">All Theaters</option>
-                            {uniqueTheaters.map((theater: Theater) => (
+                            {uniqueTheaters.map((theater) => (
                                 <option key={theater._id} value={theater._id}>
                                     {theater.name}
                                 </option>
@@ -430,7 +388,7 @@ toast.success('Status changed')
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredCoupons.map((coupon: Coupon) => (
+                        {filteredCoupons.map((coupon) => (
                             <CouponCard
                                 key={coupon._id}
                                 coupon={coupon}

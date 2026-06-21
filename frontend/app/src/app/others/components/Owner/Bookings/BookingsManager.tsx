@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -9,10 +8,12 @@ import { getTheatersByOwnerId } from "@/app/others/services/ownerServices/theate
 import { getScreensByTheaterId } from "@/app/others/services/ownerServices/screenServices";
 import { getShowTimesForBookings } from "@/app/others/services/ownerServices/bookingServices";
 import { Theater } from "@/app/others/services/userServices/interfaces";
+import type { NextFontInstance, OwnerShowtimeBooking } from '@/app/others/types';
+import { IScreen } from "@/app/others/types/screen.types";
 
 interface BookingsManagerProps {
-    lexendMedium: string;
-    lexendSmall: string;
+    lexendMedium: NextFontInstance;
+    lexendSmall: NextFontInstance;
 }
 
 const BookingsManager: React.FC<BookingsManagerProps> = ({
@@ -22,11 +23,11 @@ const BookingsManager: React.FC<BookingsManagerProps> = ({
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [selectedTheater, setSelectedTheater] = useState("");
     const [selectedScreen, setSelectedScreen] = useState("");
-    const [theaters, setTheaters] = useState([]);
-    const [screens, setScreens] = useState([]);
-    const [showtimes, setShowtimes] = useState([]);
+    const [theaters, setTheaters] = useState<Theater[]>([]);
+    const [screens, setScreens] = useState<IScreen[]>([]);
+    const [showtimes, setShowtimes] = useState<OwnerShowtimeBooking[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [selectedShowtime, setSelectedShowtime] = useState(null);
+    const [selectedShowtime, setSelectedShowtime] = useState<OwnerShowtimeBooking | null>(null);
     const [showDetails, setShowDetails] = useState(false);
 const [isInitialLoad, setIsInitialLoad] = useState(true);
 
@@ -56,8 +57,8 @@ useEffect(() => {
    const fetchOwnerTheaters = async () => {
     try {
         const result = await getTheatersByOwnerId();
-        const theatersData = result.data.theaters || [];  
-        setTheaters(theatersData);
+        const theatersData = result.data?.theaters || [];  
+        setTheaters(theatersData as unknown as Theater[]);
         
         if (isInitialLoad && theatersData.length > 0) {  
             setSelectedTheater(theatersData[0]._id);
@@ -68,11 +69,11 @@ useEffect(() => {
     }
 }
 
-const fetchTheaterScreens = async (theaterId, autoSelectFirst = false) => {  
+const fetchTheaterScreens = async (theaterId: string, autoSelectFirst = false) => {  
     try {
         const result = await getScreensByTheaterId(theaterId);
         const screensData = result.data || [];
-        setScreens(screensData);
+        setScreens(screensData as IScreen[]);
         
         if (autoSelectFirst && screensData.length > 0) {  
             setSelectedScreen(screensData[0]._id);
@@ -97,7 +98,7 @@ const fetchTheaterScreens = async (theaterId, autoSelectFirst = false) => {
     }
 };
 
-    const handleShowtimeClick = (showtime: string) => {
+    const handleShowtimeClick = (showtime: OwnerShowtimeBooking) => {
         setSelectedShowtime(showtime);
         setShowDetails(true);
     };
@@ -111,8 +112,8 @@ const fetchTheaterScreens = async (theaterId, autoSelectFirst = false) => {
         return (
             <ShowDetailsPage
                 showtime={selectedShowtime}
-                theater={theaters.find(t => t._id === selectedTheater)}
-                screen={screens.find(s => s._id === selectedScreen)}
+                theater={theaters.find(t => t._id === selectedTheater) ?? { name: '', _id: '' }}
+                screen={screens.find(s => s._id === selectedScreen) ?? { name: '', _id: '' }}
                 date={selectedDate}
                 onBack={handleBackToShowtimes}
                 lexendMedium={lexendMedium}
@@ -187,7 +188,7 @@ const fetchTheaterScreens = async (theaterId, autoSelectFirst = false) => {
                                 className={`${lexendMedium.className} w-full px-4 py-3 bg-white/10 border border-gray-500/30 rounded-xl text-white focus:outline-none focus:border-white/50 focus:bg-white/15 transition-all duration-300 appearance-none disabled:opacity-50 disabled:cursor-not-allowed`}
                             >
                                 <option value="" className="bg-gray-900">Select Screen</option>
-                                {screens.map((screen: string) => (
+                                {screens.map((screen: IScreen) => (
                                     <option key={screen._id} value={screen._id} className="bg-gray-900">
                                         {screen.name} ({screen.totalSeats} seats)
                                     </option>

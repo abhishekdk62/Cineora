@@ -28,10 +28,6 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
     return ticket.theater || ticket.theaterId || {};
   };
 
-  const getShowtimeData = (ticket: TicketData) => {
-    return ticket.showtime || ticket.showtimeId || {};
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -77,7 +73,7 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
         seatType,
         seats: ticketGroup.map(t => `${t.seatRow}${t.seatNumber}`),
         count: ticketGroup.length,
-        price: ticketGroup.price,
+        price: basePrice,
         basePrice: basePrice,
         discountAmount: discountAmount,
         discountedPrice: discountedPrice,
@@ -157,17 +153,12 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
   
   const movieData = getMovieData(ticket);
   const theaterData = getTheaterData(ticket);
-  const showtimeData = getShowtimeData(ticket);
 
   const handleDownloadPdf = async () => {
     try {
       setDownloadingPdf(true);
       await generateTicketPDF({
         ticket,
-        seatGroups,
-        totalAmount,
-        totalSeats,
-        allSeats,
         formatDate,
         formatTime
       });

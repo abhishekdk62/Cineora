@@ -8,7 +8,7 @@ import { createShowtimeOwner, editShowtimeOwner, getShowTimesOwner } from "@/app
 import toast from "react-hot-toast";
 import { ShowtimeResponseDto } from "@/app/others/dtos";
 import { lexendMedium, lexendSmall } from "@/app/others/Utils/fonts";
-import { ShowtimeData } from "@/app/book/tickets/[showtimeId]/page";
+import { OwnerShowtimeSubmitPayload } from "./showtime.interfaces";
 
 interface ShowtimeManagerProps { }
 
@@ -104,15 +104,15 @@ const ShowtimeManager: React.FC<ShowtimeManagerProps> = ({ }) => {
     setFormMode("create");
   };
 
-  const handleFormSubmit = async (data: ShowtimeData) => {
+  const handleFormSubmit = async (data: OwnerShowtimeSubmitPayload) => {
   try {
     setSubmitting(true);
 
     if (formMode === "edit") {
-      const result = await editShowtimeOwner(data.showtime);
+      const result = await editShowtimeOwner(data.showtime as unknown as Parameters<typeof editShowtimeOwner>[0]);
       toast.success("Showtime updated successfully");
     } else if (formMode === "create") {
-      const result = await createShowtimeOwner(data);
+      const result = await createShowtimeOwner(data as Parameters<typeof createShowtimeOwner>[0]);
       console.log('Result:', result);
 
       const created = result?.data?.created || 0;
@@ -132,7 +132,7 @@ const ShowtimeManager: React.FC<ShowtimeManagerProps> = ({ }) => {
 
       // ✅ If ALL failed and no success, show warning
       if (created === 0 && skipped > 0) {
-        toast.warning(`All ${skipped} showtimes were skipped. See errors above.`, { duration: 5000 });
+        toast.error(`All ${skipped} showtimes were skipped. See errors above.`, { duration: 5000 });
       }
 
       // ✅ Only throw if result.success is false AND no errors array exists
@@ -156,8 +156,8 @@ const ShowtimeManager: React.FC<ShowtimeManagerProps> = ({ }) => {
       });
       
       // ✅ Show summary
-      toast.warning(`All ${errorsArray.length} showtimes were skipped. See errors above.`, { 
-        duration: 5000 
+      toast.error(`All ${errorsArray.length} showtimes were skipped. See errors above.`, {
+        duration: 5000,
       });
     } else {
       // ✅ Show generic error if no errors array

@@ -7,34 +7,10 @@ import StaffModal from './StaffModal';
 import { getAllStaffs, toggleStatus } from '@/app/others/services/adminServices/staffServices';
 import { confirmAction } from '../../../utils/ConfirmDialog';
 import toast from 'react-hot-toast';
+import { StaffMember, StaffResponse } from './staff.types';
 
 const lexend = Lexend({ subsets: ['latin'] });
 
-interface StaffMember {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: string;
-  isActive: boolean;
-  ownerId?: string;
-  theaterId?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-interface StaffPagination {
-  currentPage: number;
-  totalPages: number;
-  totalCount: number;
-  hasNext: boolean;
-  hasPrevious: boolean;
-}
-
-interface StaffResponse {
-  staffs: StaffMember[];
-  pagination: StaffPagination;
-}
 const StaffManager: React.FC = () => {
   const [staffData, setStaffData] = useState<StaffResponse>({
     staffs: [],

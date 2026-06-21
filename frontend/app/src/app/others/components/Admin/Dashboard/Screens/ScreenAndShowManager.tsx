@@ -39,12 +39,17 @@ const ScreenAndShowManager: React.FC = () => {
 
       const result = await getAllScreensAdmin(page, currentFilters);
 
-      const total = result.data.totalItems ?? result.data.total ?? 0;
-
-      setScreens(result.data.screens || []);
-      setCurrentPage(result.data.currentPage || page);
-      setTotalPages(result.data.totalPages || 1);
-      setTotalItems(total);
+      setScreens((result.data || []) as unknown as IScreen[]);
+      if (result.meta?.pagination) {
+        setCurrentPage(result.meta.pagination.currentPage);
+        setTotalPages(result.meta.pagination.totalPages);
+        setTotalItems(result.meta.pagination.total);
+      } else {
+        const screenCount = result.data?.length ?? 0;
+        setCurrentPage(page);
+        setTotalPages(1);
+        setTotalItems(screenCount);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load screens");
       setScreens([]);

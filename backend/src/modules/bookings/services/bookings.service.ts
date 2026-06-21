@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import mongoose from "mongoose";
 import { ServiceResponse } from "../../../interfaces/interface";
 import { CreateBookingDto } from "../dtos/dto";
@@ -48,7 +49,7 @@ export class BookingService implements IBookingService {
     } catch (error) {
       await session.abortTransaction();
       return this._createErrorResponse(
-        error.message || "Failed to create booking"
+        getErrorMessage(error) || "Failed to create booking"
       );
     } finally {
       session.endSession();
@@ -65,7 +66,7 @@ export class BookingService implements IBookingService {
       });
     } catch (error) {
       return this._createErrorResponse(
-        error.message || "Failed to fetch bookings"
+        getErrorMessage(error) || "Failed to fetch bookings"
       );
     }
   }
@@ -128,7 +129,7 @@ export class BookingService implements IBookingService {
       );
     } catch (error) {
       return this._createErrorResponse(
-        error.message || "Failed to retrieve theater bookings"
+        getErrorMessage(error) || "Failed to retrieve theater bookings"
       );
     }
   }
@@ -154,7 +155,7 @@ export class BookingService implements IBookingService {
       return this._createSuccessResponse("Booking found", booking);
     } catch (error) {
       return this._createErrorResponse(
-        error.message || "Failed to get booking"
+        getErrorMessage(error) || "Failed to get booking"
       );
     }
   }
@@ -177,7 +178,7 @@ export class BookingService implements IBookingService {
       );
     } catch (error) {
       return this._createErrorResponse(
-        error.message || "Failed to get user bookings"
+        getErrorMessage(error) || "Failed to get user bookings"
       );
     }
   }
@@ -215,7 +216,7 @@ export class BookingService implements IBookingService {
     } catch (error) {
       await session.abortTransaction();
       return this._createErrorResponse(
-        error.message || "Failed to cancel booking"
+        getErrorMessage(error) || "Failed to cancel booking"
       );
     } finally {
       session.endSession();
@@ -233,7 +234,7 @@ export class BookingService implements IBookingService {
       );
     } catch (error) {
       return this._createErrorResponse(
-        error.message || "Failed to get upcoming bookings"
+        getErrorMessage(error) || "Failed to get upcoming bookings"
       );
     }
   }
@@ -260,7 +261,7 @@ export class BookingService implements IBookingService {
       );
     } catch (error) {
       return this._createErrorResponse(
-        error.message || "Failed to update payment status"
+        getErrorMessage(error) || "Failed to update payment status"
       );
     }
   }
@@ -276,7 +277,7 @@ export class BookingService implements IBookingService {
 
       const updatedBooking = await this.bookingRepository.updateBookingById(
         bookingId,
-        updateData
+        updateData as import("../dtos/dto").UpdateBookingDto
       );
 
       if (!updatedBooking) {
@@ -289,7 +290,7 @@ export class BookingService implements IBookingService {
       );
     } catch (error) {
       return this._createErrorResponse(
-        error.message || "Failed to update booking"
+        getErrorMessage(error) || "Failed to update booking"
       );
     }
   }
@@ -329,7 +330,7 @@ export class BookingService implements IBookingService {
 
       const updatedBooking = await this.bookingRepository.updateBookingById(
         bookingId,
-        updateData
+        updateData as import("../dtos/dto").UpdateBookingDto
       );
 
       return this._createSuccessResponse(
@@ -338,7 +339,7 @@ export class BookingService implements IBookingService {
       );
     } catch (error) {
       return this._createErrorResponse(
-        error.message || "Failed to update booking after cancellation"
+        getErrorMessage(error) || "Failed to update booking after cancellation"
       );
     }
   }
@@ -356,7 +357,7 @@ export class BookingService implements IBookingService {
       );
     } catch (error) {
       return this._createErrorResponse(
-        error.message || "Failed to get booking history"
+        getErrorMessage(error) || "Failed to get booking history"
       );
     }
   }
@@ -378,7 +379,7 @@ export class BookingService implements IBookingService {
       );
     } catch (error) {
       return this._createErrorResponse(
-        error.message || "Failed to process expired bookings"
+        getErrorMessage(error) || "Failed to process expired bookings"
       );
     }
   }
@@ -394,7 +395,7 @@ export class BookingService implements IBookingService {
       );
     } catch (error) {
       return this._createErrorResponse(
-        error.message || "Failed to get showtime bookings"
+        getErrorMessage(error) || "Failed to get showtime bookings"
       );
     }
   }
@@ -415,7 +416,7 @@ export class BookingService implements IBookingService {
       );
     } catch (error) {
       return this._createErrorResponse(
-        error.message || "Failed to process refund"
+        getErrorMessage(error) || "Failed to process refund"
       );
     }
   }
@@ -454,7 +455,7 @@ export class BookingService implements IBookingService {
   private async _validateShowtimeAndSeats(
     showtimeId: string,
     selectedSeats: string[]
-  ): Promise<void> {
+  ) {
     const showtime = await this.showtimeRepo.getShowtimeById(showtimeId);
     if (!showtime) {
       throw new Error("Showtime not found");

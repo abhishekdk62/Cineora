@@ -1,8 +1,16 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+interface UserProfile {
+  _id?: string;
+  id?: string;
+  email?: string;
+  username?: string;
+  [key: string]: unknown;
+}
+
 interface UserState {
-  profile: null;
-  nearbyUsers: User[];
+  profile: UserProfile | null;
+  nearbyUsers: UserProfile[];
   loading: boolean;
   error: string | null;
 }
@@ -21,10 +29,10 @@ const userSlice = createSlice({
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
     },
-    setProfile: (state, action: PayloadAction<User>) => {
+    setProfile: (state, action: PayloadAction<UserProfile>) => {
       state.profile = action.payload;
     },
-    setNearbyUsers: (state, action: PayloadAction<User[]>) => {
+    setNearbyUsers: (state, action: PayloadAction<UserProfile[]>) => {
       state.nearbyUsers = action.payload;
     },
     setError: (state, action: PayloadAction<string | null>) => {

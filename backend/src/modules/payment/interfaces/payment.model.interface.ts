@@ -9,13 +9,14 @@ export interface ITransactionDetails {
 
 export interface IPayment extends Document {
   paymentId: string;
-  bookingId: mongoose.Types.ObjectId;
+  bookingId?: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
+  razorpayOrderId?: string;
   
   amount: number;
   currency: string;
-  paymentMethod: "upi" | "card" | "netbanking" | "wallet";
-  paymentGateway: "razorpay" | "stripe" | "paytm" | "phonepe";
+  paymentMethod?: "upi" | "card" | "netbanking" | "wallet";
+  paymentGateway?: "razorpay" | "stripe" | "paytm" | "phonepe";
   
   status: "pending" | "processing" | "completed" | "failed" | "cancelled" | "refunded";
   transactionDetails?: ITransactionDetails;
@@ -25,7 +26,7 @@ export interface IPayment extends Document {
   refundReason?: string;
   refundTransactionId?: string;
   
-  initiatedAt: Date;
+  initiatedAt?: Date;
   completedAt?: Date;
   
   createdAt: Date;

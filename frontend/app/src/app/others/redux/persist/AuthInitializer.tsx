@@ -14,7 +14,7 @@ export function AuthInitializer({ children }: { children: React.ReactNode }) {
       dispatch(loadUserFromStorage({
         user: JSON.parse(user),
         token,
-        role: role as 'user' | 'admin'
+        role: role as 'user' | 'admin' | 'owner'
       }));
     }
   }, [dispatch]);

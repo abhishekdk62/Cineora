@@ -51,7 +51,8 @@ const OwnerRequestCard: React.FC<OwnerRequestCardProps> = ({
 }) => {
   const [showModal, setShowModal] = useState(false)
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | Date | undefined) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -59,7 +60,8 @@ const OwnerRequestCard: React.FC<OwnerRequestCardProps> = ({
     })
   }
 
-  const formatDateTime = (dateString: string) => {
+  const formatDateTime = (dateString: string | Date | undefined) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',

@@ -1,6 +1,6 @@
 import ADMIN_COUPONS from "../../constants/adminConstants/couponsConstants";
 import apiClient from "../../Utils/apiClient";
-import { GetCouponsResponseDto } from "../userServices/couponServices";
+import { GetCouponsResponseDto } from "../../dtos/coupon.dto";
 
 export const getOwnerCoupons = async (query?:{page:number,limit:number}): Promise<GetCouponsResponseDto> => {
   const params = new URLSearchParams();

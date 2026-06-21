@@ -427,8 +427,6 @@ async countShowtimesByOwnerId(
     endDate: Date;
   }): Promise<IMovieShowtime[]> {
     try {
-      let query: any = { ownerId };
-
       return await MovieShowtime.find({
         theaterId: filters.theaterId,
         screenId: filters.screenId,
@@ -601,7 +599,7 @@ async countShowtimesByOwnerId(
     filters?: ShowtimeFilters
   ): Promise<PaginatedShowtimeResult> {
     try {
-      const query: FilterQuery = {};
+      const query: FilterQuery<Record<string, unknown>> = {};
       this._applyFiltersToQuery(query, filters);
 
       const skipCount = (page - 1) * limit;
@@ -726,7 +724,7 @@ async countShowtimesByOwnerId(
     excludeId?: string
   ): Promise<boolean> {
     try {
-      const query: FilterQuery = {
+      const query: FilterQuery<Record<string, unknown>> = {
         screenId: new Types.ObjectId(screenId),
         showDate,
         isActive: true,
@@ -777,7 +775,7 @@ async countShowtimesByOwnerId(
   }> {
     try {
       const skipCount = (page - 1) * limit;
-      const query: FilterQuery = {};
+      const query: FilterQuery<Record<string, unknown>> = {};
 
       if (filters.theaterId) {
         query.theaterId = new Types.ObjectId(filters.theaterId);

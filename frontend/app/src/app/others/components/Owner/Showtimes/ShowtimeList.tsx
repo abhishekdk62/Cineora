@@ -10,11 +10,13 @@ import { ShowtimeResponseDto } from "@/app/others/dtos";
 import { lexendMedium, lexendSmall } from "@/app/others/Utils/fonts";
 
 interface ShowtimeListProps {
+  showtimeFilter?: "upcoming" | "past";
   showtimes: ShowtimeResponseDto[];
   onEdit: (showtime: ShowtimeResponseDto) => void;
   onView: (showtime: ShowtimeResponseDto) => void;
   onRefresh: () => void;
-
+  lexendMedium?: import('@/app/others/types').NextFontInstance;
+  lexendSmall?: import('@/app/others/types').NextFontInstance;
 }
 
 const ShowtimeList: React.FC<ShowtimeListProps> = ({
@@ -82,17 +84,17 @@ const ShowtimeList: React.FC<ShowtimeListProps> = ({
     setCollapsedGroups(newCollapsed);
   };
 
-  const getMovieName = (movieId: {title:string}) => {
+  const getMovieName = (movieId: ShowtimeResponseDto["movieId"]) => {
     if (typeof movieId === "object" && movieId?.title) return movieId.title;
     return typeof movieId === "string" ? movieId : "Unknown Movie";
   };
 
-  const getTheaterName = (theaterId: {name:string}) => {
+  const getTheaterName = (theaterId: ShowtimeResponseDto["theaterId"]) => {
     if (typeof theaterId === "object" && theaterId?.name) return theaterId.name;
     return typeof theaterId === "string" ? theaterId : "Unknown Theater";
   };
 
-  const getScreenName = (screenId: {name:string}) => {
+  const getScreenName = (screenId: ShowtimeResponseDto["screenId"]) => {
     if (typeof screenId === "object" && screenId?.name) return screenId.name;
     return typeof screenId === "string" ? screenId : "Unknown Screen";
   };

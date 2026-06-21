@@ -38,6 +38,11 @@ const JoinGroupModal: React.FC<Props> = ({ isOpen, onClose, invite, onConfirmJoi
     return null;
   }
 
+  const nextSeat = seatInfo.nextSeat;
+  if (!nextSeat) {
+    return null;
+  }
+
   const occupiedSeats = getOccupiedSeats(invite);
   const joinedCount = invite.totalSlotsRequested - invite.availableSlots;
 
@@ -129,14 +134,14 @@ const JoinGroupModal: React.FC<Props> = ({ isOpen, onClose, invite, onConfirmJoi
             <div className="flex items-center justify-between mb-3">
               <span className="text-blue-400 text-sm font-medium">Your Seat Assignment</span>
               <span className="text-blue-300 text-xs bg-blue-500/20 px-2 py-1 rounded">
-                {seatInfo.nextSeat.seatType}
+                {nextSeat.seatType}
               </span>
             </div>
             
             <div className="flex items-center gap-2 mb-3">
               <Crown className="w-4 h-4 text-yellow-400" />
               <span className="text-white font-bold">
-                Seat {seatInfo.nextSeat.seatNumber}
+                Seat {nextSeat.seatNumber}
               </span>
             </div>
 
@@ -188,7 +193,7 @@ const JoinGroupModal: React.FC<Props> = ({ isOpen, onClose, invite, onConfirmJoi
               {/* Base Price */}
               <div className="flex justify-between items-center text-sm">
                 <span className="text-gray-300">
-                  Seat {seatInfo.nextSeat.seatNumber} ({seatInfo.nextSeat.seatType})
+                  Seat {nextSeat.seatNumber} ({nextSeat.seatType})
                 </span>
                 <span className="text-white font-medium">
                   ₹{seatInfo.priceBreakdown.originalPrice}

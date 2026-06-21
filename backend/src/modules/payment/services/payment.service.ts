@@ -1,9 +1,11 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { IPayment } from "../interfaces/payment.model.interface";
 import { IPaymentService } from "../interfaces/payment.service.interface";
 import { IPaymentRepository } from "../interfaces/payment.repository.interface";
 import { ServiceResponse } from "../../../interfaces/interface";
-import Razorpay from "razorpay";
 import crypto from "crypto";
+import { IPaymentGatewayStrategy } from "../strategies/payment-gateway.strategy.interface";
+import { RazorpayGatewayStrategy } from "../strategies/razorpay-gateway.strategy";
 import mongoose, { Types } from "mongoose";
 import { config } from "../../../config";
 
@@ -24,18 +26,12 @@ import { IWalletTransactionRepository } from "../../walletTransaction/interfaces
 // import redis from "../../../config/redis.config";
 
 export class PaymentService implements IPaymentService {
-  private readonly _razorpay: Razorpay;
-
   constructor(
     private readonly _paymentRepository: IPaymentRepository,
     private readonly _walletRepository: IWalletRepository,
-    private readonly _walletTransactionRepo: IWalletTransactionRepository
-  ) {
-    this._razorpay = new Razorpay({
-      key_id: config.razorpayKeyId!,
-      key_secret: config.razorpaySecret!,
-    });
-  }
+    private readonly _walletTransactionRepo: IWalletTransactionRepository,
+    private readonly _paymentGateway: IPaymentGatewayStrategy = new RazorpayGatewayStrategy()
+  ) {}
 
   async initiatePayment(
     paymentData: InitiatePaymentDTO
@@ -77,7 +73,7 @@ export class PaymentService implements IPaymentService {
       return {
         success: false,
         message:
-          error instanceof Error ? error.message : "Failed to initiate payment",
+          error instanceof Error ? getErrorMessage(error) : "Failed to initiate payment",
         data: null,
       };
     }
@@ -89,15 +85,8 @@ export class PaymentService implements IPaymentService {
     try {
       this._validateRazorpayOrderData(orderData);
 
-      const options = {
-        amount: orderData.amount,
-        currency: orderData.currency || "INR",
-        receipt: `receipt_${Date.now()}`,
-      };
     const paymentId = this._generatePaymentId();
-    
-    
-    const order = await this._razorpay.orders.create(options);
+    const order = await this._paymentGateway.createOrder(orderData);
     //     await redis.setex(
     //   `razorpay_order:${order.id}`,
     //   120, 
@@ -127,7 +116,7 @@ export class PaymentService implements IPaymentService {
         success: false,
         message:
           error instanceof Error
-            ? error.message
+            ? getErrorMessage(error)
             : "Failed to create Razorpay order",
         data: null,
       };
@@ -139,7 +128,9 @@ export class PaymentService implements IPaymentService {
   //!payout
   //!payout
 
-  async createPayoutOrder(data: CreatePayoutOrderDTO) {
+  async createPayoutOrder(
+    data: CreatePayoutOrderDTO
+  ): Promise<ServiceResponse> {
     try {
       const { ownerId, amount, mode, purpose } = data;
 
@@ -186,7 +177,7 @@ export class PaymentService implements IPaymentService {
     }
   }
 
-  async confirmPayout(data: ConfirmPayoutDTO) {
+  async confirmPayout(data: ConfirmPayoutDTO): Promise<ServiceResponse> {
     try {
       const { ownerId, amount, mode, razorpay_payment_id, order_id } = data;
 
@@ -278,14 +269,13 @@ razorpay_payment_id?description= `Cash withdrawnn ₹${amount} to your bank acco
       const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
         paymentData;
 
-      const body = razorpay_order_id + "|" + razorpay_payment_id;
+      const isVerified = this._paymentGateway.verifyPaymentSignature(
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature
+      );
 
-      const expectedSignature = crypto
-        .createHmac("sha256", config.razorpaySecret!)
-        .update(body.toString())
-        .digest("hex");
-
-      if (expectedSignature === razorpay_signature) {
+      if (isVerified) {
         return {
           success: true,
           message: "Payment verified successfully",
@@ -307,7 +297,7 @@ razorpay_payment_id?description= `Cash withdrawnn ₹${amount} to your bank acco
         success: false,
         message:
           error instanceof Error
-            ? error.message
+            ? getErrorMessage(error)
             : "Payment verification failed",
         data: null,
       };
@@ -357,7 +347,7 @@ razorpay_payment_id?description= `Cash withdrawnn ₹${amount} to your bank acco
         success: false,
         message:
           error instanceof Error
-            ? error.message
+            ? getErrorMessage(error)
             : "Failed to process payment callback",
         data: null,
       };
@@ -389,7 +379,7 @@ razorpay_payment_id?description= `Cash withdrawnn ₹${amount} to your bank acco
       return {
         success: false,
         message:
-          error instanceof Error ? error.message : "Failed to get payment",
+          error instanceof Error ? getErrorMessage(error) : "Failed to get payment",
         data: null,
       };
     }
@@ -413,7 +403,7 @@ razorpay_payment_id?description= `Cash withdrawnn ₹${amount} to your bank acco
         success: false,
         message:
           error instanceof Error
-            ? error.message
+            ? getErrorMessage(error)
             : "Failed to get user payments",
         data: null,
       };
@@ -461,7 +451,7 @@ razorpay_payment_id?description= `Cash withdrawnn ₹${amount} to your bank acco
       return {
         success: false,
         message:
-          error instanceof Error ? error.message : "Failed to refund payment",
+          error instanceof Error ? getErrorMessage(error) : "Failed to refund payment",
         data: null,
       };
     }
@@ -485,7 +475,7 @@ razorpay_payment_id?description= `Cash withdrawnn ₹${amount} to your bank acco
         success: false,
         message:
           error instanceof Error
-            ? error.message
+            ? getErrorMessage(error)
             : "Failed to get booking payments",
         data: null,
       };
@@ -523,7 +513,7 @@ razorpay_payment_id?description= `Cash withdrawnn ₹${amount} to your bank acco
       return {
         success: false,
         message:
-          error instanceof Error ? error.message : "Failed to cancel payment",
+          error instanceof Error ? getErrorMessage(error) : "Failed to cancel payment",
         data: null,
       };
     }
@@ -556,7 +546,7 @@ razorpay_payment_id?description= `Cash withdrawnn ₹${amount} to your bank acco
       return {
         success: false,
         message:
-          error instanceof Error ? error.message : "Failed to verify payment",
+          error instanceof Error ? getErrorMessage(error) : "Failed to verify payment",
         data: null,
       };
     }
@@ -598,7 +588,7 @@ razorpay_payment_id?description= `Cash withdrawnn ₹${amount} to your bank acco
       return {
         success: false,
         message:
-          error instanceof Error ? error.message : "Failed to retry payment",
+          error instanceof Error ? getErrorMessage(error) : "Failed to retry payment",
         data: null,
       };
     }
@@ -618,7 +608,7 @@ razorpay_payment_id?description= `Cash withdrawnn ₹${amount} to your bank acco
         success: false,
         message:
           error instanceof Error
-            ? error.message
+            ? getErrorMessage(error)
             : "Failed to get failed payments",
         data: null,
       };
@@ -639,7 +629,7 @@ razorpay_payment_id?description= `Cash withdrawnn ₹${amount} to your bank acco
         success: false,
         message:
           error instanceof Error
-            ? error.message
+            ? getErrorMessage(error)
             : "Failed to get pending payments",
         data: null,
       };
@@ -688,7 +678,7 @@ async getLatestPaymentData(
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : "Failed to get payment",
+      message: error instanceof Error ? getErrorMessage(error) : "Failed to get payment",
       data: null,
     };
   }

@@ -9,10 +9,32 @@ const lexendBold = Lexend({ weight: "700", subsets: ["latin"] });
 const lexendMedium = Lexend({ weight: "500", subsets: ["latin"] });
 const lexendRegular = Lexend({ weight: "400", subsets: ["latin"] });
 
+interface VerifiedTicketDetails {
+  movieTitle: string;
+  theater: string;
+  screen: string;
+  showDate: string;
+  showTime: string;
+  seat: string;
+  seatType: string;
+  price: number;
+}
+
+interface VerificationPayload {
+  ticket?: VerifiedTicketDetails;
+  customer?: { name?: string };
+}
+
+interface VerificationResult {
+  success: boolean;
+  message?: string;
+  data?: VerificationPayload | null;
+}
+
 const QRScanner = () => {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [isScanning, setIsScanning] = useState(false);
-  const [scanResult, setScanResult] = useState(null);
+  const [scanResult, setScanResult] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [cameraReady, setCameraReady] = useState(false);
@@ -22,7 +44,7 @@ const QRScanner = () => {
   const [ticketId, setTicketId] = useState<string>('');
   
   const [showResultModal, setShowResultModal] = useState(false);
-  const [verificationResult, setVerificationResult] = useState(null);
+  const [verificationResult, setVerificationResult] = useState<VerificationResult | null>(null);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const qrScannerRef = useRef<QrScanner | null>(null);
@@ -159,16 +181,23 @@ const QRScanner = () => {
       const data = await verifyTicket(scannedQRData);
       console.log('api verified data:', data);
       
-      setVerificationResult(data);
+      setVerificationResult({
+        success: data.success ?? true,
+        message: data.message,
+        data: (data.data as VerificationPayload | undefined) ?? null,
+      });
       setShowResultModal(true);
       stopCamera();
       
-    } catch (error) {
+    } catch (error: unknown) {
       console.log(error);
       
+      const apiError = error as {
+        response?: { data?: { message?: string } };
+      };
       setVerificationResult({
         success: false,
-        message: error.response.data.message,
+        message: apiError.response?.data?.message ?? 'Verification failed',
         data: null
       });
       setShowResultModal(true);

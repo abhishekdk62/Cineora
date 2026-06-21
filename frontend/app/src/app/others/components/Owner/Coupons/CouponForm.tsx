@@ -1,11 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { DollarSign, Calendar, Tag, Info, Percent, MapPin, X, Save } from "lucide-react";
+import { CouponResponseDto, CreateCouponRequestDto, UpdateCouponRequestDto } from "@/app/others/dtos/coupon.dto";
 
 interface CouponFormProps {
-  initialData?: string;
+  initialData?: CouponResponseDto | null;
   theaterOptions: { id: string; name: string }[];
-  onSubmit: (data: string) => void;
+  onSubmit: (data: CreateCouponRequestDto | UpdateCouponRequestDto) => void | Promise<void>;
   onCancel: () => void;
   saving: boolean;
   isEditing?: boolean;
@@ -21,19 +22,21 @@ const CouponForm: React.FC<CouponFormProps> = ({
 }) => {
   const [name, setName] = useState(initialData?.name || "");
   const [uniqueId, setUniqueId] = useState(initialData?.uniqueId || "");
-  const [theaterIds, setTheaterIds] = useState<string[]>(initialData?.theaterIds || []);
+  const [theaterIds, setTheaterIds] = useState<string[]>(
+    initialData?.theaterIds?.map((t) => (typeof t === 'string' ? t : t._id)) || []
+  );
   const [discountPercentage, setDiscountPercentage] = useState(initialData?.discountPercentage || 10);
   const [description, setDescription] = useState(initialData?.description || "");
   const [expiryDate, setExpiryDate] = useState(() => {
     if (initialData?.expiryDate) {
-      return initialData.expiryDate;
+      return new Date(initialData.expiryDate).toISOString().substring(0, 10);
     }
     const future = new Date();
     future.setDate(future.getDate() + 30);
     return future.toISOString().substring(0, 10);
   });
   const [maxUsageCount, setMaxUsageCount] = useState(initialData?.maxUsageCount || 1);
-  const [minAmount, setMinAmount] = useState(initialData?.minAmount || 1);
+  const [minAmount, setMinAmount] = useState((initialData as CouponResponseDto & { minAmount?: number })?.minAmount || 1);
 
   const [isFormValid, setIsFormValid] = useState(false);
 
@@ -204,8 +207,8 @@ const CouponForm: React.FC<CouponFormProps> = ({
                   >
                     <input
                       type="checkbox"
-                      checked={theaterIds.includes(theater._id)}
-                      onChange={() => toggleTheaterSelection(theater._id)}
+                      checked={theaterIds.includes(theater.id)}
+                      onChange={() => toggleTheaterSelection(theater.id)}
                       className="h-4 w-4 rounded border-gray-600 text-blue-500 focus:ring-blue-500 focus:ring-2"
                     />
                     <span className="text-gray-300 group-hover:text-white transition-colors">

@@ -7,6 +7,7 @@ import { ShowtimeResponseDto } from "@/app/others/dtos";
 import { lexendMedium, lexendSmall } from "@/app/others/Utils/fonts";
 
 interface ShowtimeGridProps {
+  showtimeFilter?: "upcoming" | "past";
   groupedShowtimes: Record<string, ShowtimeResponseDto[]>;
   groupBy: string;
   collapsedGroups: Set<string>;

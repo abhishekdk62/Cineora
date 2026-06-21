@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { IWalletService } from "../interfaces/wallet.service.interface";
 import { IWalletRepository } from "../interfaces/wallet.repository.interface";
 import { CreateWalletDto, CreditWalletDto, DebitWalletDto } from "../dtos/dto";
@@ -258,7 +259,7 @@ export class WalletService implements IWalletService {
   }
 
   private _handleServiceError(error: unknown, defaultMessage: string): ApiResponse<any> {
-    const errorMessage = error instanceof Error ? error.message : defaultMessage;
+    const errorMessage = error instanceof Error ? getErrorMessage(error) : defaultMessage;
     
     return createResponse({
       success: false,

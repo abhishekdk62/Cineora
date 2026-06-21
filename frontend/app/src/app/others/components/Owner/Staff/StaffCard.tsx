@@ -1,23 +1,7 @@
 "use client";
 import React from "react";
 import { Edit, Calendar, Clock, MapPin, User, Monitor, Users, Eye, CircleX, CheckCircle, Mail } from "lucide-react";
-
-interface StaffMember {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: string;
-  isActive: boolean;
-  theaterId?: {
-    _id: string;
-    name: string;
-    city: string;
-    state: string;
-  };
-  createdAt?: string;
-  updatedAt?: string;
-}
+import type { StaffMember } from "./staff.types";
 
 interface StaffCardProps {
   staff: StaffMember;

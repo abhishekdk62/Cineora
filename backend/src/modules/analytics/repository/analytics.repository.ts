@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import mongoose, { ObjectId, PipelineStage, Types } from "mongoose";
 import Booking from "../../bookings/models/bookings.model";
 import MovieShowtime from "../../showtimes/models/showtimes.model";
@@ -21,6 +22,7 @@ import {
 } from "../interfaces/analytics.repository.interface";
 import { IDateRange } from "../../adminAnalytics/dtos/dtos";
 import { FilterQuery } from "mongoose";
+import { getDateRangeBounds } from "../../../utils/dateRange.util";
 
 export class AnalyticsRepository implements IAnalyticsRepository {
 
@@ -29,7 +31,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       const showtimes = await MovieShowtime.find({ ownerId }).distinct('theaterId');
       return showtimes;
     } catch (error) {
-      throw new Error(`Failed to get owner theater IDs: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get owner theater IDs: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -65,7 +67,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       const result = await Booking.aggregate(pipeline);
       return result;
     } catch (error) {
-      throw new Error(`Failed to get monthly revenue trends: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get monthly revenue trends: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -101,7 +103,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       const result = await Booking.aggregate(pipeline);
       return result;
     } catch (error) {
-      throw new Error(`Failed to get weekly revenue: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get weekly revenue: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -138,21 +140,21 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       const result = await Booking.aggregate(pipeline);
       return result;
     } catch (error) {
-      throw new Error(`Failed to get daily revenue: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get daily revenue: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
   async getTheaterWiseRevenue(ownerId: string, dateRange?: IDateRange): Promise<ITheaterRevenueData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: FilterQuery = {
+      const matchQuery: FilterQuery<Record<string, unknown>> = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
       };
 
       if (dateRange) {
-        matchQuery.bookedAt = { $gte: dateRange.start, $lte: dateRange.end };
+        matchQuery.bookedAt = { $gte: (dateRange.startDate ?? dateRange.start)!, $lte: (dateRange.endDate ?? dateRange.end)! };
       }
 
       const pipeline:PipelineStage[]  = [
@@ -181,21 +183,21 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       const result = await Booking.aggregate(pipeline);
       return result;
     } catch (error) {
-      throw new Error(`Failed to get theater-wise revenue: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get theater-wise revenue: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
   async getScreenWiseRevenue(ownerId: string, dateRange?: IDateRange): Promise<IScreenRevenueData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: FilterQuery = {
+      const matchQuery: FilterQuery<Record<string, unknown>> = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
       };
 
       if (dateRange) {
-        matchQuery.bookedAt = { $gte: dateRange.start, $lte: dateRange.end };
+        matchQuery.bookedAt = { $gte: (dateRange.startDate ?? dateRange.start)!, $lte: (dateRange.endDate ?? dateRange.end)! };
       }
 
       const pipeline:PipelineStage[] = [
@@ -225,21 +227,21 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       const result = await Booking.aggregate(pipeline);
       return result;
     } catch (error) {
-      throw new Error(`Failed to get screen-wise revenue: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get screen-wise revenue: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
   async getMovieWiseRevenue(ownerId: string, dateRange?: IDateRange): Promise<IMovieRevenueData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: FilterQuery = {
+      const matchQuery: FilterQuery<Record<string, unknown>> = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
       };
 
       if (dateRange) {
-        matchQuery.bookedAt = { $gte: dateRange.start, $lte: dateRange.end };
+        matchQuery.bookedAt = { $gte: (dateRange.startDate ?? dateRange.start)!, $lte: (dateRange.endDate ?? dateRange.end)! };
       }
 
       const pipeline:PipelineStage[] = [
@@ -269,7 +271,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       const result = await Booking.aggregate(pipeline);
       return result;
     } catch (error) {
-      throw new Error(`Failed to get movie-wise revenue: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get movie-wise revenue: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -277,7 +279,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
     try {
       const showtimes = await MovieShowtime.find({
         ownerId,
-        showDate: { $gte: dateRange.start, $lte: dateRange.end }
+        showDate: { $gte: (dateRange.startDate ?? dateRange.start)!, $lte: (dateRange.endDate ?? dateRange.end)! }
       });
 
       const totalSeatsAvailable = showtimes.reduce((sum, showtime) => sum + showtime.totalSeats, 0);
@@ -285,7 +287,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
       const bookings = await Booking.find({
         theaterId: { $in: theaterIds },
-        showDate: { $gte: dateRange.start, $lte: dateRange.end },
+        showDate: { $gte: (dateRange.startDate ?? dateRange.start)!, $lte: (dateRange.endDate ?? dateRange.end)! },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
       });
@@ -299,21 +301,21 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         occupancyPercentage
       };
     } catch (error) {
-      throw new Error(`Failed to get overall occupancy: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get overall occupancy: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
   async getAverageTicketPrice(ownerId: string, dateRange?: IDateRange): Promise<number> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: FilterQuery = {
+      const matchQuery: FilterQuery<Record<string, unknown>> = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
       };
 
       if (dateRange) {
-        matchQuery.bookedAt = { $gte: dateRange.start, $lte: dateRange.end };
+        matchQuery.bookedAt = { $gte: (dateRange.startDate ?? dateRange.start)!, $lte: (dateRange.endDate ?? dateRange.end)! };
       }
 
       const pipeline:PipelineStage[] = [
@@ -329,7 +331,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       const result = await Booking.aggregate(pipeline);
       return result[0]?.avgPrice || 0;
     } catch (error) {
-      throw new Error(`Failed to get average ticket price: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get average ticket price: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -337,21 +339,21 @@ export class AnalyticsRepository implements IAnalyticsRepository {
     try {
       return await this.getScreenWiseRevenue(ownerId, dateRange);
     } catch (error) {
-      throw new Error(`Failed to get revenue per screen: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get revenue per screen: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
   async getRevenuePerShow(ownerId: string, dateRange?: IDateRange): Promise<IRevenueData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: FilterQuery = {
+      const matchQuery: FilterQuery<Record<string, unknown>> = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
       };
 
       if (dateRange) {
-        matchQuery.bookedAt = { $gte: dateRange.start, $lte: dateRange.end };
+        matchQuery.bookedAt = { $gte: (dateRange.startDate ?? dateRange.start)!, $lte: (dateRange.endDate ?? dateRange.end)! };
       }
 
       const pipeline:PipelineStage[] = [
@@ -370,21 +372,21 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       const result = await Booking.aggregate(pipeline);
       return result;
     } catch (error) {
-      throw new Error(`Failed to get revenue per show: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get revenue per show: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
   async getTimeSlotPerformance(ownerId: string, dateRange?: IDateRange): Promise<ITimeSlotData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: FilterQuery = {
+      const matchQuery: FilterQuery<Record<string, unknown>> = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
       };
 
       if (dateRange) {
-        matchQuery.bookedAt = { $gte: dateRange.start, $lte: dateRange.end };
+        matchQuery.bookedAt = { $gte: (dateRange.startDate ?? dateRange.start)!, $lte: (dateRange.endDate ?? dateRange.end)! };
       }
 
       const pipeline:PipelineStage[] = [
@@ -403,21 +405,21 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       const result = await Booking.aggregate(pipeline);
       return result;
     } catch (error) {
-      throw new Error(`Failed to get time slot performance: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get time slot performance: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
   async getWeekdayWeekendComparison(ownerId: string, dateRange?: IDateRange): Promise<IRevenueData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: FilterQuery = {
+      const matchQuery: FilterQuery<Record<string, unknown>> = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
       };
 
       if (dateRange) {
-        matchQuery.showDate = { $gte: dateRange.start, $lte: dateRange.end };
+        matchQuery.showDate = { $gte: (dateRange.startDate ?? dateRange.start)!, $lte: (dateRange.endDate ?? dateRange.end)! };
       }
 
       const pipeline:PipelineStage[] = [
@@ -443,21 +445,21 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       const result = await Booking.aggregate(pipeline);
       return result;
     } catch (error) {
-      throw new Error(`Failed to get weekday weekend comparison: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get weekday weekend comparison: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
   async getTopPerformingMovies(ownerId: string, limit: number = 10, dateRange?: IDateRange): Promise<IMoviePerformanceData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: FilterQuery = {
+      const matchQuery: FilterQuery<Record<string, unknown>> = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
       };
 
       if (dateRange) {
-        matchQuery.bookedAt = { $gte: dateRange.start, $lte: dateRange.end };
+        matchQuery.bookedAt = { $gte: (dateRange.startDate ?? dateRange.start)!, $lte: (dateRange.endDate ?? dateRange.end)! };
       }
 
       const pipeline:PipelineStage[] = [
@@ -492,21 +494,21 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       const result = await Booking.aggregate(pipeline);
       return result;
     } catch (error) {
-      throw new Error(`Failed to get top performing movies: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get top performing movies: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
   async getFormatPerformance(ownerId: string, dateRange?: IDateRange): Promise<IFormatPerformanceData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: FilterQuery = {
+      const matchQuery: FilterQuery<Record<string, unknown>> = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
       };
 
       if (dateRange) {
-        matchQuery.bookedAt = { $gte: dateRange.start, $lte: dateRange.end };
+        matchQuery.bookedAt = { $gte: (dateRange.startDate ?? dateRange.start)!, $lte: (dateRange.endDate ?? dateRange.end)! };
       }
 
       const pipeline:PipelineStage[] = [
@@ -533,21 +535,21 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       const result = await Booking.aggregate(pipeline);
       return result;
     } catch (error) {
-      throw new Error(`Failed to get format performance: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get format performance: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
   async getLanguagePerformance(ownerId: string, dateRange?: IDateRange): Promise<IFormatPerformanceData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: FilterQuery = {
+      const matchQuery: FilterQuery<Record<string, unknown>> = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
       };
 
       if (dateRange) {
-        matchQuery.bookedAt = { $gte: dateRange.start, $lte: dateRange.end };
+        matchQuery.bookedAt = { $gte: (dateRange.startDate ?? dateRange.start)!, $lte: (dateRange.endDate ?? dateRange.end)! };
       }
 
       const pipeline:PipelineStage[] = [
@@ -574,14 +576,14 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       const result = await Booking.aggregate(pipeline);
       return result;
     } catch (error) {
-      throw new Error(`Failed to get language performance: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get language performance: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
   async getMovieLifecycleTrends(ownerId: string, movieId: string, dateRange?: IDateRange): Promise<IRevenueData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: FilterQuery = {
+      const matchQuery: FilterQuery<Record<string, unknown>> = {
         theaterId: { $in: theaterIds },
         movieId: new mongoose.Types.ObjectId(movieId),
         paymentStatus: 'completed',
@@ -589,7 +591,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       };
 
       if (dateRange) {
-        matchQuery.showDate = { $gte: dateRange.start, $lte: dateRange.end };
+        matchQuery.showDate = { $gte: (dateRange.startDate ?? dateRange.start)!, $lte: (dateRange.endDate ?? dateRange.end)! };
       }
 
       const pipeline:PipelineStage[] = [
@@ -612,21 +614,21 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       const result = await Booking.aggregate(pipeline);
       return result;
     } catch (error) {
-      throw new Error(`Failed to get movie lifecycle trends: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get movie lifecycle trends: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
   async getCustomerSatisfactionRatings(ownerId: string, dateRange?: IDateRange): Promise<ICustomerSatisfactionData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: FilterQuery = {
+      const matchQuery: FilterQuery<Record<string, unknown>> = {
         theaterId: { $in: theaterIds },
         reviewType: 'theater',
         status: 'active'
       };
 
       if (dateRange) {
-        matchQuery.createdAt = { $gte: dateRange.start, $lte: dateRange.end };
+        matchQuery.createdAt = { $gte: (dateRange.startDate ?? dateRange.start)!, $lte: (dateRange.endDate ?? dateRange.end)! };
       }
 
       const pipeline:PipelineStage[] = [
@@ -658,21 +660,21 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       const result = await Review.aggregate(pipeline);
       return result;
     } catch (error) {
-      throw new Error(`Failed to get customer satisfaction ratings: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get customer satisfaction ratings: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
   async getRepeatCustomerRate(ownerId: string, dateRange?: IDateRange): Promise<IRepeatCustomerData> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: FilterQuery = {
+      const matchQuery: FilterQuery<Record<string, unknown>> = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
       };
 
       if (dateRange) {
-        matchQuery.bookedAt = { $gte: dateRange.start, $lte: dateRange.end };
+        matchQuery.bookedAt = { $gte: (dateRange.startDate ?? dateRange.start)!, $lte: (dateRange.endDate ?? dateRange.end)! };
       }
 
       const pipeline:PipelineStage[] = [
@@ -704,21 +706,21 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         avgSpendPerCustomer: data.avgSpendPerCustomer
       };
     } catch (error) {
-      throw new Error(`Failed to get repeat customer rate: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get repeat customer rate: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
   async getAdvanceBookingTrends(ownerId: string, dateRange?: IDateRange): Promise<IAdvanceBookingData[]> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: FilterQuery = {
+      const matchQuery: FilterQuery<Record<string, unknown>> = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
       };
 
       if (dateRange) {
-        matchQuery.bookedAt = { $gte: dateRange.start, $lte: dateRange.end };
+        matchQuery.bookedAt = { $gte: (dateRange.startDate ?? dateRange.start)!, $lte: (dateRange.endDate ?? dateRange.end)! };
       }
 
       const pipeline:PipelineStage[] = [
@@ -773,21 +775,21 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       const result = await Booking.aggregate(pipeline);
       return result;
     } catch (error) {
-      throw new Error(`Failed to get advance booking trends: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get advance booking trends: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
   async getAverageSpendPerCustomer(ownerId: string, dateRange?: IDateRange): Promise<number> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: FilterQuery = {
+      const matchQuery: FilterQuery<Record<string, unknown>> = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
       };
 
       if (dateRange) {
-        matchQuery.bookedAt = { $gte: dateRange.start, $lte: dateRange.end };
+        matchQuery.bookedAt = { $gte: (dateRange.startDate ?? dateRange.start)!, $lte: (dateRange.endDate ?? dateRange.end)! };
       }
 
       const pipeline:PipelineStage[] = [
@@ -809,19 +811,19 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       const result = await Booking.aggregate(pipeline);
       return result[0]?.avgSpendPerCustomer || 0;
     } catch (error) {
-      throw new Error(`Failed to get average spend per customer: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get average spend per customer: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
   async getCancellationRate(ownerId: string, dateRange?: IDateRange): Promise<number> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: FilterQuery = {
+      const matchQuery: FilterQuery<Record<string, unknown>> = {
         theaterId: { $in: theaterIds }
       };
 
       if (dateRange) {
-        matchQuery.bookedAt = { $gte: dateRange.start, $lte: dateRange.end };
+        matchQuery.bookedAt = { $gte: (dateRange.startDate ?? dateRange.start)!, $lte: (dateRange.endDate ?? dateRange.end)! };
       }
 
       const pipeline:PipelineStage[] = [
@@ -839,7 +841,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       const data = result[0] || { totalBookings: 0, cancelledBookings: 0 };
       return data.totalBookings > 0 ? (data.cancelledBookings / data.totalBookings) * 100 : 0;
     } catch (error) {
-      throw new Error(`Failed to get cancellation rate: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get cancellation rate: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -847,7 +849,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
     try {
       const showtimes = await MovieShowtime.find({
         ownerId,
-        showDate: { $gte: dateRange.start, $lte: dateRange.end }
+        showDate: { $gte: (dateRange.startDate ?? dateRange.start)!, $lte: (dateRange.endDate ?? dateRange.end)! }
       });
 
       let potentialRevenue = 0;
@@ -862,7 +864,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         {
           $match: {
             theaterId: { $in: theaterIds },
-            showDate: { $gte: dateRange.start, $lte: dateRange.end },
+            showDate: { $gte: (dateRange.startDate ?? dateRange.start)!, $lte: (dateRange.endDate ?? dateRange.end)! },
             paymentStatus: 'completed',
             bookingStatus: 'confirmed'
           }
@@ -884,21 +886,21 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         realizationPercentage
       };
     } catch (error) {
-      throw new Error(`Failed to get potential vs actual revenue: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get potential vs actual revenue: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
   async getDynamicPricingImpact(ownerId: string, dateRange?: IDateRange): Promise<IDynamicPricingData> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: FilterQuery = {
+      const matchQuery: FilterQuery<Record<string, unknown>> = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
       };
 
       if (dateRange) {
-        matchQuery.bookedAt = { $gte: dateRange.start, $lte: dateRange.end };
+        matchQuery.bookedAt = { $gte: (dateRange.startDate ?? dateRange.start)!, $lte: (dateRange.endDate ?? dateRange.end)! };
       }
 
       const pipeline:PipelineStage[] = [
@@ -938,21 +940,21 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         pricingImpact: ((data.avgShowtimePrice - data.avgBasePrice) / data.avgBasePrice) * 100 || 0
       };
     } catch (error) {
-      throw new Error(`Failed to get dynamic pricing impact: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get dynamic pricing impact: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
   async getDiscountImpact(ownerId: string, dateRange?: IDateRange): Promise<IDiscountImpactData> {
     try {
       const theaterIds = await this.getOwnerTheaterIds(ownerId);
-      const matchQuery: FilterQuery = {
+      const matchQuery: FilterQuery<Record<string, unknown>> = {
         theaterId: { $in: theaterIds },
         paymentStatus: 'completed',
         bookingStatus: 'confirmed'
       };
 
       if (dateRange) {
-        matchQuery.bookedAt = { $gte: dateRange.start, $lte: dateRange.end };
+        matchQuery.bookedAt = { $gte: (dateRange.startDate ?? dateRange.start)!, $lte: (dateRange.endDate ?? dateRange.end)! };
       }
 
       const pipeline:PipelineStage[] = [
@@ -987,7 +989,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         totalBookings: data.totalBookings
       };
     } catch (error) {
-      throw new Error(`Failed to get discount impact: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get discount impact: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -995,7 +997,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
     try {
       return await this.getTimeSlotPerformance(ownerId, dateRange);
     } catch (error) {
-      throw new Error(`Failed to get peak hour revenue: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get peak hour revenue: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -1003,7 +1005,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
     try {
       return await this.getMonthlyRevenueTrends(ownerId, months);
     } catch (error) {
-      throw new Error(`Failed to get seasonal revenue patterns: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get seasonal revenue patterns: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -1012,7 +1014,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
     try {
       return await this.getRevenuePerShow(ownerId, dateRange);
     } catch (error) {
-      throw new Error(`Failed to get show utilization rate: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get show utilization rate: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -1022,7 +1024,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       
       return allTimeSlots.filter(slot => slot.avgOccupancy < threshold);
     } catch (error) {
-      throw new Error(`Failed to get low performing time slots: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get low performing time slots: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -1030,7 +1032,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
     try {
       return await this.getTheaterWiseRevenue(ownerId, dateRange);
     } catch (error) {
-      throw new Error(`Failed to get theater efficiency score: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get theater efficiency score: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -1070,7 +1072,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         return result;
       }
     } catch (error) {
-      throw new Error(`Failed to get revenue growth rate: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get revenue growth rate: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 }

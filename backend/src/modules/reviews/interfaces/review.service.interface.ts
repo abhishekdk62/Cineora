@@ -1,16 +1,17 @@
-import { ReviewResponseDto } from "../dtos/dtos";
+import { AddReviewDto, UpdateReviewDto, ReviewsListResponseDto, RatingStatsDto } from "../dtos/dtos";
+import { IReview } from "./review.model.interface";
 
 export interface IReviewService {
-  addReview(userId: string, reviewData: ReviewResponseDto): Promise<{
+  addReview(userId: string, reviewData: AddReviewDto): Promise<{
     success: boolean;
     message?: string;
-    data?: ReviewResponseDto;
+    data?: IReview;
   }>;
   
-  updateReview(reviewId: string, userId: string, reviewData: ReviewResponseDto): Promise<{
+  updateReview(reviewId: string, userId: string, reviewData: UpdateReviewDto): Promise<{
     success: boolean;
     message?: string;
-    data?: ReviewResponseDto;
+    data?: IReview;
   }>;
   
   deleteReview(reviewId: string, userId: string): Promise<{
@@ -20,30 +21,30 @@ export interface IReviewService {
   
   getMovieReviews(movieId: string, page?: number, limit?: number): Promise<{
     success: boolean;
-    data?: ReviewResponseDto;
+    data?: ReviewsListResponseDto["data"];
     message?: string;
   }>;
   
   getTheaterReviews(theaterId: string, page?: number, limit?: number): Promise<{
     success: boolean;
-    data?: ReviewResponseDto;
+    data?: ReviewsListResponseDto["data"];
     message?: string;
   }>;
   
   getUserReviews(userId: string, page?: number, limit?: number): Promise<{
     success: boolean;
-    data?: ReviewResponseDto;
+    data?: ReviewsListResponseDto["data"];
     message?: string;
   }>;
   
   getMovieRatingStats(movieId: string): Promise<{
     success: boolean;
-    data?: ReviewResponseDto;
+    data?: RatingStatsDto;
   }>;
   
   getTheaterRatingStats(theaterId: string): Promise<{
     success: boolean;
-    data?: ReviewResponseDto;
+    data?: RatingStatsDto;
   }>;
   
   markHelpful(reviewId: string): Promise<{

@@ -1,8 +1,7 @@
 "use client";
 import React from "react";
-import Orb from "../others/components/ReactBits/Orb";
 import OwnerKYCForm from "../others/components/Owner/Auth/OwnerForm";
-import Aurora from "../others/components/ReactBits/Aurora";
+import DynamicAurora from "../others/components/ReactBits/DynamicAurora";
 import RouteGuard from "../others/components/Auth/common/RouteGuard";
 
 const page = () => {
@@ -11,7 +10,7 @@ const page = () => {
       <div>
         <div className="min-h-screen relative flex items-center justify-center bg-black overflow-hidden p-4">
           <div className="absolute inset-0 z-0">
-            <Aurora
+            <DynamicAurora
               colorStops={["#5B2EFF", "#FF5A3C", "#2EFF68"]}
               blend={0.5}
               amplitude={1.0}

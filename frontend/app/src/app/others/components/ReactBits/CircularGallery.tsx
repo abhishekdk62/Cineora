@@ -13,9 +13,9 @@ import { MovieResponseDto } from "../../dtos";
 
 type GL = Renderer["gl"];
 
-function debounce<T extends (...args: string[]) => void>(func: T, wait: number) {
+function debounce<T extends (...args: unknown[]) => void>(func: T, wait: number) {
   let timeout: number;
-  return function (this: string, ...args: Parameters<T>) {
+  return function (this: unknown, ...args: Parameters<T>) {
     window.clearTimeout(timeout);
     timeout = window.setTimeout(() => func.apply(this, args), wait);
   };
@@ -25,11 +25,12 @@ function lerp(p1: number, p2: number, t: number): number {
   return p1 + (p2 - p1) * t;
 }
 
-function autoBind(instance: string): void {
+function autoBind(instance: object): void {
+  const record = instance as Record<string, unknown>;
   const proto = Object.getPrototypeOf(instance);
   Object.getOwnPropertyNames(proto).forEach((key) => {
-    if (key !== "constructor" && typeof instance[key] === "function") {
-      instance[key] = instance[key].bind(instance);
+    if (key !== "constructor" && typeof record[key] === "function") {
+      record[key] = (record[key] as (...args: unknown[]) => unknown).bind(instance);
     }
   });
 }
@@ -469,6 +470,14 @@ class Media {
   }
 }
 
+interface GalleryItem {
+  poster?: string;
+  image?: string;
+  title?: string;
+  text?: string;
+  id?: string;
+}
+
 interface AppConfig {
   items?: MovieResponseDto[];
   bend?: number;
@@ -496,7 +505,7 @@ class App {
   scene!: Transform;
   planeGeometry!: Plane;
   medias: Media[] = [];
-  mediasImages: string[] = [];
+  mediasImages: GalleryItem[] = [];
   screen!: { width: number; height: number };
   viewport!: { width: number; height: number };
   raf: number = 0;
@@ -643,13 +652,13 @@ class App {
       return new Media({
         geometry: this.planeGeometry,
         gl: this.gl,
-        image: data.poster || data.image,
+        image: data.poster || data.image || "",
         index,
         length: this.mediasImages.length,
         renderer: this.renderer,
         scene: this.scene,
         screen: this.screen,
-        text: data.title || data.text,
+        text: data.title || data.text || "",
         viewport: this.viewport,
         bend,
         textColor,
@@ -678,11 +687,12 @@ class App {
   }
 
   onWheel(e: Event) {
-    const wheelEvent = e as WheelEvent;
+    const wheelEvent = e as WheelEvent & { wheelDelta?: number; detail?: number };
     const delta =
       wheelEvent.deltaY ||
-      (wheelEvent as string).wheelDelta ||
-      (wheelEvent as string).detail;
+      wheelEvent.wheelDelta ||
+      wheelEvent.detail ||
+      0;
     this.scroll.target += delta > 0 ? this.scrollSpeed : -this.scrollSpeed;
     this.onCheckDebounce();
   }

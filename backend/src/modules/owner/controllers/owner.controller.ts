@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { Request, Response } from "express";
 import { createResponse } from "../../../utils/createResponse";
 import { IOwnerService } from "../interfaces/owner.services.interfaces";
@@ -14,7 +15,7 @@ import { OWNER_MESSAGES } from "../../../utils/messages.constants";
 export class OwnerController {
   constructor(private readonly _ownerService: IOwnerService) {}
 
-  async getOwnerProfile(req: Request, res: Response): Promise<void> {
+  async getOwnerProfile(req: Request, res: Response) {
     try {
       const owner = req.owner;
       const requestId = owner?.ownerId;
@@ -53,13 +54,13 @@ export class OwnerController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async getOwnerById(req: Request, res: Response): Promise<void> {
+  async getOwnerById(req: Request, res: Response) {
     try {
       const { ownerId } = req.params;
 
@@ -96,13 +97,13 @@ export class OwnerController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async updateOwner(req: Request, res: Response): Promise<void> {
+  async updateOwner(req: Request, res: Response) {
     try {
       const { ownerId } = req.owner;
       const updateOwnerProfileDto: UpdateOwnerProfileDto = req.body;
@@ -140,13 +141,13 @@ export class OwnerController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async deleteOwner(req: Request, res: Response): Promise<void> {
+  async deleteOwner(req: Request, res: Response) {
     try {
       const { ownerId } = req.params;
 
@@ -182,13 +183,13 @@ export class OwnerController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async sendEmailChangeOtp(req: Request, res: Response): Promise<void> {
+  async sendEmailChangeOtp(req: Request, res: Response) {
     try {
       const { ownerId } = req.owner;
       const emailChangeRequestDto: EmailChangeRequestDto = req.body;
@@ -230,13 +231,13 @@ export class OwnerController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async verifyEmailChangeOtp(req: Request, res: Response): Promise<void> {
+  async verifyEmailChangeOtp(req: Request, res: Response) {
     try {
       const { ownerId } = req.owner;
       const emailChangeVerificationDto: EmailChangeVerificationDto = req.body;
@@ -278,13 +279,13 @@ export class OwnerController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async resetOwnerPassword(req: Request, res: Response): Promise<void> {
+  async resetOwnerPassword(req: Request, res: Response) {
     try {
       const { ownerId } = req.owner;
       const updatePasswordDto: UpdateToNewPasswordDto = req.body;
@@ -335,13 +336,13 @@ export class OwnerController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async getOwnerCounts(req: Request, res: Response): Promise<void> {
+  async getOwnerCounts(req: Request, res: Response) {
     try {
       const result = await this._ownerService.getOwnerCounts();
 
@@ -356,13 +357,13 @@ export class OwnerController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async getOwners(req: Request, res: Response): Promise<void> {
+  async getOwners(req: Request, res: Response) {
     try {
       const filters: OwnerFilterDto = {
         search: req.query.search as string,
@@ -386,13 +387,13 @@ export class OwnerController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }
   }
 
-  async toggleOwnerStatus(req: Request, res: Response): Promise<void> {
+  async toggleOwnerStatus(req: Request, res: Response) {
     try {
       const { ownerId } = req.params;
 
@@ -429,7 +430,7 @@ export class OwnerController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
           success: false,
-          message: error instanceof Error ? error.message : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
+          message: error instanceof Error ? getErrorMessage(error) : OWNER_MESSAGES.INTERNAL_SERVER_ERROR,
         })
       );
     }

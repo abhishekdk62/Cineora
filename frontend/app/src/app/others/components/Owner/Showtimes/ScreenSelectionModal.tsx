@@ -1,9 +1,11 @@
+import type { NextFontInstance } from '@/app/others/types';
 
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { X, Search, Monitor, Users, ChevronRight } from "lucide-react";
 import { getScreensByTheaterId } from "@/app/others/services/ownerServices/screenServices";
+import type { ScreenResponseDto } from "@/app/others/dtos/screen.dto";
 import ScreenDetailsModal from "./ScreenDetailsModal"; 
 
 interface Theater {
@@ -16,7 +18,13 @@ interface Theater {
 interface Layout {
   rows: number;
   seatsPerRow: number;
-  advancedLayout: string;
+  advancedLayout?: {
+    rows: Array<{ rowLabel: string; offset?: number; seats: Array<{ id: string; type: string; col: number; price?: number }> }>;
+    aisles?: {
+      vertical: Array<{ id: string; position: number; width: number }>;
+      horizontal: Array<{ id: string; afterRow: number; width: number }>;
+    };
+  };
 }
 
 export interface Screen {
@@ -35,8 +43,8 @@ interface ScreenSelectionModalProps {
   theaterId: string;
   onSelect: (screen: Screen) => void;
   onClose: () => void;
-  lexendMedium: string;
-  lexendSmall: string;
+  lexendMedium: NextFontInstance;
+  lexendSmall: NextFontInstance;
 }
 
 const ScreenSelectionModal: React.FC<ScreenSelectionModalProps> = ({
@@ -57,12 +65,29 @@ const ScreenSelectionModal: React.FC<ScreenSelectionModalProps> = ({
     }
   }, [theaterId]);
 
+  const mapScreenDto = (dto: ScreenResponseDto): Screen => ({
+    _id: dto._id,
+    name: dto.name,
+    theaterId: {
+      _id: theaterId,
+      name: "",
+      city: "",
+      state: "",
+    },
+    totalSeats: dto.totalSeats,
+    layout: dto.layout as Layout,
+    features: dto.features ?? [],
+    isActive: dto.isActive,
+    createdAt: dto.createdAt ? String(dto.createdAt) : "",
+    updatedAt: dto.updatedAt ? String(dto.updatedAt) : "",
+  });
+
   const fetchScreens = async () => {
     try {
       const result = await getScreensByTheaterId(theaterId);
       console.log(result.data);
       
-      setScreens(result.data);
+      setScreens((result.data ?? []).map(mapScreenDto));
     } catch (error) {
       console.error("Error fetching screens:", error);
     } finally {

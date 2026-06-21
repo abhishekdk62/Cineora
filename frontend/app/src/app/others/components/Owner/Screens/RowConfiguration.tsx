@@ -14,7 +14,7 @@ export const RowConfiguration: React.FC<RowConfigurationProps> = ({
   rowsDefs,
   setRowsDefs
 }) => {
-  const updateRow = (i: number, key: keyof RowDef, val: string) => {
+  const updateRow = (i: number, key: keyof RowDef, val: string | number) => {
     setRowsDefs(defs => {
       const copy = [...defs];
       copy[i] = { ...copy[i], [key]: val };

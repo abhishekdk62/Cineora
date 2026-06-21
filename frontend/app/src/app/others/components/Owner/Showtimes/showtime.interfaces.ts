@@ -39,3 +39,9 @@ export interface IMovieShowtime {
 }
 
 export interface IShowtime extends IMovieShowtime {}
+
+/** Payload from ShowtimeForm to ShowtimesManager */
+export interface OwnerShowtimeSubmitPayload {
+  showtime?: Record<string, unknown>;
+  showtimes?: Record<string, unknown>[];
+}

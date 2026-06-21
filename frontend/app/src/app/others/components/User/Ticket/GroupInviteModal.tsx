@@ -1,7 +1,20 @@
 import React, { useState } from "react";
 import { X, Users, Clock, MapPin, Calendar } from "lucide-react";
-import { inviteDto } from "@/app/others/services/userServices/inviteGroupServices";
 import { ShowtimeData } from "@/app/book/tickets/[showtimeId]/page";
+
+interface GroupInviteModalPayload {
+  showtimeId: string;
+  movieId: string;
+  theaterId: string;
+  screenId: string;
+  selectedSeats: Array<{
+    seatNumber: string;
+    seatType: "VIP" | "Premium" | "Normal";
+    price: number;
+  }>;
+  totalSlotsRequested: number;
+  minRequiredRating?: number;
+}
 
 interface GroupInviteModalProps {
   isOpen: boolean;
@@ -11,7 +24,7 @@ interface GroupInviteModalProps {
   getSeatPrice: (seatId: string) => number;
   getSeatType: (seatId: string) => string;
   totalAmount: number;
-  onCreateInvite: (inviteData: inviteDto) => void;
+  onCreateInvite: (inviteData: GroupInviteModalPayload) => void;
   lexendMediumClassName: string;
   lexendSmallClassName: string;
   lexendBoldClassName: string;

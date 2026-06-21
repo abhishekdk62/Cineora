@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import Ticket from "../models/ticket.model";
 import { ITicketRepository } from "../interfaces/ticket.repository.interface";
 import { ITicket } from "../interfaces/ticket.model.interface";
@@ -12,7 +13,7 @@ export class TicketRepository implements ITicketRepository {
     } catch (error) {
       throw new Error(
         `Failed to create ticket: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -26,7 +27,7 @@ export class TicketRepository implements ITicketRepository {
     } catch (error) {
       throw new Error(
         `Failed to create bulk tickets: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -43,7 +44,7 @@ export class TicketRepository implements ITicketRepository {
     } catch (error) {
       throw new Error(
         `Failed to update ticket: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -62,7 +63,7 @@ export class TicketRepository implements ITicketRepository {
     } catch (error) {
       throw new Error(
         `Failed to find tickets by IDs: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -83,7 +84,7 @@ export class TicketRepository implements ITicketRepository {
     } catch (error) {
       throw new Error(
         `Failed to find tickets for cancellation: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -113,7 +114,7 @@ async markTicketAsUsed(ticketId: string): Promise<ITicket> {
   } catch (error) {
     throw new Error(
       `Failed to mark ticket as used: ${
-        error instanceof Error ? error.message : "Unknown error"
+        error instanceof Error ? getErrorMessage(error) : "Unknown error"
       }`
     );
   }
@@ -130,7 +131,7 @@ async findTicketByTicketId(ticketId: string): Promise<ITicket | null> {
   } catch (error) {
     throw new Error(
       `Failed to find ticket by ticket ID: ${
-        error instanceof Error ? error.message : "Unknown error"
+        error instanceof Error ? getErrorMessage(error) : "Unknown error"
       }`
     );
   }
@@ -144,7 +145,7 @@ async findTicketByTicketId(ticketId: string): Promise<ITicket | null> {
     } catch (error) {
       throw new Error(
         `Failed to delete ticket: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -158,7 +159,7 @@ async findTicketByTicketId(ticketId: string): Promise<ITicket | null> {
     } catch (error) {
       throw new Error(
         `Failed to find ticket by ID: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -171,7 +172,7 @@ async findTicketByTicketId(ticketId: string): Promise<ITicket | null> {
     } catch (error) {
       throw new Error(
         `Failed to find tickets by booking ID: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -183,7 +184,7 @@ async findTicketByTicketId(ticketId: string): Promise<ITicket | null> {
     } catch (error) {
       throw new Error(
         `Failed to find tickets by user ID: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -370,7 +371,7 @@ async findTicketByTicketId(ticketId: string): Promise<ITicket | null> {
   } catch (error) {
     throw new Error(
       `Failed to find paginated tickets by user ID: ${
-        error instanceof Error ? error.message : "Unknown error"
+        error instanceof Error ? getErrorMessage(error) : "Unknown error"
       }`
     );
   }
@@ -388,7 +389,7 @@ async findTicketByTicketId(ticketId: string): Promise<ITicket | null> {
     } catch (error) {
       throw new Error(
         `Failed to find upcoming tickets: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -400,7 +401,7 @@ async findTicketByTicketId(ticketId: string): Promise<ITicket | null> {
     } catch (error) {
       throw new Error(
         `Failed to find ticket history: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -415,7 +416,7 @@ async findTicketByTicketId(ticketId: string): Promise<ITicket | null> {
     } catch (error) {
       throw new Error(
         `Failed to validate ticket: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }

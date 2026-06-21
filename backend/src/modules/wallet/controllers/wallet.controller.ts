@@ -1,15 +1,17 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { Request, Response } from "express";
-import { IWalletTransactionService } from "../../../walletTransaction/interfaces/walletTransaction.service.interface";
-import { CreateWalletDto, CreditWalletDto, DebitWalletDto } from "../dto";
-import { StatusCodes } from "../../../../utils/statuscodes";
-import { WALLET_MESSAGES } from "../../../../utils/messages.constants";
-import { createResponse } from "../../../../utils/createResponse";
-import { IWallet } from "../../interfaces/wallet.model.interface";
 import { IWalletService } from "../interfaces/wallet.service.interface";
+import { IWalletTransactionService } from "../../walletTransaction/interfaces/walletTransaction.service.interface";
+import { CreateWalletDto, CreditWalletDto, DebitWalletDto } from "../dtos/dto";
+import { StatusCodes } from "../../../utils/statuscodes";
+import { WALLET_MESSAGES } from "../../../utils/messages.constants";
+import { createResponse } from "../../../utils/createResponse";
+import { IWallet } from "../interfaces/wallet.model.interface";
 
 interface AuthenticatedRequest extends Request {
   user?: { id: string; role?: string };
   owner?: { ownerId: string; role?: string };
+  admin?: { adminId: string; role?: string };
 }
 
 export class WalletController {
@@ -18,7 +20,7 @@ export class WalletController {
     private readonly walletTransactionService: IWalletTransactionService
   ) {}
 
-  async createWallet(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async createWallet(req: AuthenticatedRequest, res: Response) {
     try {
       const userId = req.user?.id;
       const { userModel } = req.body;
@@ -54,13 +56,8 @@ export class WalletController {
     }
   }
 
-  async getWalletBalance(
-    req: AuthenticatedRequest,
-    res: Response
-  ): Promise<void> {
+  async getWalletBalance(req: AuthenticatedRequest, res: Response) {
     try {
-      console.log("heheheh");
-
       const userInfo = this._extractUserInfo(req);
 
       if (!userInfo) {
@@ -88,7 +85,7 @@ export class WalletController {
     }
   }
 
-  async creditWallet(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async creditWallet(req: AuthenticatedRequest, res: Response) {
     try {
       const userId = req.user?.id;
       const { amount, userModel } = req.body;
@@ -125,10 +122,11 @@ export class WalletController {
     }
   }
 
-  async debitWallet(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async debitWallet(req: AuthenticatedRequest, res: Response) {
     try {
       const userId = req.user?.id;
       const { amount, userModel } = req.body;
+      const isBooking = req.body.isBooking;
 
       if (!userId) {
         res.status(StatusCodes.UNAUTHORIZED).json(
@@ -147,9 +145,29 @@ export class WalletController {
       };
 
       const result = await this.walletService.debitWallet(debitDto);
+      let walletTransactionDetails = null;
+      if (isBooking) {
+        const wallet = await this.walletService.getWalletDetails(userId, "User");
+
+        walletTransactionDetails =
+          await this.walletTransactionService.createWalletTransaction({
+            userId,
+            userModel: "User",
+            walletId: String(wallet.data._id),
+            type: "debit",
+            amount,
+            category: "booking",
+            description: `${amount} deducted from your wallet for booking`,
+          });
+      }
+
+      const response = {
+        ...result,
+        ...(walletTransactionDetails && { walletTransactionDetails }),
+      };
 
       if (result.success) {
-        res.status(StatusCodes.OK).json(result);
+        res.status(StatusCodes.OK).json(response);
       } else {
         res.status(StatusCodes.BAD_REQUEST).json(result);
       }
@@ -162,10 +180,7 @@ export class WalletController {
     }
   }
 
-  async handleWalletTransaction(
-    req: AuthenticatedRequest,
-    res: Response
-  ): Promise<void> {
+  async handleWalletTransaction(req: AuthenticatedRequest, res: Response) {
     try {
       const userInfo = this._extractUserInfo(req);
 
@@ -250,7 +265,7 @@ export class WalletController {
 
   private _extractUserInfo(
     req: AuthenticatedRequest
-  ): { userId: string; userModel: "User" | "Owner" } | null {
+  ): { userId: string; userModel: "User" | "Owner" | "Admin" } | null {
     if (req.user?.id) {
       return {
         userId: req.user.id,
@@ -267,7 +282,7 @@ export class WalletController {
     if (req.admin?.adminId) {
       return {
         userId: req.admin.adminId,
-        userModel: "Owner",
+        userModel: "Admin",
       };
     }
 
@@ -296,18 +311,18 @@ export class WalletController {
 
   private async _createWalletTransactionRecord(
     userId: string,
-    userModel: "User" | "Owner",
+    userModel: "User" | "Owner" | "Admin",
     walletData: IWallet,
     type: string,
     amount: number,
     description?: string
-  ): Promise<void> {
+  ) {
     try {
       const transactionResult =
         await this.walletTransactionService.createWalletTransaction({
           userId: userId,
           userModel: userModel,
-          walletId: walletData._id,
+          walletId: String(walletData._id),
           type: type as "credit" | "debit",
           amount: amount,
           category: type === "credit" ? "topup" : "withdrawal",
@@ -331,7 +346,7 @@ export class WalletController {
     defaultMessage: string
   ): void {
     const errorMessage =
-      error instanceof Error ? error.message : defaultMessage;
+      error instanceof Error ? getErrorMessage(error) : defaultMessage;
 
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
       createResponse({

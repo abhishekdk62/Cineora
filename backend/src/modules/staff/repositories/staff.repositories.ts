@@ -23,27 +23,42 @@ export class StaffRepository implements IStaffRepository {
   }
 
   async findAllPaginated(
-    page: number, 
-    limit: number, 
-    filters?: any
-  ): Promise<{
-    staffs: IStaff[];
-    totalCount: number;
-    totalPages: number;
-  }> {
+    page: number,
+    limit: number,
+    filters?: Record<string, unknown>
+  ): Promise<import("../../../types/pagination.types").ExtendedPaginatedResult<IStaff>> {
     const skip = (page - 1) * limit;
     const query = Staff.find(filters || {});
-    
-    const [staffs, totalCount] = await Promise.all([
+
+    const [staffs, total] = await Promise.all([
       query.skip(skip).limit(limit).populate("ownerId").populate("theaterId"),
-      Staff.countDocuments(filters || {})
+      Staff.countDocuments(filters || {}),
     ]);
 
     return {
-      staffs,
-      totalCount,
-      totalPages: Math.ceil(totalCount / limit)
+      data: staffs,
+      total,
+      totalPages: Math.ceil(total / limit),
     };
+  }
+
+  async updateRefreshToken(
+    id: string,
+    hashedRefreshToken: string
+  ): Promise<IStaff | null> {
+    return await Staff.findByIdAndUpdate(
+      id,
+      { refreshToken: hashedRefreshToken },
+      { new: true }
+    );
+  }
+
+  async clearRefreshToken(id: string): Promise<IStaff | null> {
+    return await Staff.findByIdAndUpdate(
+      id,
+      { $unset: { refreshToken: 1 } },
+      { new: true }
+    );
   }
 
   async updateById(id: string, updateData: Partial<IStaff>): Promise<IStaff | null> {

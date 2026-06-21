@@ -9,10 +9,8 @@ import { PerformanceMetricsSection } from './PerformanceMetricsSection';
 import { TimeRangeFilter } from './TimeRangeFilter';
 import { FormatPieChart, RevenueAreaChart } from './Charts';
 import { CustomerInsightsSection } from './CustomerInsightsSection';
-
-
-const lexendMedium = { fontFamily: 'Lexend', fontWeight: '500' };
-const lexendSmall = { fontFamily: 'Lexend', fontWeight: '400' };
+import { AnalyticsSummaryDto } from '@/app/others/dtos/analytics.dto';
+import { lexendMedium, lexendSmall } from '@/app/others/Utils/fonts';
 
 type ActiveTab = 'overview' | 'revenue' | 'performance' | 'movies' | 'customers' | 'financial' | 'operational';
 
@@ -27,8 +25,8 @@ const AnalyticsManager: React.FC = () => {
     const date = new Date();
     return date.toISOString().split('T')[0];
   });
-  const [timeframe, setTimeframe] = useState<string>('monthly')
-  const [summaryData, setSummaryData] = useState<string>(null);
+  const [timeframe, setTimeframe] = useState<'daily' | 'weekly' | 'monthly' | 'quarterly' | 'custom'>('monthly');
+  const [summaryData, setSummaryData] = useState<AnalyticsSummaryDto | null>(null);
 
   const dateRange = {
     startDate,
@@ -43,7 +41,7 @@ const AnalyticsManager: React.FC = () => {
   const fetchSummaryData = async () => {
     try {
       const response = await getAnalyticsSummaryApi({ startDate, endDate });
-      setSummaryData(response.data);
+      setSummaryData(response.data ?? null);
     } catch (error) {
       console.error('Error fetching summary data:', error);
     }
@@ -88,10 +86,10 @@ const AnalyticsManager: React.FC = () => {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className={`text-3xl text-white mb-2`} style={lexendMedium}>
+          <h1 className={`${lexendMedium.className} text-3xl text-white mb-2`}>
             Analytics Dashboard
           </h1>
-          <p className={`text-gray-400`} style={lexendSmall}>
+          <p className={`${lexendSmall.className} text-gray-400`}>
             Comprehensive insights into your theater's performance
           </p>
         </div>
@@ -117,8 +115,8 @@ const AnalyticsManager: React.FC = () => {
                   <DollarSign className="w-6 h-6 text-green-400" />
                 </div>
               </div>
-              <h3 className={`text-gray-400 text-sm mb-1`} style={lexendSmall}>Total Revenue</h3>
-              <p className={`text-2xl text-white font-semibold`} style={lexendMedium}>
+              <h3 className={`${lexendSmall.className} text-gray-400 text-sm mb-1`}>Total Revenue</h3>
+              <p className={`${lexendMedium.className} text-2xl text-white font-semibold`}>
                 ₹{summaryData.totalRevenue.toLocaleString('en-IN')}
               </p>
             </div>
@@ -129,8 +127,8 @@ const AnalyticsManager: React.FC = () => {
                   <Calendar className="w-6 h-6 text-blue-400" />
                 </div>
               </div>
-              <h3 className={`text-gray-400 text-sm mb-1`} style={lexendSmall}>Total Bookings</h3>
-              <p className={`text-2xl text-white font-semibold`} style={lexendMedium}>
+              <h3 className={`${lexendSmall.className} text-gray-400 text-sm mb-1`}>Total Bookings</h3>
+              <p className={`${lexendMedium.className} text-2xl text-white font-semibold`}>
                 {summaryData.totalBookings.toLocaleString()}
               </p>
             </div>
@@ -141,8 +139,8 @@ const AnalyticsManager: React.FC = () => {
                   <TrendingUp className="w-6 h-6 text-purple-400" />
                 </div>
               </div>
-              <h3 className={`text-gray-400 text-sm mb-1`} style={lexendSmall}>Avg Occupancy</h3>
-              <p className={`text-2xl text-white font-semibold`} style={lexendMedium}>
+              <h3 className={`${lexendSmall.className} text-gray-400 text-sm mb-1`}>Avg Occupancy</h3>
+              <p className={`${lexendMedium.className} text-2xl text-white font-semibold`}>
                 {summaryData.avgOccupancy.toFixed(1)}%
               </p>
             </div>
@@ -153,8 +151,8 @@ const AnalyticsManager: React.FC = () => {
                   <Users className="w-6 h-6 text-yellow-400" />
                 </div>
               </div>
-              <h3 className={`text-gray-400 text-sm mb-1`} style={lexendSmall}>Top Theater</h3>
-              <p className={`text-lg text-white font-semibold`} style={lexendMedium}>
+              <h3 className={`${lexendSmall.className} text-gray-400 text-sm mb-1`}>Top Theater</h3>
+              <p className={`${lexendMedium.className} text-lg text-white font-semibold`}>
                 {summaryData.topPerformingTheater}
               </p>
             </div>
@@ -176,7 +174,7 @@ const AnalyticsManager: React.FC = () => {
                     }`}
                 >
                   <Icon className="w-4 h-4" />
-                  <span className={`text-sm font-medium`} style={lexendMedium}>
+                  <span className={`${lexendMedium.className} text-sm font-medium`}>
                     {tab.label}
                   </span>
                 </button>

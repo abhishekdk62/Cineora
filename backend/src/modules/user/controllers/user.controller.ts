@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { Request, Response, NextFunction } from "express";
 import { createResponse } from "../../../utils/createResponse";
 import {
@@ -42,7 +43,7 @@ export class UserController {
     private readonly walletService: IWalletService
   ) {}
 
-  async signup(req: Request, res: Response): Promise<void> {
+  async signup(req: Request, res: Response) {
     try {
       const userData: SignupDto = req.body;
       const validationError = this._validateSignupData(userData);
@@ -73,7 +74,7 @@ export class UserController {
     }
   }
 
-  async verifyOTP(req: Request, res: Response): Promise<void> {
+  async verifyOTP(req: Request, res: Response) {
     try {
       const verifyOTPDto: VerifyOTPDto = {
         email: String(req.body?.email || "")
@@ -126,7 +127,7 @@ export class UserController {
     }
   }
 
-  async resendOTP(req: Request, res: Response): Promise<void> {
+  async resendOTP(req: Request, res: Response) {
     try {
       const resendOTPDto: ResendOTPDto = req.body;
 
@@ -160,7 +161,7 @@ export class UserController {
   async getUserProfile(
     req: AuthenticatedRequest,
     res: Response
-  ): Promise<void> {
+  ) {
     try {
       const userId = this._extractUserId(req);
 
@@ -191,7 +192,7 @@ export class UserController {
     }
   }
 
-  async refreshToken(req: Request, res: Response): Promise<void> {
+  async refreshToken(req: Request, res: Response) {
     try {
       const refreshTokenDto: RefreshTokenDto = {
         refreshToken: req.cookies?.refreshToken,
@@ -248,7 +249,7 @@ export class UserController {
   async updateUserProfile(
     req: AuthenticatedRequest,
     res: Response
-  ): Promise<void> {
+  ) {
     try {
       const userId = this._extractUserId(req);
       const updateData: UpdateProfileDto = req.body;
@@ -286,7 +287,7 @@ export class UserController {
   async updateUserLocation(
     req: AuthenticatedRequest,
     res: Response
-  ): Promise<void> {
+  ) {
     try {
       const userId = this._extractUserId(req);
       const { latitude, longitude } = req.body;
@@ -336,7 +337,7 @@ export class UserController {
     }
   }
 
-  async getNearbyUsers(req: Request, res: Response): Promise<void> {
+  async getNearbyUsers(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const { maxDistance } = req.query;
@@ -369,7 +370,7 @@ export class UserController {
     }
   }
 
-  async resetPassword(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async resetPassword(req: AuthenticatedRequest, res: Response) {
     try {
       const userId = this._extractUserId(req);
       const changePasswordDto: ChangePasswordDto = {
@@ -420,7 +421,7 @@ export class UserController {
     }
   }
 
-  async changeEmail(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async changeEmail(req: AuthenticatedRequest, res: Response) {
     try {
       const userId = this._extractUserId(req);
       const sendEmailOTPDto: SendEmailChangeOTPDto = {
@@ -468,7 +469,7 @@ export class UserController {
   async verifyChangeEmailOtp(
     req: AuthenticatedRequest,
     res: Response
-  ): Promise<void> {
+  ) {
     try {
       const userId = this._extractUserId(req);
       const verifyEmailOTPDto: VerifyEmailChangeOTPDto = req.body;
@@ -521,7 +522,7 @@ export class UserController {
     }
   }
 
-  async getUserCounts(req: Request, res: Response): Promise<void> {
+  async getUserCounts(req: Request, res: Response) {
     try {
       const result = await this.userService.getUserCounts();
 
@@ -540,7 +541,7 @@ export class UserController {
     }
   }
 
-  async getUsers(req: Request, res: Response): Promise<void> {
+  async getUsers(req: Request, res: Response) {
     try {
       const filters: GetUsersFilterDto = req.query;
       const result = await this.userService.getUsers(filters);
@@ -560,7 +561,7 @@ export class UserController {
     }
   }
 
-  async toggleUserStatus(req: Request, res: Response): Promise<void> {
+  async toggleUserStatus(req: Request, res: Response) {
     try {
       const { id } = req.params;
 
@@ -591,7 +592,7 @@ export class UserController {
     }
   }
 
-  async getUserDetails(req: Request, res: Response): Promise<void> {
+  async getUserDetails(req: Request, res: Response) {
     try {
       const { id } = req.params;
 
@@ -706,7 +707,7 @@ export class UserController {
     };
   }
 
-  private async _createUserWallet(userId: string | undefined): Promise<void> {
+  private async _createUserWallet(userId: string | undefined) {
     if (!userId) return;
 
     try {
@@ -730,7 +731,7 @@ export class UserController {
     res: Response,
     user: IUser,
     resultData: any
-  ): Promise<void> {
+  ) {
     try {
       const { accessToken, refreshToken } = this.authService.generateTokenPair(
         user,
@@ -808,7 +809,7 @@ export class UserController {
     defaultMessage: string
   ): void {
     const errorMessage =
-      error instanceof Error ? error.message : defaultMessage;
+      error instanceof Error ? getErrorMessage(error) : defaultMessage;
 
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
       createResponse({

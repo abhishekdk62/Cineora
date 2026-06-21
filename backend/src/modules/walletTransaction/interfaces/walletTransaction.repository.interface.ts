@@ -2,7 +2,7 @@ import { IWalletTransaction } from './walletTransaction.model.interface';
 
 export interface IReadWalletTransactionRepository {
   findWalletTransactionById(transactionId: string): Promise<IWalletTransaction | null>;
-   findRecentWalletTransaction(userId: string);
+   findRecentWalletTransaction(userId: string): Promise<IWalletTransaction | null>;
   findWalletTransactionByTransactionId(transactionId: string): Promise<IWalletTransaction | null>;
   findWalletTransactionsByUserId(
     userId: string, 

@@ -81,6 +81,7 @@ export interface PartialUserProfile {
 
 export interface OwnerFilters extends PaginationQuery {
   search?: string;
+  status?: 'active' | 'inactive';
   isActive?: boolean;
   isVerified?: boolean;
   city?: string;
@@ -185,12 +186,20 @@ export interface OwnerCountsResponseDto {
   rejectedRequests: number;
 }
 
-export type GetOwnersResponseDto = ApiResponse<OwnerResponseDto[]> & {
+export interface OwnersPaginatedData {
+  owners: OwnerResponseDto[];
+}
+
+export interface OwnerRequestsPaginatedData {
+  requests: OwnerRequestResponseDto[];
+}
+
+export type GetOwnersResponseDto = ApiResponse<OwnersPaginatedData> & {
   owners?: OwnerResponseDto[];
 };
 
 
-export interface GetOwnerRequestsResponseDto extends ApiResponse<OwnerRequestResponseDto[]> {}
+export interface GetOwnerRequestsResponseDto extends ApiResponse<OwnerRequestsPaginatedData> {}
 export interface GetOwnerCountsResponseDto extends ApiResponse<OwnerCountsResponseDto> {}
 export interface AcceptOwnerRequestResponseDto extends ApiResponse<OwnerRequestResponseDto> {}
 export interface RejectOwnerRequestResponseDto extends ApiResponse<OwnerRequestResponseDto> {}

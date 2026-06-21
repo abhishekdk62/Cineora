@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import Orb from "@/app/others/components/ReactBits/Orb";
+import DynamicOrb from "@/app/others/components/ReactBits/DynamicOrb";
 import { Footer, NavBar } from "@/app/others/components/Home";
 import RouteGuard from "@/app/others/components/Auth/common/RouteGuard";
 import { getMovieById, getMoviesByTheater } from "@/app/others/services/userServices/movieServices";
@@ -47,21 +47,25 @@ export default function BookTicketsPage() {
         const dateString = formatDateForAPI(selectedDate);
         if (detectedFlow === 'movie-first') {
           const movieResponse = await getMovieById(params.id as string);
-          setMovie(movieResponse.data);
+          if (movieResponse.data) {
+            setMovie(movieResponse.data as unknown as UnifiedBookingEntity);
+          }
           const theatersResponse = await getTheatersByMovie(params.id as string, dateString);
-          setTheaters(theatersResponse.data || []);
-          console.log('SHOWTIME DS theaterId', theatersResponse.data[0]);
+          setTheaters((theatersResponse.data ?? []) as unknown as UnifiedBookingEntity[]);
+          console.log('SHOWTIME DS theaterId', theatersResponse.data?.[0]);
 
 
         } else if (detectedFlow === 'theater-first') {
           const theaterResponse = await getTheaterById(params.id as string);
 
-          setTheater(theaterResponse.data);
+          if (theaterResponse.data) {
+            setTheater(theaterResponse.data as unknown as UnifiedBookingEntity);
+          }
 
           const moviesResponse = await getMoviesByTheater(params.id as string, dateString);
-          console.log('SHOWTIME DS BY movieId', moviesResponse.data[0]);
+          console.log('SHOWTIME DS BY movieId', moviesResponse.data?.[0]);
 
-          setMovies(moviesResponse.data || []);
+          setMovies((moviesResponse.data ?? []) as unknown as UnifiedBookingEntity[]);
         }
 
       } catch (error) {
@@ -85,10 +89,10 @@ export default function BookTicketsPage() {
     setSelectedDate(date);
   };
   return (
-    <RouteGuard allowUnauthenticated={true} excludedRoles={['admin,owner']}>
+    <RouteGuard allowUnauthenticated={true} excludedRoles={['admin', 'owner']}>
       <div className="relative min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 overflow-hidden">
         <div className="fixed inset-0 z-0 pointer-events-none">
-          <Orb hoverIntensity={0.5} rotateOnHover={true} hue={0} forceHoverState={false} />
+          <DynamicOrb hoverIntensity={0.5} rotateOnHover={true} hue={0} forceHoverState={false} />
         </div>
 
         <div className="relative z-10">

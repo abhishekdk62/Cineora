@@ -1,13 +1,21 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import * as bcrypt from "bcryptjs";
 import * as jwt from "jsonwebtoken";
-import { UserRepository } from "../../user/repositories/user.repository";
-import { AdminRepository } from "../../admin/repositories/admin.repository";
-import { OwnerRepository } from "../../owner/repositories/owner.repository";
-import { OTPRepository } from "../../otp/repositories/otp.repository";
-import { EmailService } from "../../../services/email.service";
+import { IUserRepository } from "../../user/interfaces/user.repository.interface";
+import { IAdminRepository } from "../../admin/interfaces/admin.repository.interface";
+import { IOwnerRepository } from "../../owner/interfaces/owner.repository.interface";
+import { IOTPRepository } from "../../otp/interfaces/otp.repository.interface";
+import { IEmailService } from "../../../services/email.service";
+import { IStaffRepository } from "../../staff/interfaces/staff.repository.interface";
+import { RoleLoginChain } from "./handlers/role-login.chain";
+import { AdminLoginHandler } from "./handlers/admin-login.handler";
+import { OwnerLoginHandler } from "./handlers/owner-login.handler";
+import { StaffLoginHandler } from "./handlers/staff-login.handler";
+import { UserLoginHandler } from "./handlers/user-login.handler";
+import { AuthLoginContext, AuthRole } from "./handlers/auth-login.context";
 import { config } from "../../../config";
 import { OAuth2Client } from "google-auth-library";
-import { OwnerRequestRepository } from "../../owner/repositories/ownerRequest.repository";
+import { IOwnerRequestRepository } from "../../owner/interfaces/owner.repository.interface";
 import { IAuthService } from "../interfaces/auth.service.interface";
 import { ServiceResponse } from "../../../interfaces/interface";
 import {
@@ -20,14 +28,30 @@ import {
   RefreshTokenResponseDto,
   ResetPasswordWithOtpResponseDto,
   SendPasswordResetOtpResponseDto,
+  JwtPayloadDto,
   TokenPairDto,
   UserDataDto,
   UserLookupResponseDto,
   VerifyPasswordResetOtpResponseDto,
 } from "../dtos/dtos";
-import { Staff } from "../../staff/model/staff.model";
 import { UserResponseDto } from "../../user/dtos/dto";
-import { UserInfo } from "os";
+
+type AuthEntity = {
+  _id?: unknown;
+  id?: string;
+  email: string;
+  role?: string;
+  username?: string;
+  ownerName?: string;
+  firstName?: string;
+  lastName?: string;
+  avatar?: string;
+  isVerified?: boolean;
+  isActive?: boolean;
+  xpPoints?: number;
+  lastActive?: string | Date;
+  toObject?: () => Record<string, unknown>;
+};
 // import { RedisService } from "../../../services/redis.service";
 interface LoginResponse {
   success: boolean;
@@ -43,17 +67,25 @@ interface LoginResponse {
 
 export class AuthService implements IAuthService {
   private _googleClient: OAuth2Client;
+  private readonly _loginChain: RoleLoginChain;
 
   constructor(
-    private readonly _userRepo: UserRepository,
-    private readonly _adminRepo: AdminRepository,
-    private readonly _ownerRepo: OwnerRepository,
-    private readonly _otpRepo: OTPRepository,
-    private readonly _emailService: EmailService,
-    private readonly _ownerRequestRepo: OwnerRequestRepository,
+    private readonly _userRepo: IUserRepository,
+    private readonly _adminRepo: IAdminRepository,
+    private readonly _ownerRepo: IOwnerRepository,
+    private readonly _otpRepo: IOTPRepository,
+    private readonly _emailService: IEmailService,
+    private readonly _ownerRequestRepo: IOwnerRequestRepository,
+    private readonly _staffRepo: IStaffRepository
     // private readonly _redisService?: RedisService
   ) {
     this._googleClient = new OAuth2Client(config.googleClientId);
+    this._loginChain = new RoleLoginChain([
+      new AdminLoginHandler(this._adminRepo),
+      new OwnerLoginHandler(this._ownerRepo),
+      new StaffLoginHandler(this._staffRepo),
+      new UserLoginHandler(this._userRepo),
+    ]);
   }
 
   private _generateOTP(): string {
@@ -62,212 +94,56 @@ export class AuthService implements IAuthService {
 
   async login(email: string, password: string): Promise<LoginResponseDto> {
     try {
-      const admin = await this._adminRepo.findByEmail(email);
-      if (admin) {
-        const isValidPassword = await bcrypt.compare(password, admin.password);
-        if (!isValidPassword) {
-          return { success: false, message: "Invalid Password" };
-        }
+      const context: AuthLoginContext = {
+        issueTokens: async (entity, role, userPayload, message, redirectTo) => {
+          const { accessToken, refreshToken } = this.generateTokenPair(entity, role);
+          const userId = String(entity.id ?? entity._id);
+          await this.storeRefreshToken(userId, refreshToken, role as AuthRole);
 
-        const { accessToken, refreshToken } = this.generateTokenPair(
-          admin,
-          "admin"
-        );
-
-        await this.storeRefreshToken(
-          admin._id as string,
-          refreshToken,
-          "admin"
-        );
-
-        return {
-          success: true,
-          message: "Admin login successful",
-          data: {
-            user: {
-              id: admin._id as string,
-              email: admin.email,
-              role: "admin",
+          return {
+            success: true,
+            message,
+            data: {
+              user: userPayload as unknown as UserDataDto,
+              accessToken,
+              refreshToken,
+              role,
+              redirectTo,
             },
-            accessToken,
-            refreshToken,
-            role: "admin",
-            redirectTo: "/admin/dashboard",
-          },
-        };
-      }
-
-      const owner = await this._ownerRepo.findByEmail(email);
-      if (owner) {
-        const isValidPassword = await bcrypt.compare(password, owner.password);
-
-        if (!isValidPassword) {
-          return { success: false, message: "Invalid Password" };
-        }
-
-        if (!owner.isActive) {
-          return {
-            success: false,
-            message: "Your account has been blocked. Please contact support.",
           };
-        }
-
-        if (!owner.isVerified) {
-          return {
-            success: false,
-            message: "Your account is not verified yet.",
-          };
-        }
-
-        const { accessToken, refreshToken } = this.generateTokenPair(
-          owner,
-          "owner"
-        );
-
-        await this.storeRefreshToken(owner._id, refreshToken, "owner");
-
-        await this._ownerRepo.updateLastLogin(owner._id);
-
-        return {
-          success: true,
-          message: "Owner login successful",
-          data: {
-            user: {
-              id: owner._id,
-              ownerName: owner.ownerName,
-              email: owner.email,
-              phone: owner.phone,
-              isVerified: owner.isVerified,
-              isActive: owner.isActive,
-              role: "owner",
-            },
-            accessToken,
-            refreshToken,
-            role: "owner",
-            redirectTo: "/owner/dashboard",
-          },
-        };
-      }
-      const staff = await Staff.findOne({ email });
-      if (staff) {
-        const isValidPassword = await bcrypt.compare(password, staff.password);
-
-        if (!isValidPassword) {
-          return { success: false, message: "Invalid Password" };
-        }
-
-        if (!staff.isActive) {
-          return {
-            success: false,
-            message: "Your account has been blocked. Please contact support.",
-          };
-        }
-
-        const { accessToken, refreshToken } = this.generateTokenPair(
-          staff,
-          "staff"
-        );
-
-        await this.storeRefreshToken(
-          staff._id as string,
-          refreshToken,
-          "staff"
-        );
-
-        return {
-          success: true,
-          message: "Staff login successful",
-          data: {
-            user: {
-              id: staff._id as string,
-              firstName: staff.firstName,
-              lastName: staff.lastName,
-              email: staff.email,
-              role: "staff",
-            },
-            accessToken,
-            refreshToken,
-            role: "staff",
-            redirectTo: "/staff/dashboard",
-          },
-        };
-      }
-      const user = await this._userRepo.findByEmail(email);
-      if (user) {
-        const isValidPassword = await bcrypt.compare(password, user.password);
-
-        if (!isValidPassword) {
-          return { success: false, message: "Invalid Password" };
-        }
-
-        if (!user.isVerified) {
-          return {
-            success: false,
-            message: "Please verify your email before logging in",
-          };
-        }
-
-        if (!user.isActive) {
-          return {
-            success: false,
-            message: "Your account has been blocked. Please contact support.",
-          };
-        }
-
-        const { accessToken, refreshToken } = this.generateTokenPair(
-          user,
-          "user"
-        );
-
-        await this.storeRefreshToken(user._id, refreshToken, "user");
-
-        await this._userRepo.updateUserLastActive(user._id);
-
-        return {
-          success: true,
-          message: "Login successful",
-          data: {
-            user: {
-              id: user._id,
-              username: user.username,
-              email: user.email,
-              firstName: user.firstName,
-              lastName: user.lastName,
-              isVerified: user.isVerified,
-              xpPoints: user.xpPoints,
-              role: "user",
-            },
-            accessToken,
-            refreshToken,
-            role: "user",
-            redirectTo: "/dashboard",
-          },
-        };
-      }
-
-      return {
-        success: false,
-        message: "Account not found please signup",
+        },
+        onOwnerLogin: async (ownerId) => {
+          await this._ownerRepo.updateLastLogin(ownerId);
+        },
+        onUserLogin: async (userId) => {
+          await this._userRepo.updateUserLastActive(userId);
+        },
       };
+
+      return await this._loginChain.login(email, password, context);
     } catch (error) {
       console.error("Login error:", error);
       return { success: false, message: "Something went wrong during login" };
     }
   }
 
-  generateTokenPair(user: UserDataDto, role: string): TokenPairDto {
-    let payload = {
+  generateTokenPair(
+    user: { email: string; id?: string; _id?: unknown },
+    role: string
+  ): TokenPairDto {
+    const userId = String(user.id ?? user._id);
+    const payload: JwtPayloadDto = {
       email: user.email,
       role,
     };
     if (role === "admin") {
-      payload.adminId = user._id;
+      payload.adminId = userId;
     } else if (role === "owner") {
-      payload.ownerId = user._id;
+      payload.ownerId = userId;
     } else if (role === "user") {
-      payload.userId = user._id;
+      payload.userId = userId;
     } else if (role === "staff") {
-      payload.staffId = user._id;
+      payload.staffId = userId;
     }
 
     const accessToken = jwt.sign(payload, config.jwtAccessSecret, {
@@ -295,10 +171,10 @@ export class AuthService implements IAuthService {
           user = await this._userRepo.findById(userId);
           if (user) {
             return {
-              _id: user._id,
+              _id: String(user._id),
               email: user.email,
               role: "user",
-              name: user.name,
+              name: user.username || user.firstName || user.email,
               ownerName: null,
             };
           }
@@ -308,7 +184,7 @@ export class AuthService implements IAuthService {
           user = await this._ownerRepo.findById(userId);
           if (user) {
             return {
-              _id: user._id,
+              _id: String(user._id),
               email: user.email,
               role: "owner",
               name: user.ownerName,
@@ -321,19 +197,19 @@ export class AuthService implements IAuthService {
           user = await this._adminRepo.findById(userId);
           if (user) {
             return {
-              _id: user._id,
+              _id: String(user._id),
               email: user.email,
               role: "admin",
-              name: user.adminName || user.name,
+              name: user.email,
               ownerName: null,
             };
           }
           break;
         case "staff":
-          user = await Staff.findById(userId);
+          user = await this._staffRepo.findById(userId);
           if (user) {
             return {
-              _id: user._id,
+              _id: String(user._id),
               email: user.email,
               role: "staff",
               name: `${user.firstName} ${user.lastName}`,
@@ -357,7 +233,7 @@ export class AuthService implements IAuthService {
     userId: string,
     refreshToken: string,
     userType: "user" | "admin" | "owner" | "staff"
-  ): Promise<void> {
+  ) {
     const hashedToken = await bcrypt.hash(refreshToken, 10);
 
     if (userType === "user") {
@@ -367,7 +243,7 @@ export class AuthService implements IAuthService {
     } else if (userType === "admin") {
       await this._adminRepo.updateRefreshToken(userId, hashedToken);
     } else if (userType === "staff") {
-      await Staff.findByIdAndUpdate(userId, { refreshToken: hashedToken });
+      await this._staffRepo.updateRefreshToken(userId, hashedToken);
     }
   }
 
@@ -375,7 +251,7 @@ export class AuthService implements IAuthService {
     email: string
   ): Promise<SendPasswordResetOtpResponseDto> {
     try {
-      let user: UserDataDto = null;
+      let user: AuthEntity | null = null;
       let userName = "User";
       let userType = "user";
       let otpType = "password_reset";
@@ -441,9 +317,10 @@ export class AuthService implements IAuthService {
         expiresAt,
         isUsed: false,
         userData: {
-          userId: user._id.toString(),
+          userId: user._id?.toString() ?? "",
           userType: userType,
           userName: userName,
+          email: user.email,
         },
       });
 
@@ -693,7 +570,8 @@ export class AuthService implements IAuthService {
       };
     } catch (error) {
       console.error("Google auth error:", error);
-      const errMessage = error?.message || "Something went wrong";
+      const errMessage =
+        error instanceof Error ? getErrorMessage(error) : "Something went wrong";
 
       return {
         success: false,
@@ -713,7 +591,10 @@ export class AuthService implements IAuthService {
       //   return { success: false, message: "Token has been revoked" };
       // }
 
-      const decoded = jwt.verify(refreshToken, config.jwtRefreshSecret);
+      const decoded = jwt.verify(
+        refreshToken,
+        config.jwtRefreshSecret
+      ) as JwtPayloadDto;
 
       if (decoded.tokenType !== "refresh") {
         return { success: false, message: "Invalid token type" };
@@ -729,7 +610,7 @@ export class AuthService implements IAuthService {
       } else if (userType === "admin") {
         user = await this._adminRepo.findById(decoded.adminId);
       } else if (userType === "staff") {
-        user = await Staff.findById(decoded.staffId);
+        user = await this._staffRepo.findById(decoded.staffId);
       }
 
       if (!user || !user.refreshToken) {
@@ -746,9 +627,9 @@ export class AuthService implements IAuthService {
       }
 
       const { accessToken, refreshToken: newRefreshToken } =
-        this.generateTokenPair(user, userType);
+        this.generateTokenPair(user, userType as "user" | "admin" | "owner" | "staff");
 
-      await this.storeRefreshToken(user._id, newRefreshToken, userType);
+      await this.storeRefreshToken(String(user._id), newRefreshToken, userType as "user" | "admin" | "owner" | "staff");
 
       return {
         success: true,
@@ -757,7 +638,7 @@ export class AuthService implements IAuthService {
           accessToken,
           refreshToken: newRefreshToken,
           user: {
-            id: user._id,
+            id: String(user._id),
             email: user.email,
             role: userType,
           },
@@ -771,7 +652,7 @@ export class AuthService implements IAuthService {
 
   private async _createGoogleUser(
     googleUserData: GoogleUserDataDto
-  ): Promise<UserResponseDto> {
+  ): Promise<import("../../user/interfaces/user.model.interface").IUser> {
     try {
       const existingUser = await this._userRepo.findByEmail(
         googleUserData.email
@@ -823,9 +704,9 @@ export class AuthService implements IAuthService {
   }
 
   private async _updateExistingGoogleUser(
-    user,
+    user: import("../../user/interfaces/user.model.interface").IUser,
     googleUserData: GoogleUserDataDto
-  ): Promise<UserResponseDto> {
+  ): Promise<import("../../user/interfaces/user.model.interface").IUser> {
     try {
       if (!user.googleId) {
         const updatedUser = await this._userRepo.linkGoogleAccount(
@@ -870,22 +751,22 @@ export class AuthService implements IAuthService {
     }
   }
 
-  private _sanitizeUserData(user: UserInfo): UserDataDto {
-    const { password, __v, ...sanitizedUser } = user.toObject
+  private _sanitizeUserData(user: AuthEntity): UserDataDto {
+    const sanitizedUser = user.toObject
       ? user.toObject()
-      : user;
+      : (user as Record<string, unknown>);
 
     return {
-      id: sanitizedUser._id,
-      email: sanitizedUser.email,
-      username: sanitizedUser.username,
-      firstName: sanitizedUser.firstName,
-      lastName: sanitizedUser.lastName,
-      avatar: sanitizedUser.avatar,
-      isVerified: sanitizedUser.isVerified,
-      xpPoints: sanitizedUser.xpPoints,
-      role: sanitizedUser.role || "user",
-      lastActive: sanitizedUser.lastActive,
+      id: String(sanitizedUser._id ?? sanitizedUser.id ?? ""),
+      email: String(sanitizedUser.email),
+      username: sanitizedUser.username as string | undefined,
+      firstName: sanitizedUser.firstName as string | undefined,
+      lastName: sanitizedUser.lastName as string | undefined,
+      avatar: sanitizedUser.avatar as string | undefined,
+      isVerified: sanitizedUser.isVerified as boolean | undefined,
+      xpPoints: sanitizedUser.xpPoints as number | undefined,
+      role: String(sanitizedUser.role ?? "user"),
+      lastActive: sanitizedUser.lastActive as string | undefined,
     };
   }
 
@@ -906,7 +787,7 @@ export class AuthService implements IAuthService {
       } else if (userType === "admin") {
         await this._adminRepo.clearRefreshToken(userId);
       } else if (userType === "staff") {
-        await Staff.findByIdAndUpdate(userId, { refreshToken: null });
+        await this._staffRepo.clearRefreshToken(userId);
       }
 
       return { success: true, message: "Logged out successfully" };
@@ -948,7 +829,7 @@ export class AuthService implements IAuthService {
     }
   }
 
-  private async _sendAccountLinkNotification(email: string): Promise<void> {
+  private async _sendAccountLinkNotification(email: string) {
     try {
       const emailContent = {
         to: email,

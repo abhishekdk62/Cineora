@@ -1,3 +1,4 @@
+import type { NextFontInstance } from '@/app/others/types';
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -44,8 +45,8 @@ interface TimeSlotChartData {
 
 interface ChartProps {
   dateRange: AnalyticsQueryDto;
-  lexendMedium: string;
-  lexendSmall: string;
+  lexendMedium: NextFontInstance;
+  lexendSmall: NextFontInstance;
 }
 
 export const RevenueAreaChart: React.FC<ChartProps> = ({ dateRange, lexendMedium, lexendSmall }) => {
@@ -58,7 +59,7 @@ export const RevenueAreaChart: React.FC<ChartProps> = ({ dateRange, lexendMedium
       try {
         const response = await getMonthlyRevenueTrendsApi({months:6});
         if (response?.data) {
-          const chartData: RevenueChartData[] = response.data.map((item: string) => ({
+          const chartData: RevenueChartData[] = response.data.map((item) => ({
             name: `${item.period.month}/${item.period.year}`,
             revenue: item.totalRevenue || 0,
             bookings: item.totalBookings || 0
@@ -89,7 +90,7 @@ export const RevenueAreaChart: React.FC<ChartProps> = ({ dateRange, lexendMedium
 
   return (
     <div className="bg-black/90 backdrop-blur-sm border border-gray-500/30 rounded-2xl p-6">
-      <h3 className={`text-lg text-white mb-4`} style={lexendMedium}>
+      <h3 className={`text-lg text-white mb-4`} style={lexendMedium.style}>
         Monthly Revenue Trends
       </h3>
       <ResponsiveContainer width="100%" height={300}>
@@ -144,7 +145,7 @@ export const FormatPieChart: React.FC<ChartProps> = ({ dateRange, lexendMedium, 
       try {
         const response = await getFormatPerformanceApi(dateRange);
         if (response?.data) {
-          const chartData: FormatChartData[] = response.data.map((item: string) => ({
+          const chartData: FormatChartData[] = response.data.map((item) => ({
             name: item.format || 'Unknown',
             value: item.totalRevenue || 0,
             percentage: item.marketShare || 0
@@ -164,7 +165,7 @@ export const FormatPieChart: React.FC<ChartProps> = ({ dateRange, lexendMedium, 
     }
   }, [dateRange]);
 
-  const renderLabel = (props: string) => {
+  const renderLabel = (props: { name?: string; percent?: number }) => {
     const { name, percent } = props; 
     if (!name || percent === undefined) return '';
     return `${name}: ${(percent * 100).toFixed(1)}%`;
@@ -183,7 +184,7 @@ export const FormatPieChart: React.FC<ChartProps> = ({ dateRange, lexendMedium, 
 
   return (
     <div className="bg-black/90 backdrop-blur-sm border border-gray-500/30 rounded-2xl p-6">
-      <h3 className={`text-lg text-white mb-4`} style={lexendMedium}>
+      <h3 className={`text-lg text-white mb-4`} style={lexendMedium.style}>
         Revenue by Format
       </h3>
       <ResponsiveContainer width="100%" height={300}>
@@ -228,7 +229,7 @@ export const TimeSlotBarChart: React.FC<ChartProps> = ({ dateRange, lexendMedium
       try {
         const response = await getTimeSlotPerformanceApi(dateRange);
         if (response?.data) {
-          const chartData: TimeSlotChartData[] = response.data.map((item: string) => ({
+          const chartData: TimeSlotChartData[] = response.data.map((item) => ({
             timeSlot: item.timeSlot || '',
             revenue: item.totalRevenue || 0,
             occupancy: item.avgOccupancy || 0
@@ -261,7 +262,7 @@ export const TimeSlotBarChart: React.FC<ChartProps> = ({ dateRange, lexendMedium
 
   return (
     <div className="bg-black/90 backdrop-blur-sm border border-gray-500/30 rounded-2xl p-6">
-      <h3 className={`text-lg text-white mb-4`} style={lexendMedium}>
+      <h3 className={`text-lg text-white mb-4`} style={lexendMedium.style}>
         Performance by Time Slot
       </h3>
       <ResponsiveContainer width="100%" height={300}>

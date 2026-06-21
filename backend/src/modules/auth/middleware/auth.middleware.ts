@@ -2,29 +2,30 @@ import { Request, Response, NextFunction } from "express";
 import * as jwt from "jsonwebtoken";
 import { config } from "../../../config";
 import { createResponse } from "../../../utils/createResponse";
+import { DecodedAccessToken } from "../../../types/jwt.types";
 
 declare global {
   namespace Express {
     interface Request {
       user?: {
         id: string;
-        email: string;
-        role: string;
+        email?: string;
+        role?: string;
       };
       admin?: {
         adminId: string;
-        email: string;
-        role: string;
+        email?: string;
+        role?: string;
       };
       owner?: {
         ownerId: string;
-        email: string;
-        role: string;
+        email?: string;
+        role?: string;
       };
       staff?: {
         staffId: string;
-        email: string;
-        role: string;
+        email?: string;
+        role?: string;
       };
       userRole?: "user" | "admin" | "owner" | "staff";
     }
@@ -48,7 +49,10 @@ export const authenticateToken = async (
       );
     }
     try {
-      const decoded = jwt.verify(accessToken, config.jwtAccessSecret);
+      const decoded = jwt.verify(
+        accessToken,
+        config.jwtAccessSecret
+      ) as DecodedAccessToken;
 
       setUserFromDecoded(req, decoded);
       return next();
@@ -72,7 +76,7 @@ export const authenticateToken = async (
   }
 };
 
-function setUserFromDecoded(req: Request, decoded) {
+function setUserFromDecoded(req: Request, decoded: DecodedAccessToken) {
   switch (decoded.role) {
     case "admin":
       req.admin = {

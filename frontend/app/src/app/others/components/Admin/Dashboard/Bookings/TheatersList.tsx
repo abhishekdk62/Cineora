@@ -16,7 +16,9 @@ import {
   XCircle,
   Star,
 } from 'lucide-react';
+import { TheaterFilters } from '@/app/others/dtos/theater.dto';
 import { getTheatersByOwnerIdAdmin } from '@/app/others/services/adminServices/theaterServices';
+import { getApiErrorMessage } from '@/app/others/types/common.types';
 import toast from 'react-hot-toast';
 import { useDebounce } from '@/app/others/Utils/debounce';
 
@@ -60,7 +62,7 @@ const TheatersList: React.FC<TheatersListProps> = ({ selectedOwner, onTheaterSel
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('createdAt');
-  const [sortOrder, setSortOrder] = useState('desc');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -73,11 +75,11 @@ const TheatersList: React.FC<TheatersListProps> = ({ selectedOwner, onTheaterSel
     500
   );
 
-  const fetchTheaters = async (filters: string = {}) => {
+  const fetchTheaters = async (filters: Partial<TheaterFilters> = {}) => {
     try {
       setIsLoading(true);
 
-      const theaterFilters = {
+      const theaterFilters: TheaterFilters = {
         ownerId: selectedOwner.id,
         status: "active",
         page: currentPage,
@@ -96,11 +98,7 @@ const TheatersList: React.FC<TheatersListProps> = ({ selectedOwner, onTheaterSel
       
       setTheaters(response.data?.theaters || response.theaters || []);
       
-      if (response.data?.meta?.pagination) {
-        setTotalPages(response.data.meta.pagination.totalPages);
-        setTotalItems(response.data.meta.pagination.total);
-        setCurrentPage(response.data.meta.pagination.currentPage);
-      } else if (response.meta?.pagination) {
+      if (response.meta?.pagination) {
         setTotalPages(response.meta.pagination.totalPages);
         setTotalItems(response.meta.pagination.total);
         setCurrentPage(response.meta.pagination.currentPage);
@@ -109,9 +107,9 @@ const TheatersList: React.FC<TheatersListProps> = ({ selectedOwner, onTheaterSel
         setTotalItems(theaters.length);
       }
     }
-    } catch (error: string) {
+    } catch (error: unknown) {
       console.error("Error fetching theaters:", error);
-      toast.error(error.response?.data?.message || "Failed to load theaters");
+      toast.error(getApiErrorMessage(error, "Failed to load theaters"));
       setTheaters([]);
       setTotalPages(1);
       setTotalItems(0);

@@ -1,4 +1,5 @@
 import { IMovie } from "../interfaces/movies.model.interface";
+import { ExtendedPaginatedResult } from "../../../types/pagination.types";
 
 export interface CreateMovieDto {
   tmdbId: string;
@@ -68,11 +69,7 @@ export interface PaginatedMoviesResponseDto {
   hasPrevPage: boolean;
 }
 
-export interface MovieRepositoryFindResult {
-  movies: IMovie[];
-  total: number;
-  totalPages: number;
-}
+export type MovieRepositoryFindResult = ExtendedPaginatedResult<IMovie>;
 
 export interface MovieSortConfiguration {
   title: (order: number) => Record<string, number>;

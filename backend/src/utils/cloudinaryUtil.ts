@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../utils/errorUtil";
 import { UploadApiResponse } from 'cloudinary';
 import cloudinary from '../config/cloudinaryConfig';
 export interface CloudinaryUploadOptions {
@@ -28,15 +29,15 @@ export const uploadToCloudinary = async (
   options: CloudinaryUploadOptions = {}
 ): Promise<CloudinaryUploadResult> => {
   try {
-    const uploadOptions: string = {
+    const uploadOptions: Record<string, unknown> = {
       folder: options.folder || 'uploads',
       type: 'authenticated', 
       resource_type: options.resource_type || 'image',
-      transformation: []
+      transformation: [] as Record<string, unknown>[]
     };
 
     if (options.width || options.height) {
-      uploadOptions.transformation.push({
+      (uploadOptions.transformation as Record<string, unknown>[]).push({
         width: options.width || options.height,
         height: options.height || options.width,
         crop: options.crop || 'fill'
@@ -44,7 +45,7 @@ export const uploadToCloudinary = async (
     }
 
     if (options.quality) {
-      uploadOptions.transformation.push({
+      (uploadOptions.transformation as Record<string, unknown>[]).push({
         quality: options.quality
       });
     }
@@ -89,7 +90,7 @@ export const uploadToCloudinary = async (
 
   } catch (error) {
     console.error('Cloudinary upload error:', error);
-    throw new Error(`Image upload failed: ${error.message}`);
+    throw new Error(`Image upload failed: ${error instanceof Error ? getErrorMessage(error) : String(error)}`);
   }
 };
 
@@ -124,7 +125,7 @@ export const uploadMultipleToCloudinary = async (
 
   } catch (error) {
     console.error('Multiple upload error:', error);
-    throw new Error(`Multiple file upload failed: ${error.message}`);
+    throw new Error(`Multiple file upload failed: ${error instanceof Error ? getErrorMessage(error) : String(error)}`);
   }
 };
 
@@ -137,14 +138,14 @@ export const generateSignedUrl = (
       throw new Error('Public ID is required');
     }
 
-    const urlOptions: string = {
+    const urlOptions: Record<string, unknown> = {
       type: 'authenticated',
       sign_url: true,
-      transformation: []
+      transformation: [] as Record<string, unknown>[]
     };
 
     if (options.width || options.height) {
-      urlOptions.transformation.push({
+      (urlOptions.transformation as Record<string, unknown>[]).push({
         width: options.width || 200,
         height: options.height || 200,
         crop: options.crop || 'fill'

@@ -1,16 +1,15 @@
 
 import ADMIN_USER_BOOKINGS from "../../constants/adminConstants/bookingConstants";
 import apiClient from "../../Utils/apiClient";
-interface getBookingsForAdminDto{
+import { GetBookingsForAdminResponseDto } from "../../dtos/booking.dto";
 
-}
 export const getBookingsForAdmin = async (
   theaterId: string,
   startDate: string,
   endDate: string,
   page: number,
   limit: number
-): Promise<getBookingsForAdminDto> => {
+): Promise<GetBookingsForAdminResponseDto> => {
   const queryParams = new URLSearchParams({
     startDate,
     endDate,
@@ -21,4 +20,3 @@ export const getBookingsForAdmin = async (
   const data = await apiClient.get(`${ADMIN_USER_BOOKINGS.GET_BOOKINGS(theaterId)}?${queryParams}`);
   return data.data;
 };
-

@@ -66,6 +66,7 @@ export default function RouteGuard({
         case 'admin': return '/admin/dashboard'
         case 'owner': return '/owner/dashboard'  
         case 'user': return '/'
+        case 'staff': return '/staff'
         default: return '/'
       }
     })()

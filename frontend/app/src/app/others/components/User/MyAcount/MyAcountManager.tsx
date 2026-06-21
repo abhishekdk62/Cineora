@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { lazyPanel } from "@/app/others/components/utils/dynamicPanels";
 import {
   X,
   User,
@@ -18,13 +19,16 @@ import {
   LucideIcon,
   Users,
 } from "lucide-react";
-import MyAccountContent, { IUser } from "./Profile/MyAccountContent";
+import type { IUser } from "./Profile/MyAccountContent";
 import { getUserProfile } from "@/app/others/services/userServices/authServices";
-import MobileTicket from "./Tickets/TicketsList";
-import WalletPage from "./Wallet/WalletManager";
-import FavoritesList from "./Favorites/FavoritesList";
-import CouponManager from "./Coupon/CouponManager";
-import GroupInvitesManager from "./Groupinvites/GroupInvitesManager";
+
+const MyAccountContent = lazyPanel(
+  () => import("./Profile/MyAccountContent")
+);
+const MobileTicket = lazyPanel(() => import("./Tickets/TicketsList"));
+const WalletPage = lazyPanel(() => import("./Wallet/WalletManager"));
+const FavoritesList = lazyPanel(() => import("./Favorites/FavoritesList"));
+const CouponManager = lazyPanel(() => import("./Coupon/CouponManager"));
 const lexendBold = { className: "font-bold" };
 const lexendMedium = { className: "font-medium" };
 const lexendSmall = { className: "font-normal text-sm" };
@@ -70,22 +74,11 @@ const AccountPage = () => {
   const [activeSection, setActiveSection] = useState<SidebarItem>("account");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [userData, setUserData] = useState<IUser | null>(null);
-  useEffect(() => {
-    getUeserDetails();
-  }, []);
-  useEffect(() => {
-
-    let val = localStorage.getItem('selectedTab')
-    if (val == 'viewTicket') {
-      setActiveSection('bookings')
-    }
-
-  })
-  async function getUeserDetails() {
+  const getUeserDetails = useCallback(async () => {
     try {
       const result = await getUserProfile();
-
-      const dto = (await getUserProfile()).data;
+      const dto = result.data;
+      if (!dto) return;
 
       const parsed: IUser = {
         ...dto,
@@ -95,13 +88,24 @@ const AccountPage = () => {
       };
 
       setUserData(parsed);
-      console.log(parsed);
-
     } catch (error) {
       console.log(error);
     }
-  }
-  const sidebarItems = [
+  }, []);
+
+  useEffect(() => {
+    getUeserDetails();
+  }, [getUeserDetails]);
+
+  useEffect(() => {
+    const val = localStorage.getItem("selectedTab");
+    if (val === "viewTicket") {
+      setActiveSection("bookings");
+    }
+  }, []);
+
+  const sidebarItems = useMemo(
+    () => [
     {
       id: "account" as SidebarItem,
       label: "Profile & Settings",
@@ -141,7 +145,9 @@ const AccountPage = () => {
       icon: HelpCircle,
       description: "Get assistance",
     },
-  ];
+  ],
+    []
+  );
 
   const renderContent = () => {
     switch (activeSection) {

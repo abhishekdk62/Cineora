@@ -52,13 +52,13 @@ export const AisleConfiguration: React.FC<AisleConfigurationProps> = ({
     setHorizontalAisles([...horizontalAisles, newAisle]);
   };
 
-  const updateVerticalAisle = (index: number, field: keyof VerticalAisle, value: string) => {
+  const updateVerticalAisle = (index: number, field: keyof VerticalAisle, value: string | number) => {
     const updated = [...verticalAisles];
     updated[index] = { ...updated[index], [field]: value };
     setVerticalAisles(updated);
   };
 
-  const updateHorizontalAisle = (index: number, field: keyof HorizontalAisle, value: string) => {
+  const updateHorizontalAisle = (index: number, field: keyof HorizontalAisle, value: string | number) => {
     const updated = [...horizontalAisles];
     updated[index] = { ...updated[index], [field]: value };
     setHorizontalAisles(updated);

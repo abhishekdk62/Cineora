@@ -9,7 +9,17 @@ import {
 } from "../dtos/dtos";
 import { IBaseReadRepository, IBaseRepository, IBaseWriteRepository } from "../../../repositories/baseRepository.interface";
 
-export interface IScreenReadRepository extends IBaseReadRepository<IScreen> {
+export interface IScreenReadRepository extends Omit<IBaseReadRepository<IScreen>, "findAll" | "findByStatus"> {
+  findAll(
+    page: number,
+    limit: number,
+    filters?: ScreenFilterDto
+  ): Promise<PaginatedScreenResultDto>;
+  findByStatus?(
+    status: string,
+    page?: number,
+    limit?: number
+  ): Promise<PaginatedScreenResultDto>;
   getScreensByTheaterId(theaterId: string): Promise<IScreen[]>;
   getScreenByIdWithTheaterDetails(screenId: string): Promise<IScreen | null>;
   getScreensByTheaterIdWithAdvancedFilters(theaterId: string, filters: AdvancedScreenFilterDto): Promise<ScreenStatisticsDto>;

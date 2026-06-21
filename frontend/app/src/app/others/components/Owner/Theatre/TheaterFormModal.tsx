@@ -10,37 +10,38 @@ import {
   createTheater,
   updateTheaterOwner,
 } from "@/app/others/services/ownerServices/theaterServices";
+import { TheaterResponseDto } from "@/app/others/dtos/theater.dto";
+import { ITheater } from "@/app/others/types";
+import { getApiErrorMessage } from "@/app/others/types/common.types";
 import toast from "react-hot-toast";
 
 const lexendBold = Lexend({ weight: "700", subsets: ["latin"] });
 const lexendMedium = Lexend({ weight: "500", subsets: ["latin"] });
 
-interface Theater {
-  _id: string;
-  ownerId: string;
-  name: string;
-  address: string;
-  city: string;
-  state: string;
-  pincode: string;
-  location: {
-    type: "Point";
-    coordinates: [number, number];
-  };
-  phone: string;
-  facilities: string[];
-  screens: number;
-  isActive: boolean;
-  isVerified: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+
+const mapDtoToITheater = (dto: TheaterResponseDto): ITheater => ({
+  _id: dto._id,
+  ownerId: dto.ownerId,
+  name: dto.name,
+  address: dto.address,
+  city: dto.city,
+  state: dto.state,
+  pincode: dto.pincode,
+  location: dto.location,
+  phone: dto.phone,
+  facilities: dto.facilities,
+  screens: dto.screens,
+  isActive: dto.isActive,
+  isVerified: dto.isVerified,
+  createdAt: String(dto.createdAt),
+  updatedAt: String(dto.updatedAt),
+});
 
 interface CreateTheaterModalProps {
   onClose: () => void;
-  onSuccess: (theater: Theater) => void;
+  onSuccess: (theater: ITheater) => void;
   mode: "create" | "edit";
-  initialData?: Theater;
+  initialData?: ITheater;
 }
 
 interface ValidationErrors {
@@ -143,20 +144,18 @@ const TheaterFormModal: React.FC<CreateTheaterModalProps> = ({
         result = await updateTheaterOwner(initialData._id, formData);
       }
 
-      if (result.success) {
-        if (mode == 'create') {
-          toast('Theater submitted successfully! Please check your email for further details')
+      if (result?.success && result.data) {
+        if (mode == "create") {
+          toast("Theater submitted successfully! Please check your email for further details");
         }
-        onSuccess(result.data);
-        if (mode == 'edit') toast.success(`Succesfully ${mode}ed`)
-
-      } else {
+        onSuccess(mapDtoToITheater(result.data));
+        if (mode == "edit") toast.success(`Successfully ${mode}ed`);
+      } else if (result) {
         console.log(result.message);
-
-
       }
     } catch (error) {
-      console.error("Error creating theater:", error);
+      console.error("Error creating theater:", getApiErrorMessage(error, "Failed to save theater"));
+      toast.error(getApiErrorMessage(error, "Failed to save theater"));
     } finally {
       setIsLoading(false);
       onClose()

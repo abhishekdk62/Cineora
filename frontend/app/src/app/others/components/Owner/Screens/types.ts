@@ -91,7 +91,7 @@ export interface ManualSetupFormProps {
   rowsDefs: RowDef[];
   setRowsDefs: React.Dispatch<React.SetStateAction<RowDef[]>>;
   maxCols: number;
-  advancedLayoutJSON: string;
+  advancedLayoutJSON: FormData["layout"]["advancedLayout"];
   handleInputChange: (field: string, value: string | number | string[]) => void; 
   handleSubmit: (e: React.FormEvent) => void;
   isLoading: boolean;

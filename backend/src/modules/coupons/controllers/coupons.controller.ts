@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { Request, Response } from "express";
 import { ICouponService } from "../interfaces/coupons.service.interface";
 import {
@@ -21,7 +22,7 @@ interface AuthenticatedRequest extends Request {
 export class CouponController {
   constructor(private readonly couponService: ICouponService) {}
 
-  async createCoupon(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async createCoupon(req: AuthenticatedRequest, res: Response) {
     try {
       const ownerId = req.owner?.ownerId;
 
@@ -76,7 +77,7 @@ export class CouponController {
     }
   }
 
-  async validateCouponByCode(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async validateCouponByCode(req: AuthenticatedRequest, res: Response) {
   try {
     
     const userId = req.user?.id;
@@ -123,7 +124,7 @@ export class CouponController {
     );
   }
   }
-  async updateCoupon(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async updateCoupon(req: AuthenticatedRequest, res: Response) {
     try {
       const ownerId = req.owner?.ownerId;
       const { couponId } = req.params;
@@ -171,7 +172,7 @@ export class CouponController {
       );
     }
   }
-  async toggleStatusCoupon(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async toggleStatusCoupon(req: AuthenticatedRequest, res: Response) {
     try {
       const ownerId = req.owner?.ownerId||req.admin?.adminId;
       const { couponId } = req.params;
@@ -213,7 +214,7 @@ export class CouponController {
       );
     }
   }
-  async deleteCoupon(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async deleteCoupon(req: AuthenticatedRequest, res: Response) {
     try {
       const ownerId = req.owner?.ownerId;
       const { couponId } = req.params;
@@ -256,7 +257,7 @@ export class CouponController {
       );
     }
   }
-  async getCouponById(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async getCouponById(req: AuthenticatedRequest, res: Response) {
     try {
       const { couponId } = req.params;
 
@@ -287,7 +288,7 @@ export class CouponController {
       );
     }
   }
-  async getAllCoupons(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async getAllCoupons(req: AuthenticatedRequest, res: Response) {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
@@ -321,7 +322,7 @@ export class CouponController {
       );
     }
   }
- async getCouponsByTheaterId(req: AuthenticatedRequest, res: Response): Promise<void> {
+ async getCouponsByTheaterId(req: AuthenticatedRequest, res: Response) {
   try {
     const { theaterId } = req.params;
 
@@ -347,7 +348,7 @@ export class CouponController {
  async validateAndUseCoupon(
   req: AuthenticatedRequest,
   res: Response
-): Promise<void> {
+) {
   try {
     const userId = req.user?.id;
 
@@ -398,7 +399,7 @@ export class CouponController {
   async getCouponsByOwner(
     req: AuthenticatedRequest,
     res: Response
-  ): Promise<void> {
+  ) {
     try {
       const ownerId = req.owner?.ownerId;
       const page = parseInt(req.query.page as string) || 1;
@@ -438,7 +439,7 @@ export class CouponController {
     error: unknown,
     defaultMessage: string
   ): void {
-    const message = error instanceof Error ? error.message : defaultMessage;
+    const message = error instanceof Error ? getErrorMessage(error) : defaultMessage;
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
       createResponse({
         success: false,

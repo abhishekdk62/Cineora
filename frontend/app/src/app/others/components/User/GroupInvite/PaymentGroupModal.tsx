@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { getWallet } from "@/app/others/services/userServices/walletServices";
 import PaymentGroupForm from "./PaymentGroupForm";
 import { createChatRoom } from "@/app/others/services/userServices/chatServices";
+import { AxiosError } from "axios";
 
 interface PaymentModalProps {
   totalAmount: number;
@@ -13,12 +14,6 @@ interface PaymentModalProps {
   hostBookingData: any;
   inviteData: any;
   onCreateInvite: (data: any) => Promise<any>;
-}
-
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
 }
 
 export type paymentTypes = "upi" | "card" | "netbanking" | "wallet" | "razorpay" | ''
@@ -34,7 +29,7 @@ export const PaymentGroupModal: React.FC<PaymentModalProps> = ({
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<paymentTypes>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRazorpayLoaded, setIsRazorpayLoaded] = useState(false);
-  const [walletBalance, setWalletBalance] = useState(null);
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
 
   useEffect(() => {
     const loadRazorpayScript = () => {
@@ -60,7 +55,7 @@ export const PaymentGroupModal: React.FC<PaymentModalProps> = ({
   async function getWalletDetails() {
     try {
       const data = await getWallet();
-      setWalletBalance(data.data.balance);
+      setWalletBalance(data.data?.balance ?? null);
     } catch (error) {
       console.log(error);
     }
@@ -295,7 +290,7 @@ const idempotencyKey = `${hostBookingData.userId}_${Date.now()}_${crypto.randomU
     } catch (error: unknown) {
       console.error('Wallet group payment failed:', error);
 
-      if (error.response?.data?.message === 'Insufficient balance') {
+      if (error instanceof AxiosError && error.response?.data?.message === 'Insufficient balance') {
         toast.error('Insufficient wallet balance for group booking 😵‍💫');
       } else {
         toast.error('Group booking failed. Please try again.');

@@ -5,10 +5,7 @@ import ScreenPagination from "./ScreenPagination";
 import { IScreen } from "./inedx";
 import { confirmAction } from "@/app/others/components/utils/ConfirmDialog";
 import { toggleScreen } from "@/app/others/services/adminServices/screenServices";
-import { isatty } from "tty";
 import toast from "react-hot-toast";
-import { Screen } from "../../../Owner/Showtimes/ScreenSelectionModal";
-
 
 interface ScreenFilters {
   search?: string;
@@ -18,13 +15,13 @@ interface ScreenFilters {
 }
 
 interface ScreenListProps {
-  screens: Screen[];
+  screens: IScreen[];
   totalItems: number;
   currentPage: number;
   totalPages: number;
   isLoading: boolean;
-  onViewDetails: (screen: Screen) => void;
-  onViewShowtimes: (screen: Screen) => void;
+  onViewDetails: (screen: IScreen) => void;
+  onViewShowtimes: (screen: IScreen) => void;
   onPageChange: (page: number) => void;
   onFiltersChange: (filters: ScreenFilters) => void;
   fetchScreens:(page: number, currentFilters: ScreenFilters)=>void
@@ -88,7 +85,7 @@ const ScreenList: React.FC<ScreenListProps> = ({
     if (!acc[theater]) acc[theater] = [];
     acc[theater].push(screen);
     return acc;
-  }, {} as Record<string, Screen[]>);
+  }, {} as Record<string, IScreen[]>);
 
   return (
     <div className="space-y-6">

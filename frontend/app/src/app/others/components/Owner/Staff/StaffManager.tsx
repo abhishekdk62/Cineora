@@ -8,26 +8,7 @@ import OwnerStaffFilters from './StaffFilters';
 import StaffPagination from './StaffPagination';
 import OwnerStaffModal from './StaffModal';
 import StaffList from './StaffList';
-
-interface StaffMember {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: string;
-  isActive: boolean;
-  theaterId?: {
-    _id: string;
-    name: string;
-    address: string;
-    city: string;
-    state: string;
-    screens: number;
-    facilities: string[];
-  };
-  createdAt?: string;
-  updatedAt?: string;
-}
+import type { StaffMember } from './staff.types';
 
 interface StaffPagination {
   currentPage: number;

@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { Request, Response } from "express";
 import { IReviewService } from "../interfaces/review.service.interface";
 import { AddReviewDto, UpdateReviewDto } from "../dtos/dtos";
@@ -5,7 +6,7 @@ import { AddReviewDto, UpdateReviewDto } from "../dtos/dtos";
 export class ReviewController {
   constructor(private readonly _reviewService: IReviewService) {}
 
-  async addReview(req: Request, res: Response): Promise<void> {
+  async addReview(req: Request, res: Response) {
     try {
       const reviewData = req.body as AddReviewDto;
       const userId = req.user?.id;
@@ -32,12 +33,12 @@ export class ReviewController {
     } catch (error: unknown) {
       res.status(500).json({
         success: false,
-        message: error.message || "Internal server error",
+        message: getErrorMessage(error) || "Internal server error",
       });
     }
   }
 
-  async updateReview(req: Request, res: Response): Promise<void> {
+  async updateReview(req: Request, res: Response) {
     try {
       const { reviewId } = req.params;
       const reviewData = req.body as UpdateReviewDto;
@@ -55,12 +56,12 @@ export class ReviewController {
     } catch (error: unknown) {
       res.status(500).json({
         success: false,
-        message: error.message || "Internal server error",
+        message: getErrorMessage(error) || "Internal server error",
       });
     }
   }
 
-  async deleteReview(req: Request, res: Response): Promise<void> {
+  async deleteReview(req: Request, res: Response) {
     try {
       const { reviewId } = req.params;
       const userId = req.user?.id;
@@ -77,12 +78,12 @@ export class ReviewController {
     } catch (error: unknown) {
       res.status(500).json({
         success: false,
-        message: error.message || "Internal server error",
+        message: getErrorMessage(error) || "Internal server error",
       });
     }
   }
 
-  async getMovieReviews(req: Request, res: Response): Promise<void> {
+  async getMovieReviews(req: Request, res: Response) {
     try {
       const { movieId } = req.params;
       const {reviewType}=req.query
@@ -95,12 +96,12 @@ export class ReviewController {
     } catch (error: unknown) {
       res.status(500).json({
         success: false,
-        message: error.message || "Internal server error",
+        message: getErrorMessage(error) || "Internal server error",
       });
     }
   }
 
-  async getTheaterReviews(req: Request, res: Response): Promise<void> {
+  async getTheaterReviews(req: Request, res: Response) {
     try {
       const { theaterId } = req.params;
       const page = parseInt(req.query.page as string) || 1;
@@ -112,12 +113,12 @@ export class ReviewController {
     } catch (error: unknown) {
       res.status(500).json({
         success: false,
-        message: error.message || "Internal server error",
+        message: getErrorMessage(error) || "Internal server error",
       });
     }
   }
 
-  async getUserReviews(req: Request, res: Response): Promise<void> {
+  async getUserReviews(req: Request, res: Response) {
     try {
       const userId = req.user?.id;
       const page = parseInt(req.query.page as string) || 1;
@@ -134,12 +135,12 @@ export class ReviewController {
     } catch (error: unknown) {
       res.status(500).json({
         success: false,
-        message: error.message || "Internal server error",
+        message: getErrorMessage(error) || "Internal server error",
       });
     }
   }
 
-  async getMovieRatingStats(req: Request, res: Response): Promise<void> {
+  async getMovieRatingStats(req: Request, res: Response) {
     try {
       const { movieId } = req.params;
 
@@ -149,12 +150,12 @@ export class ReviewController {
     } catch (error: unknown) {
       res.status(500).json({
         success: false,
-        message: error.message || "Internal server error",
+        message: getErrorMessage(error) || "Internal server error",
       });
     }
   }
 
-  async getTheaterRatingStats(req: Request, res: Response): Promise<void> {
+  async getTheaterRatingStats(req: Request, res: Response) {
     try {
       const { theaterId } = req.params;
 
@@ -164,12 +165,12 @@ export class ReviewController {
     } catch (error: unknown) {
       res.status(500).json({
         success: false,
-        message: error.message || "Internal server error",
+        message: getErrorMessage(error) || "Internal server error",
       });
     }
   }
 
-  async markHelpful(req: Request, res: Response): Promise<void> {
+  async markHelpful(req: Request, res: Response) {
     try {
       const { reviewId } = req.params;
 
@@ -180,12 +181,12 @@ export class ReviewController {
     } catch (error: unknown) {
       res.status(500).json({
         success: false,
-        message: error.message || "Internal server error",
+        message: getErrorMessage(error) || "Internal server error",
       });
     }
   }
 
-  async reportReview(req: Request, res: Response): Promise<void> {
+  async reportReview(req: Request, res: Response) {
     try {
       const { reviewId } = req.params;
 
@@ -196,7 +197,7 @@ export class ReviewController {
     } catch (error: unknown) {
       res.status(500).json({
         success: false,
-        message: error.message || "Internal server error",
+        message: getErrorMessage(error) || "Internal server error",
       });
     }
   }

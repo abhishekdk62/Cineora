@@ -1,34 +1,15 @@
+import type { NextFontInstance } from '@/app/others/types';
 import React from 'react';
 import { Eye, Ban, Calendar, Percent, DollarSign, MapPin, CheckCircle2 } from 'lucide-react';
+import { CouponResponseDto } from '@/app/others/dtos/coupon.dto';
 
-interface Theater {
-  _id: string;
-  name: string;
-}
-
-interface Coupon {
-  _id: string;
-  name: string;
-  uniqueId: string;
-  theaterIds: Theater[];
-  discountPercentage: number;
-  description: string;
-  expiryDate: string;
-  isActive: boolean;
-  isUsed: boolean;
-  maxUsageCount: number;
-  currentUsageCount: number;
-  minAmount: number;
-  createdBy: string;
-  createdAt: string;
-  updatedAt: string;
-}
+type AdminCoupon = CouponResponseDto & { minAmount?: number };
 
 interface CouponCardProps {
-  coupon: Coupon;
-  lexend: string;
-  onViewDetails: (coupon: Coupon) => void;
-  onToggleStatus: (couponId: string,f:boolean) => void;
+  coupon: AdminCoupon;
+  lexend: NextFontInstance;
+  onViewDetails: (coupon: AdminCoupon) => void;
+  onToggleStatus: (couponId: string, f: boolean) => void;
   loading: boolean;
 }
 
@@ -39,7 +20,7 @@ const CouponCard: React.FC<CouponCardProps> = ({
   onToggleStatus, 
   loading 
 }) => {
-  const isExpired = new Date(coupon.expiryDate) <= new Date();
+  const isExpired = new Date(coupon.expiryDate).getTime() <= Date.now();
   const isFullyUsed = coupon.currentUsageCount >= coupon.maxUsageCount;
   const usagePercentage = (coupon.currentUsageCount / coupon.maxUsageCount) * 100;
 
@@ -95,7 +76,7 @@ const CouponCard: React.FC<CouponCardProps> = ({
             </span>
           </div>
           <p className={`${lexend.className} text-lg text-green-400 font-semibold`}>
-            ₹{coupon.minAmount}
+            ₹{coupon.minAmount ?? 0}
           </p>
         </div>
       </div>
@@ -127,7 +108,7 @@ const CouponCard: React.FC<CouponCardProps> = ({
           </span>
         </div>
         <div className="space-y-1">
-          {coupon.theaterIds.slice(0, 2).map((theater: Theater, index: number) => (
+          {coupon.theaterIds.slice(0, 2).map((theater, index: number) => (
             <div key={theater._id} className="bg-gray-700/30 rounded-lg p-2">
               <p className="text-white text-sm" style={{ fontFamily: lexend.style.fontFamily }}>
                 {theater.name}

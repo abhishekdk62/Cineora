@@ -8,11 +8,11 @@ interface Theater {
   name: string;
   city: string;
   state: string;
-  rating: number;
+  rating?: number;
   facilities: string[];
-  location:{
-    coordinates:[number,number]
-  }
+  location: {
+    coordinates: [number, number];
+  };
   distance?: string;
 }
 

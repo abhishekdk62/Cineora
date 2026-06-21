@@ -14,6 +14,7 @@ import AuthButtons from "./AuthButtons";
 import NotificationBell from "./NotificationBell";
 import NotificationModal, { BackendNotification } from './NotificationModal'
 import { getAllUserNotifications, getFullUserNotifications, markAllNotificationAsSeen, markNotificationAsSeen } from "../../services/userServices/notificationServices";
+import { NotificationResponseDto } from "../../dtos/notification.dto";
 
 const lexendSmall = Lexend({
   weight: "200",
@@ -33,6 +34,23 @@ interface NotificationItem {
   createdAt: Date;
   isRead: boolean;
 }
+
+const mapNotification = (notification: NotificationResponseDto): BackendNotification => ({
+  _id: notification._id,
+  notificationId: notification.notificationId,
+  userId: notification.userId,
+  title: notification.title,
+  message: notification.message,
+  type: notification.type,
+  isRead: notification.isRead,
+  createdAt: String(notification.createdAt),
+  updatedAt: String(notification.updatedAt),
+  scheduledTime: notification.scheduledTime
+    ? String(notification.scheduledTime)
+    : undefined,
+  sent: notification.sent,
+  data: notification.data,
+});
 
 export default function NavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -55,8 +73,10 @@ export default function NavBar() {
   const getUnreadNotifications = async () => {
     try {
       const data = await getAllUserNotifications()
-      setUnreadNotifications(data.data.notifications)
-      setUnreadCount(data.data.unreadCount)
+      if (data.data) {
+        setUnreadNotifications(data.data.notifications.map(mapNotification))
+        setUnreadCount(data.data.unreadCount)
+      }
     } catch (error) {
       console.log(error);
     }
@@ -65,8 +85,10 @@ export default function NavBar() {
   const getAllNotifications = async () => {
     try {
       const data = await getFullUserNotifications()
-      setNotifications(data.data.notifications)
-      setUnreadCount(data.data.unreadCount)
+      if (data.data) {
+        setNotifications(data.data.notifications.map(mapNotification))
+        setUnreadCount(data.data.unreadCount)
+      }
     } catch (error) {
       console.log(error);
     }

@@ -151,7 +151,20 @@ const TheaterAnalytics: React.FC<TheaterAnalyticsProps> = ({ selectedTheater, se
         bookingsLimit
       );
       
-      setBookingsData(response.data);
+      if (response.data) {
+        setBookingsData({
+          bookings: (response.data.bookings ?? []) as unknown as TheaterBooking[],
+          pagination: {
+            currentPage: response.data.currentPage ?? response.meta?.pagination?.currentPage ?? page,
+            totalPages: response.data.totalPages ?? response.meta?.pagination?.totalPages ?? 1,
+            totalBookings: response.data.totalCount ?? response.meta?.pagination?.total ?? response.data.bookings?.length ?? 0,
+            hasNextPage: response.meta?.pagination?.hasNextPage ?? false,
+            hasPrevPage: response.meta?.pagination?.hasPrevPage ?? page > 1,
+          },
+        });
+      } else {
+        setBookingsData(null);
+      }
     } catch (error) {
       console.error("Error fetching theater bookings:", error);
       toast.error("Failed to fetch bookings");

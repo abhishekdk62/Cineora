@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X, Lock, Loader2, Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
+import { AxiosError } from "axios";
 import { resetPassword } from "@/app/others/services/ownerServices/ownerServices";
 
 const lexendBold = { className: "font-bold" };
@@ -87,11 +88,13 @@ const ChangePasswordModal = ({ onClose, onPasswordChanged }: ChangePasswordModal
       } else {
         setPasswordError(result.message || "Failed to change password");
       }
-    } catch (error: string) {
+    } catch (error: unknown) {
       console.error("Change password error:", error);
-      setPasswordError(
-        error.response?.data?.message || "Failed to change password"
-      );
+      const message =
+        error instanceof AxiosError
+          ? error.response?.data?.message
+          : undefined;
+      setPasswordError(message || "Failed to change password");
     } finally {
       setPasswordLoading(false);
     }

@@ -67,7 +67,12 @@ export interface NotificationResponseDto {
 
 export interface CreateNotificationResponseDto extends ApiResponse<NotificationResponseDto> {}
 export interface GetNotificationResponseDto extends ApiResponse<NotificationResponseDto> {}
-export interface GetNotificationsResponseDto extends ApiResponse<NotificationResponseDto[]> {}
+export interface NotificationsListData {
+  notifications: NotificationResponseDto[];
+  unreadCount: number;
+}
+
+export interface GetNotificationsResponseDto extends ApiResponse<NotificationsListData> {}
 export interface UpdateNotificationResponseDto extends ApiResponse<NotificationResponseDto> {}
 export interface MarkNotificationReadResponseDto extends ApiResponse<NotificationResponseDto> {}
 export interface DeleteNotificationResponseDto extends ApiResponse<null> {}

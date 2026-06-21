@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { Request, Response } from "express";
 import { INotificationService } from "../interfaces/notification.service.interface";
 import { StatusCodes } from "../../../utils/statuscodes";
@@ -7,7 +8,7 @@ import { createResponse } from "../../../utils/createResponse";
 export class NotificationController {
   constructor(private readonly notificationService: INotificationService) {}
 
-  async getUserNotifications(req: Request, res: Response): Promise<void> {
+  async getUserNotifications(req: Request, res: Response) {
     try {
       const userId = req.user?.id;
 
@@ -46,7 +47,7 @@ export class NotificationController {
     } catch (error) {
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? getErrorMessage(error)
           : NOTIFICATION_MESSAGES.INTERNAL_SERVER_ERROR;
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
@@ -56,7 +57,7 @@ export class NotificationController {
       );
     }
   }
-  async markAllNotificationsRead(req: Request, res: Response): Promise<void> {
+  async markAllNotificationsRead(req: Request, res: Response) {
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -92,7 +93,7 @@ export class NotificationController {
     } catch (error) {
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? getErrorMessage(error)
           : NOTIFICATION_MESSAGES.INTERNAL_SERVER_ERROR;
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
@@ -102,7 +103,7 @@ export class NotificationController {
       );
     }
   }
-  async getAllUserNotifications(req: Request, res: Response): Promise<void> {
+  async getAllUserNotifications(req: Request, res: Response) {
     try {
       const userId = req.user?.id;
 
@@ -141,7 +142,7 @@ export class NotificationController {
     } catch (error) {
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? getErrorMessage(error)
           : NOTIFICATION_MESSAGES.INTERNAL_SERVER_ERROR;
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
@@ -152,7 +153,7 @@ export class NotificationController {
     }
   }
 
-  async markNotificationAsRead(req: Request, res: Response): Promise<void> {
+  async markNotificationAsRead(req: Request, res: Response) {
     try {
       const { notificationId } = req.params;
 
@@ -189,7 +190,7 @@ export class NotificationController {
     } catch (error) {
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? getErrorMessage(error)
           : NOTIFICATION_MESSAGES.INTERNAL_SERVER_ERROR;
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({
@@ -200,7 +201,7 @@ export class NotificationController {
     }
   }
 
-  async deleteNotification(req: Request, res: Response): Promise<void> {
+  async deleteNotification(req: Request, res: Response) {
     try {
       const { notificationId } = req.params;
 
@@ -237,7 +238,7 @@ export class NotificationController {
     } catch (error) {
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? getErrorMessage(error)
           : NOTIFICATION_MESSAGES.INTERNAL_SERVER_ERROR;
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({

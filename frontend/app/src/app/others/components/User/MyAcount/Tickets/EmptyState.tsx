@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface EmptyStateProps {
-  activeTab: 'upcoming' | 'history';
+  activeTab: 'upcoming' | 'history' | 'cancelled';
 }
 
 const EmptyState: React.FC<EmptyStateProps> = ({ activeTab }) => {
@@ -22,11 +22,13 @@ const EmptyState: React.FC<EmptyStateProps> = ({ activeTab }) => {
         )}
       </div>
       <h3 className={`${lexendBold.className} text-xl text-white mb-2`}>
-        {activeTab === 'upcoming' ? 'No Upcoming Shows' : 'No Show History'}
+        {activeTab === 'upcoming' ? 'No Upcoming Shows' : activeTab === 'cancelled' ? 'No Cancelled Tickets' : 'No Show History'}
       </h3>
       <p className={`${lexendSmall.className} text-gray-400 mb-6`}>
         {activeTab === 'upcoming'
           ? "You don't have any upcoming movie shows. Start exploring movies!"
+          : activeTab === 'cancelled'
+          ? "You don't have any cancelled tickets."
           : "You don't have any completed shows yet."
         }
       </p>

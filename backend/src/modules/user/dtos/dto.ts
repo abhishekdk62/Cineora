@@ -53,7 +53,7 @@ export interface UpdateUserProfileDto {
 
 export interface UserResponseDto {
   id?: string;
-  username: string;
+  username?: string;
   email: string;
   firstName?: string;
   lastName?: string;
@@ -111,7 +111,7 @@ export interface UpdateProfileDto {
 
 export interface UserResponseDto {
   _id: string;
-  username: string;
+  username?: string;
   email: string;
   firstName?: string;
   lastName?: string;

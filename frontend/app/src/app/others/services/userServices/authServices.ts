@@ -2,7 +2,13 @@ import { UserProfile } from "../../components/Owner/MyAccount/MyAccount";
 import USER_AUTH_ROUTES from "../../constants/userConstants/authConstants";
 import apiClient from "../../Utils/apiClient";
 
-export const signup = async (userData: {email:string;password:string;confirmpassword:string}) => {
+export const signup = async (userData: {
+  email: string;
+  password: string;
+  confirmpassword: string;
+  username?: string;
+  language?: string;
+}) => {
   const response = await apiClient.post(USER_AUTH_ROUTES.SIGNUP, userData);
   return response.data;
 };

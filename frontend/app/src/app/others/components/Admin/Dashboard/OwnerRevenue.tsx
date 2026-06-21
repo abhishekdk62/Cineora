@@ -2,20 +2,44 @@
 import React from 'react';
 import { User, TrendingUp, Crown } from 'lucide-react';
 
+interface TheaterDetail {
+  name: string;
+  city: string;
+  revenue: number;
+  bookings: number;
+}
+
 interface OwnerRevenueProps {
-  data: any[];
-  lexend: any;
+  data: Array<{
+    paymentStatus?: string;
+    theaterId?: {
+      ownerId?: string;
+      name?: string;
+      city?: string;
+    };
+    priceDetails?: { total?: number };
+  }>;
+  lexend: { className: string; style: { fontFamily: string } };
+}
+
+interface OwnerAccumulatorEntry {
+  id: string;
+  totalRevenue: number;
+  totalBookings: number;
+  theaters: Set<string>;
+  theaterDetails: TheaterDetail[];
+  cities: Set<string>;
 }
 
 const OwnerRevenueAnalytics: React.FC<OwnerRevenueProps> = ({ data, lexend }) => {
-  // Group by owner and calculate revenue
-  const ownerRevenue = data.reduce((acc, booking) => {
+  const ownerRevenue = data.reduce<Record<string, OwnerAccumulatorEntry>>((acc, booking) => {
     if (booking.paymentStatus !== 'completed') return acc;
-    
+    if (!booking.theaterId?.ownerId || !booking.priceDetails?.total) return acc;
+
     const ownerId = booking.theaterId.ownerId;
     const revenue = booking.priceDetails.total;
-    const theaterName = booking.theaterId.name;
-    const city = booking.theaterId.city;
+    const theaterName = booking.theaterId.name ?? 'Unknown Theater';
+    const city = booking.theaterId.city ?? 'Unknown';
 
     if (!acc[ownerId]) {
       acc[ownerId] = {
@@ -34,7 +58,7 @@ const OwnerRevenueAnalytics: React.FC<OwnerRevenueProps> = ({ data, lexend }) =>
     acc[ownerId].cities.add(city);
 
     // Store theater details
-    const existingTheater = acc[ownerId].theaterDetails.find(t => t.name === theaterName);
+    const existingTheater = acc[ownerId].theaterDetails.find((t: TheaterDetail) => t.name === theaterName);
     if (existingTheater) {
       existingTheater.revenue += revenue;
       existingTheater.bookings += 1;

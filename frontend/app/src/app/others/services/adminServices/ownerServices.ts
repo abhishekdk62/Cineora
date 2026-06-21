@@ -24,13 +24,13 @@ const buildQuery = (params: Record<string, ParamsDto>): string => {
 };
 
 export const getOwners = async (filters: OwnerFilters): Promise<GetOwnersResponseDto> => {
-  const query = buildQuery(filters);
+  const query = buildQuery(filters as Record<string, ParamsDto>);
   const response = await apiClient.get(`${ADMIN_OWNERS.BASE}?${query}`);
   return response.data;
 };
 
 export const getOwnerRequests = async (filters: OwnerRequestFilters): Promise<GetOwnerRequestsResponseDto> => {
-  const query = buildQuery(filters);
+  const query = buildQuery(filters as Record<string, ParamsDto>);
   const response = await apiClient.get(`${ADMIN_OWNERS.REQUESTS}?${query}`);
   return response.data;
 };

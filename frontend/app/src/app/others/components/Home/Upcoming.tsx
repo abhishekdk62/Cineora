@@ -16,7 +16,7 @@ export default function Upcoming() {
         sortBy: "releaseDate",
         sortOrder: "desc",
       });
-      setLatestMovies(result.data.slice(0, 3));
+      setLatestMovies((result.data ?? []).slice(0, 3));
       console.log(latestMovies);
     } catch (error) {
       console.log(error);

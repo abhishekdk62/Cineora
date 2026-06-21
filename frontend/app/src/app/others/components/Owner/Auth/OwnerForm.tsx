@@ -6,11 +6,11 @@ import { Loader2 } from "lucide-react";
 import { Lexend } from "next/font/google";
 import FileUploadInput from "./FileInput";
 import {
-  OwnerRequestData,
   submitOwnerRequest,
   sendOwnerOTP,
   verifyOwnerOTP,
 } from "../../../services/ownerServices/ownerServices";
+import { OwnerRequestData } from "../../../services/ownerServices/interfaces";
 import { useRouter } from "next/navigation";
 
 const lexendSmall = Lexend({
@@ -77,11 +77,11 @@ export default function OwnerKYCForm() {
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) {
-    const { name, value, type, checked } = e.target as string;
-    if (type === "checkbox") {
-      setFormData((prev) => ({ ...prev, [name]: checked }));
+    const target = e.target;
+    if (target instanceof HTMLInputElement && target.type === "checkbox") {
+      setFormData((prev) => ({ ...prev, [target.name]: target.checked }));
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({ ...prev, [target.name]: target.value }));
     }
   }
 
@@ -171,8 +171,11 @@ export default function OwnerKYCForm() {
       } else {
         setError(result.message || "Failed to send OTP");
       }
-    } catch (error: string) {
-      setError(error.response?.data?.message || "Failed to send OTP");
+    } catch (err: unknown) {
+      const message = err && typeof err === "object" && "response" in err
+        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+        : undefined;
+      setError(message || "Failed to send OTP");
     } finally {
       setOtpLoading(false);
     }
@@ -197,8 +200,11 @@ export default function OwnerKYCForm() {
       } else {
         setError(result.message || "Invalid OTP");
       }
-    } catch (error: string) {
-      setError(error.response?.data?.message || "Invalid OTP");
+    } catch (err: unknown) {
+      const message = err && typeof err === "object" && "response" in err
+        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+        : undefined;
+      setError(message || "Invalid OTP");
     } finally {
       setOtpLoading(false);
     }
@@ -302,34 +308,30 @@ export default function OwnerKYCForm() {
         ownerPhotoUrl: uploadedFiles.ownerPhotoUrl || null,
       };
 
-      const result = await submitOwnerRequest(submissionData);
+      const result = await submitOwnerRequest(submissionData as Parameters<typeof submitOwnerRequest>[0]);
 
       if (result.success) {
         setSuccess(true);
-        setRequestId(result.data?.requestId || result.requestId || "N/A");
+        setRequestId(result.data?._id || "N/A");
         setError("");
       } else {
         throw new Error(result.message || "Submission failed");
       }
-    } catch (error:string) {
-      console.error("Submission error:", error);
+    } catch (err: unknown) {
+      console.error("Submission error:", err);
       let errorMessage = "Submission failed. Please try again.";
 
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (
-        typeof error === "object" &&
-        error !== null &&
-        "response" in error
-      ) {
-        const axiosError = error as string;
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (err && typeof err === "object" && "response" in err) {
+        const axiosError = err as { response?: { data?: { message?: string } }; message?: string };
         errorMessage =
           axiosError.response?.data?.message ||
           axiosError.message ||
           errorMessage;
       }
 
-      setError(error.response?.data?.message);
+      setError(errorMessage);
       setSuccess(false);
     } finally {
       setLoading(false);

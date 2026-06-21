@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import Wallet from "../models/wallet.model";
 import { IWalletRepository } from "../interfaces/wallet.repository.interface";
 import { IWallet } from "../interfaces/wallet.model.interface";
@@ -9,7 +10,7 @@ export class WalletRepository implements IWalletRepository {
       const wallet = new Wallet(walletData);
       return await wallet.save();
     } catch (error) {
-      throw new Error(`Failed to create wallet: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to create wallet: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -25,7 +26,7 @@ export class WalletRepository implements IWalletRepository {
         { new: true }
       );
     } catch (error) {
-      throw new Error(`Failed to update wallet balance: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to update wallet balance: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -36,7 +37,7 @@ export class WalletRepository implements IWalletRepository {
     try {
       return await Wallet.findOne({ userId, userModel });
     } catch (error) {
-      throw new Error(`Failed to find wallet by user: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to find wallet by user: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
   async updateWalletBalanceAllowNegative(
@@ -54,7 +55,7 @@ export class WalletRepository implements IWalletRepository {
       { new: true }
     );
   } catch (error) {
-    throw new Error(`Error updating wallet balance: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(`Error updating wallet balance: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
   }
 }
 
@@ -63,7 +64,7 @@ export class WalletRepository implements IWalletRepository {
     try {
       return await Wallet.findById(walletId);
     } catch (error) {
-      throw new Error(`Failed to find wallet by ID: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to find wallet by ID: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -76,7 +77,7 @@ export class WalletRepository implements IWalletRepository {
       
       return wallet ? wallet.balance : 0;
     } catch (error) {
-      throw new Error(`Failed to get wallet balance: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get wallet balance: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 }

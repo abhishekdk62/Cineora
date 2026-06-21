@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { Request, Response } from "express";
 import { IScreenService } from "../interfaces/screens.services.interface";
 import {
@@ -30,7 +31,7 @@ export interface PaginationQueryDto {
 export class ScreenController {
   constructor(private readonly screenService: IScreenService) {}
 
-  async createScreen(req: Request, res: Response): Promise<void> {
+  async createScreen(req: Request, res: Response) {
     try {
       const createScreenDto: CreateScreenDto = req.body;
 
@@ -49,7 +50,7 @@ export class ScreenController {
     }
   }
 
-  async getScreenById(req: Request, res: Response): Promise<void> {
+  async getScreenById(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const result = await this.screenService.getScreenById(id);
@@ -67,7 +68,7 @@ export class ScreenController {
     }
   }
 
-  async getAllScreensPaginated(req: Request, res: Response): Promise<void> {
+  async getAllScreensPaginated(req: Request, res: Response) {
     try {
       const queryDto: GetAllScreensQueryDto = {
         page: parseInt(req.query.page as string) || 1,
@@ -109,7 +110,7 @@ export class ScreenController {
     }
   }
 
-  async getScreensByTheaterId(req: Request, res: Response): Promise<void> {
+  async getScreensByTheaterId(req: Request, res: Response) {
     try {
       const { theaterId } = req.params;
       const result = await this.screenService.getScreensByTheaterId(theaterId);
@@ -127,7 +128,7 @@ export class ScreenController {
     }
   }
 
-  async getScreensByTheaterIdWithAdvancedFilters(req: Request, res: Response): Promise<void> {
+  async getScreensByTheaterIdWithAdvancedFilters(req: Request, res: Response) {
     try {
       const { theaterId } = req.params;
       const filtersDto: AdvancedScreenFilterDto = this._buildAdvancedScreenFilters(req.query);
@@ -165,7 +166,7 @@ export class ScreenController {
     }
   }
 
-  async getActiveScreensByTheaterId(req: Request, res: Response): Promise<void> {
+  async getActiveScreensByTheaterId(req: Request, res: Response) {
     try {
       const { theaterId } = req.params;
       const result = await this.screenService.getActiveScreensByTheaterId(theaterId);
@@ -183,7 +184,7 @@ export class ScreenController {
     }
   }
 
-  async getScreenStatisticsByTheaterId(req: Request, res: Response): Promise<void> {
+  async getScreenStatisticsByTheaterId(req: Request, res: Response) {
     try {
       const { theaterId } = req.params;
 
@@ -212,7 +213,7 @@ export class ScreenController {
     }
   }
 
-  async getScreenCountByTheaterId(req: Request, res: Response): Promise<void> {
+  async getScreenCountByTheaterId(req: Request, res: Response) {
     try {
       const { theaterId } = req.params;
       const result = await this.screenService.getScreenCountByTheaterId(theaterId);
@@ -230,7 +231,7 @@ export class ScreenController {
     }
   }
 
-  async getScreenByTheaterAndName(req: Request, res: Response): Promise<void> {
+  async getScreenByTheaterAndName(req: Request, res: Response) {
     try {
       const { theaterId, name } = req.params;
       const result = await this.screenService.getScreenByTheaterAndName(theaterId, name);
@@ -248,7 +249,7 @@ export class ScreenController {
     }
   }
 
-  async getScreenWithTheaterData(req: Request, res: Response): Promise<void> {
+  async getScreenWithTheaterData(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const result = await this.screenService.getScreenWithTheaterData(id);
@@ -266,7 +267,7 @@ export class ScreenController {
     }
   }
 
-  async updateScreen(req: Request, res: Response): Promise<void> {
+  async updateScreen(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const updateScreenDto: UpdateScreenDto = req.body;
@@ -286,7 +287,7 @@ export class ScreenController {
     }
   }
 
-  async toggleScreenStatus(req: Request, res: Response): Promise<void> {
+  async toggleScreenStatus(req: Request, res: Response) {
     try {
       const { id } = req.params;
       
@@ -316,7 +317,7 @@ export class ScreenController {
     }
   }
 
-  async deleteScreen(req: Request, res: Response): Promise<void> {
+  async deleteScreen(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const result = await this.screenService.deleteScreen(id);
@@ -333,7 +334,7 @@ export class ScreenController {
     }
   }
 
-  async deleteScreensByTheaterId(req: Request, res: Response): Promise<void> {
+  async deleteScreensByTheaterId(req: Request, res: Response) {
     try {
       const { theaterId } = req.params;
       const result = await this.screenService.deleteScreensByTheaterId(theaterId);
@@ -351,7 +352,7 @@ export class ScreenController {
     }
   }
 
-  async checkScreenExists(req: Request, res: Response): Promise<void> {
+  async checkScreenExists(req: Request, res: Response) {
     try {
       const { name, theaterId, excludedId } = req.query;
       
@@ -425,7 +426,7 @@ export class ScreenController {
   }
 
   private _handleError(res: Response, error: unknown, defaultMessage: string): void {
-    const errorMessage = error instanceof Error ? error.message : defaultMessage;
+    const errorMessage = error instanceof Error ? getErrorMessage(error) : defaultMessage;
     
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
       createResponse({

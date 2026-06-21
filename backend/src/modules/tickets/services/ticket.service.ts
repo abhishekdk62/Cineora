@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { ITicketService } from "../interfaces/ticket.service.interface";
 import { ITicketRepository } from "../interfaces/ticket.repository.interface";
 import {
@@ -9,6 +10,7 @@ import {
   RefundCalculationDto,
   CancelSingleTicketDto,
   TicketResponseDto,
+  PaginatedTicketsResponseDto,
   bookingInfo,
 } from "../dtos/dto";
 import { ApiResponse, createResponse } from "../../../utils/createResponse";
@@ -17,11 +19,17 @@ import { IEmailService } from "../../../services/email.service";
 import crypto from "crypto";
 import mongoose from "mongoose";
 import { config } from "../../../config";
-import { Staff } from "../../staff/model/staff.model";
+import { IStaffRepository } from "../../staff/interfaces/staff.repository.interface";
+import {
+  getPopulatedStringField,
+  getRefId,
+  PopulatedTicketDocument,
+} from "../../../types/mongoose.types";
 export class TicketService implements ITicketService {
   constructor(
     private readonly ticketRepository: ITicketRepository,
-    private readonly emailService: IEmailService
+    private readonly emailService: IEmailService,
+    private readonly staffRepository: IStaffRepository
   ) {}
 
   async createTicketsFromRows(
@@ -198,7 +206,7 @@ export class TicketService implements ITicketService {
 
   private async _cancelSelectedTickets(tickets: ITicket[]): Promise<ITicket[]> {
     const updatePromises = tickets.map((ticket) =>
-      this.ticketRepository.updateTicketById((ticket as any)._id.toString(), {
+      this.ticketRepository.updateTicketById(ticket._id.toString(), {
         status: "cancelled",
         updatedAt: new Date(),
       })
@@ -294,7 +302,7 @@ export class TicketService implements ITicketService {
   async verifyTicket(
     encryptedData: string,
     staffId: string
-  ): Promise<ApiResponse<TicketResponseDto>> {
+  ): Promise<ApiResponse<Record<string, unknown>>> {
     try {
       const decryptedData = this._decryptQRData(encryptedData);
       const ticket = await this.ticketRepository.findTicketByTicketId(
@@ -308,6 +316,8 @@ export class TicketService implements ITicketService {
         });
       }
 
+      const display = this._getTicketDisplayFields(ticket);
+
       if (ticket.isUsed) {
         return createResponse({
           success: false,
@@ -316,9 +326,9 @@ export class TicketService implements ITicketService {
             usedAt: ticket.usedAt,
             ticketDetails: {
               ticketId: ticket.ticketId,
-              movieTitle: ticket.movieId?.title || "N/A",
-              theater: ticket.theaterId?.name || "N/A",
-              screen: ticket.screenId?.name || "N/A",
+              movieTitle: display.movieTitle,
+              theater: display.theater,
+              screen: display.screen,
               seat: `${ticket.seatRow}${ticket.seatNumber}`,
               showDate: ticket.showDate,
               showTime: ticket.showTime,
@@ -327,7 +337,7 @@ export class TicketService implements ITicketService {
         });
       }
 
-      const staff = await Staff.findById(staffId);
+      const staff = await this.staffRepository.findById(staffId);
       if (!staff) {
         return createResponse({
           success: false,
@@ -337,7 +347,7 @@ export class TicketService implements ITicketService {
 
       if (
         staff.theaterId &&
-        staff.theaterId.toString() !== ticket.theaterId._id.toString()
+        staff.theaterId.toString() !== display.theaterId
       ) {
         return createResponse({
           success: false,
@@ -364,9 +374,9 @@ export class TicketService implements ITicketService {
         data: {
           ticket: {
             ticketId: updatedTicket.ticketId,
-            movieTitle: ticket.movieId?.title || "N/A",
-            theater: ticket.theaterId?.name || "N/A",
-            screen: ticket.screenId?.name || "N/A",
+            movieTitle: display.movieTitle,
+            theater: display.theater,
+            screen: display.screen,
             seat: `${ticket.seatRow}${ticket.seatNumber}`,
             seatType: ticket.seatType,
             showDate: ticket.showDate,
@@ -376,8 +386,8 @@ export class TicketService implements ITicketService {
             verifiedBy: `${staff.firstName} ${staff.lastName}`,
           },
           customer: {
-            name: ticket.userId?.firstName || "N/A",
-            email: ticket.userId?.email || "N/A",
+            name: display.customerName,
+            email: display.customerEmail,
           },
         },
       });
@@ -388,22 +398,17 @@ export class TicketService implements ITicketService {
       );
     }
   }
-  async getTicketByIds(id: string[]) {
+  async getTicketByIds(id: string[]): Promise<ITicket[]> {
     try {
-      const tickets = await this.ticketRepository.findTicketsByIds(id);
-      return createResponse({
-        success: true,
-        message: "Tickets found",
-        data: tickets,
-      });
+      return await this.ticketRepository.findTicketsByIds(id);
     } catch (error) {
-      return this._handleServiceError(error, "Failed to get ticket");
+      throw new Error(getErrorMessage(error));
     }
   }
 
   async getTicketById(
     ticketId: string
-  ): Promise<ApiResponse<TicketResponseDto>> {
+  ): Promise<ApiResponse<ITicket>> {
     try {
       this._validateTicketId(ticketId);
 
@@ -428,7 +433,7 @@ export class TicketService implements ITicketService {
 
   async getUserTickets(
     data: GetUserTicketsDto
-  ): Promise<ApiResponse<TicketResponseDto>> {
+  ): Promise<ApiResponse<PaginatedTicketsResponseDto>> {
     try {
       this._validateGetUserTicketsData(data);
 
@@ -442,7 +447,7 @@ export class TicketService implements ITicketService {
       return createResponse({
         success: true,
         message: "User tickets retrieved successfully",
-        data: result,
+        data: result as unknown as PaginatedTicketsResponseDto,
       });
     } catch (error: unknown) {
       return this._handleServiceError(error, "Failed to get user tickets");
@@ -451,7 +456,7 @@ export class TicketService implements ITicketService {
 
   async markTicketAsUsed(
     ticketId: string
-  ): Promise<ApiResponse<TicketResponseDto>> {
+  ): Promise<ApiResponse<ITicket>> {
     try {
       this._validateTicketId(ticketId);
 
@@ -476,7 +481,7 @@ export class TicketService implements ITicketService {
 
   async validateTicket(
     data: ValidateTicketDto
-  ): Promise<ApiResponse<TicketResponseDto>> {
+  ): Promise<ApiResponse<ITicket>> {
     try {
       this._validateTicketValidationData(data);
 
@@ -572,7 +577,8 @@ export class TicketService implements ITicketService {
     }
   }
 
-  private _generateQREncryptedData(ticketData: TicketResponseDto): string {
+  private _generateQREncryptedData(ticketId: string): string {
+    const ticketData = { tid: ticketId };
     const qrPayload = {
       tid: ticketData,
     };
@@ -589,7 +595,7 @@ export class TicketService implements ITicketService {
     return iv.toString("hex") + ":" + encrypted;
   }
 
-  private _decryptQRData(encryptedData: string): string {
+  private _decryptQRData(encryptedData: string): { tid: string } {
     const decodedData = decodeURIComponent(encryptedData);
     console.log("🔓 Decoded data:", decodedData);
 
@@ -651,7 +657,7 @@ export class TicketService implements ITicketService {
           status: "confirmed",
           isUsed: false,
           ...(data.bookingInfo.couponId && {
-            couponId: data.bookingInfo.couponId,
+            couponId: new mongoose.Types.ObjectId(String(data.bookingInfo.couponId)),
           }),
         });
       }
@@ -663,11 +669,11 @@ export class TicketService implements ITicketService {
   private _prepareTicketsFromBooking(
     data: CreateTicketFromBookingDto
   ): Partial<ITicket>[] {
-    return data.bookingData.selectedSeats.map((seat: any, index: number) => {
+    return data.bookingData.selectedSeats.map((seat: string, index: number) => {
       const seatRow = seat.charAt(0);
       const seatNumber = seat.slice(1);
       const ticketId = this._generateTicketId();
-      const encryptedQRData = this._generateQREncryptedData({ ticketId });
+      const encryptedQRData = this._generateQREncryptedData(ticketId);
 
       return {
         ticketId,
@@ -686,7 +692,9 @@ export class TicketService implements ITicketService {
         qrCode: encryptedQRData,
         status: "confirmed",
         isUsed: false,
-        couponId: data.bookingData.couponId,
+        couponId: data.bookingData.couponId
+          ? new mongoose.Types.ObjectId(String(data.bookingData.couponId))
+          : undefined,
       };
     });
   }
@@ -741,7 +749,7 @@ export class TicketService implements ITicketService {
   ): Promise<ITicket[]> {
     const updatePromises = tickets.map((ticket) =>
       this.ticketRepository.updateTicketById(
-        (ticket as TicketResponseDto)._id.toString(),
+        ticket._id.toString(),
         {
           status: "cancelled",
           updatedAt: new Date(),
@@ -765,7 +773,7 @@ export class TicketService implements ITicketService {
     email: string,
     tickets: ITicket[],
     bookingInfo: bookingInfo
-  ): Promise<void> {
+  ) {
     try {
       await this.emailService.sendTicketsEmail(email, tickets, bookingInfo);
     } catch (emailError) {
@@ -839,6 +847,26 @@ export class TicketService implements ITicketService {
     }
   }
 
+  private _getTicketDisplayFields(ticket: ITicket): {
+    movieTitle: string;
+    theater: string;
+    screen: string;
+    theaterId: string;
+    customerName: string;
+    customerEmail: string;
+  } {
+    const populated = ticket as ITicket & PopulatedTicketDocument;
+
+    return {
+      movieTitle: getPopulatedStringField(populated.movieId, "title", "N/A"),
+      theater: getPopulatedStringField(populated.theaterId, "name", "N/A"),
+      screen: getPopulatedStringField(populated.screenId, "name", "N/A"),
+      theaterId: getRefId(populated.theaterId),
+      customerName: getPopulatedStringField(populated.userId, "firstName", "N/A"),
+      customerEmail: getPopulatedStringField(populated.userId, "email", "N/A"),
+    };
+  }
+
   private _validateTicketValidationData(data: ValidateTicketDto): void {
     if (!data.ticketId || !data.qrCode) {
       throw new Error("Ticket ID and QR code are required");
@@ -882,9 +910,9 @@ export class TicketService implements ITicketService {
   private _handleServiceError(
     error: unknown,
     defaultMessage: string
-  ): ApiResponse<any> {
+  ): ApiResponse<never> {
     const errorMessage =
-      error instanceof Error ? error.message : defaultMessage;
+      error instanceof Error ? getErrorMessage(error) : defaultMessage;
 
     return createResponse({
       success: false,

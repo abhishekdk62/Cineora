@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { IOwnerRequest } from "../interfaces/owner.model.interface";
 import { IOwnerRequestRepository } from "../interfaces/owner.repository.interface";
 import { OwnerRequest } from "../models/ownerRequest.model";
@@ -7,7 +8,7 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
     try {
       return await OwnerRequest.findOne({ email });
     } catch (error) {
-      throw new Error(`Error finding owner request by email: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error finding owner request by email: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -15,7 +16,7 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
     try {
       return await OwnerRequest.findOne({ phone });
     } catch (error) {
-      throw new Error(`Error finding owner request by phone: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error finding owner request by phone: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -23,7 +24,7 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
     try {
       return await OwnerRequest.findOne({ aadhaar });
     } catch (error) {
-      throw new Error(`Error finding owner request by Aadhaar: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error finding owner request by Aadhaar: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -31,7 +32,7 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
     try {
       return await OwnerRequest.findOne({ pan });
     } catch (error) {
-      throw new Error(`Error finding owner request by PAN: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error finding owner request by PAN: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -52,7 +53,7 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
         ],
       });
     } catch (error) {
-      throw new Error(`Error finding existing non-rejected request: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error finding existing non-rejected request: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -60,7 +61,7 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
     try {
       return await OwnerRequest.findById(id);
     } catch (error) {
-      throw new Error(`Error finding owner request by ID: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error finding owner request by ID: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -68,7 +69,7 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
     status: string,
     page: number = 1,
     limit: number = 10
-  ): Promise<{ requests: IOwnerRequest[]; total: number }> {
+  ): Promise<{ data: IOwnerRequest[]; total: number }> {
     try {
       const skipCount = (page - 1) * limit;
 
@@ -92,16 +93,16 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
         OwnerRequest.countDocuments(statusQuery),
       ]);
 
-      return { requests, total };
+      return { data: requests, total };
     } catch (error) {
-      throw new Error(`Error finding owner requests by status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error finding owner requests by status: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
   async findAll(
     page: number = 1,
     limit: number = 10
-  ): Promise<{ requests: IOwnerRequest[]; total: number }> {
+  ): Promise<{ data: IOwnerRequest[]; total: number }> {
     try {
       const skipCount = (page - 1) * limit;
 
@@ -114,9 +115,9 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
         OwnerRequest.countDocuments({}),
       ]);
 
-      return { requests, total };
+      return { data: requests, total };
     } catch (error) {
-      throw new Error(`Error finding all owner requests: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error finding all owner requests: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -135,7 +136,7 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
       }
       return savedRequest;
     } catch (error) {
-      throw new Error(`Error creating owner request: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error creating owner request: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -169,7 +170,7 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
       const updatedRequest = await OwnerRequest.findByIdAndUpdate(id, updateData, { new: true });
       return updatedRequest;
     } catch (error) {
-      throw new Error(`Error updating request status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error updating request status: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -194,7 +195,7 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
 
       return updatedRequest;
     } catch (error) {
-      throw new Error(`Error updating owner request: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error updating owner request: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -212,7 +213,7 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
 
       return deletedRequest;
     } catch (error) {
-      throw new Error(`Error deleting owner request: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error deleting owner request: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -220,7 +221,7 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
     searchTerm: string,
     page: number = 1,
     limit: number = 10
-  ): Promise<{ requests: IOwnerRequest[]; total: number }> {
+  ): Promise<{ data: IOwnerRequest[]; total: number }> {
     try {
       const skipCount = (page - 1) * limit;
 
@@ -243,9 +244,9 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
         OwnerRequest.countDocuments(searchQuery),
       ]);
 
-      return { requests, total };
+      return { data: requests, total };
     } catch (error) {
-      throw new Error(`Error searching owner requests: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error searching owner requests: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -254,7 +255,7 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
     endDate: Date,
     page: number = 1,
     limit: number = 10
-  ): Promise<{ requests: IOwnerRequest[]; total: number }> {
+  ): Promise<{ data: IOwnerRequest[]; total: number }> {
     try {
       const skipCount = (page - 1) * limit;
 
@@ -274,9 +275,23 @@ export class OwnerRequestRepository implements IOwnerRequestRepository {
         OwnerRequest.countDocuments(dateQuery),
       ]);
 
-      return { requests, total };
+      return { data: requests, total };
     } catch (error) {
-      throw new Error(`Error getting requests by date range: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Error getting requests by date range: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
+    }
+  }
+
+  async toggleStatus(id: string): Promise<IOwnerRequest | null> {
+    try {
+      const request = await OwnerRequest.findById(id);
+      if (!request) {
+        return null;
+      }
+
+      const nextStatus = request.status === "pending" ? "approved" : "pending";
+      return this.updateStatus(id, nextStatus);
+    } catch (error) {
+      throw new Error(`Error toggling owner request status: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 }

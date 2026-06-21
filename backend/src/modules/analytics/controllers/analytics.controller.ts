@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { Request, Response } from "express";
 import {
   IAnalyticsService,
@@ -5,6 +6,7 @@ import {
 } from "../interfaces/analytics.service.interface";
 import { StatusCodes } from "../../../utils/statuscodes";
 import { createResponse } from "../../../utils/createResponse";
+import { getQueryString } from "../../../utils/queryHelpers";
 
 const ANALYTICS_MESSAGES = {
   ANALYTICS_RETRIEVED_SUCCESS: "Analytics data retrieved successfully",
@@ -35,12 +37,12 @@ const ANALYTICS_MESSAGES = {
 export class AnalyticsController {
   constructor(private readonly analyticsService: IAnalyticsService) {}
 
-  async getComprehensiveAnalytics(req: Request, res: Response): Promise<void> {
+  async getComprehensiveAnalytics(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -87,12 +89,12 @@ export class AnalyticsController {
     }
   }
 
-  async getRevenueAnalytics(req: Request, res: Response): Promise<void> {
+  async getRevenueAnalytics(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -141,12 +143,12 @@ export class AnalyticsController {
     }
   }
 
-  async getMonthlyRevenueTrends(req: Request, res: Response): Promise<void> {
+  async getMonthlyRevenueTrends(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
       if (!ownerId) {
         res.status(StatusCodes.UNAUTHORIZED).json(
@@ -198,12 +200,12 @@ export class AnalyticsController {
     }
   }
 
-  async getWeeklyRevenue(req: Request, res: Response): Promise<void> {
+  async getWeeklyRevenue(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
       if (!ownerId) {
         res.status(StatusCodes.UNAUTHORIZED).json(
@@ -253,12 +255,12 @@ export class AnalyticsController {
     }
   }
 
-  async getDailyRevenue(req: Request, res: Response): Promise<void> {
+  async getDailyRevenue(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
       if (!ownerId) {
         res.status(StatusCodes.UNAUTHORIZED).json(
@@ -305,13 +307,13 @@ export class AnalyticsController {
     }
   }
 
-  async getTheaterWiseRevenue(req: Request, res: Response): Promise<void> {
+  async getTheaterWiseRevenue(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -352,12 +354,12 @@ export class AnalyticsController {
     }
   }
 
-  async getScreenWiseRevenue(req: Request, res: Response): Promise<void> {
+  async getScreenWiseRevenue(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -398,12 +400,12 @@ export class AnalyticsController {
     }
   }
 
-  async getMovieWiseRevenue(req: Request, res: Response): Promise<void> {
+  async getMovieWiseRevenue(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -444,12 +446,12 @@ export class AnalyticsController {
     }
   }
 
-  async getPerformanceMetrics(req: Request, res: Response): Promise<void> {
+  async getPerformanceMetrics(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -498,12 +500,12 @@ export class AnalyticsController {
     }
   }
 
-  async getOverallOccupancy(req: Request, res: Response): Promise<void> {
+  async getOverallOccupancy(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -554,12 +556,12 @@ export class AnalyticsController {
     }
   }
 
-  async getAverageTicketPrice(req: Request, res: Response): Promise<void> {
+  async getAverageTicketPrice(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -600,12 +602,12 @@ export class AnalyticsController {
     }
   }
 
-  async getTimeSlotPerformance(req: Request, res: Response): Promise<void> {
+  async getTimeSlotPerformance(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -649,12 +651,12 @@ export class AnalyticsController {
   async getWeekdayWeekendComparison(
     req: Request,
     res: Response
-  ): Promise<void> {
+  ) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -695,12 +697,12 @@ export class AnalyticsController {
     }
   }
 
-  async getMovieAnalytics(req: Request, res: Response): Promise<void> {
+  async getMovieAnalytics(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -749,12 +751,12 @@ export class AnalyticsController {
     }
   }
 
-  async getTopPerformingMovies(req: Request, res: Response): Promise<void> {
+  async getTopPerformingMovies(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -808,12 +810,12 @@ export class AnalyticsController {
     }
   }
 
-  async getFormatPerformance(req: Request, res: Response): Promise<void> {
+  async getFormatPerformance(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -854,12 +856,12 @@ export class AnalyticsController {
     }
   }
 
-  async getLanguagePerformance(req: Request, res: Response): Promise<void> {
+  async getLanguagePerformance(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -900,12 +902,12 @@ export class AnalyticsController {
     }
   }
 
-  async getMovieLifecycleTrends(req: Request, res: Response): Promise<void> {
+  async getMovieLifecycleTrends(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
       const { movieId } = req.params;
 
@@ -958,12 +960,12 @@ export class AnalyticsController {
     }
   }
 
-  async getCustomerInsights(req: Request, res: Response): Promise<void> {
+  async getCustomerInsights(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -1016,12 +1018,12 @@ export class AnalyticsController {
   async getCustomerSatisfactionRatings(
     req: Request,
     res: Response
-  ): Promise<void> {
+  ) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -1062,12 +1064,12 @@ export class AnalyticsController {
     }
   }
 
-  async getRepeatCustomerRate(req: Request, res: Response): Promise<void> {
+  async getRepeatCustomerRate(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -1108,12 +1110,12 @@ export class AnalyticsController {
     }
   }
 
-  async getAdvanceBookingTrends(req: Request, res: Response): Promise<void> {
+  async getAdvanceBookingTrends(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -1154,12 +1156,12 @@ export class AnalyticsController {
     }
   }
 
-  async getFinancialKPIs(req: Request, res: Response): Promise<void> {
+  async getFinancialKPIs(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -1211,12 +1213,12 @@ export class AnalyticsController {
   async getPotentialVsActualRevenue(
     req: Request,
     res: Response
-  ): Promise<void> {
+  ) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -1267,12 +1269,12 @@ export class AnalyticsController {
     }
   }
 
-  async getDynamicPricingImpact(req: Request, res: Response): Promise<void> {
+  async getDynamicPricingImpact(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -1313,12 +1315,12 @@ export class AnalyticsController {
     }
   }
 
-  async getDiscountImpact(req: Request, res: Response): Promise<void> {
+  async getDiscountImpact(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -1359,12 +1361,12 @@ export class AnalyticsController {
     }
   }
 
-  async getOperationalAnalytics(req: Request, res: Response): Promise<void> {
+  async getOperationalAnalytics(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -1416,12 +1418,12 @@ export class AnalyticsController {
     }
   }
 
-  async getLowPerformingTimeSlots(req: Request, res: Response): Promise<void> {
+  async getLowPerformingTimeSlots(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -1477,12 +1479,12 @@ export class AnalyticsController {
     }
   }
 
-  async getRevenueGrowthRate(req: Request, res: Response): Promise<void> {
+  async getRevenueGrowthRate(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -1533,12 +1535,12 @@ export class AnalyticsController {
     }
   }
 
-  async getAnalyticsSummary(req: Request, res: Response): Promise<void> {
+  async getAnalyticsSummary(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -1580,12 +1582,12 @@ export class AnalyticsController {
     }
   }
 
-  async generateAnalyticsReport(req: Request, res: Response): Promise<void> {
+  async generateAnalyticsReport(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -1636,12 +1638,12 @@ export class AnalyticsController {
     }
   }
 
-  async exportAnalyticsData(req: Request, res: Response): Promise<void> {
+  async exportAnalyticsData(req: Request, res: Response) {
     try {
       let ownerId = req.owner?.ownerId;
 
       if (!ownerId) {
-        ownerId = req.query.ownerId;
+        ownerId = getQueryString(req.query.ownerId);
       }
 
       if (!ownerId) {
@@ -1744,27 +1746,27 @@ export class AnalyticsController {
     }
   }
 
-  private parseDateRange(req: Request): { start: Date; end: Date } | undefined {
+  private parseDateRange(req: Request): import("../../adminAnalytics/dtos/dtos").IDateRange | undefined {
     try {
-      const startDate = req.query.startDate as string;
-      const endDate = req.query.endDate as string;
+      const startDateStr = getQueryString(req.query.startDate);
+      const endDateStr = getQueryString(req.query.endDate);
 
-      if (!startDate || !endDate) {
+      if (!startDateStr || !endDateStr) {
         return undefined;
       }
 
-      const start = new Date(startDate);
-      const end = new Date(endDate);
+      const startDate = new Date(startDateStr);
+      const endDate = new Date(endDateStr);
 
-      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
         return undefined;
       }
 
-      if (start >= end) {
+      if (startDate >= endDate) {
         return undefined;
       }
 
-      return { start, end };
+      return { startDate, endDate, start: startDate, end: endDate };
     } catch (error) {
       return undefined;
     }
@@ -1786,7 +1788,7 @@ export class AnalyticsController {
   private handleError(res: Response, error: unknown): void {
     const errorMessage =
       error instanceof Error
-        ? error.message
+        ? getErrorMessage(error)
         : ANALYTICS_MESSAGES.INTERNAL_SERVER_ERROR;
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
       createResponse({

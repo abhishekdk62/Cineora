@@ -116,7 +116,7 @@ export interface IOccupancyDTO {
   totalSeatsAvailable: number;
   totalSeatsBooked: number;
   occupancyPercentage: number;
-  trend: "increasing" | "decreasing" | "stable";
+  trend?: "increasing" | "decreasing" | "stable";
 }
 
 export interface IShowRevenueDTO {
@@ -198,7 +198,7 @@ export interface IRepeatCustomerDTO {
   repeatCustomers: number;
   repeatRate: number;
   avgSpendPerCustomer: number;
-  loyaltyScore: number;
+  loyaltyScore?: number;
 }
 
 export interface IAdvanceBookingDTO {
@@ -213,8 +213,8 @@ export interface IPotentialRevenueDTO {
   potentialRevenue: number;
   actualRevenue: number;
   realizationPercentage: number;
-  missedOpportunity: number;
-  efficiency: "high" | "medium" | "low";
+  missedOpportunity?: number;
+  efficiency?: "high" | "medium" | "low";
 }
 
 export interface IDynamicPricingDTO {
@@ -222,7 +222,7 @@ export interface IDynamicPricingDTO {
   avgShowtimePrice: number;
   avgFinalPrice: number;
   pricingImpact: number;
-  effectiveness: "positive" | "neutral" | "negative";
+  effectiveness?: "positive" | "neutral" | "negative";
 }
 
 export interface IDiscountImpactDTO {
@@ -232,7 +232,7 @@ export interface IDiscountImpactDTO {
   discountPercentage: number;
   bookingsWithDiscount: number;
   totalBookings: number;
-  roi: number;
+  roi?: number;
 }
 
 export interface ISeasonalPatternDTO {
@@ -262,6 +262,58 @@ export interface IGrowthRateDTO {
   totalRevenue: number;
   growthRate: number;
   trend: "positive" | "negative" | "stable";
+}
+
+export interface IMonthlyRevenueAggregation {
+  _id: { year: number; month: number; day?: number; week?: number; quarter?: number };
+  totalRevenue: number;
+  totalBookings: number;
+  avgTicketPrice?: number;
+}
+
+export interface ITimeSlotAggregation {
+  _id: string;
+  totalRevenue?: number;
+  totalBookings?: number;
+  avgOccupancy?: number;
+}
+
+export interface ITopMovieAggregation {
+  _id: string;
+  movieTitle?: string;
+  totalRevenue: number;
+  totalTickets?: number;
+  totalBookings?: number;
+  totalShows?: number;
+  avgOccupancy?: number;
+}
+
+export interface IFormatPerformanceAggregation {
+  _id: string;
+  totalRevenue: number;
+  totalBookings: number;
+  avgTicketPrice?: number;
+}
+
+export interface ICustomerSatisfactionAggregation {
+  _id: string;
+  theaterName?: string;
+  avgRating: number;
+  totalReviews: number;
+  ratingDistribution?: {
+    star1: number;
+    star2: number;
+    star3: number;
+    star4: number;
+    star5: number;
+  };
+}
+
+export interface IAdvanceBookingAggregation {
+  _id: string;
+  count: number;
+  totalRevenue: number;
+  percentage?: number;
 }
 
 export interface IAnalyticsFilterDTO {

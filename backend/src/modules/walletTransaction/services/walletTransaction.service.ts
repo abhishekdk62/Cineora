@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { IWalletTransactionRepository } from '../interfaces/walletTransaction.repository.interface';
 import { CreateWalletTransactionDto } from '../dto/dto';
 import { IWalletTransaction } from '../interfaces/walletTransaction.model.interface';
@@ -28,11 +29,19 @@ export class WalletTransactionService implements IWalletTransactionService {
     }
   }
 
-  async getRecentTransaction(userId:string)
-  {
+  async getRecentTransaction(
+    userId: string
+  ): Promise<ApiResponse<IWalletTransaction | null>> {
     try {
-      const transaction=await this.walletTransactionRepository.findRecentWalletTransaction(userId)
-      return transaction
+      const transaction =
+        await this.walletTransactionRepository.findRecentWalletTransaction(
+          userId
+        );
+      return createResponse({
+        success: true,
+        message: "Recent wallet transaction retrieved",
+        data: transaction,
+      });
     } catch (error) {
       return this._handleServiceError(error, "Failed to get user wallet transaction");
 
@@ -159,7 +168,7 @@ export class WalletTransactionService implements IWalletTransactionService {
   }
 
   private _handleServiceError(error: unknown, defaultMessage: string): ApiResponse<any> {
-    const errorMessage = error instanceof Error ? error.message : defaultMessage;
+    const errorMessage = error instanceof Error ? getErrorMessage(error) : defaultMessage;
     
     return createResponse({
       success: false,

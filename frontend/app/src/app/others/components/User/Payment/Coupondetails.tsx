@@ -6,6 +6,8 @@ import { useSelector } from "react-redux";
 import toast from 'react-hot-toast';
 import { CouponData } from "@/app/others/types";
 import { AxiosError } from "axios";
+import type { RootState } from "@/app/others/redux/store";
+import { normalizeCouponResponse } from "@/app/others/Utils/couponUtils";
 
 
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
@@ -34,20 +36,21 @@ export const CouponDetails: React.FC<CouponDetailsProps> = ({
   const [isApplying, setIsApplying] = useState(false);
   const [couponError, setCouponError] = useState("");
   const [couponSuccess, setCouponSuccess] = useState("");
-  const bookingDatasRedux = useSelector((state) => state.booking.bookingData);
+  const bookingDatasRedux = useSelector((state: RootState) => state.booking.bookingData);
 
 
 const applyCouponByCode = async (code: string) => {
   const loadingToast = toast.loading('Validating coupon...');
   
   try {
-    const data = await checkCoupon(bookingDatasRedux.theaterId, code);
+    const data = await checkCoupon(bookingDatasRedux?.theaterId ?? "", code);
     console.log(data);
     
-    if (data && data.data) {
-      handleSelectCoupon(data.data);
+    const coupon = normalizeCouponResponse(data.data);
+    if (coupon) {
+      handleSelectCoupon(coupon);
       toast.success('Coupon applied successfully!', { id: loadingToast });
-      return { success: true, data: data.data };
+      return { success: true, data: coupon };
     } else {
       toast.error("Coupon doesn't exist or expired", { id: loadingToast });
       return { success: false, message: "Coupon doesn't exist or expired" };

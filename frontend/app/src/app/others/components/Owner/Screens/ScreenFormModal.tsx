@@ -22,7 +22,8 @@ import {
   createScreen,
   editScreenOwner,
 } from "@/app/others/services/ownerServices/screenServices";
-import { screenSchema } from "@/app/others/Utils/zodSchemas";
+import { getApiErrorMessage } from "@/app/others/types/common.types";
+import { ScreenLayoutDto } from "@/app/others/dtos/screen.dto";
 
 const lexendBold = Lexend({ weight: "700", subsets: ["latin"] });
 const lexendMedium = Lexend({ weight: "500", subsets: ["latin"] });
@@ -97,25 +98,18 @@ const ScreenFormModal: React.FC<ScreenFormModalProps> = ({
   const convertScreenLayoutToRowsDefs = (screen: IScreen): RowDef[] => {
     if (!screen.layout?.advancedLayout?.rows) return [];
 
-    return screen.layout.advancedLayout.rows.map((row: string, index: number) => {
+    return screen.layout.advancedLayout.rows.map((row, index: number) => {
       const seats = Array.isArray(row.seats) ? row.seats : [];
 
       let seatType = "Normal";
       let seatPrice = 150;
 
       if (seats.length > 0) {
-        const firstSeat = seats;
-        if (firstSeat && typeof firstSeat === 'object') {
+        const firstSeat = seats[0];
+        if (firstSeat) {
           seatType = firstSeat.type || "Normal";
           seatPrice = firstSeat.price || 150;
         }
-      }
-
-      if (seatType === "Normal" && row.type) {
-        seatType = row.type;
-      }
-      if (seatPrice === 150 && row.price) {
-        seatPrice = row.price;
       }
 
       return {
@@ -239,7 +233,18 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   try {
     if (mode === "create") {
-      await createScreen({ ...formData, theater });
+      if (!theater) {
+        toast.error("Theater is required to create a screen");
+        return;
+      }
+      await createScreen({
+        theaterId: theater._id,
+        name: formData.name,
+        totalSeats: formData.totalSeats,
+        features: formData.features,
+        screenType: formData.screenType,
+        layout: formData.layout as ScreenLayoutDto,
+      });
       onSuccess();
       toast.success("Screen created successfully");
       onClose(); // ✅ Close only on success
@@ -249,21 +254,15 @@ const handleSubmit = async (e: React.FormEvent) => {
         totalSeats: formData.totalSeats,
         features: formData.features,
         screenType: formData.screenType,
-        layout: formData.layout,
+        layout: formData.layout as ScreenLayoutDto,
       });
       onSuccess();
       toast.success("Screen updated successfully");
       onClose(); // ✅ Close only on success
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error saving screen:", error);
-    
-    const errorMessage =
-      error?.response?.data?.message || 
-      error?.message || 
-      "Network error. Please try again.";
-    
-    toast.error(errorMessage);
+    toast.error(getApiErrorMessage(error, "Network error. Please try again."));
     // Modal stays open for retry
   } finally {
     setIsLoading(false);

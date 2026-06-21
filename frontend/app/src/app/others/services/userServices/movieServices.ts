@@ -14,7 +14,7 @@ export const getMovieById = async (id: string): Promise<GetMovieResponseDto> => 
   return response.data;
 };
 
-export const getMoviesWithFilters = async (filters: GetMoviesWithFiltersQueryDto): Promise<{data:MovieResponseDto[]}> => {
+export const getMoviesWithFilters = async (filters: GetMoviesWithFiltersQueryDto): Promise<GetMoviesWithFiltersResponseDto> => {
   const params = new URLSearchParams();
 
   Object.entries(filters).forEach(([key, value]) => {

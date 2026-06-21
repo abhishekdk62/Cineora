@@ -1,22 +1,28 @@
+export interface ApiMetaPagination {
+  currentPage: number;
+  totalPages: number;
+  total: number;
+  limit: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export interface ApiMetaFilters {
+  applied: number;
+}
+
+export interface ApiMeta {
+  pagination?: ApiMetaPagination;
+  filters?: ApiMetaFilters;
+  [key: string]: string | ApiMetaPagination | ApiMetaFilters | undefined;
+}
+
 export interface ApiResponse<T = string> {
   success: boolean;
   data?: T;
   message?: string;
   errors?: { field: string; message: string }[];
-  meta?: {
-    pagination?: {
-      currentPage: number;
-      totalPages: number;
-      total: number;
-      limit: number;
-      hasNextPage: boolean;
-      hasPrevPage: boolean;
-    };
-    filters?: {
-      applied: number;
-    };
-    [key: string]: string;
-  };
+  meta?: ApiMeta;
   timestamp: string;
 }
 
@@ -25,20 +31,7 @@ export function createResponse<T>(params: {
   data?: T;
   message?: string;
   errors?: { field: string; message: string }[];
-  meta?: {
-    pagination?: {
-      currentPage: number;
-      totalPages: number;
-      total: number;
-      limit: number;
-      hasNextPage: boolean;
-      hasPrevPage: boolean;
-    };
-    filters?: {
-      applied: number;
-    };
-    [key: string]: string;
-  };
+  meta?: ApiMeta;
 }): ApiResponse<T> {
   return {
     success: params.success,

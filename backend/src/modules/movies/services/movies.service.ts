@@ -1,58 +1,49 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import {
   CreateMovieDto,
   UpdateMovieDto,
   MovieFiltersDto,
   MovieResponseDto,
   PaginatedMoviesResponseDto,
-  MovieSortConfiguration,
-  MovieFilterConfiguration
 } from "../dtos/dtos";
 import { IMovieService } from "../interfaces/movies.service.interface";
 import { IMovieRepository } from "../interfaces/movies.repository.interface";
+import { QueryFilterRegistry } from "../../../shared/query/QueryFilterRegistry";
+import { SortRegistry } from "../../../shared/query/SortRegistry";
+
+type MovieFilterKey = "search" | "isActive" | "rating" | "genre" | "language";
+type MovieSortKey = "title" | "releaseDate" | "rating" | "duration" | "popularity" | "revenue";
 
 export class MovieService implements IMovieService {
-  private readonly _sortConfigurations: MovieSortConfiguration = {
-    title: (order: number) => ({ title: order }),
-    releaseDate: (order: number) => ({ releaseDate: order }),
-    rating: (order: number) => ({ rating: order }),
-    duration: (order: number) => ({ duration: order }),
-    popularity: (order: number) => ({ popularity: order }),
-    revenue: (order: number) => ({ revenue: order }),
-  };
-
-  private readonly _filterConfigurations: MovieFilterConfiguration = {
-    search: (value: string) => ({
+  private readonly _filterRegistry = new QueryFilterRegistry<MovieFilterKey>()
+    .register("search", (value: string) => ({
       $or: [
         { title: { $regex: value, $options: "i" } },
         { director: { $regex: value, $options: "i" } },
         { cast: { $in: [new RegExp(value, "i")] } },
-      ]
-    }),
-    isActive: (value: boolean) => ({ isActive: value }),
-    rating: (value: string) => ({ rating: value }),
-    genre: (value: string) => ({ genre: { $in: [new RegExp(value, "i")] } }),
-    language: (value: string) => ({ language: new RegExp(`^${value}$`, "i") }),
-  };
+      ],
+    }))
+    .register("isActive", (value: boolean) => ({ isActive: value }))
+    .register("rating", (value: string) => ({ rating: value }))
+    .register("genre", (value: string) => ({ genre: { $in: [new RegExp(value, "i")] } }))
+    .register("language", (value: string) => ({ language: new RegExp(`^${value}$`, "i") }));
+
+  private readonly _sortRegistry = new SortRegistry<MovieSortKey>()
+    .register("title", (order) => ({ title: order }))
+    .register("releaseDate", (order) => ({ releaseDate: order }))
+    .register("rating", (order) => ({ rating: order }))
+    .register("duration", (order) => ({ duration: order }))
+    .register("popularity", (order) => ({ popularity: order }))
+    .register("revenue", (order) => ({ revenue: order }));
 
   constructor(private readonly movieRepository: IMovieRepository) {}
 
-  private _buildMovieQuery(filters: MovieFiltersDto): Record<string, any> {
-    let query: Record<string, any> = {};
-    
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '' && this._filterConfigurations[key]) {
-        Object.assign(query, this._filterConfigurations[key](value));
-      }
-    });
-    
-    return query;
+  private _buildMovieQuery(filters: MovieFiltersDto): Record<string, unknown> {
+    return this._filterRegistry.buildQuery(filters);
   }
 
-  private _buildSortCriteria(sortBy?: string, sortOrder?: string): Record<string, any> {
-    const order = sortOrder === "desc" ? -1 : 1;
-    const sortFunction = this._sortConfigurations[sortBy as keyof MovieSortConfiguration];
-    
-    return sortFunction ? sortFunction(order) : { title: 1 };
+  private _buildSortCriteria(sortBy?: string, sortOrder?: string): Record<string, number> {
+    return this._sortRegistry.buildSort(sortBy as MovieSortKey | undefined, sortOrder);
   }
 
   async getMoviesWithFilters(filters: MovieFiltersDto): Promise<PaginatedMoviesResponseDto> {
@@ -70,7 +61,7 @@ export class MovieService implements IMovieService {
       const currentPage = filters.page || 1;
 
       return {
-        movies: result.movies,
+        movies: result.data,
         total: result.total,
         totalPages: result.totalPages,
         currentPage,
@@ -78,7 +69,7 @@ export class MovieService implements IMovieService {
         hasPrevPage: currentPage > 1,
       };
     } catch (error) {
-      throw new Error(`Failed to get movies with filters: ${error.message}`);
+      throw new Error(`Failed to get movies with filters: ${getErrorMessage(error)}`);
     }
   }
 
@@ -98,15 +89,16 @@ export class MovieService implements IMovieService {
       
       return await this.movieRepository.create(movieData);
     } catch (error) {
-      throw new Error(`Failed to add movie: ${error.message}`);
+      throw new Error(`Failed to add movie: ${getErrorMessage(error)}`);
     }
   }
 
   async getMovies(): Promise<MovieResponseDto[]> {
     try {
-      return await this.movieRepository.findAll();
+      const result = await this.movieRepository.findAll();
+      return result.data;
     } catch (error) {
-      throw new Error(`Failed to get movies: ${error.message}`);
+      throw new Error(`Failed to get movies: ${getErrorMessage(error)}`);
     }
   }
 
@@ -118,7 +110,7 @@ export class MovieService implements IMovieService {
       const result = await this.movieRepository.findMoviesPaginated(page, limit);
 
       return {
-        movies: result.movies,
+        movies: result.data,
         total: result.total,
         totalPages: result.totalPages,
         currentPage: page,
@@ -126,7 +118,7 @@ export class MovieService implements IMovieService {
         hasPrevPage: page > 1,
       };
     } catch (error) {
-      throw new Error(`Failed to get movies paginated: ${error.message}`);
+      throw new Error(`Failed to get movies paginated: ${getErrorMessage(error)}`);
     }
   }
 
@@ -138,7 +130,7 @@ export class MovieService implements IMovieService {
 
       return await this.movieRepository.findById(id);
     } catch (error) {
-      throw new Error(`Failed to get movie by id: ${error.message}`);
+      throw new Error(`Failed to get movie by id: ${getErrorMessage(error)}`);
     }
   }
 
@@ -153,7 +145,7 @@ export class MovieService implements IMovieService {
 
       return await this.movieRepository.update(id, movieData);
     } catch (error) {
-      throw new Error(`Failed to update movie: ${error.message}`);
+      throw new Error(`Failed to update movie: ${getErrorMessage(error)}`);
     }
   }
 
@@ -163,9 +155,10 @@ export class MovieService implements IMovieService {
         return false;
       }
 
-      return await this.movieRepository.delete(id);
+      const deleted = await this.movieRepository.delete(id);
+      return !!deleted;
     } catch (error) {
-      throw new Error(`Failed to delete movie: ${error.message}`);
+      throw new Error(`Failed to delete movie: ${getErrorMessage(error)}`);
     }
   }
 
@@ -177,7 +170,7 @@ export class MovieService implements IMovieService {
       
       return await this.movieRepository.toggleStatus(id);
     } catch (error) {
-      throw new Error(`Failed to toggle movie status: ${error.message}`);
+      throw new Error(`Failed to toggle movie status: ${getErrorMessage(error)}`);
     }
   }
 }

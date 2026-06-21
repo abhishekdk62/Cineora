@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import Coupon from "../models/coupons.model";
 import {
   ICouponRepository,
@@ -15,7 +16,7 @@ export class CouponRepository implements ICouponRepository {
     } catch (error) {
       throw new Error(
         `Failed to create coupon: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -34,7 +35,7 @@ export class CouponRepository implements ICouponRepository {
     } catch (error) {
       throw new Error(
         `Failed to increment coupon usage: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -53,7 +54,7 @@ export class CouponRepository implements ICouponRepository {
     } catch (error) {
       throw new Error(
         `Failed to update coupon: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -66,7 +67,7 @@ export class CouponRepository implements ICouponRepository {
     } catch (error) {
       throw new Error(
         `Failed to delete coupon: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -81,7 +82,7 @@ export class CouponRepository implements ICouponRepository {
     } catch (error) {
       throw new Error(
         `Failed to find coupon by ID: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -95,7 +96,7 @@ export class CouponRepository implements ICouponRepository {
     } catch (error) {
       throw new Error(
         `Failed to find coupon by unique ID: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -132,7 +133,7 @@ export class CouponRepository implements ICouponRepository {
     } catch (error) {
       throw new Error(
         `Failed to find all coupons: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -173,7 +174,7 @@ export class CouponRepository implements ICouponRepository {
     } catch (error) {
       throw new Error(
         `Failed to find coupons by theater IDs: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -192,7 +193,7 @@ export class CouponRepository implements ICouponRepository {
     } catch (error) {
       throw new Error(
         `Failed to find coupons by theater ID: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -213,7 +214,7 @@ export class CouponRepository implements ICouponRepository {
     } catch (error) {
       throw new Error(
         `Failed to mark coupon as used: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }
@@ -250,7 +251,7 @@ export class CouponRepository implements ICouponRepository {
     } catch (error) {
       throw new Error(
         `Failed to find coupons by owner: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? getErrorMessage(error) : "Unknown error"
         }`
       );
     }

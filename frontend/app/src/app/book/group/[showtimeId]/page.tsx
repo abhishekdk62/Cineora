@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Lexend } from "next/font/google";
 import { ArrowLeft } from "lucide-react";
-import Prism from "@/app/others/components/ReactBits/Prism";
+import DynamicPrism from "@/app/others/components/ReactBits/DynamicPrism";
 import { NavBar } from "@/app/others/components/Home";
 import Loader from "@/app/others/components/utils/Loader";
 import { lexendBold } from "@/app/others/Utils/fonts";
@@ -17,7 +17,21 @@ import { GroupInviteSummary } from "@/app/others/components/User/GroupInvite/Gro
 import { getCouponsByTheaterId } from "@/app/others/services/userServices/couponServices";
 import { PaymentGroupModal } from "@/app/others/components/User/GroupInvite/PaymentGroupModal";
 import { applyCoupon, calculateTotalAmount, removeCoupon } from "@/app/others/redux/slices/bookingSlice"; 
-import { BookingState } from "@/app/others/types";
+import { BookingState, CouponData, GroupInviteData } from "@/app/others/types";
+import type { RootState } from "@/app/others/redux/store";
+import { CouponResponseDto } from "@/app/others/dtos/coupon.dto";
+
+const toCouponData = (coupon: CouponResponseDto): CouponData => ({
+  _id: coupon._id,
+  name: coupon.name,
+  uniqueId: coupon.uniqueId,
+  discountPercentage: coupon.discountPercentage,
+  description: coupon.description,
+  expiryDate: coupon.expiryDate,
+  isActive: coupon.isActive,
+  maxUsageCount: coupon.maxUsageCount,
+  theaterIds: coupon.theaterIds?.map((t) => ({ _id: t._id, name: t.name })),
+});
 
 const lexendSmall = Lexend({ weight: "200", subsets: ["latin"] });
 
@@ -33,11 +47,11 @@ export default function GroupInvitePage() {
   const dispatch = useDispatch();
   const showtimeId = params?.showtimeId as string;
   
-  const user = useSelector((state: string) => state.auth.user);
-  const bookingData = useSelector((state: { booking: BookingState }) => state.booking.bookingData);
+  const user = useSelector((state: RootState) => state.auth.user);
+  const bookingData = useSelector((state: RootState) => state.booking.bookingData);
   
-  const [availableCoupons, setAvailableCoupons] = useState<string[]>([]);
-  const [selectedCoupon, setSelectedCoupon] = useState<string>(null);
+  const [availableCoupons, setAvailableCoupons] = useState<CouponResponseDto[]>([]);
+  const [selectedCoupon, setSelectedCoupon] = useState<CouponData | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showTimeData, setShowTimeData] = useState<ShowtimeResponseDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,9 +75,9 @@ export default function GroupInvitePage() {
     fetchTheaterCoupons();
   }, [bookingData?.theaterId]);
 
-  const handleSelectCoupon = useCallback((coupon: string) => {
+  const handleSelectCoupon = useCallback((coupon: CouponData) => {
     setSelectedCoupon(coupon);
-    if (bookingData?.priceDetails?.subtotal) {
+    if (bookingData?.priceDetails?.subtotal && coupon.discountPercentage) {
       const discount = Math.round(bookingData.priceDetails.subtotal * (coupon.discountPercentage / 100));
       dispatch(applyCoupon({
         coupon: coupon,
@@ -94,14 +108,15 @@ export default function GroupInvitePage() {
       }
 
       try {
-        const result = await getShowTimeUser(bookingData.showtimeId);
-        if (result.data) {
-          setShowTimeData(result.data);
+          const result = await getShowTimeUser(bookingData.showtimeId);
+          if (result.data) {
+            const showtime = result.data;
+            setShowTimeData(showtime);
 
-          if (bookingData.selectedSeats) {
-            const seatsWithDetails = bookingData.selectedSeats.map((seatId: string) => {
-              const rowLabel = seatId.charAt(0);
-              const rowPricing = result.data.rowPricing.find((rp: RowPricingDto) => rp.rowLabel === rowLabel);
+            if (bookingData.selectedSeats) {
+              const seatsWithDetails = bookingData.selectedSeats.map((seatId: string) => {
+                const rowLabel = seatId.charAt(0);
+                const rowPricing = showtime.rowPricing.find((rp: RowPricingDto) => rp.rowLabel === rowLabel);
 
               return {
                 seatNumber: seatId,
@@ -129,8 +144,11 @@ export default function GroupInvitePage() {
     }
   }, [bookingData?.totalAmount, bookingData?.amount, dispatch]);
 
-  const groupInviteData = useMemo(() => {
+  const groupInviteData = useMemo((): GroupInviteData | null => {
     if (!showTimeData || selectedSeats.length === 0 || !bookingData) return null;
+
+    const movieDetails = bookingData.movieDetails as { poster?: string; rating?: string } | undefined;
+    const showDetails = bookingData.showDetails as { format?: string; language?: string } | undefined;
 
     const hostSeat = selectedSeats[0];
     const availableSeats = selectedSeats.slice(1);
@@ -151,18 +169,20 @@ export default function GroupInvitePage() {
 
     return {
       movieTitle: bookingData.movieTitle || "Movie Title",
-      moviePoster: bookingData.movieDetails?.poster,
-      movieRating: bookingData.movieDetails?.rating || "0",
+      moviePoster: movieDetails?.poster,
+      movieRating: movieDetails?.rating || "0",
       theaterName: bookingData.theaterName || "Theater Name",
       screenName: bookingData.screenName || "Screen 1",
-      showDate: new Date(bookingData.showDate).toLocaleDateString('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric'
-      }),
+      showDate: bookingData.showDate
+        ? new Date(bookingData.showDate).toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric'
+          })
+        : "",
       showTime: bookingData.showTime || "Show Time",
-      format: bookingData.showDetails?.format || "2D",
-      language: bookingData.showDetails?.language || "English",
+      format: showDetails?.format || "2D",
+      language: showDetails?.language || "English",
       
       hostSeat,
       availableSeats,
@@ -228,15 +248,17 @@ export default function GroupInvitePage() {
   }, [groupInviteData, showTimeData, user, bookingData]);
 
   const createInviteData = useCallback(() => {
-    if (!groupInviteData || !user) return null;
+    if (!groupInviteData || !user || !bookingData) return null;
     
     const generateInviteId = () => {
       return `INV-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
     };
 
+    const appliedCoupon = bookingData.appliedCoupon;
+
     return {
       inviteId: generateInviteId(),
-      hostUserId: user._id || user.id || user.userId,
+      hostUserId: user.id,
       showtimeId: groupInviteData.showtimeId,
       movieId: groupInviteData.movieId,
       theaterId: groupInviteData.theaterId,
@@ -261,12 +283,12 @@ export default function GroupInvitePage() {
       paidAmount: 0,
       currency: "INR",
       
-      ...(bookingData.appliedCoupon && {
+      ...(appliedCoupon && {
         couponUsed: {
-          couponId: bookingData.appliedCoupon._id,
-          couponCode: bookingData.appliedCoupon.uniqueId,
-          couponName: bookingData.appliedCoupon.name,
-          discountPercentage: bookingData.appliedCoupon.discountPercentage,
+          couponId: appliedCoupon._id,
+          couponCode: appliedCoupon.uniqueId,
+          couponName: appliedCoupon.name,
+          discountPercentage: appliedCoupon.discountPercentage,
           discountAmount: groupInviteData.discount,
           appliedAt: new Date()
         }
@@ -282,7 +304,7 @@ export default function GroupInvitePage() {
       },
       
       participants: [{
-        userId: user._id || user.id || user.userId,
+        userId: user.id,
         joinedAt: new Date(),
         seatAssigned: selectedSeats[0].seatNumber,
         seatIndex: 0,
@@ -293,7 +315,7 @@ export default function GroupInvitePage() {
       
       status: "pending"
     };
-  }, [groupInviteData, user, selectedSeats, minRating, showTimeData, bookingData?.appliedCoupon]);
+  }, [groupInviteData, user, selectedSeats, minRating, showTimeData, bookingData]);
 
   const handleBack = useCallback(() => {
     router.back();
@@ -314,6 +336,10 @@ export default function GroupInvitePage() {
 
     try {
       const inviteData = createInviteData();
+      if (!inviteData) {
+        toast.error("Missing invite data");
+        return;
+      }
       await createInviteGroup(inviteData);
       toast.success('Group invite created successfully!', { id: loadingToast });
 
@@ -337,7 +363,7 @@ export default function GroupInvitePage() {
     <RouteGuard allowedRoles={['user']}>
       <div className="min-h-screen bg-black relative overflow-hidden">
         <div className="fixed inset-0 z-10 opacity-30">
-          <Prism
+          <DynamicPrism
             animationType="rotate"
             timeScale={0.5}
             height={3.5}
@@ -375,8 +401,8 @@ export default function GroupInvitePage() {
               onRatingChange={handleRatingChange}
               minRating={minRating}
               isCreating={isCreating}
-              selectedCoupon={bookingData.appliedCoupon || selectedCoupon}
-              availableCoupons={availableCoupons}
+              selectedCoupon={bookingData?.appliedCoupon ?? selectedCoupon ?? undefined}
+              availableCoupons={availableCoupons.map(toCouponData)}
               onSelectCoupon={handleSelectCoupon}
               onRemoveCoupon={handleRemoveCoupon}
             />

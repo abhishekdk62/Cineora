@@ -34,7 +34,7 @@ const TheaterSelectionModal: React.FC<TheaterSelectionModalProps> = ({
   const fetchTheaters = async () => {
     try {
      const data=await getTheatersByOwnerId({status:'active'})
-      setTheaters(data.data.theaters);
+      setTheaters(data.data?.theaters ?? []);
     } catch (error) {
       console.error("Error fetching theaters:", error);
     } finally {

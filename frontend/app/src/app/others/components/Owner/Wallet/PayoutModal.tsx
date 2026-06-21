@@ -92,7 +92,7 @@ const PayoutModal: React.FC<PayoutModalProps> = ({
         description: `Transfer ₹${payoutAmount} to your bank account`,
         image: '/logo.png',
 
-        handler: async (response) => {
+        handler: async (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => {
           try {
             console.log('✅ User confirmed payout in Razorpay UI:', response);
 

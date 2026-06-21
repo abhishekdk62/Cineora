@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { Types } from "mongoose";
 import * as bcrypt from "bcryptjs";
 import { IOwnerRequestService } from "../interfaces/owner.services.interfaces";
@@ -74,7 +75,7 @@ export class OwnerRequestService implements IOwnerRequestService {
       console.error("Send OTP error:", error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Something went wrong while sending OTP",
+        message: error instanceof Error ? getErrorMessage(error) : "Something went wrong while sending OTP",
       };
     }
   }
@@ -107,7 +108,7 @@ export class OwnerRequestService implements IOwnerRequestService {
       console.error("Verify OTP error:", error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Something went wrong during OTP verification",
+        message: error instanceof Error ? getErrorMessage(error) : "Something went wrong during OTP verification",
       };
     }
   }
@@ -158,7 +159,7 @@ export class OwnerRequestService implements IOwnerRequestService {
       console.error("Submit KYC error:", error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Something went wrong during KYC submission",
+        message: error instanceof Error ? getErrorMessage(error) : "Something went wrong during KYC submission",
       };
     }
   }
@@ -212,7 +213,7 @@ export class OwnerRequestService implements IOwnerRequestService {
       console.error("Update request status error:", error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Something went wrong",
+        message: error instanceof Error ? getErrorMessage(error) : "Something went wrong",
       };
     }
   }
@@ -239,7 +240,7 @@ export class OwnerRequestService implements IOwnerRequestService {
       console.error("Get request status error:", error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Something went wrong",
+        message: error instanceof Error ? getErrorMessage(error) : "Something went wrong",
       };
     }
   }
@@ -259,7 +260,7 @@ export class OwnerRequestService implements IOwnerRequestService {
         success: true,
         message: "Requests fetched successfully",
         data: {
-          requests: result.requests,
+          requests: result.data,
           pagination: {
             currentPage: page,
             totalPages: Math.ceil(result.total / limit),
@@ -272,7 +273,7 @@ export class OwnerRequestService implements IOwnerRequestService {
       console.error("Get all requests error:", error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Something went wrong",
+        message: error instanceof Error ? getErrorMessage(error) : "Something went wrong",
       };
     }
   }
@@ -286,7 +287,7 @@ export class OwnerRequestService implements IOwnerRequestService {
       let result = await this._fetchRequestsWithFilters(filters);
       result = this._applyClientSideFilters(result, filters);
       result = this._applySorting(result, filters);
-      result = this._transformRequestsData(result);
+      result = this._transformRequestsData(result) as { requests: IOwnerRequest[]; total: number };
 
       return {
         success: true,
@@ -307,7 +308,7 @@ export class OwnerRequestService implements IOwnerRequestService {
       console.error("Get owner requests error:", error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Something went wrong",
+        message: error instanceof Error ? getErrorMessage(error) : "Something went wrong",
       };
     }
   }
@@ -347,7 +348,7 @@ export class OwnerRequestService implements IOwnerRequestService {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : "File upload failed",
+        message: error instanceof Error ? getErrorMessage(error) : "File upload failed",
       };
     }
   }
@@ -389,7 +390,7 @@ export class OwnerRequestService implements IOwnerRequestService {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Multiple file upload failed",
+        message: error instanceof Error ? getErrorMessage(error) : "Multiple file upload failed",
       };
     }
   }
@@ -426,7 +427,7 @@ export class OwnerRequestService implements IOwnerRequestService {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to generate signed URL",
+        message: error instanceof Error ? getErrorMessage(error) : "Failed to generate signed URL",
       };
     }
   }
@@ -602,7 +603,7 @@ export class OwnerRequestService implements IOwnerRequestService {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to create owner account",
+        message: error instanceof Error ? getErrorMessage(error) : "Failed to create owner account",
       };
     }
   }
@@ -642,9 +643,11 @@ export class OwnerRequestService implements IOwnerRequestService {
     const { status, page = 1, limit = 10 } = filters;
 
     if (status) {
-      return await this.ownerRequestRepository.findByStatus(status, Number(page), Number(limit));
+      const result = await this.ownerRequestRepository.findByStatus(status, Number(page), Number(limit));
+      return { requests: result.data, total: result.total };
     } else {
-      return await this.ownerRequestRepository.findAll(Number(page), Number(limit));
+      const result = await this.ownerRequestRepository.findAll(Number(page), Number(limit));
+      return { requests: result.data, total: result.total };
     }
   }
 
@@ -668,12 +671,16 @@ export class OwnerRequestService implements IOwnerRequestService {
 
     if (sortBy) {
       result.requests.sort((a: IOwnerRequest, b: IOwnerRequest) => {
-        let aValue = (a as string)[sortBy];
-        let bValue = (b as string)[sortBy];
+        let aValue = (a as unknown as Record<string, unknown>)[sortBy];
+        let bValue = (b as unknown as Record<string, unknown>)[sortBy];
 
         if (sortBy.includes("Date") || sortBy.includes("At")) {
-          aValue = new Date(aValue);
-          bValue = new Date(bValue);
+          const aTime = new Date(aValue as string | number | Date).getTime();
+          const bTime = new Date(bValue as string | number | Date).getTime();
+          if (sortOrder === "desc") {
+            return bTime > aTime ? 1 : -1;
+          }
+          return aTime > bTime ? 1 : -1;
         }
 
         if (sortOrder === "desc") {
@@ -686,7 +693,7 @@ export class OwnerRequestService implements IOwnerRequestService {
     return result;
   }
 
-  private _transformRequestsData(result: { requests: IOwnerRequest[]; total: number }): { requests: IOwnerRequest[]; total: number } {
+  private _transformRequestsData(result: { requests: IOwnerRequest[]; total: number }): { requests: Partial<IOwnerRequest>[]; total: number } {
     result.requests = result.requests.map((request) => {
       return {
         ...request,
@@ -718,7 +725,7 @@ export class OwnerRequestService implements IOwnerRequestService {
               crop: "fill",
             })
           : null,
-      };
+      } as unknown as IOwnerRequest;
     });
 
     return result;

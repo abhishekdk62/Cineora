@@ -1,15 +1,16 @@
-import { FormData } from "../../components/Owner/Screens/types";
 import OWNER_SCREENS from "../../constants/ownerConstants/screenConstants";
 import apiClient from "../../Utils/apiClient";
 import {
+  CreateScreenRequestDto,
   CreateScreenResponseDto,
   GetScreensByTheaterIdResponseDto,
   GetScreensStatsOwnerResponseDto,
   DeleteScreenResponseDto,
-  GetScreenResponseDto
+  GetScreenResponseDto,
+  UpdateScreenRequestDto,
 } from '../../dtos/screen.dto';
 
-export const createScreen = async (data: FormData ): Promise<CreateScreenResponseDto> => {
+export const createScreen = async (data: CreateScreenRequestDto): Promise<CreateScreenResponseDto> => {
   const result = await apiClient.post(OWNER_SCREENS.BASE, data);
   return result.data;
 };
@@ -34,7 +35,7 @@ export const deleteScreenOwner = async (id: string): Promise<DeleteScreenRespons
   return result.data;
 };
 
-export const editScreenOwner = async (id: string, data: FormData): Promise<GetScreenResponseDto> => {
+export const editScreenOwner = async (id: string, data: UpdateScreenRequestDto): Promise<GetScreenResponseDto> => {
   const result = await apiClient.put(OWNER_SCREENS.BY_ID(id), data);
   return result.data;
 };

@@ -67,10 +67,14 @@ const AdminAnalyticsDashboard = () => {
     try {
       setLoading(true);
       const response = await apiClient.get('/admin/analytics/data/analytics');
-      console.log('ok', response.data.data);
-      
-      setAnalyticsData(response.data.data);
-      setFilteredData(response.data.data);
+
+      if (response.data?.success && Array.isArray(response.data.data)) {
+        setAnalyticsData(response.data.data);
+        setFilteredData(response.data.data);
+      } else {
+        setAnalyticsData([]);
+        setFilteredData([]);
+      }
     } catch (error) {
       console.error('Error fetching analytics data:', error);
     } finally {

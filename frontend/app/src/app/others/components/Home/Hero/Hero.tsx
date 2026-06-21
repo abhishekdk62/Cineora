@@ -4,6 +4,13 @@ import Orb from "@/app/others/components/ReactBits/Orb";
 import SearchInput from "./SearchInput";
 import { Lexend } from "next/font/google";
 
+type SearchSuggestion = {
+  type: "movies" | "theaters";
+  id: string;
+  title?: string;
+  name?: string;
+};
+
 type HeroProps = {
   onNavigateToSearch?: (query: string) => void;
 };
@@ -25,7 +32,7 @@ export default function Hero({ onNavigateToSearch }: HeroProps) {
       onNavigateToSearch(query);
     }
   };
-  const handleSuggestionSelect = (suggestion) => {
+  const handleSuggestionSelect = (suggestion: SearchSuggestion) => {
     console.log(`Navigating to ${suggestion.type} detail page:`, suggestion);
   };
   return (

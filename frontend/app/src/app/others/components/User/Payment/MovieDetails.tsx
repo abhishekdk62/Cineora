@@ -8,8 +8,8 @@ const lexendBold = Lexend({ weight: "700", subsets: ["latin"] });
 interface MovieDetailsProps {
   data: {
     movieTitle: string;
-    moviePoster:string;
-    movieRating: number;
+    moviePoster: string;
+    movieRating: number | string;
     theaterName: string;
     screenName: string;
     showDate: string;

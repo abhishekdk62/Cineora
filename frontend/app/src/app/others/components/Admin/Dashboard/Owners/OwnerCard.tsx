@@ -50,7 +50,7 @@ interface OwnerCardProps {
 const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions, setViewThaeter }) => {
   const [showModal, setShowModal] = useState(false)
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | Date) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -58,7 +58,7 @@ const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions, setViewThaeter })
     })
   }
 
-  const formatDateTime = (dateString: string) => {
+  const formatDateTime = (dateString: string | Date) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -82,7 +82,7 @@ const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions, setViewThaeter })
 
   async function getTheatersByOwnerId() {
     const data = await getTheatersByOwnerIdAdmin(owner._id)
-    setTheaters(data.data.theaters)
+    setTheaters(data.data?.theaters || [])
     console.log(data.data);
   }
 
@@ -196,7 +196,7 @@ const OwnerCard: React.FC<OwnerCardProps> = ({ owner, actions, setViewThaeter })
               <button
                 onClick={() => {
                   
-                  setViewThaeter(owner.id)}}
+                  setViewThaeter(owner._id)}}
                 className="flex items-center gap-2 text-yellow-400 hover:text-yellow-300 text-sm font-medium transition-colors"
               >
                 <Building size={14} />

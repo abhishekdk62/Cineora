@@ -42,8 +42,8 @@ interface BookingData {
   movieDetails?: {};
   theaterDetails?: {};
   screenDetails?: {};
-  showDetails?: RowPricing
-  allRowPricing?: RowPricing;
+  showDetails?: Record<string, unknown>;
+  allRowPricing?: RowPricing[] | RowPricing;
   selectedRows: SelectedRow[];
   appliedCoupon?: {
     _id: string;
@@ -51,7 +51,7 @@ interface BookingData {
     uniqueId: string;
     discountPercentage: number;
     description?: string;
-    expiryDate?: string;
+      expiryDate?: string | Date;
     maxUsageCount: number;
     isActive: boolean;
   };
@@ -180,7 +180,20 @@ applyCoupon: (
   }>
 ) => {
   if (state.bookingData) {
-    state.bookingData.appliedCoupon = action.payload.coupon;
+    const { coupon } = action.payload;
+    state.bookingData.appliedCoupon = {
+      _id: coupon._id,
+      name: coupon.name,
+      uniqueId: coupon.uniqueId,
+      discountPercentage: coupon.discountPercentage ?? 0,
+      description: coupon.description,
+      expiryDate:
+        coupon.expiryDate instanceof Date
+          ? coupon.expiryDate.toISOString()
+          : coupon.expiryDate,
+      maxUsageCount: coupon.maxUsageCount ?? 0,
+      isActive: coupon.isActive ?? true,
+    };
     state.bookingData.couponCode = action.payload.coupon.uniqueId;
     state.bookingData.discountApplied = action.payload.discountAmount;
     

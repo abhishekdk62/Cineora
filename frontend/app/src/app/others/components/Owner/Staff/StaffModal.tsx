@@ -2,28 +2,7 @@
 import React from 'react';
 import { X, User, Mail, Calendar, Building, Shield, Power, PowerOff, MapPin, Phone } from 'lucide-react';
 
-interface StaffMember {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: string;
-  isActive: boolean;
-  theaterId?: {
-    _id: string;
-    name: string;
-    address: string;
-    city: string;
-    state: string;
-    pincode?: string;
-    phone?: string;
-    screens?: number;
-    facilities?: string[];
-    isVerified?: boolean;
-  };
-  createdAt?: string;
-  updatedAt?: string;
-}
+import type { StaffMember } from "./staff.types";
 
 interface OwnerStaffModalProps {
   staff: StaffMember;

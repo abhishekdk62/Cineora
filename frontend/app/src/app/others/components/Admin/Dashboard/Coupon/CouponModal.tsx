@@ -1,38 +1,19 @@
+import type { NextFontInstance } from '@/app/others/types';
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { 
   X, Calendar, Percent, DollarSign, MapPin, Clock, 
   Ban, Eye, Users, CheckCircle2, AlertTriangle 
 } from 'lucide-react';
+import { CouponResponseDto } from '@/app/others/dtos/coupon.dto';
 
-interface Theater {
-  _id: string;
-  name: string;
-}
-
-interface Coupon {
-  _id: string;
-  name: string;
-  uniqueId: string;
-  theaterIds: Theater[];
-  discountPercentage: number;
-  description: string;
-  expiryDate: string;
-  isActive: boolean;
-  isUsed: boolean;
-  maxUsageCount: number;
-  currentUsageCount: number;
-  minAmount: number;
-  createdBy: string;
-  createdAt: string;
-  updatedAt: string;
-}
+type AdminCoupon = CouponResponseDto & { minAmount?: number };
 
 interface CouponModalProps {
-  coupon: Coupon;
-  lexend: string;
+  coupon: AdminCoupon;
+  lexend: NextFontInstance;
   onClose: () => void;
-  onToggleStatus: (couponId: string) => void;
+  onToggleStatus: (couponId: string, f: boolean) => void;
   loading: boolean;
 }
 
@@ -43,7 +24,7 @@ const CouponModal: React.FC<CouponModalProps> = ({
   onToggleStatus, 
   loading 
 }) => {
-  const isExpired = new Date(coupon.expiryDate) <= new Date();
+  const isExpired = new Date(coupon.expiryDate).getTime() <= Date.now();
   const isFullyUsed = coupon.currentUsageCount >= coupon.maxUsageCount;
   const usagePercentage = (coupon.currentUsageCount / coupon.maxUsageCount) * 100;
 
@@ -148,7 +129,7 @@ const CouponModal: React.FC<CouponModalProps> = ({
                 </span>
               </div>
               <p className={`${lexend.className} text-3xl text-green-400 font-bold`}>
-                ₹{coupon.minAmount}
+                ₹{coupon.minAmount ?? 0}
               </p>
             </div>
           </div>
@@ -231,7 +212,7 @@ const CouponModal: React.FC<CouponModalProps> = ({
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {coupon.theaterIds.map((theater: Theater) => (
+              {coupon.theaterIds.map((theater) => (
                 <div key={theater._id} className="bg-gray-600/30 border border-gray-500/30 rounded-lg p-3">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-yellow-400" />
@@ -288,7 +269,7 @@ const CouponModal: React.FC<CouponModalProps> = ({
           </button>
           
           <button
-            onClick={() => onToggleStatus(coupon._id)}
+            onClick={() => onToggleStatus(coupon._id, coupon.isActive)}
             disabled={loading}
             className={`flex items-center gap-2 px-6 py-3 rounded-xl transition-all duration-300 disabled:opacity-50 ${
               coupon.isActive 

@@ -5,6 +5,7 @@ import { RootState } from '../../redux/store';
 import { Lexend } from 'next/font/google';
 import { User, Mail, Shield, Calendar, Building, MapPin, Phone, Users } from 'lucide-react';
 import { getStaffDetails } from '../../services/ownerServices/staffServices';
+import type { StaffResponseDto } from '../../dtos';
 import ElectricBorder from '../../Utils/ReactBits/ElectricBorder';
 
 const lexendBold = Lexend({ weight: "700", subsets: ["latin"] });
@@ -41,13 +42,12 @@ interface StaffData {
 
 const StaffAccount = () => {
   const user = useSelector((state: RootState) => state.auth.user);
-  const [staffData, setStaffData] = useState<any>(null);
+  const [staffData, setStaffData] = useState<StaffResponseDto | null>(null);
   const [loading, setLoading] = useState(true);
 
   const getStaffDetailsFunc = async () => {
     try {
       const data = await getStaffDetails();
-      console.log('staff datas', data.staff);
       setStaffData(data.staff);
     } catch (error) {
       console.log(error);
@@ -76,10 +76,13 @@ const StaffAccount = () => {
     );
   }
 
-  // Extract data from your API response structure
   const staff = staffData;
-  const theater = staffData?.theater; // theater object
-  const owner = staffData?.owner; // owner object
+  const theater =
+    staffData?.theaterId && typeof staffData.theaterId === "object"
+      ? staffData.theaterId
+      : null;
+  const owner =
+    theater && typeof theater.ownerId === "object" ? theater.ownerId : null;
 
   return (
 
@@ -181,11 +184,13 @@ const StaffAccount = () => {
                       Started Working
                     </p>
                     <p className={`${lexendMedium.className} text-white`}>
-                      {new Date(staff?.createdAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
+                      {staff?.createdAt
+                        ? new Date(staff.createdAt).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })
+                        : 'N/A'}
                     </p>
                   </div>
                 </div>
@@ -263,7 +268,8 @@ const StaffAccount = () => {
                 {theater?.location && (
                   <button
                     onClick={() => {
-                      const url = `https://www.google.com/maps?q=${theater.location.coordinates[1]},${theater.location.coordinates[0]}`;
+                      const [lng, lat] = theater.location?.coordinates ?? [0, 0];
+                      const url = `https://www.google.com/maps?q=${lat},${lng}`;
                       window.open(url, "_blank");
                     }}
                     className={`${lexendRegular.className} text-blue-400 hover:text-blue-300 underline text-sm transition-colors mt-2 inline-block`}

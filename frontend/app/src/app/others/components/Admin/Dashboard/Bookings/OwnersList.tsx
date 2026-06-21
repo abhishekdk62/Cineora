@@ -15,7 +15,7 @@ import { getOwners } from '@/app/others/services/adminServices/ownerServices';
 import { useDebounce } from '@/app/others/Utils/debounce';
 import toast from 'react-hot-toast';
 import { AxiosError } from 'axios';
-import { OwnerFilters } from '../Owners/OwnerManager';
+import { OwnerFilters } from '@/app/others/dtos/owner.dto';
 
 const lexend = Lexend({
   weight: "500",
@@ -76,9 +76,9 @@ const OwnersList: React.FC<OwnersListProps> = ({ onOwnerSelect }) => {
 
     try {
       setIsLoading(true);
-      const ownerFiltersWithStatus = {
+      const ownerFiltersWithStatus: OwnerFilters = {
         ...filters,
-        status: "active",
+        isActive: true,
       };
       const response = await getOwners(ownerFiltersWithStatus);
       setOwners((response.data?.owners || response.owners || []).map(owner => ({
@@ -86,11 +86,7 @@ const OwnersList: React.FC<OwnersListProps> = ({ onOwnerSelect }) => {
         name: owner.ownerName
       })));
 
-      if (response.data?.meta?.pagination) {
-        setTotalPages(response.data.meta.pagination.totalPages);
-        setTotalItems(response.data.meta.pagination.total);
-        setCurrentPage(response.data.meta.pagination.currentPage);
-      } else if (response.meta?.pagination) {
+      if (response.meta?.pagination) {
         setTotalPages(response.meta.pagination.totalPages);
         setTotalItems(response.meta.pagination.total);
         setCurrentPage(response.meta.pagination.currentPage);

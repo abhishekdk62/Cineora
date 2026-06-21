@@ -22,7 +22,12 @@ interface LocationFieldsProps {
     };
   };
   errors: { [key: string]: string };
-  updateFormData: (updates: string) => void;
+  updateFormData: (updates: {
+    location: {
+      type: "Point";
+      coordinates: [number, number];
+    };
+  }) => void;
   clearError: (field: string) => void;
 }
 

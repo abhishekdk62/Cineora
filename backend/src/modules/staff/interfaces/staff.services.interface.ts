@@ -9,7 +9,7 @@ export interface IStaffService {
   createStaff(
     ownerId: string,
     createStaffData: CreateStaffDTO
-  ): Promise<StaffResponseDTO>;
+  ): Promise<StaffResponseDTO | "Exists">;
 
   getStaffDetails(staffId: string): Promise<StaffDetailsDTO>;
 

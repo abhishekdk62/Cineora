@@ -75,11 +75,7 @@ export interface TheaterResponse {
   currentPage: number;
   totalPages: number;
 }
-export interface GoogleCredentialResponse {
-  credential: string; 
-  select_by?: string; 
-  client_id?: string; 
-}
+export type GoogleCredentialResponse = import('@react-oauth/google').CredentialResponse;
 
 export interface SignupFormData {
   email: string;
@@ -102,8 +98,8 @@ export interface SignupFormData {
   showTime?: string;
   theaterName?: string;
   location?: {
-    coordinates: [string, string]
-  }
+    coordinates: [number | string, number | string];
+  };
   theaterLocation?: { coordinates: [number, number]; type: string };
   distance?: string;
   amenities?: string[];
@@ -181,8 +177,8 @@ export interface SignupFormData {
   showDate?: string;
   endTime?: string;
   isActive?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
   showtimes?: {
     _id?: string;
     showtimeId?: string;
@@ -216,16 +212,22 @@ export interface ISeatBlock {
   blockedAt: Date;
   expiresAt: Date;
 }
-export interface BookingState {
-  bookingData: BookingData;
-}
-interface BookingData {
-  totalAmount: number;
-  amount: number;
-  selectedSeats: string[];
-  theaterId: string;
+export interface BookingData {
+  totalAmount?: number;
+  amount?: number;
+  selectedSeats?: string[];
+  theaterId?: string;
+  movieId?: string;
+  screenId?: string;
   selectedRowIds?: string[];
   showtimeId?: string;
+  movieTitle?: string;
+  movieDetails?: { title?: string; poster?: string; rating?: string };
+  theaterName?: string;
+  screenName?: string;
+  showDate?: string;
+  showTime?: string;
+  showDetails?: RowPricing;
   priceDetails?: {
     subtotal: number;
     convenienceFee: number;
@@ -235,6 +237,10 @@ interface BookingData {
   };
   appliedCoupon?: CouponData | null;
 }
+
+export interface BookingState {
+  bookingData: BookingData | null;
+}
 export interface RowPricing {
   _id?: string;
   rowLabel: string;
@@ -243,7 +249,7 @@ export interface RowPricing {
   showtimePrice: number;
   totalSeats: number;
   availableSeats: number;
-  bookedSeats: string[];
+  bookedSeats?: string[];
 }
 
 export interface ShowTimeData {
@@ -264,19 +270,27 @@ export interface ShowTimeData {
 }
 
 export interface CouponData {
-  uniqueId:string;
-  name:string;
+  uniqueId: string;
+  name: string;
   _id: string;
-  code: string;
-  discount: number;
-    discountPercentage?: number; 
-
-  discountType: 'percentage' | 'fixed';
+  code?: string;
+  discount?: number;
+  discountPercentage?: number;
+  discountType?: "percentage" | "fixed";
   minAmount?: number;
   maxDiscount?: number;
-  theaterId: string;
-  isActive: boolean;
-  expiresAt: Date;
+  theaterId?: string;
+  theaterIds?: Array<{ _id: string; name: string }>;
+  description?: string;
+  expiryDate?: Date | string;
+  isActive?: boolean;
+  isUsed?: boolean;
+  maxUsageCount?: number;
+  currentUsageCount?: number;
+  createdBy?: string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  expiresAt?: Date | string;
 }
 
 export interface SeatBreakdownItem {
@@ -293,3 +307,5 @@ export interface SeatBreakdown {
   breakdown: SeatBreakdownItem[];
   selectedRowIds: string[];
 }
+
+export * from "./common.types";

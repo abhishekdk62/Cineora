@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { Request, Response } from "express";
 import { createResponse } from "../../../utils/createResponse";
 import { ITheaterService } from "../interfaces/theater.service.interface";
@@ -14,7 +15,7 @@ export class TheaterController {
     private readonly _reviewService:IReviewService
   ) {}
 
-  async getTheatersWithFilters(req: Request, res: Response): Promise<void> {
+  async getTheatersWithFilters(req: Request, res: Response) {
     try {
       const filters = this._extractTheaterFilters(req);
       
@@ -50,7 +51,7 @@ export class TheaterController {
     }
   }
 
-  async createTheater(req: Request, res: Response): Promise<void> {
+  async createTheater(req: Request, res: Response) {
     try {
       const validationResult = this._validateCreateTheaterRequest(req);
       if (!validationResult.isValid) {
@@ -84,7 +85,7 @@ export class TheaterController {
     }
   }
 
-  async getTheatersByOwnerId(req: Request, res: Response): Promise<void> {
+  async getTheatersByOwnerId(req: Request, res: Response) {
     try {
       
       const ownerId = this._extractOwnerId(req);
@@ -117,7 +118,7 @@ export class TheaterController {
     }
   }
 
-  async updateTheater(req: Request, res: Response): Promise<void> {
+  async updateTheater(req: Request, res: Response) {
     try {
       const validationResult = this._validateUpdateTheaterRequest(req);
       if (!validationResult.isValid) {
@@ -152,7 +153,7 @@ export class TheaterController {
     }
   }
 
-  async deleteTheater(req: Request, res: Response): Promise<void> {
+  async deleteTheater(req: Request, res: Response) {
     try {
       const { theaterId } = req.params;
 
@@ -186,7 +187,7 @@ export class TheaterController {
     }
   }
 
-  async toggleTheaterStatus(req: Request, res: Response): Promise<void> {
+  async toggleTheaterStatus(req: Request, res: Response) {
     try {
       const theaterId = this._extractTheaterIdFromParams(req);
 
@@ -218,7 +219,7 @@ export class TheaterController {
     }
   }
 
-  async verifyTheater(req: Request, res: Response): Promise<void> {
+  async verifyTheater(req: Request, res: Response) {
     try {
       const { theatreId } = req.params;
 
@@ -250,7 +251,7 @@ export class TheaterController {
     }
   }
 
-  async rejectTheater(req: Request, res: Response): Promise<void> {
+  async rejectTheater(req: Request, res: Response) {
     try {
       const { theatreId } = req.params;
       const { rejectionReason } = req.body;
@@ -283,7 +284,7 @@ export class TheaterController {
     }
   }
 
-  async getTheaterById(req: Request, res: Response): Promise<void> {
+  async getTheaterById(req: Request, res: Response) {
     try {
       const { theatreId } = req.params;
 
@@ -407,7 +408,7 @@ export class TheaterController {
     console.error(`Controller error: ${defaultMessage}`, error);
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(createResponse({
       success: false,
-      message: error.message || defaultMessage,
+      message: getErrorMessage(error) || defaultMessage,
     }));
   }
 }

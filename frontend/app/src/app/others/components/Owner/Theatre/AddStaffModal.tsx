@@ -5,6 +5,7 @@ import { Lexend } from "next/font/google";
 import { X, Loader2, User, Mail, Lock, Building2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { createStaff } from "@/app/others/services/ownerServices/staffServices";
+import type { StaffResponseDto } from "@/app/others/dtos/staff.dto";
 
 const lexendBold = Lexend({ weight: "700", subsets: ["latin"] });
 const lexendMedium = Lexend({ weight: "500", subsets: ["latin"] });
@@ -18,22 +19,9 @@ interface Theater {
   state: string;
 }
 
-interface Staff {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: string;
-  ownerId: string;
-  theaterId?: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
 interface AddStaffModalProps {
   onClose: () => void;
-  onSuccess: (staff: Staff) => void;
+  onSuccess: (staff: StaffResponseDto) => void;
   selectedTheater: Theater;
 }
 
@@ -187,8 +175,8 @@ const AddStaffModal: React.FC<AddStaffModalProps> = ({
   };
 
   // Enhanced form submission with comprehensive error handling
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent<HTMLFormElement>) => {
+    e?.preventDefault();
     
     // Mark all fields as touched
     setTouched({
@@ -444,7 +432,8 @@ const AddStaffModal: React.FC<AddStaffModalProps> = ({
                 Cancel
               </button>
               <button
-                onClick={handleSubmit}
+                type="button"
+                onClick={() => void handleSubmit()}
                 disabled={isLoading || !isFormValid()}
                 className={`${lexendMedium.className} flex-1 bg-white text-black py-3 rounded-xl hover:bg-gray-200 transition-all duration-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
               >

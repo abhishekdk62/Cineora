@@ -4,7 +4,7 @@ import { IBooking } from "../interfaces/bookings.model.interface";
 export interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
-    email: string;
+    email?: string;
   };
 }
 

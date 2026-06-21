@@ -1,10 +1,20 @@
 import React from 'react';
 import { Lexend } from "next/font/google";
+import type { FormData } from "./types";
 
 const lexendMedium = Lexend({ weight: "500", subsets: ["latin"] });
 
+type AdvancedLayout = FormData["layout"]["advancedLayout"];
+
+interface ExpandedRow {
+  type: 'seats' | 'horizontal-aisle';
+  data: AdvancedLayout["rows"][number] | NonNullable<AdvancedLayout["aisles"]>["horizontal"][number];
+  originalIndex?: number;
+  aisleRowIndex?: number;
+}
+
 interface LayoutPreviewProps {
-  advancedLayoutJSON: string;
+  advancedLayoutJSON: AdvancedLayout;
   maxCols: number;
   showAisles?: boolean;
 }
@@ -18,16 +28,16 @@ export const LayoutPreview: React.FC<LayoutPreviewProps> = ({
 
   const isVerticalAisle = (col: number) => {
     if (!showAisles || !aisles.vertical) return false;
-    return aisles.vertical.some((aisle: string) => 
+    return aisles.vertical.some((aisle) => 
       col >= aisle.position && col < aisle.position + aisle.width
     );
   };
 
   // Create expanded rows list including horizontal aisles
   const createExpandedRows = () => {
-    const expandedRows: string[] = [];
+    const expandedRows: ExpandedRow[] = [];
     
-    advancedLayoutJSON.rows.forEach((row: string, rowIndex: number) => {
+    advancedLayoutJSON.rows.forEach((row, rowIndex: number) => {
       // Add the regular seat row
       expandedRows.push({
         type: 'seats',
@@ -37,7 +47,7 @@ export const LayoutPreview: React.FC<LayoutPreviewProps> = ({
       
       // Check if we need to add horizontal aisle after this row
       if (showAisles && aisles.horizontal) {
-        const horizontalAisle = aisles.horizontal.find((aisle: string) => 
+        const horizontalAisle = aisles.horizontal.find((aisle) => 
           aisle.afterRow === rowIndex
         );
         
@@ -82,9 +92,9 @@ export const LayoutPreview: React.FC<LayoutPreviewProps> = ({
                     width: `${maxCols * 32 + (maxCols - 1) * 4}px`,
                     height: '3px'
                   }}
-                  title={`Horizontal aisle: ${expandedRow.data.label || 'Walkway'}`}
+                  title={`Horizontal aisle: ${expandedRow.type === 'horizontal-aisle' && 'label' in expandedRow.data ? expandedRow.data.label || 'Walkway' : 'Walkway'}`}
                 />
-              ) : (
+              ) : expandedRow.type === 'seats' ? (
                 // Regular seat row
                 <div
                   className="grid"
@@ -94,6 +104,7 @@ export const LayoutPreview: React.FC<LayoutPreviewProps> = ({
                   }}
                 >
                   {Array.from({ length: maxCols }).map((_, colIndex) => {
+                    const rowData = expandedRow.data as AdvancedLayout["rows"][number];
                     if (showAisles && isVerticalAisle(colIndex)) {
                       return (
                         <div
@@ -120,13 +131,13 @@ export const LayoutPreview: React.FC<LayoutPreviewProps> = ({
                     }
 
                     // Empty space for offset
-                    if (colIndex < expandedRow.data.offset) {
+                    if (colIndex < rowData.offset) {
                       return <div key={`offset-${colIndex}`} style={{ width: 28, height: 28 }} />;
                     }
 
                     // Find the seat at this position
-                    const seatIndex = colIndex - expandedRow.data.offset;
-                    const seat = expandedRow.data.seats[seatIndex];
+                    const seatIndex = colIndex - rowData.offset;
+                    const seat = rowData.seats[seatIndex];
                     
                     if (seat) {
                       return (
@@ -159,7 +170,7 @@ export const LayoutPreview: React.FC<LayoutPreviewProps> = ({
                     return <div key={`empty-${colIndex}`} style={{ width: 28, height: 28 }} />;
                   })}
                 </div>
-              )}
+              ) : null}
             </div>
           ))}
         </div>

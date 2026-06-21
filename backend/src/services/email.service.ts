@@ -871,7 +871,7 @@ export interface IEmailService {
   sendKYCSubmittedEmail(email: string, ownerName: string, requestId: string): Promise<boolean>;
   sendKYCRejectedEmail(email: string, ownerName: string, rejectionReason: string): Promise<boolean>;
   sendOwnerWelcomeEmail(email: string, ownerName: string, tempPassword: string): Promise<boolean>;
-  sendTicketsEmail(email: string, tickets: TicketResponseDto[], bookingInfo: bookingInfo): Promise<boolean>;
+  sendTicketsEmail(email: string, tickets: any[], bookingInfo: bookingInfo): Promise<boolean>;
   sendEmailChangeSuccessNotification(newEmail: string, oldEmail: string): Promise<boolean>;
   sendPasswordChangeConfirmation(email: string, userName: string): Promise<boolean>;
 }

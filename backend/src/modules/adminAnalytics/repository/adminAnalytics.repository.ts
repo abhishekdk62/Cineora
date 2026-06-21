@@ -1,29 +1,85 @@
-import mongoose, { FilterQuery, PipelineStage, Types } from "mongoose";
+import { getErrorMessage } from "../../../utils/errorUtil";
+import mongoose, { FilterQuery, Types } from "mongoose";
 import { IAnalyticsRepository } from "../interfaces/adminAnalytics.repository.interface";
 import Booking from "../../bookings/models/bookings.model";
-import MovieShowtime from "../../showtimes/models/showtimes.model";
-
 import {Movie} from "../../movies/models/movies.model";
 import { Review } from "../../reviews/models/review.model";
 import {User} from '../../user/models/user.model'
 import {Owner} from '../../owner/models/owner.model'
 import {Theater} from '../../theaters/models/theater.model'
-import { IDateRange } from "../dtos/dtos";
-import { ShowtimeListResponseDTO } from "../../showtimes/dtos/dto";
+import { IAdminBookingAnalyticsRecord, IDateRange } from "../dtos/dtos";
 
 export class AdminAnalyticsRepository implements IAnalyticsRepository {
 
-  private buildDateMatch(dateRange: IDateRange): ShowtimeListResponseDTO {
-    const match: FilterQuery = {};
-    if (dateRange.startDate) {
-      match.$gte = new Date(dateRange.startDate);
+  private buildDateMatch(dateRange: IDateRange): Record<string, Date> {
+    const match: Record<string, Date> = {};
+    if (dateRange.startDate ?? dateRange.start) {
+      match.$gte = new Date(dateRange.startDate ?? dateRange.start!);
     }
-    if (dateRange.endDate) {
-      match.$lte = new Date(dateRange.endDate);
+    if (dateRange.endDate ?? dateRange.end) {
+      match.$lte = new Date(dateRange.endDate ?? dateRange.end!);
     }
     return Object.keys(match).length > 0 ? match : { $gte: new Date(0) };
   }
 
+  async getAdminAnalyticData(
+    dateRange: IDateRange
+  ): Promise<IAdminBookingAnalyticsRecord[]> {
+    try {
+      const bookings = await Booking.find({
+        createdAt: this.buildDateMatch(dateRange),
+        bookingStatus: "confirmed",
+        paymentStatus: "completed",
+      })
+        .populate(
+          "movieId",
+          "title genre language rating poster duration director releaseDate"
+        )
+        .populate("theaterId", "name city ownerId")
+        .populate("userId", "email")
+        .sort({ bookedAt: -1 })
+        .lean();
+
+      return bookings.map((booking) => ({
+        _id: String(booking._id),
+        bookingId: booking.bookingId,
+        userId: String(booking.userId?._id ?? booking.userId),
+        movieId: {
+          _id: String((booking.movieId as { _id?: unknown })?._id ?? booking.movieId),
+          title: (booking.movieId as { title?: string })?.title ?? "Unknown movie",
+          genre: (booking.movieId as { genre?: string[] })?.genre,
+          language: (booking.movieId as { language?: string })?.language,
+          rating: (booking.movieId as { rating?: string })?.rating,
+          poster: (booking.movieId as { poster?: string })?.poster,
+          duration: (booking.movieId as { duration?: number })?.duration,
+          director: (booking.movieId as { director?: string })?.director,
+          releaseDate: (booking.movieId as { releaseDate?: string | Date })?.releaseDate,
+        },
+        theaterId: {
+          _id: String((booking.theaterId as { _id?: unknown })?._id ?? booking.theaterId),
+          name: (booking.theaterId as { name?: string })?.name ?? "Unknown theater",
+          city: (booking.theaterId as { city?: string })?.city,
+          ownerId: String(
+            (booking.theaterId as { ownerId?: unknown })?.ownerId ?? ""
+          ),
+        },
+        priceDetails: {
+          total: booking.priceDetails?.total ?? 0,
+          subtotal: booking.priceDetails?.subtotal ?? 0,
+          taxes: booking.priceDetails?.taxes ?? 0,
+          convenienceFee: booking.priceDetails?.convenienceFee ?? 0,
+          discount: booking.priceDetails?.discount,
+        },
+        bookedAt: booking.bookedAt,
+        paymentStatus: booking.paymentStatus,
+        bookingStatus: booking.bookingStatus,
+        selectedSeats: booking.selectedSeats ?? [],
+      }));
+    } catch (error) {
+      throw new Error(`Failed to get admin analytic data: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
+    }
+  }
+
   async getAggregateRevenue(dateRange: IDateRange): Promise<number> {
     try {
       const result = await Booking.aggregate([
@@ -44,40 +100,7 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
 
       return result[0]?.totalRevenue || 0;
     } catch (error) {
-      throw new Error(`Failed to get aggregate revenue: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
-  async getAdminAnalyticData(dateRange: IDateRange): Promise<number> {
-    try {
-   
-      const bookings=await Booking.find().populate('theaterId').populate('movieId').populate('screenId').populate('showtimeId')
-      
-      return bookings;
-    } catch (error) {
-      throw new Error(`Failed to get aggregate revenue: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
-  async getAggregateRevenue(dateRange: IDateRange): Promise<number> {
-    try {
-      const result = await Booking.aggregate([
-        {
-          $match: {
-            createdAt: this.buildDateMatch(dateRange),
-            bookingStatus: "confirmed",
-            paymentStatus: "completed"
-          }
-        },
-        {
-          $group: {
-            _id: null,
-            totalRevenue: { $sum: "$priceDetails.total" }
-          }
-        }
-      ]);
-
-      return result[0]?.totalRevenue || 0;
-    } catch (error) {
-      throw new Error(`Failed to get aggregate revenue: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get aggregate revenue: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -88,7 +111,7 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
         bookingStatus: "confirmed"
       });
     } catch (error) {
-      throw new Error(`Failed to get aggregate bookings: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get aggregate bookings: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -138,7 +161,7 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
 
       return (result[0]?.avgOccupancy || 0) * 100; 
     } catch (error) {
-      throw new Error(`Failed to get aggregate occupancy: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get aggregate occupancy: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -149,7 +172,7 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
         role: "user"
       });
     } catch (error) {
-      throw new Error(`Failed to get total customers: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get total customers: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -157,7 +180,7 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
     try {
       return await Owner.countDocuments({ isActive: true });
     } catch (error) {
-      throw new Error(`Failed to get total owners: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get total owners: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -165,7 +188,7 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
     try {
       return await Theater.countDocuments({ isActive: true });
     } catch (error) {
-      throw new Error(`Failed to get total theaters: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get total theaters: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -173,7 +196,7 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
     try {
       return await Movie.countDocuments({ isActive: true });
     } catch (error) {
-      throw new Error(`Failed to get total movies: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get total movies: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -245,7 +268,7 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
 
       return result;
     } catch (error) {
-      throw new Error(`Failed to get revenue per theater: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get revenue per theater: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -310,7 +333,7 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
 
       return result;
     } catch (error) {
-      throw new Error(`Failed to get revenue per owner: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get revenue per owner: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -371,7 +394,7 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
 
       return result;
     } catch (error) {
-      throw new Error(`Failed to get revenue per movie: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get revenue per movie: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -419,7 +442,7 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
 
       return result;
     } catch (error) {
-      throw new Error(`Failed to get monthly revenue trends: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get monthly revenue trends: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -467,7 +490,7 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
 
       return result;
     } catch (error) {
-      throw new Error(`Failed to get daily revenue trends: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get daily revenue trends: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -512,7 +535,7 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
         avgBookingsPerCustomer
       };
     } catch (error) {
-      throw new Error(`Failed to get customer stats: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get customer stats: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -586,7 +609,7 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
 
       return result[0]?.segments || [];
     } catch (error) {
-      throw new Error(`Failed to get customer segments: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get customer segments: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -647,7 +670,7 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
         ratingDistribution: []
       };
     } catch (error) {
-      throw new Error(`Failed to get customer satisfaction: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get customer satisfaction: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -731,7 +754,7 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
         totalTaxes: 0
       };
     } catch (error) {
-      throw new Error(`Failed to get financial KPIs: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get financial KPIs: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 
@@ -810,7 +833,7 @@ export class AdminAnalyticsRepository implements IAnalyticsRepository {
 
       return result;
     } catch (error) {
-      throw new Error(`Failed to get movie performance: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get movie performance: ${error instanceof Error ? getErrorMessage(error) : 'Unknown error'}`);
     }
   }
 

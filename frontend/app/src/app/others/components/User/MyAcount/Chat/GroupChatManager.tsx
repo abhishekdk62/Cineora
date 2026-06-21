@@ -27,6 +27,26 @@ interface ChatRoom {
   unreadCount: number;
 }
 
+interface ApiChatRoom {
+  _id: string;
+  roomName: string;
+  movieInfo: { title: string };
+  theaterInfo: { name: string };
+  participantCount: number;
+  lastMessageAt: string;
+}
+
+interface MessageEditedDetail {
+  messageId: string;
+  content: string;
+  chatRoomId: string;
+}
+
+interface MessageDeletedDetail {
+  messageId: string;
+  chatRoomId: string;
+}
+
 const GroupChatManager: React.FC = () => {
   const [selectedChatId, setSelectedChatId] = useState("");
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
@@ -37,8 +57,8 @@ const GroupChatManager: React.FC = () => {
   const { socket, isConnected, joinChatRoom, leaveChatRoom } = useSocket();
 
   useEffect(() => {
-    const handleNewMessage = (event: MessageItem) => {
-      const messageData = event.detail;
+    const handleNewMessage = (event: Event) => {
+      const messageData = (event as CustomEvent<MessageItem>).detail;
       if (messageData.chatRoomId === selectedChatId && messageData.senderId !== String(id)) {
         const newMessage: MessageItem = {
           _id: messageData._id,
@@ -58,8 +78,8 @@ const GroupChatManager: React.FC = () => {
       }
     };
 
-    const handleMessageEdited = (event: MessageItem) => {
-      const { messageId, content, chatRoomId } = event.detail;
+    const handleMessageEdited = (event: Event) => {
+      const { messageId, content, chatRoomId } = (event as CustomEvent<MessageEditedDetail>).detail;
       if (chatRoomId === selectedChatId) {
         setMessages(prev =>
           prev.map(msg =>
@@ -71,8 +91,8 @@ const GroupChatManager: React.FC = () => {
       }
     };
 
-    const handleMessageDeleted = (event: MessageItem) => {
-      const { messageId, chatRoomId } = event.detail;
+    const handleMessageDeleted = (event: Event) => {
+      const { messageId, chatRoomId } = (event as CustomEvent<MessageDeletedDetail>).detail;
       if (chatRoomId === selectedChatId) {
         setMessages(prev =>
           prev.map(msg =>
@@ -112,7 +132,7 @@ const GroupChatManager: React.FC = () => {
         console.log('room',res);
         
         if (res.success && res.data) {
-          const rooms: ChatRoom[] = res.data.map((room: ChatRoom) => ({
+          const rooms: ChatRoom[] = (res.data as ApiChatRoom[]).map((room) => ({
             id: room._id,
             name: room.roomName,
             movieTitle: room.movieInfo.title,
@@ -213,7 +233,7 @@ const GroupChatManager: React.FC = () => {
         isDeleted: false,
         messageType: "TEXT",
         senderId: String(id),
-        senderName: email?.split("@")[0]
+        senderName: email?.split("@")[0] ?? "User",
       };
 
       setMessages(prev => [...prev, newMessage]);

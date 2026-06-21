@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { ServiceResponse } from "../../../interfaces/interface";
 import mongoose from "mongoose";
 import { INotificationService } from "../interfaces/notification.service.interface";
@@ -69,7 +70,7 @@ export class NotificationService implements INotificationService {
       };
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Failed to send notification";
+        error instanceof Error ? getErrorMessage(error) : "Failed to send notification";
       return {
         success: false,
         message: errorMessage,
@@ -125,7 +126,7 @@ export class NotificationService implements INotificationService {
       };
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Failed to get notifications";
+        error instanceof Error ? getErrorMessage(error) : "Failed to get notifications";
       return {
         success: false,
         message: errorMessage,
@@ -179,7 +180,7 @@ export class NotificationService implements INotificationService {
       };
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Failed to get notifications";
+        error instanceof Error ? getErrorMessage(error) : "Failed to get notifications";
       return {
         success: false,
         message: errorMessage,
@@ -209,7 +210,7 @@ export class NotificationService implements INotificationService {
     } catch (error) {
       return {
         success: false,
-        message: error.message,
+        message: getErrorMessage(error),
         data: null,
       };
     }
@@ -251,7 +252,7 @@ export class NotificationService implements INotificationService {
     } catch (error) {
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? getErrorMessage(error)
           : "Failed to mark notification as read";
       return {
         success: false,
@@ -287,7 +288,7 @@ export class NotificationService implements INotificationService {
     } catch (error) {
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? getErrorMessage(error)
           : "Failed to delete notification";
       return {
         success: false,
@@ -321,7 +322,7 @@ export class NotificationService implements INotificationService {
     } catch (error) {
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? getErrorMessage(error)
           : "Failed to send booking notification";
       return {
         success: false,
@@ -361,7 +362,7 @@ export class NotificationService implements INotificationService {
     } catch (error) {
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? getErrorMessage(error)
           : "Failed to send payment notification";
       return {
         success: false,
@@ -393,7 +394,7 @@ export class NotificationService implements INotificationService {
     } catch (error) {
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? getErrorMessage(error)
           : "Failed to send reminder notification";
       return {
         success: false,
@@ -430,7 +431,7 @@ export class NotificationService implements INotificationService {
     } catch (error) {
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? getErrorMessage(error)
           : "Failed to send cancellation notification";
       return {
         success: false,

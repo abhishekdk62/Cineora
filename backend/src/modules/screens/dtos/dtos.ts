@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 import { ScreenInfoDto } from "../../chatroom/dtos/dto";
+import { IScreen } from "../interfaces/screens.model.interface";
 
 export interface CreateScreenDto {
   name: string;
@@ -37,6 +38,7 @@ export interface CreateScreenDto {
   };
   screenType?: string;
   features?: string[];
+  isActive?: boolean;
   theaterId: string;
 }
 
@@ -96,16 +98,18 @@ export interface AdvancedScreenFilterDto {
   sortOrder?: "asc" | "desc";
 }
 
+
 export interface PaginatedScreenResultDto {
-  screens: ScreenInfoDto[];
+  screens: IScreen[];
   total: number;
   currentPage: number;
   totalPages: number;
   pageSize: number;
 }
 
+
 export interface ScreenStatisticsDto {
-  screens: ScreenInfoDto[];
+  screens: IScreen[];
   totalFiltered: number;
   totalAll: number;
   activeAll: number;

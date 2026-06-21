@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../../../utils/errorUtil";
 import { IAdminAnalyticsService } from "../interfaces/adminAnalytics.service.interface";
 import { IAnalyticsRepository } from "../interfaces/adminAnalytics.repository.interface";
 
@@ -16,12 +17,9 @@ import {
   IOperationalAnalyticsDTO,
   IPerformanceMetricsDTO,
   IDateRange,
-  
-} from '../dtos/dtos'
+  IAdminBookingAnalyticsRecord,
+} from "../dtos/dtos";
 import { ServiceResponse } from "../../../interfaces/interface";
-import { MovieResponseDto } from "../../movies/dtos/dtos";
-import { UserLookupResponseDto } from "../../auth/dtos/dtos";
-import { ShowtimeValidationResult } from "../../showtimes/dtos/dto";
 export class AdminAnalyticsService implements IAdminAnalyticsService {
   constructor(private readonly analyticsRepository: IAnalyticsRepository) {}
 
@@ -76,7 +74,7 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to get comprehensive analytics",
+        message: error instanceof Error ? getErrorMessage(error) : "Failed to get comprehensive analytics",
         data: null
       };
     }
@@ -109,7 +107,7 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to get revenue analytics",
+        message: error instanceof Error ? getErrorMessage(error) : "Failed to get revenue analytics",
         data: null
       };
     }
@@ -147,7 +145,7 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to get monthly revenue trends",
+        message: error instanceof Error ? getErrorMessage(error) : "Failed to get monthly revenue trends",
         data: null
       };
     }
@@ -179,7 +177,7 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to get daily revenue trends",
+        message: error instanceof Error ? getErrorMessage(error) : "Failed to get daily revenue trends",
         data: null
       };
     }
@@ -216,7 +214,7 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to get theater-wise revenue",
+        message: error instanceof Error ? getErrorMessage(error) : "Failed to get theater-wise revenue",
         data: null
       };
     }
@@ -253,7 +251,7 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to get owner-wise revenue",
+        message: error instanceof Error ? getErrorMessage(error) : "Failed to get owner-wise revenue",
         data: null
       };
     }
@@ -290,7 +288,7 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to get movie-wise revenue",
+        message: error instanceof Error ? getErrorMessage(error) : "Failed to get movie-wise revenue",
         data: null
       };
     }
@@ -342,7 +340,7 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to get performance metrics",
+        message: error instanceof Error ? getErrorMessage(error) : "Failed to get performance metrics",
         data: null
       };
     }
@@ -396,7 +394,7 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to get customer insights",
+        message: error instanceof Error ? getErrorMessage(error) : "Failed to get customer insights",
         data: null
       };
     }
@@ -465,7 +463,7 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to get movie performance",
+        message: error instanceof Error ? getErrorMessage(error) : "Failed to get movie performance",
         data: null
       };
     }
@@ -500,7 +498,7 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to get financial KPIs",
+        message: error instanceof Error ? getErrorMessage(error) : "Failed to get financial KPIs",
         data: null
       };
     }
@@ -531,7 +529,7 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to get growth rates",
+        message: error instanceof Error ? getErrorMessage(error) : "Failed to get growth rates",
         data: null
       };
     }
@@ -583,13 +581,13 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to get operational analytics",
+        message: error instanceof Error ? getErrorMessage(error) : "Failed to get operational analytics",
         data: null
       };
     }
   }
 
-  async getOccupancyAnalytics(filter: IDateRange): Promise<ServiceResponse<ShowtimeValidationResult>> {
+  async getOccupancyAnalytics(filter: IDateRange): Promise<ServiceResponse<import("../interfaces/adminAnalytics.service.interface").IOccupancyAnalyticsDTO>> {
     try {
       const occupancy = await this.analyticsRepository.getAggregateOccupancy(filter);
       return {
@@ -600,29 +598,34 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to get occupancy analytics",
+        message: error instanceof Error ? getErrorMessage(error) : "Failed to get occupancy analytics",
         data: null
       };
     }
   }
 
-  async getAdminAnalyticData(filter: IDateRange): Promise<ServiceResponse<ShowtimeValidationResult>> {
+  async getAdminAnalyticData(
+    filter: IDateRange
+  ): Promise<ServiceResponse<IAdminBookingAnalyticsRecord[]>> {
     try {
-      const analyData = await this.analyticsRepository.getAdminAnalyticData(filter);
+      const bookings = await this.analyticsRepository.getAdminAnalyticData(filter);
       return {
         success: true,
-        message: "Time slot performance retrieved successfully",
-        data:  analyData 
+        message: "Admin booking analytics retrieved successfully",
+        data: bookings,
       };
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to get time slot performance",
-        data: null
+        message:
+          error instanceof Error
+            ? getErrorMessage(error)
+            : "Failed to get admin booking analytics",
+        data: null,
       };
     }
   }
-  async getTimeSlotPerformance(filter: IDateRange): Promise<ServiceResponse<ShowtimeValidationResult>> {
+  async getTimeSlotPerformance(filter: IDateRange): Promise<ServiceResponse<import("../interfaces/adminAnalytics.service.interface").ITimeSlotAnalyticsDTO>> {
     try {
       const timeSlotData = await this.analyticsRepository.getTimeSlotPerformance(filter);
       return {
@@ -633,13 +636,13 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to get time slot performance",
+        message: error instanceof Error ? getErrorMessage(error) : "Failed to get time slot performance",
         data: null
       };
     }
   }
 
-  async getCustomerSatisfaction(filter: IDateRange): Promise<ServiceResponse<UserLookupResponseDto>> {
+  async getCustomerSatisfaction(filter: IDateRange): Promise<ServiceResponse<import("../interfaces/adminAnalytics.service.interface").ICustomerSatisfactionAnalyticsDTO>> {
     try {
       const satisfactionData = await this.analyticsRepository.getCustomerSatisfaction(filter);
       return {
@@ -650,13 +653,13 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to get customer satisfaction",
+        message: error instanceof Error ? getErrorMessage(error) : "Failed to get customer satisfaction",
         data: null
       };
     }
   }
 
-  async getTopPerformingMovies(filter: IDateRange, limit = 10): Promise<ServiceResponse<MovieResponseDto>> {
+  async getTopPerformingMovies(filter: IDateRange, limit = 10): Promise<ServiceResponse<import("../interfaces/adminAnalytics.service.interface").ITopMoviesAnalyticsDTO>> {
     try {
       const topMovies = await this.analyticsRepository.getTopPerformingMovies(filter, limit);
       return {
@@ -667,7 +670,7 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to get top performing movies",
+        message: error instanceof Error ? getErrorMessage(error) : "Failed to get top performing movies",
         data: null
       };
     }
@@ -684,7 +687,7 @@ export class AdminAnalyticsService implements IAdminAnalyticsService {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to get movie format analytics",
+        message: error instanceof Error ? getErrorMessage(error) : "Failed to get movie format analytics",
         data: null
       };
     }

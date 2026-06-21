@@ -6,11 +6,11 @@ import { ShowtimeResponseDto } from "@/app/others/dtos";
 import { lexendMedium, lexendSmall } from "@/app/others/Utils/fonts";
 
 interface ShowtimeCardProps {
+  showtimeFilter?: "upcoming" | "past";
   showtime: ShowtimeResponseDto;
   onEdit: (showtime: ShowtimeResponseDto) => void;
   onView: (showtime: ShowtimeResponseDto) => void;
   onToggleStatus: (showtimeId: string, isActive: boolean) => void;
-
 }
 
 const ShowtimeCard: React.FC<ShowtimeCardProps> = ({
@@ -46,22 +46,22 @@ const ShowtimeCard: React.FC<ShowtimeCardProps> = ({
 
   const { canEdit, reason } = isEditable();
 
-  const getMovieName = (movieId: string) => {
+  const getMovieName = (movieId: ShowtimeResponseDto["movieId"]) => {
     if (typeof movieId === "object" && movieId?.title) return movieId.title;
     return typeof movieId === "string" ? movieId : "Unknown Movie";
   };
 
-  const getTheaterName = (theaterId: string) => {
+  const getTheaterName = (theaterId: ShowtimeResponseDto["theaterId"]) => {
     if (typeof theaterId === "object" && theaterId?.name) return theaterId.name;
     return typeof theaterId === "string" ? theaterId : "Unknown Theater";
   };
 
-  const getScreenName = (screenId: string) => {
+  const getScreenName = (screenId: ShowtimeResponseDto["screenId"]) => {
     if (typeof screenId === "object" && screenId?.name) return screenId.name;
     return typeof screenId === "string" ? screenId : "Unknown Screen";
   };
 
-  const formatDate = (date: string) => {
+  const formatDate = (date: string | Date) => {
     return new Date(date).toLocaleDateString("en-US", {
       weekday: "short",
       month: "short",

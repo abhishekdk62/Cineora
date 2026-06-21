@@ -1,3 +1,5 @@
+import { ITheater } from "../interfaces/theater.model.interface";
+
 export interface CreateTheaterDTO {
   name: string;
   address: string;
@@ -63,6 +65,14 @@ export interface TheaterListResponseDTO {
 }
 
 export interface TheaterStatsDTO {
+  totalFiltered: number;
+  inactiveAll: number;
+  activeAll: number;
+  totalAll: number;
+}
+
+export interface TheatersByOwnerDto {
+  theaters: ITheater[];
   totalFiltered: number;
   inactiveAll: number;
   activeAll: number;

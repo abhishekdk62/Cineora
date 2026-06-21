@@ -1,0 +1,54 @@
+﻿src/app/others/components/Home/Upcoming.tsx(19,23): error TS18048: 'result.data' is possibly 'undefined'.
+src/app/others/components/Owner/Showtimes/ScreenSelectionModal.tsx(72,18): error TS2345: Argument of type 'ScreenResponseDto[]' is not assignable to parameter of type 'SetStateAction<Screen[]>'.
+  Type 'ScreenResponseDto[]' is not assignable to type 'Screen[]'.
+    Type 'ScreenResponseDto' is not assignable to type 'Screen'.
+      Types of property 'theaterId' are incompatible.
+        Type 'string' is not assignable to type 'Theater'.
+src/app/others/components/Owner/Staff/StaffManager.tsx(222,9): error TS2322: Type 'StaffTheaterRef[]' is not assignable to type 'Theater[]'.
+  Type 'StaffTheaterRef' is not assignable to type 'Theater'.
+    Types of property 'city' are incompatible.
+      Type 'string | undefined' is not assignable to type 'string'.
+        Type 'undefined' is not assignable to type 'string'.
+src/app/others/components/Owner/Theatre/AddStaffModal.tsx(220,19): error TS2345: Argument of type 'StaffResponseDto' is not assignable to parameter of type 'Staff'.
+  Types of property 'ownerId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/app/others/components/Search/Theaters/TheatersPage.tsx(240,9): error TS2322: Type 'TheaterListItem[]' is not assignable to type 'Theater[]'.
+  Type 'TheaterListItem' is not assignable to type 'Theater'.
+    Types of property 'rating' are incompatible.
+      Type 'number | undefined' is not assignable to type 'number'.
+        Type 'undefined' is not assignable to type 'number'.
+src/app/others/components/Staff/StaffAccount.tsx(52,20): error TS2345: Argument of type 'StaffResponseDto' is not assignable to parameter of type 'SetStateAction<GetStaffDetailsResponseDto | null>'.
+src/app/others/components/Staff/StaffAccount.tsx(82,30): error TS2339: Property 'theater' does not exist on type 'GetStaffDetailsResponseDto'.
+src/app/others/components/Staff/StaffAccount.tsx(83,28): error TS2339: Property 'owner' does not exist on type 'GetStaffDetailsResponseDto'.
+src/app/others/components/Staff/StaffAccount.tsx(110,27): error TS2339: Property 'firstName' does not exist on type 'GetStaffDetailsResponseDto'.
+src/app/others/components/Staff/StaffAccount.tsx(111,27): error TS2339: Property 'lastName' does not exist on type 'GetStaffDetailsResponseDto'.
+src/app/others/components/Staff/StaffAccount.tsx(116,27): error TS2339: Property 'firstName' does not exist on type 'GetStaffDetailsResponseDto'.
+src/app/others/components/Staff/StaffAccount.tsx(116,46): error TS2339: Property 'lastName' does not exist on type 'GetStaffDetailsResponseDto'.
+src/app/others/components/Staff/StaffAccount.tsx(119,27): error TS2339: Property 'email' does not exist on type 'GetStaffDetailsResponseDto'.
+src/app/others/components/Staff/StaffAccount.tsx(123,29): error TS2339: Property 'role' does not exist on type 'GetStaffDetailsResponseDto'.
+src/app/others/components/Staff/StaffAccount.tsx(123,68): error TS2339: Property 'role' does not exist on type 'GetStaffDetailsResponseDto'.
+src/app/others/components/Staff/StaffAccount.tsx(126,68): error TS2339: Property 'isActive' does not exist on type 'GetStaffDetailsResponseDto'.
+src/app/others/components/Staff/StaffAccount.tsx(127,83): error TS2339: Property 'isActive' does not exist on type 'GetStaffDetailsResponseDto'.
+src/app/others/components/Staff/StaffAccount.tsx(128,31): error TS2339: Property 'isActive' does not exist on type 'GetStaffDetailsResponseDto'.
+src/app/others/components/Staff/StaffAccount.tsx(149,31): error TS2339: Property 'firstName' does not exist on type 'GetStaffDetailsResponseDto'.
+src/app/others/components/Staff/StaffAccount.tsx(149,50): error TS2339: Property 'lastName' does not exist on type 'GetStaffDetailsResponseDto'.
+src/app/others/components/Staff/StaffAccount.tsx(161,31): error TS2339: Property 'email' does not exist on type 'GetStaffDetailsResponseDto'.
+src/app/others/components/Staff/StaffAccount.tsx(173,31): error TS2339: Property 'role' does not exist on type 'GetStaffDetailsResponseDto'.
+src/app/others/components/Staff/StaffAccount.tsx(173,70): error TS2339: Property 'role' does not exist on type 'GetStaffDetailsResponseDto'.
+src/app/others/components/Staff/StaffAccount.tsx(185,40): error TS2339: Property 'createdAt' does not exist on type 'GetStaffDetailsResponseDto'.
+src/app/others/components/Staff/StaffAccount.tsx(311,67): error TS2339: Property 'isActive' does not exist on type 'GetStaffDetailsResponseDto'.
+src/app/others/components/Staff/StaffAccount.tsx(312,27): error TS2339: Property 'isActive' does not exist on type 'GetStaffDetailsResponseDto'.
+src/app/others/components/User/MyAcount/Groupinvites/BrowseInviteCard.tsx(260,29): error TS2345: Argument of type '{ userId: string | undefined; movieId: string; theaterId: string; screenId: string; showtimeId: string; appliedCoupon: { _id: string; discountPercentage: number; name: string; uniqueId: string; maxUsageCount: number; isActive: boolean; } | undefined; ... 16 more ...; theaterName: string; }' is not assignable to parameter of type 'Partial<BookingData>'.
+  Types of property 'seatPricing' are incompatible.
+    Type '{ rowId: string; seatType: string | undefined; basePrice: number; finalPrice: number; rowLabel: string | undefined; seatsSelected: string[]; seatCount: number; }[]' is not assignable to type 'SeatPricing[]'.
+      Type '{ rowId: string; seatType: string | undefined; basePrice: number; finalPrice: number; rowLabel: string | undefined; seatsSelected: string[]; seatCount: number; }' is not assignable to type 'SeatPricing'.
+        Types of property 'rowLabel' are incompatible.
+          Type 'string | undefined' is not assignable to type 'string'.
+            Type 'undefined' is not assignable to type 'string'.
+src/app/others/components/User/Payment/PaymentModal.tsx(128,32): error TS2345: Argument of type 'ShowtimeData' is not assignable to parameter of type 'BookTicketRequestDto'.
+  Type 'ShowtimeData' is not assignable to type 'Record<string, unknown>'.
+    Index signature for type 'string' is missing in type 'ShowtimeData'.
+src/app/others/components/User/Payment/PaymentModal.tsx(206,36): error TS2345: Argument of type 'ShowtimeData' is not assignable to parameter of type 'BookTicketRequestDto'.
+  Type 'ShowtimeData' is not assignable to type 'Record<string, unknown>'.
+    Index signature for type 'string' is missing in type 'ShowtimeData'.

@@ -16,6 +16,7 @@ import ScreenFormModal from "./ScreenFormModal";
 import ScreenViewModal from "./ScreenViewModal";
 import { ITheater } from "@/app/others/types";
 import { IScreen } from "@/app/others/types/screen.types";
+import { getApiErrorMessage } from "@/app/others/types/common.types";
 import {
   lexendBold,
   lexendMedium,
@@ -23,6 +24,25 @@ import {
 } from "@/app/others/Utils/fonts";
 import { getTheatersByOwnerId } from "@/app/others/services/ownerServices/theaterServices";
 import { getScreensStatsOwner } from "@/app/others/services/ownerServices/screenServices";
+import { TheaterResponseDto } from "@/app/others/dtos/theater.dto";
+
+const mapTheaterDtoToITheater = (dto: TheaterResponseDto): ITheater => ({
+  _id: dto._id,
+  ownerId: dto.ownerId,
+  name: dto.name,
+  address: dto.address,
+  city: dto.city,
+  state: dto.state,
+  pincode: dto.pincode,
+  location: dto.location,
+  phone: dto.phone,
+  facilities: dto.facilities,
+  screens: dto.screens,
+  isActive: dto.isActive,
+  isVerified: dto.isVerified,
+  createdAt: String(dto.createdAt),
+  updatedAt: String(dto.updatedAt),
+});
 
 const ScreenManagement = () => {
   const [selectedTheater, setSelectedTheater] = useState<ITheater | null>(null);
@@ -30,7 +50,7 @@ const ScreenManagement = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedScreen, setSelectedScreen] = useState<IScreen | null>(null);
-  const [theaters, setTheaters] = useState([]);
+  const [theaters, setTheaters] = useState<ITheater[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshScreens, setRefreshScreens] = useState(0);
   const [screenStats, setScreenStats] = useState({
@@ -55,9 +75,9 @@ const ScreenManagement = () => {
     try {
       setIsLoading(true);
       const data = await getTheatersByOwnerId();
-      setTheaters(data.data.theaters || []);
+      setTheaters((data.data?.theaters ?? []).map(mapTheaterDtoToITheater));
     } catch (error) {
-      console.error("Error fetching theaters:", error);
+      console.error("Error fetching theaters:", getApiErrorMessage(error, "Failed to fetch theaters"));
     } finally {
       setIsLoading(false);
     }
@@ -68,14 +88,17 @@ const ScreenManagement = () => {
 
     try {
       const data = await getScreensStatsOwner(selectedTheater._id);
-      setScreenStats({
-        total: data.data.overview.totalScreens,
-        active: data.data.overview.activeScreens,
-        inactive: data.data.overview.inactiveScreens,
-        totalSeats: data.data.overview.totalSeats,
-      });
+      const stats = data.data;
+      if (stats) {
+        setScreenStats({
+          total: stats.totalScreens,
+          active: stats.activeScreens,
+          inactive: stats.inactiveScreens,
+          totalSeats: stats.totalSeats,
+        });
+      }
     } catch (error) {
-      console.error("Error fetching screen stats:", error);
+      console.error("Error fetching screen stats:", getApiErrorMessage(error, "Failed to fetch screen stats"));
     }
   };
 

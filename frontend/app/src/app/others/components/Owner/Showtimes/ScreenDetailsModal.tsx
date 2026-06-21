@@ -1,3 +1,4 @@
+import type { NextFontInstance } from '@/app/others/types';
 
 "use client";
 
@@ -15,7 +16,13 @@ interface Theater {
 interface Layout {
   rows: number;
   seatsPerRow: number;
-  advancedLayout: string;
+  advancedLayout?: {
+    rows: Array<{ rowLabel: string; offset?: number; seats: Array<{ id: string; type: string; col: number; price?: number }> }>;
+    aisles?: {
+      vertical: Array<{ id: string; position: number; width: number; label?: string }>;
+      horizontal: Array<{ id: string; afterRow: number; width: number; label?: string }>;
+    };
+  };
 }
 
 interface Screen {
@@ -34,8 +41,8 @@ interface ScreenDetailsModalProps {
   screen: Screen;
   onSelect: (screen: Screen) => void;
   onClose: () => void;
-  lexendMedium: string;
-  lexendSmall: string;
+  lexendMedium: NextFontInstance;
+  lexendSmall: NextFontInstance;
 }
 
 const ScreenDetailsModal: React.FC<ScreenDetailsModalProps> = ({
@@ -58,7 +65,7 @@ const ScreenDetailsModal: React.FC<ScreenDetailsModalProps> = ({
   const getMaxCols = () => {
     if (!screen.layout.advancedLayout?.rows) return screen.layout.seatsPerRow;
     
-    return Math.max(...screen.layout.advancedLayout.rows.map((row: string) => 
+    return Math.max(...screen.layout.advancedLayout.rows.map((row) => 
       (row.offset || 0) + (row.seats?.length || 0)
     ));
   };
@@ -75,9 +82,19 @@ const ScreenDetailsModal: React.FC<ScreenDetailsModalProps> = ({
       return (
         <div className="mb-6">
           <LayoutPreview
-            advancedLayoutJSON={screen.layout.advancedLayout}
+            advancedLayoutJSON={{
+              ...screen.layout.advancedLayout,
+              rows: screen.layout.advancedLayout.rows.map((row) => ({
+                ...row,
+                offset: row.offset ?? 0,
+                seats: row.seats.map((seat) => ({
+                  ...seat,
+                  price: seat.price ?? 0,
+                })),
+              })),
+            }}
             maxCols={getMaxCols()}
-            showAisles={hasAisles()} 
+            showAisles={hasAisles()}
           />
         </div>
       );

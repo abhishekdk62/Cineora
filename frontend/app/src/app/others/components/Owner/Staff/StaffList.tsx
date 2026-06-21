@@ -4,24 +4,13 @@ import { confirmAction } from "@/app/others/components/utils/ConfirmDialog";
 import toast from "react-hot-toast";
 import StaffFilters from "./StaffFilters";
 import StaffGrid from "./StaffGrid";
+import type { StaffMember } from "./staff.types";
 
 interface Theater {
   _id: string;
   name: string;
-  city: string;
-  state: string;
-}
-
-interface StaffMember {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: string;
-  isActive: boolean;
-  theaterId?: Theater;
-  createdAt?: string;
-  updatedAt?: string;
+  city?: string;
+  state?: string;
 }
 
 interface StaffListProps {
