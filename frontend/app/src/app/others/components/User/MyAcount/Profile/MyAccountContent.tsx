@@ -138,33 +138,24 @@ const MyAccountContent = ({
   })();
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 p-6">
-      <div className="flex items-center justify-between mb-8">
-        <div></div>
-
-        <div className="text-center flex-1">
-          <h1 className={`${lexendBold.className} text-5xl text-white mb-2`}>
-            Profile &amp; Settings
-          </h1>
-
-        </div>
-
-
+    <div className="max-w-6xl mx-auto space-y-8 p-4 sm:p-6">
+      <div className="text-center mb-6 sm:mb-8">
+        <h1 className={`${lexendBold.className} text-3xl sm:text-4xl md:text-5xl text-white mb-2`}>
+          Profile &amp; Settings
+        </h1>
       </div>
 
 
-      <div className="mb-4 p-8 rounded-xl bg-black/30 border border-gray-600/30">
+      <div className="mb-4 p-4 sm:p-8 rounded-xl bg-black/30 border border-gray-600/30">
     <div className="flex flex-col items-center text-center relative">
-  {/* Edit Profile Button - Top Right */}
   <button
     onClick={() => setIsEditing(true)}
-    className={`${lexendMedium.className} absolute top-0 right-0 flex items-center gap-2 px-6 py-3 bg-transparent border border-white text-white hover:bg-white/10 rounded-xl transition-all duration-200 z-10`}
+    className={`${lexendMedium.className} sm:absolute sm:top-0 sm:right-0 mb-4 sm:mb-0 w-full sm:w-auto flex items-center justify-center gap-2 px-4 sm:px-6 py-3 bg-transparent border border-white text-white hover:bg-white/10 rounded-xl transition-all duration-200 z-10`}
   >
     Edit Profile
   </button>
 
-  {/* Centered round avatar */}
-  <div className="relative mb-6 mt-16"> {/* Added top margin to avoid overlap with button */}
+  <div className="relative mb-6 mt-0 sm:mt-16">
     <img
       src={userData.profilePicture || "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"}
       alt={userData.username}
@@ -191,7 +182,7 @@ const MyAccountContent = ({
   </div>
 
   {/* Stats grid */}
-  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
     <div className="p-4 rounded-lg bg-black/20 border border-gray-600/20 text-center">
       <div className="flex justify-center mb-2">
         <Gamepad2 className="w-5 h-5 text-white" />

@@ -81,7 +81,7 @@ const router=useRouter()
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-transparent p-12 flex items-center justify-center">
+            <div className="min-h-screen bg-transparent p-4 sm:p-8 flex items-center justify-center">
                 <div className="text-white text-xl"><Loader text='Loading your tickets' /></div>
             </div>
         );
@@ -89,7 +89,7 @@ const router=useRouter()
 
     if (error) {
         return (
-            <div className="min-h-screen bg-transparent p-12 flex items-center justify-center">
+            <div className="min-h-screen bg-transparent p-4 sm:p-8 flex items-center justify-center">
                 <div className="text-red-400 text-xl">{error}</div>
             </div>
         );
@@ -97,11 +97,11 @@ const router=useRouter()
 
 
     return (
-        <div className="min-h-screen bg-transparent p-12">
+        <div className="min-h-screen bg-transparent p-4 sm:p-8 lg:p-12">
             <div className="mx-auto max-w-6xl space-y-7">
 
-                <div className="mb-10">
-                    <h1 className={`${lexendBold.className} text-5xl text-center text-white mb-2`}>
+                <div className="mb-6 sm:mb-10">
+                    <h1 className={`${lexendBold.className} text-3xl sm:text-4xl md:text-5xl text-center text-white mb-2`}>
                         My Favorite Movies
                     </h1>
                     <p className={`${lexendSmall.className} text-gray-400 text-center`}>

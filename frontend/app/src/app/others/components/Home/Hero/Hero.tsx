@@ -36,11 +36,11 @@ export default function Hero({ onNavigateToSearch }: HeroProps) {
     console.log(`Navigating to ${suggestion.type} detail page:`, suggestion);
   };
   return (
-    <section className="relative min-h-[600px] flex flex-col justify-center items-center overflow-hidden">
+    <section className="relative min-h-[420px] sm:min-h-[520px] md:min-h-[600px] flex flex-col justify-center items-center overflow-hidden">
       <div className="relative z-10 w-full">
-          <section className="relative h-full pt-28 pb-40 z-10 px-4 sm:px-6 lg:px-8">
+          <section className="relative h-full pt-24 sm:pt-28 pb-24 sm:pb-40 z-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto text-center">
-        <div className="backdrop-blur-sm bg-black/20 rounded-3xl p-8 md:p-12 border border-gray-500/30">
+        <div className="backdrop-blur-sm bg-black/20 rounded-3xl p-5 sm:p-8 md:p-12 border border-gray-500/30">
           <h1
             className={`${lexendBold.className} text-4xl md:text-6xl lg:text-7xl text-white mb-6 leading-tight`}
           >

@@ -61,11 +61,11 @@ export default function Upcoming() {
         <div className="max-w-7xl mx-auto lg:flex lg:items-center lg:space-x-12">
           <div
             ref={containerRef}
-            className="relative flex items-center justify-center lg:w-1/3 min-h-[400px]"
+            className="relative flex items-center justify-center lg:w-1/3 min-h-[200px] sm:min-h-[300px] lg:min-h-[400px] mb-8 lg:mb-0"
           >
             <VariableProximity
               label="Upcoming Releases"
-              className="text-5xl md:text-6xl lg:text-7xl font-bold text-white text-center lg:text-left"
+            className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white text-center lg:text-left"
               fromFontVariationSettings="'wght' 400, 'opsz' 9"
               toFontVariationSettings="'wght' 1000, 'opsz' 40"
               containerRef={containerRef}
@@ -81,7 +81,7 @@ export default function Upcoming() {
                   <div
                     onClick={() => handleClick(movie._id)}
                     key={index}
-                    className="bg-black/30 backdrop-blur-sm border border-gray-500/30 rounded-xl overflow-hidden hover:bg-black/50 transition-transform duration-300 w-[290px] flex-shrink-0 transform hover:scale-105"
+                    className="bg-black/30 backdrop-blur-sm border border-gray-500/30 rounded-xl overflow-hidden hover:bg-black/50 transition-transform duration-300 w-[260px] sm:w-[290px] flex-shrink-0 transform hover:scale-105"
                   >
                     <img
                       src={movie.poster}

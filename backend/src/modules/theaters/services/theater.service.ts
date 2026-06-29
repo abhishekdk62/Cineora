@@ -513,7 +513,8 @@ export class TheaterService implements ITheaterService {
       limit = 6,
       latitude,
       longitude,
-      facilities
+      facilities,
+      hasShowtimes = true,
     } = filters;
 
     return {
@@ -523,7 +524,8 @@ export class TheaterService implements ITheaterService {
       limit,
       latitude: latitude ? parseFloat(latitude as string) : undefined,
       longitude: longitude ? parseFloat(longitude as string) : undefined,
-      facilities
+      facilities,
+      hasShowtimes,
     };
   }
 

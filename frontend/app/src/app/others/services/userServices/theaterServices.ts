@@ -19,6 +19,7 @@ export const getTheatersWithFilters = async (
   if (filters.latitude !== undefined) params.append("latitude", filters.latitude.toString());
   if (filters.longitude !== undefined) params.append("longitude", filters.longitude.toString());
   if (filters.facilities !== undefined) params.append("facilities", filters.facilities.toString());
+  if (filters.hasShowtimes !== false) params.append("hasShowtimes", "true");
 
   const res = await apiClient.get(`${COMMON_THEATERS.FILTER}?${params.toString()}`);
   return res.data;

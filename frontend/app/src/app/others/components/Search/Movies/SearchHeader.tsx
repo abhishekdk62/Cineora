@@ -51,7 +51,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
     <div className="relative pt-20 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="backdrop-blur-sm bg-black/20 rounded-3xl p-8 border border-gray-500/30">
-          <h1 className={`${lexendBold.className} text-4xl md:text-5xl text-white mb-8 text-center`}>
+          <h1 className={`${lexendBold.className} text-3xl sm:text-4xl md:text-5xl text-white mb-4 sm:mb-8 text-center`}>
             Now Showing
           </h1>
 

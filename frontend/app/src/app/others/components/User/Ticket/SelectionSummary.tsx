@@ -72,17 +72,17 @@ const handleBeforeSix=()=>{
   const seatBreakdown = getSeatBreakdown();
 
   return (
-    <div className="backdrop-blur-sm bg-black/20 rounded-2xl p-6 border border-gray-500/30">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <p className={`${lexendMediumClassName} text-white text-lg`}>
+    <div className="backdrop-blur-sm bg-black/20 rounded-2xl p-4 sm:p-6 border border-gray-500/30">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+        <div className="min-w-0">
+          <p className={`${lexendMediumClassName} text-white text-base sm:text-lg`}>
             {selectedSeats.length} Seat{selectedSeats.length > 1 ? "s" : ""} Selected
           </p>
-          <p className={`${lexendSmallClassName} text-gray-300`}>
+          <p className={`${lexendSmallClassName} text-gray-300 break-words`}>
             {selectedSeats.join(", ")}
           </p>
         </div>
-        <div className="text-right">
+        <div className="text-left sm:text-right shrink-0">
           <p className={`${lexendBoldClassName} text-white text-xl`}>
             ₹{totalAmount}
           </p>
@@ -154,7 +154,7 @@ const handleBeforeSix=()=>{
           </div>
         </div>
       )}
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         {onCreateGroupInvite && selectedSeats.length > 1 &&isBeforeSixHours&& (
           <button
             onClick={onCreateGroupInvite}

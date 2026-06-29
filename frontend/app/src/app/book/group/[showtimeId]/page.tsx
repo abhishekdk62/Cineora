@@ -378,21 +378,19 @@ export default function GroupInvitePage() {
         <NavBar />
         <div className="relative z-20 pb-12">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="relative pt-12 pb-8">
+            <div className="flex flex-col gap-4 pt-8 sm:pt-12 pb-8 sm:pb-16">
               <button
                 onClick={handleBack}
-                className={`${lexendSmall.className} flex items-center gap-2 text-gray-400 hover:text-white transition-all duration-300 absolute left-0 top-12 z-10`}
+                className={`${lexendSmall.className} flex items-center gap-2 text-gray-400 hover:text-white transition-all duration-300 self-start`}
               >
-                <div className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-all">
-                  <ArrowLeft className="w-5 h-5" />
-                </div>
-                Back to Seats
+                <ArrowLeft className="w-5 h-5" />
+                <span className="hidden sm:inline">Back to Showtimes</span>
+                <span className="sm:hidden">Back</span>
               </button>
-              <div className="flex justify-center">
-                <p className={`${lexendBold.className} text-4xl text-white mb-2`}>
-                  Create Group Invite
-                </p>
-              </div>
+
+              <h1 className={`${lexendBold.className} text-2xl sm:text-3xl md:text-4xl text-center text-white px-2`}>
+                Create Group Invite
+              </h1>
             </div>
 
             <GroupInviteSummary

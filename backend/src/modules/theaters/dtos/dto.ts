@@ -50,6 +50,7 @@ export interface TheaterFilters {
   latitude?: string | number;
   longitude?: string | number;
   facilities?: string[];
+  hasShowtimes?: boolean;
 }
 
 export interface TheaterPaginationDTO {

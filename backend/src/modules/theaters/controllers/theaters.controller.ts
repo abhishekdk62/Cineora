@@ -332,6 +332,7 @@ export class TheaterController {
       latitude: req.query.latitude ? parseFloat(req.query.latitude as string) : undefined,
       longitude: req.query.longitude ? parseFloat(req.query.longitude as string) : undefined,
       facilities: facilities,
+      hasShowtimes: req.query.hasShowtimes !== "false",
     };
   }
 

@@ -61,7 +61,7 @@ const SeatBox = ({
 
   return (
     <div 
-      className="w-6 h-6 rounded cursor-pointer transition-all duration-150 hover:scale-105 border"
+      className="w-7 h-7 rounded cursor-pointer transition-all duration-150 hover:scale-105 border touch-manipulation"
       onClick={!disabled ? onClick : undefined}
       style={{ 
         backgroundColor: getBoxColor(),
@@ -91,6 +91,7 @@ export default function SeatRow({
   maxCols,
   verticalAisles = []
 }: SeatRowProps) {
+  const seatCellPx = 28;
 
   return (
     <div className="flex items-center gap-1 py-0.5">
@@ -109,7 +110,7 @@ export default function SeatRow({
       <div
         className="grid"
         style={{
-          gridTemplateColumns: `repeat(${maxCols}, 24px)`,
+          gridTemplateColumns: `repeat(${maxCols}, ${seatCellPx}px)`,
           gap: "3px",
         }}
       >
@@ -118,13 +119,13 @@ export default function SeatRow({
             return (
               <div
                 key={`aisle-${colIndex}`}
-                className="w-6 h-6"
+                className="w-7 h-7"
               />
             );
           }
 
           if (colIndex < (row.offset || 0)) {
-            return <div key={`offset-${colIndex}`} className="w-6 h-6" />;
+            return <div key={`offset-${colIndex}`} className="w-7 h-7" />;
           }
 
           const seatIndex = colIndex - (row.offset || 0);
@@ -145,14 +146,14 @@ export default function SeatRow({
             );
           }
           
-          return <div key={`empty-${colIndex}`} className="w-6 h-6" />;
+          return <div key={`empty-${colIndex}`} className="w-7 h-7" />;
         })}
       </div>
 
       <div 
         className={`${lexendMediumClassName} text-white/70 text-xs w-4 h-4 rounded-sm flex items-center justify-center`}
         style={{
-          background: 'rgba(255, 255, 2023-09-13T06:49:26.471Z)',
+          background: 'rgba(255, 255, 255, 0.1)',
           fontSize: '10px',
         }}
       >

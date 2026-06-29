@@ -210,8 +210,8 @@ const TicketCard: React.FC<TicketCardProps> = ({
 
   return (
     <>
-      <div className="flex bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl hover:scale-[1.02] transition-transform duration-300 group">
-        <div className="w-40 shrink-0 relative bg-gray-800">
+      <div className="flex flex-col sm:flex-row bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl hover:scale-[1.01] sm:hover:scale-[1.02] transition-transform duration-300 group">
+        <div className="w-full sm:w-40 h-48 sm:h-auto shrink-0 relative bg-gray-800">
           <img
             src={movieData.poster || '/placeholder-movie.jpg'}
             alt={movieData.title || 'Movie'}
@@ -220,9 +220,9 @@ const TicketCard: React.FC<TicketCardProps> = ({
           />
         </div>
 
-        <div className="flex flex-col flex-1 px-7 py-6">
-          <div className="flex items-center justify-between text-white mb-2">
-            <div className={`${lexendBold.className} text-xl`}>
+        <div className="flex flex-col flex-1 px-4 sm:px-7 py-4 sm:py-6 min-w-0">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-white mb-2">
+            <div className={`${lexendBold.className} text-lg sm:text-xl`}>
               {movieData.title || 'Unknown Movie'}
             </div>
 
@@ -249,7 +249,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
             {theaterData.name || 'Unknown Theater'} - Screen: {booking.screen?.name || 'N/A'}
           </p>
 
-          <div className={`${lexendMedium.className} flex items-center gap-8 mt-2 text-base text-white`}>
+          <div className={`${lexendMedium.className} flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8 mt-2 text-sm sm:text-base text-white`}>
             <div className="flex items-center gap-2">
               <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2z" />
@@ -264,7 +264,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
             </div>
           </div>
 
-          <div className="flex gap-4 mt-4 mb-6">
+          <div className="flex flex-wrap gap-2 sm:gap-4 mt-4 mb-4 sm:mb-6">
             <span className={`${lexendSmall.className} bg-white/10 text-white px-3 py-1.5 rounded-lg font-medium border border-white/20`}>
               {booking.seatType}
             </span>
@@ -299,7 +299,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
             </div>
           </div>
 
-          <div className="mt-auto flex gap-3">
+          <div className="mt-auto flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3">
             <button
               onClick={() => onViewDetails(booking)}
               className={`${lexendMedium.className} bg-transparent text-white px-5 py-2.5 rounded-xl border border-white hover:bg-white/10 transition-colors text-sm`}
@@ -337,7 +337,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
           </div>
         </div>
 
-        <div className="flex flex-col justify-center items-center w-24 bg-white border-l border-white/20 relative">
+        <div className="flex sm:flex-col justify-center items-center w-full sm:w-24 py-4 sm:py-0 bg-white border-t sm:border-t-0 sm:border-l border-white/20 relative">
           <Barcode code={booking.qrCode} />
 
           <div className={`${lexendSmall.className} absolute bottom-4 left-1/2 transform -translate-x-1/2 text-xs text-gray-700 font-mono`}>

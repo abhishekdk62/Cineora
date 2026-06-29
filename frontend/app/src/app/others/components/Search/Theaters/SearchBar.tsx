@@ -27,7 +27,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   return (
-    <div className="relative w-[350px] sm:w-[450px]">
+    <div className="relative w-full min-w-0 sm:max-w-[450px]">
       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
       
       <input

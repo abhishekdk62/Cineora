@@ -135,26 +135,30 @@ const TheaterListManager: React.FC<TheaterListManagerProps> = ({
     <div className="min-h-screen bg-transparent">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        <div className="mb-8 flex  items-center justify-between">
-          <div>
-            <h1 className={`${lexendMedium.className} sm:text-3xl text-xl text-white mb-2`}>
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <h1 className={`${lexendMedium.className} text-2xl sm:text-3xl text-white mb-2`}>
               Theaters
             </h1>
-            <p className={`${lexendSmall.className} hidden sm:block text-gray-400`}>
+            <p className={`${lexendSmall.className} text-sm sm:text-base text-gray-400`}>
               Find theaters near you and book your favorite movies
             </p>
           </div>
-          <LocationDropdown selectedLocation={selectedLocation} onLocationChange={onLocationChange} />
+          <div className="w-full sm:w-auto shrink-0">
+            <LocationDropdown selectedLocation={selectedLocation} onLocationChange={onLocationChange} />
+          </div>
         </div>
 
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-          <div className="flex items-center gap-4">
-            <SearchBar
-              searchTerm={searchTerm}
-              onSearchChange={onSearchChange}
-              searchLoading={searchLoading}
-              placeholder="Search theaters by name or location..."
-            />
+        <div className="flex flex-col gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row gap-3 w-full">
+            <div className="w-full min-w-0 flex-1">
+              <SearchBar
+                searchTerm={searchTerm}
+                onSearchChange={onSearchChange}
+                searchLoading={searchLoading}
+                placeholder="Search theaters by name or location..."
+              />
+            </div>
 
             <motion.button
               onClick={() => setIsSidebarOpen(true)}
@@ -202,7 +206,7 @@ const TheaterListManager: React.FC<TheaterListManagerProps> = ({
             </motion.button>
           </div>
 
-          <div className="flex justify-end">
+          <div className="w-full sm:w-auto sm:ml-auto">
             <SortDropdown sortBy={sortBy} onSortChange={onSortChange} />
           </div>
         </div>

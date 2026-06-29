@@ -62,7 +62,7 @@ const CouponManager: React.FC = () => {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <span className={`${lexendBold.className} text-5xl text-white`}>
+          <span className={`${lexendBold.className} text-3xl sm:text-4xl md:text-5xl text-white`}>
             My Coupons
           </span>
           <p className="text-gray-300 text-lg mt-4">
@@ -73,7 +73,7 @@ const CouponManager: React.FC = () => {
         {/* Tab-style Filter Buttons */}
         <div className="   p-6 mb-8">
           <div className="flex justify-center">
-            <div className="flex gap-8">
+            <div className="flex flex-wrap justify-center gap-4 sm:gap-8">
               {/* Active Tab Button */}
               <button
                 onClick={() => setFilterActive('active')}

@@ -390,7 +390,7 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
                   Coupon Applied
                 </h4>
               </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className={`${lexendSmall.className} text-gray-300`}>Coupon Name:</span>
                   <p className={`${lexendMedium.className} text-white`}>{ticket.coupon.name}</p>
@@ -412,7 +412,7 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({ ticket, onClose
           )}
 
           {/* Additional Info Grid */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="backdrop-blur-sm bg-black/20 border border-gray-500/30 rounded-lg p-4">
               <h4 className={`${lexendMedium.className} text-gray-300 text-sm mb-2`}>
                 Ticket ID

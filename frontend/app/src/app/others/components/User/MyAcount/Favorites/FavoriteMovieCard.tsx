@@ -77,9 +77,9 @@ const FavoriteMovieCard: React.FC<FavoriteMovieCardProps> = ({
   };
 
   return (
-    <div className="flex bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl hover:scale-[1.02] transition-transform duration-300 group">
+    <div className="flex flex-col sm:flex-row bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl hover:scale-[1.01] sm:hover:scale-[1.02] transition-transform duration-300 group">
       {/* Movie Poster */}
-      <div className="w-40 shrink-0 relative bg-gray-800">
+      <div className="w-full sm:w-40 h-48 sm:h-auto shrink-0 relative bg-gray-800">
         <img
           src={favorite.movieId.poster}
           alt={favorite.movieId.title}
@@ -101,9 +101,9 @@ const FavoriteMovieCard: React.FC<FavoriteMovieCardProps> = ({
       </div>
 
       {/* Movie Details */}
-      <div className="flex flex-col flex-1 px-7 py-6">
-        <div className="flex items-start justify-between mb-2">
-          <div className={`${lexendBold.className} text-xl text-white`}>
+      <div className="flex flex-col flex-1 px-4 sm:px-7 py-4 sm:py-6 min-w-0">
+        <div className="flex items-start justify-between gap-3 mb-2">
+          <div className={`${lexendBold.className} text-lg sm:text-xl text-white`}>
             {favorite.movieId.title}
           </div>
           
@@ -120,7 +120,7 @@ const FavoriteMovieCard: React.FC<FavoriteMovieCardProps> = ({
         </p>
 
         {/* Movie Info */}
-        <div className={`${lexendMedium.className} flex items-center gap-6 mt-2 text-base text-white mb-4`}>
+        <div className={`${lexendMedium.className} flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 mt-2 text-sm sm:text-base text-white mb-4`}>
           <div className="flex items-center gap-2">
             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -159,7 +159,7 @@ const FavoriteMovieCard: React.FC<FavoriteMovieCardProps> = ({
         )}
 
         {/* Action Buttons */}
-        <div className="mt-auto flex gap-3">
+        <div className="mt-auto flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3">
           <button
             onClick={() => onViewMovie(favorite.movieId._id)}
             className={`${lexendMedium.className} bg-white text-black px-5 py-2.5 rounded-xl hover:bg-white/90 transition-colors text-sm`}

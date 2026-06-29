@@ -33,7 +33,7 @@ const SortDropdown: React.FC<SortDropdownProps> = ({ sortBy, onSortChange }) => 
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`${lexendSmall.className} flex items-center gap-2 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all duration-300 min-w-[200px] justify-between`}
+        className={`${lexendSmall.className} flex items-center gap-2 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all duration-300 w-full sm:min-w-[200px] justify-between`}
       >
         <div className="flex items-center gap-2">
           {currentOption?.icon && <currentOption.icon className="h-4 w-4" />}

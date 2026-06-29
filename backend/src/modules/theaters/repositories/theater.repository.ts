@@ -1,8 +1,9 @@
-import { FilterQuery, PipelineStage } from "mongoose";
+import { FilterQuery, PipelineStage, Types } from "mongoose";
 import { TheaterFilters, CreateTheaterDTO, UpdateTheaterDTO } from "../dtos/dto";
 import { ITheater } from "../interfaces/theater.model.interface";
 import { ITheaterReadRepository, ITheaterWriteRepository, ITheaterRepository } from "../interfaces/theater.repository.interface";
 import { Theater } from "../models/theater.model";
+import MovieShowtime from "../../showtimes/models/showtimes.model";
 
 export class TheaterRepository implements ITheaterRepository {
   async create(
@@ -309,16 +310,51 @@ export class TheaterRepository implements ITheaterRepository {
       const limitNum = typeof filters.limit === "string" ? parseInt(filters.limit, 10) : filters.limit || 10;
       const lat = typeof filters.latitude === "string" ? parseFloat(filters.latitude) : filters.latitude;
       const lon = typeof filters.longitude === "string" ? parseFloat(filters.longitude) : filters.longitude;
+      const theaterIdsWithShows =
+        filters.hasShowtimes === false
+          ? null
+          : await this._getTheaterIdsWithShowsToday();
 
-      if (filters.sortBy === "nearby" && lat != null && lon != null) {
-        return await this._getTheatersByLocation(filters, pageNum, limitNum, lat, lon);
+      if (theaterIdsWithShows && theaterIdsWithShows.length === 0) {
+        return { theaters: [], total: 0, totalPages: 0 };
       }
 
-      return await this._getTheatersWithRegularFilters(filters, pageNum, limitNum, lat, lon);
+      if (filters.sortBy === "nearby" && lat != null && lon != null) {
+        return await this._getTheatersByLocation(
+          filters,
+          pageNum,
+          limitNum,
+          lat,
+          lon,
+          theaterIdsWithShows
+        );
+      }
+
+      return await this._getTheatersWithRegularFilters(
+        filters,
+        pageNum,
+        limitNum,
+        lat,
+        lon,
+        theaterIdsWithShows
+      );
     } catch (error) {
       console.error("Error getting theaters with filters:", error);
       throw error;
     }
+  }
+
+  private async _getTheaterIdsWithShowsToday(): Promise<Types.ObjectId[]> {
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const endOfToday = new Date(startOfToday);
+    endOfToday.setHours(23, 59, 59, 999);
+
+    return MovieShowtime.distinct("theaterId", {
+      isActive: true,
+      showDate: { $gte: startOfToday, $lte: endOfToday },
+    });
   }
 
   private async _getTheatersByLocation(
@@ -326,7 +362,8 @@ export class TheaterRepository implements ITheaterRepository {
     pageNum: number,
     limitNum: number,
     lat: number,
-    lon: number
+    lon: number,
+    theaterIdsWithShows: Types.ObjectId[] | null
   ): Promise<{ theaters: ITheater[]; total: number; totalPages: number }> {
     const pipeline: PipelineStage[] = [
       {
@@ -342,7 +379,12 @@ export class TheaterRepository implements ITheaterRepository {
           query: {
             isActive: true,
             isVerified: true,
-            ...(filters.facilities && filters.facilities.length > 0 ? { facilities: { $in: filters.facilities } } : {})
+            ...(theaterIdsWithShows
+              ? { _id: { $in: theaterIdsWithShows } }
+              : {}),
+            ...(filters.facilities && filters.facilities.length > 0
+              ? { facilities: { $in: filters.facilities } }
+              : {}),
           },
         },
       },
@@ -392,12 +434,17 @@ export class TheaterRepository implements ITheaterRepository {
     pageNum: number,
     limitNum: number,
     lat?: number,
-    lon?: number
+    lon?: number,
+    theaterIdsWithShows: Types.ObjectId[] | null = null
   ): Promise<{ theaters: ITheater[]; total: number; totalPages: number }> {
     const query: FilterQuery<Record<string, unknown>> = {
       isActive: true,
       isVerified: true,
     };
+
+    if (theaterIdsWithShows) {
+      query._id = { $in: theaterIdsWithShows };
+    }
 
     if (filters.search) {
       query.$or = [

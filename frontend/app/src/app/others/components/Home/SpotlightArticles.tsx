@@ -40,7 +40,7 @@ export default function SpotlightArticles() {
       >
         <div className="max-w-7xl mx-auto">
           {/* Heading */}
-          <h2 className="text-4xl text-center md:text-5xl text-white mb-6 font-bold">
+          <h2 className="text-2xl sm:text-4xl text-center md:text-5xl text-white mb-6 font-bold">
             Movies & Insights
           </h2>
           <p className="text-gray-300 text-center text-lg mb-12">

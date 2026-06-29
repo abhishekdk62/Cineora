@@ -71,7 +71,7 @@ export default function MovieHeader({
     <div>
       <div className="flex justify-between">
         <div>
-          <h1 className={`${lexendBold.className} text-4xl md:text-5xl text-white mb-4`}>
+          <h1 className={`${lexendBold.className} text-3xl sm:text-4xl md:text-5xl text-white mb-4`}>
             {title}
             <MovieRating ratingStats={ratingStats} />
           </h1>

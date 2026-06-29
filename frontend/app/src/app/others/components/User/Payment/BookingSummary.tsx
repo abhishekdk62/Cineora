@@ -27,7 +27,7 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({ data, onPayment,
   onShowCouponsModal }) => {
   const dispatch = useDispatch()
   return (
-    <div className="backdrop-blur-sm bg-black/20 rounded-2xl p-8 border border-gray-500/30">
+    <div className="backdrop-blur-sm bg-black/20 rounded-2xl p-4 sm:p-6 md:p-8 border border-gray-500/30">
       <div className="space-y-8">
         <MovieDetails data={{ ...data, moviePoster: data.moviePoster ?? "" }} />
 

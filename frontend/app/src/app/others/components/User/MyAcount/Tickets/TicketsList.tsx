@@ -288,7 +288,7 @@ const getTickets = async (pageNumber: number = 1, filterType?: string, append: b
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-transparent p-12 flex items-center justify-center">
+            <div className="min-h-screen bg-transparent p-4 sm:p-8 flex items-center justify-center">
                 <div className="text-white text-xl">
                     <Loader text='Loading your tickets' />
                 </div>
@@ -298,7 +298,7 @@ const getTickets = async (pageNumber: number = 1, filterType?: string, append: b
 
     if (error && allTickets.length === 0) {
         return (
-            <div className="min-h-screen bg-transparent p-12 flex items-center justify-center">
+            <div className="min-h-screen bg-transparent p-4 sm:p-8 flex items-center justify-center">
                 <div className="text-red-400 text-xl">{error}</div>
             </div>
         );
@@ -307,10 +307,10 @@ const getTickets = async (pageNumber: number = 1, filterType?: string, append: b
     const filteredBookings = getFilteredBookings();
 
     return (
-        <div className="min-h-screen bg-transparent p-12">
+        <div className="min-h-screen bg-transparent p-4 sm:p-8 lg:p-12">
             <div className="mx-auto max-w-5xl space-y-7">
-                <div className="mb-10">
-                    <h1 className={`${lexendBold.className} text-5xl text-center text-white mb-2`}>
+                <div className="mb-6 sm:mb-10">
+                    <h1 className={`${lexendBold.className} text-3xl sm:text-4xl md:text-5xl text-center text-white mb-2`}>
                         My Tickets
                     </h1>
                 </div>

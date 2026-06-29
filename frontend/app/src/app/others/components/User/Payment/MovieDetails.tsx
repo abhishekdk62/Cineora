@@ -21,7 +21,7 @@ interface MovieDetailsProps {
 
 export const MovieDetails: React.FC<MovieDetailsProps> = ({ data }) => {
   return (
-    <div className="flex items-start gap-6 pb-6 border-b border-gray-600/30">
+    <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 pb-6 border-b border-gray-600/30">
       <div className="relative">
         <div className="w-20 h-28 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-xl shadow-lg flex items-center justify-center">
          

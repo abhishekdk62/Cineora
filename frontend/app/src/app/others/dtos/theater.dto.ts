@@ -45,6 +45,7 @@ export interface TheaterFilters extends PaginationQuery {
   isActive?: boolean;
   isVerified?: boolean;
   isRejected?: boolean;
+  hasShowtimes?: boolean;
 }
 
 export interface TheaterResponseDto {

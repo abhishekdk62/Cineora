@@ -730,7 +730,7 @@ console.log('seat-update',data);
     <RouteGuard allowedRoles={['user']} >
 
       <div className="min-h-screen  bg-black relative overflow-hidden">
-        <div className="fixed top-20 right-4 z-50">
+        <div className="fixed top-16 right-2 sm:top-20 sm:right-4 z-50">
           <div className={`px-3 py-1 rounded-full ${lexendBold.className} text-sm backdrop-blur-sm ${isConnected
             ? ' text-green-400 border border-green-500'
             : ' text-red-400 border border-red-500'
@@ -779,20 +779,18 @@ console.log('seat-update',data);
           {!loading && showtimeData && (
             <div className="pb-12">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="relative flex items-center pt-12 pb-30">
+                <div className="flex flex-col gap-4 pt-8 sm:pt-12 pb-8 sm:pb-16">
                   <button
                     onClick={handleBack}
-                    className={`${lexendSmall.className} flex items-center gap-2 text-gray-400 hover:text-white transition-all duration-300 mb-6 absolute left-5 z-10`}
+                    className={`${lexendSmall.className} flex items-center gap-2 text-gray-400 hover:text-white transition-all duration-300 self-start`}
                   >
                     <ArrowLeft className="w-5 h-5" />
                     Back to Showtimes
                   </button>
 
-                  <div className="w-full flex justify-center">
-                    <p className={`${lexendBold.className} text-4xl text-center text-white`}>
-                      Choose Your Seats
-                    </p>
-                  </div>
+                  <h1 className={`${lexendBold.className} text-2xl sm:text-3xl md:text-4xl text-center text-white px-2`}>
+                    Choose Your Seats
+                  </h1>
                 </div>
 
                 <CurvedScreen />

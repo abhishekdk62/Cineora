@@ -66,8 +66,8 @@ const PaymentForm = ({
                 />
 
                 <div className="pt-6 border-t border-gray-600/30">
-                    <div className="flex justify-between items-center p-4 bg-white/5 rounded-xl border border-gray-500/20 mb-6">
-                        <span className={`${lexendBold.className} text-white text-xl`}>TOTAL AMOUNT</span>
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 p-4 bg-white/5 rounded-xl border border-gray-500/20 mb-6">
+                        <span className={`${lexendBold.className} text-white text-lg sm:text-xl`}>TOTAL AMOUNT</span>
                         <div className="text-right">
                             <span className={`${lexendBold.className} text-white text-2xl`}>
                                 ₹{totalAmount}
