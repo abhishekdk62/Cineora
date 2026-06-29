@@ -13,7 +13,10 @@ export class UserRepository implements IUserRepository {
   }
 
   async findByEmail(userEmail: string): Promise<IUser | null> {
-    return User.findOne({ email: userEmail }).exec();
+    const normalizedEmail = userEmail.toLowerCase().trim();
+    return User.findOne({
+      $expr: { $eq: [{ $toLower: "$email" }, normalizedEmail] },
+    }).exec();
   }
 
   async findUserByUsername(username: string): Promise<IUser | null> {
@@ -198,7 +201,10 @@ export class UserRepository implements IUserRepository {
   ): Promise<IUser | null> {
     const normalizedEmail = email.toLowerCase().trim();
     return User.findOne({
-      $or: [{ googleId }, { email: normalizedEmail }],
+      $or: [
+        { googleId },
+        { $expr: { $eq: [{ $toLower: "$email" }, normalizedEmail] } },
+      ],
     }).exec();
   }
 

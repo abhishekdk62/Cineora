@@ -534,26 +534,8 @@ export class AuthService implements IAuthService {
       }
 
       const googleUserData = await this._verifyGoogleToken(credential);
-
-      let user = await this._userRepo.findUserByGoogleIdOrEmail(
-        googleUserData.googleId,
-        googleUserData.email
-      );
-
-      if (!user) {
-        user = await this._userRepo.findByEmail(
-          googleUserData.email.toLowerCase().trim()
-        );
-      }
-
-      let isNewUser = false;
-
-      if (!user) {
-        user = await this._createGoogleUser(googleUserData);
-        isNewUser = true;
-      } else {
-        user = await this._updateExistingGoogleUser(user, googleUserData);
-      }
+      const { user, isNewUser } =
+        await this._resolveGoogleAuthUser(googleUserData);
 
       const { accessToken, refreshToken } = this.generateTokenPair(
         user,
@@ -656,33 +638,61 @@ export class AuthService implements IAuthService {
     }
   }
 
+  private async _resolveGoogleAuthUser(
+    googleUserData: GoogleUserDataDto
+  ): Promise<{
+    user: import("../../user/interfaces/user.model.interface").IUser;
+    isNewUser: boolean;
+  }> {
+    const email = googleUserData.email.toLowerCase().trim();
+
+    let user = await this._userRepo.findUserByGoogleIdOrEmail(
+      googleUserData.googleId,
+      email
+    );
+
+    if (!user) {
+      user = await this._userRepo.findByEmail(email);
+    }
+
+    if (user) {
+      const updatedUser = await this._updateExistingGoogleUser(
+        user,
+        googleUserData
+      );
+      return { user: updatedUser, isNewUser: false };
+    }
+
+    const ownerConflict = await this._getOwnerEmailConflictMessage(email);
+    if (ownerConflict) {
+      throw new Error(ownerConflict);
+    }
+
+    const newUser = await this._createGoogleUser(googleUserData);
+    return { user: newUser, isNewUser: true };
+  }
+
+  private async _getOwnerEmailConflictMessage(
+    email: string
+  ): Promise<string | null> {
+    const isOwnerRequest = await this._ownerRequestRepo.findByEmail(email);
+    if (isOwnerRequest) {
+      return "This email is registered as a cinema owner. Please use owner login.";
+    }
+
+    const isOwner = await this._ownerRepo.findByEmail(email);
+    if (isOwner) {
+      return "This email is registered as a cinema owner. Please use owner login.";
+    }
+
+    return null;
+  }
+
   private async _createGoogleUser(
     googleUserData: GoogleUserDataDto
   ): Promise<import("../../user/interfaces/user.model.interface").IUser> {
     try {
-      const existingUser = await this._userRepo.findByEmail(
-        googleUserData.email.toLowerCase().trim()
-      );
-
-      if (existingUser) {
-        throw new Error(
-          "An account with this email already exists. Please sign in with Google again or use email login."
-        );
-      }
-
-      const isOwner = await this._ownerRequestRepo.findByEmail(
-        googleUserData.email
-      );
-      if (isOwner) {
-        throw new Error("User with this email already exists");
-      }
-
-      const isRequestedOwner = await this._ownerRepo.findByEmail(
-        googleUserData.email
-      );
-      if (isRequestedOwner) {
-        throw new Error("User with this email already exists");
-      }
+      const email = googleUserData.email.toLowerCase().trim();
 
       const baseUsername = googleUserData.name
         .toLowerCase()
@@ -697,7 +707,7 @@ export class AuthService implements IAuthService {
 
       const newUser = await this._userRepo.createGoogleUser({
         username,
-        email: googleUserData.email.toLowerCase(),
+        email,
         googleId: googleUserData.googleId,
         firstName: googleUserData.name,
         avatar: googleUserData.avatar,
@@ -707,8 +717,26 @@ export class AuthService implements IAuthService {
 
       return newUser;
     } catch (error) {
-      throw new Error(`${error}`);
+      if (this._isDuplicateEmailError(error)) {
+        const existingUser = await this._userRepo.findByEmail(
+          googleUserData.email
+        );
+        if (existingUser) {
+          return this._updateExistingGoogleUser(existingUser, googleUserData);
+        }
+      }
+
+      throw error instanceof Error ? error : new Error(String(error));
     }
+  }
+
+  private _isDuplicateEmailError(error: unknown): boolean {
+    return (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      (error as { code: unknown }).code === 11000
+    );
   }
 
   private async _updateExistingGoogleUser(
