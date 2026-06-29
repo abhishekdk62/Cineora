@@ -70,7 +70,6 @@ const walletTransactionSchema = new Schema<IWalletTransaction>(
 
 walletTransactionSchema.index({ userId: 1, createdAt: -1 });
 walletTransactionSchema.index({ walletId: 1, createdAt: -1 });
-walletTransactionSchema.index({ transactionId: 1 });
 walletTransactionSchema.index({ referenceId: 1 });
 walletTransactionSchema.index({ status: 1 });
 

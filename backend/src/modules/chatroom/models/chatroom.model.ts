@@ -98,8 +98,6 @@ const ChatRoomSchema: Schema<IChatRoom> = new Schema(
   }
 );
 
-ChatRoomSchema.index({ inviteGroupId: 1 });
-ChatRoomSchema.index({ inviteId: 1 });
 ChatRoomSchema.index({ participants: 1 });
 
 export default mongoose.model<IChatRoom>('ChatRoom', ChatRoomSchema);

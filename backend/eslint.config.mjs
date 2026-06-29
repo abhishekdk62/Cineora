@@ -5,10 +5,12 @@ import { defineConfig } from "eslint/config";
 export default defineConfig([
     {
         files: ["**/*.ts"],
-        parser: tsparser,
         plugins: { "@typescript-eslint": tsplugin },
         extends: [], // remove recommended rules
-        languageOptions: { globals: globals.node },
+        languageOptions: {
+            parser: tsparser,
+            globals: globals.node,
+        },
         rules: {
             "@typescript-eslint/explicit-function-return-type": "off",
             "@typescript-eslint/no-unused-vars": "off",

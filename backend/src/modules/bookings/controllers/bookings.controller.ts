@@ -16,7 +16,6 @@ import { NotificationScheduler } from "../../../services/scheduler.service";
 import { StatusCodes } from "../../../utils/statuscodes";
 import { BOOKING_MESSAGES } from "../../../utils/messages.constants";
 import { createResponse } from "../../../utils/createResponse";
-import { OwnerService } from "../../owner/services/owner.service";
 import { ITheaterService } from "../../theaters/interfaces/theater.service.interface";
 import { CreateWalletDto, CreditWalletDto } from "../../wallet/dtos/dto";
 import { ICouponService } from "../../coupons/interfaces/coupons.service.interface";

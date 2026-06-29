@@ -75,7 +75,6 @@ const CouponSchema = new Schema<ICoupon>({
   timestamps: true,
 });
 
-CouponSchema.index({ uniqueId: 1 });
 CouponSchema.index({ theaterIds: 1 });
 CouponSchema.index({ createdBy: 1 });
 CouponSchema.index({ expiryDate: 1 });
