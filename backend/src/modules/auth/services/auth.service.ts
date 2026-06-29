@@ -540,6 +540,12 @@ export class AuthService implements IAuthService {
         googleUserData.email
       );
 
+      if (!user) {
+        user = await this._userRepo.findByEmail(
+          googleUserData.email.toLowerCase().trim()
+        );
+      }
+
       let isNewUser = false;
 
       if (!user) {
@@ -655,11 +661,13 @@ export class AuthService implements IAuthService {
   ): Promise<import("../../user/interfaces/user.model.interface").IUser> {
     try {
       const existingUser = await this._userRepo.findByEmail(
-        googleUserData.email
+        googleUserData.email.toLowerCase().trim()
       );
 
-      if (existingUser && existingUser.isVerified) {
-        throw new Error("User with this email already exists");
+      if (existingUser) {
+        throw new Error(
+          "An account with this email already exists. Please sign in with Google again or use email login."
+        );
       }
 
       const isOwner = await this._ownerRequestRepo.findByEmail(

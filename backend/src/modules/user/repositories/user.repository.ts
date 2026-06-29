@@ -196,11 +196,9 @@ export class UserRepository implements IUserRepository {
     googleId: string,
     email: string
   ): Promise<IUser | null> {
+    const normalizedEmail = email.toLowerCase().trim();
     return User.findOne({
-      $or: [
-        { googleId: googleId },
-        { email: { $regex: `^${email}$`, $options: "i" } },
-      ],
+      $or: [{ googleId }, { email: normalizedEmail }],
     }).exec();
   }
 
