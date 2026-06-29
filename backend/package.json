@@ -1,13 +1,16 @@
 {
   "dependencies": {
     "@types/bcrypt": "^6.0.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
     "@types/multer": "^2.0.0",
+    "@types/node": "^24.1.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.7.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "crypto": "^1.0.1",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "google-auth-library": "^10.2.1",
@@ -21,6 +24,7 @@
     "nodemailer": "^7.0.5",
     "razorpay": "^2.9.6",
     "socket.io": "^4.8.1",
+    "typescript": "5.8.3",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0"
   },
@@ -29,7 +33,6 @@
     "@types/cookie-parser": "^1.4.10",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",
-    "@types/node": "^24.1.0",
     "@types/nodemailer": "^6.4.17",
     "@typescript-eslint/eslint-plugin": "^8.44.1",
     "@typescript-eslint/parser": "^8.44.1",
@@ -37,7 +40,6 @@
     "globals": "^16.4.0",
     "jiti": "^2.6.0",
     "ts-node": "^10.9.2",
-    "typescript": "5.8.3",
     "typescript-eslint": "^8.44.1"
   },
   "scripts": {
@@ -45,5 +47,8 @@
     "dev": "ts-node --transpile-only src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
