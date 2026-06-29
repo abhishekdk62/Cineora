@@ -53,6 +53,71 @@ const TheatersPage: React.FC = () => {
 
   const itemsPerPage = 2;
 
+  const getLocationData = useCallback((): { latitude: string; longitude: string } | undefined => {
+    if (userLocation) {
+      return userLocation;
+    }
+
+    try {
+      const stored = localStorage.getItem("userLocation");
+      return stored ? JSON.parse(stored) : undefined;
+    } catch {
+      return undefined;
+    }
+  }, [userLocation]);
+
+  const buildFilters = useCallback(
+    (
+      search: string,
+      sort: SortOption,
+      page: number,
+      facilities: string[],
+      locationData?: { latitude: string; longitude: string }
+    ): TheaterFilters => {
+      const filters: TheaterFilters = {
+        search,
+        sortBy: sort,
+        page,
+        limit: itemsPerPage,
+        facilities: facilities.length ? facilities.join(",") : undefined,
+      };
+
+      if (sort === "nearby" && locationData) {
+        filters.latitude = parseFloat(locationData.latitude);
+        filters.longitude = parseFloat(locationData.longitude);
+      }
+
+      return filters;
+    },
+    [itemsPerPage]
+  );
+
+  const applyTheaterResponse = useCallback(
+    (
+      data: Awaited<ReturnType<typeof getTheatersWithFilters>>,
+      reset: boolean,
+      page: number
+    ) => {
+      const nextTheaters = (data.data ?? []) as unknown as TheaterListItem[];
+
+      if (reset || page === 1) {
+        setTheaters(nextTheaters);
+      } else {
+        setTheaters((prev) => {
+          const existingIds = prev.map((item) => item._id);
+          const filteredNew = nextTheaters.filter(
+            (theater) => !existingIds.includes(theater._id)
+          );
+          return [...prev, ...filteredNew];
+        });
+      }
+
+      setTotalCount(data.meta?.pagination?.total ?? 0);
+      setHasMore(data.meta?.pagination?.hasNextPage ?? false);
+    },
+    []
+  );
+
 
   const getTheaterReviewStatsFunc = async (theaterId: string) => {
     try {
@@ -128,48 +193,26 @@ const TheatersPage: React.FC = () => {
       }
       setError(null);
 
-      let locationData: { latitude: string; longitude: string } | undefined = userLocation;
-      if (!locationData) {
-        try {
-          const stored = localStorage.getItem('userLocation');
-          locationData = stored ? JSON.parse(stored) : undefined;
-        } catch {
-          locationData = undefined;
-        }
+      const locationData = getLocationData();
+      let effectiveSort = sort;
+      let filters = buildFilters(search, effectiveSort, page, facilities, locationData);
+
+      let data = await getTheatersWithFilters(filters);
+
+      const shouldFallbackToAllTheaters =
+        reset &&
+        page === 1 &&
+        (data.data ?? []).length === 0 &&
+        effectiveSort === "nearby";
+
+      if (shouldFallbackToAllTheaters) {
+        effectiveSort = "a-z";
+        setSortBy("a-z");
+        filters = buildFilters(search, "a-z", page, facilities);
+        data = await getTheatersWithFilters(filters);
       }
 
-      const filters: TheaterFilters = {
-        search,
-        sortBy: sort,
-        page,
-        limit: itemsPerPage,
-        facilities: facilities.length ? facilities.join(",") : undefined,
-        ...(locationData
-          ? {
-              latitude: parseFloat(locationData.latitude),
-              longitude: parseFloat(locationData.longitude),
-            }
-          : {}),
-      };
-
-      const data = await getTheatersWithFilters(filters);
-      console.log('Theater response:', data);
-
-      if (reset || page === 1) {
-        setTheaters((data.data ?? []) as unknown as TheaterListItem[]);
-      } else {
-        setTheaters(prev => {
-          const existingIds = prev.map(item => item._id);
-          const filteredNew = ((data.data ?? []) as unknown as TheaterListItem[]).filter(
-            (theater) => !existingIds.includes(theater._id)
-          );
-          return [...prev, ...filteredNew];
-        });
-      }
-
-      setTotalCount(data.meta?.pagination?.total ?? 0);
-      setHasMore(data.meta?.pagination?.hasNextPage ?? false);
-
+      applyTheaterResponse(data, reset, page);
     } catch (err) {
       setError("Failed to load theaters.");
       if (reset) {
@@ -183,7 +226,15 @@ const TheatersPage: React.FC = () => {
       }
       setSearchLoading(false);
     }
-  }, [currentPage, userLocation, theaters.length]);
+  }, [
+    searchTerm,
+    sortBy,
+    currentPage,
+    selectedFacilities,
+    getLocationData,
+    buildFilters,
+    applyTheaterResponse,
+  ]);
 
   const loadMoreTheaters = useCallback(async (page: number) => {
     await loadTheaters(searchTerm, sortBy, page, selectedFacilities, false);
