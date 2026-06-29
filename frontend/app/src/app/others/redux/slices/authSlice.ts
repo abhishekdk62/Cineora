@@ -6,6 +6,7 @@ import {
 import { googleAuth, logout } from "../../services/authServices/authService";
 import { AxiosError } from "axios";
 import { CredentialResponse } from "@react-oauth/google";
+import { authStorage } from "../../Utils/authStorage";
 
 interface User {
   id: string;
@@ -45,6 +46,12 @@ export const verifyOtp = createAsyncThunk(
       const result = await verifyOTP(email, otp);
 
       if (result.success) {
+        if (result.data?.accessToken && result.data?.refreshToken) {
+          authStorage.setTokens(
+            result.data.accessToken,
+            result.data.refreshToken
+          );
+        }
         return {
           user: result.data.user,
           role: result.data.role,
@@ -82,6 +89,12 @@ export const loginUser = createAsyncThunk(
       const result = await loginAPI(email, password);
       console.log("auth slice result is :", result);
       if (result.success) {
+        if (result.data?.accessToken && result.data?.refreshToken) {
+          authStorage.setTokens(
+            result.data.accessToken,
+            result.data.refreshToken
+          );
+        }
         return {
           user: result.data.user,
           role: result.data.role,
@@ -115,6 +128,12 @@ export const googleLogin = createAsyncThunk(
       const result = await googleAuth(credentialResponse);
 
       if (result.success) {
+        if (result.data?.accessToken && result.data?.refreshToken) {
+          authStorage.setTokens(
+            result.data.accessToken,
+            result.data.refreshToken
+          );
+        }
         return {
           user: result.data.user,
           role: result.data.user.role || "user",
@@ -198,6 +217,7 @@ const authSlice = createSlice({
       state.role = null;
       state.isAuthenticated = false;
       state.error = null;
+      authStorage.clear();
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
@@ -286,6 +306,7 @@ const authSlice = createSlice({
         state.role = null;
         state.isAuthenticated = false;
         state.error = null;
+        authStorage.clear();
       })
       .addCase(verifyOtp.pending, (state) => {
         state.loading = true;

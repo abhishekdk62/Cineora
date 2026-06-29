@@ -1,6 +1,7 @@
 import AUTH_ROUTES from "../../constants/authConstants/authConstants";
 import { GoogleCredentialResponse } from "../../types";
 import apiClient from "../../Utils/apiClient";
+import { authStorage } from "../../Utils/authStorage";
 
 export const login = async (email: string, password: string) => {
   const response = await apiClient.post(AUTH_ROUTES.LOGIN, { email, password });
@@ -62,11 +63,10 @@ export const isAuthenticated = async (): Promise<boolean> => {
 export const logout = async () => {
   try {
     const response = await apiClient.post(AUTH_ROUTES.LOGOUT, {});
-    localStorage.removeItem('authToken');
+    authStorage.clear();
     return response.data?.success || false;
-
   } catch {
-    localStorage.removeItem('authToken');
+    authStorage.clear();
     return false;
   }
 };

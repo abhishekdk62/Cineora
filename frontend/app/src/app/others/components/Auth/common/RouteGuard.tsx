@@ -3,6 +3,7 @@
 import { useAuth } from '@/app/others/Utils/useAuth'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { authStorage } from '@/app/others/Utils/authStorage'
 
 interface RouteGuardProps {
   children: React.ReactNode
@@ -29,6 +30,10 @@ export default function RouteGuard({
 
   useEffect(() => {
     if (!loading && redirectOnAuth && mounted) {
+      if (isAuthenticated && !authStorage.getAccessToken()) {
+        return
+      }
+
       if (allowedRoles && allowedRoles.length > 0) {
         if (!isAuthenticated && !allowUnauthenticated) {
           setTimeout(() => {
@@ -49,7 +54,10 @@ export default function RouteGuard({
       }
       
       if (excludedRoles && excludedRoles.length > 0) {
-        if (isAuthenticated && role && excludedRoles.includes(role)) {
+        const hasValidSession =
+          isAuthenticated && !!authStorage.getAccessToken()
+
+        if (hasValidSession && role && excludedRoles.includes(role)) {
           const redirectPath = getRoleBasedPath(role)
           setTimeout(() => {
             router.replace(redirectPath)
@@ -89,8 +97,11 @@ export default function RouteGuard({
   }
 
   if (allowedRoles && allowedRoles.length > 0) {
-    if ((!isAuthenticated && !allowUnauthenticated) || 
-        (isAuthenticated && role && !allowedRoles.includes(role))) {
+    const hasValidSession =
+      isAuthenticated && !!authStorage.getAccessToken()
+
+    if ((!hasValidSession && !allowUnauthenticated) || 
+        (hasValidSession && role && !allowedRoles.includes(role))) {
       
       if (redirectOnAuth) {
         return (
@@ -131,7 +142,10 @@ export default function RouteGuard({
   }
 
   if (excludedRoles && excludedRoles.length > 0) {
-    if (isAuthenticated && role && excludedRoles.includes(role)) {
+    const hasValidSession =
+      isAuthenticated && !!authStorage.getAccessToken()
+
+    if (hasValidSession && role && excludedRoles.includes(role)) {
       if (redirectOnAuth) {
         return (
           <div className="min-h-screen bg-[#040404] flex items-center justify-center">
