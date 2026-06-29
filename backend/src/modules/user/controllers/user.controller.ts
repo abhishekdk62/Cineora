@@ -30,6 +30,10 @@ import { IWalletService } from "../../wallet/interfaces/wallet.service.interface
 import { StatusCodes } from "../../../utils/statuscodes";
 import { USER_MESSAGES } from "../../../utils/messages.constants";
 import { IUser } from "../interfaces/user.model.interface";
+import {
+  clearAuthCookies,
+  setAuthCookies,
+} from "../../../utils/authCookies";
 
 interface AuthenticatedRequest extends Request {
   user?: { id: string; _id?: string };
@@ -194,11 +198,10 @@ export class UserController {
 
   async refreshToken(req: Request, res: Response) {
     try {
-      const refreshTokenDto: RefreshTokenDto = {
-        refreshToken: req.cookies?.refreshToken,
-      };
+      const refreshToken =
+        req.cookies?.refreshToken || req.body?.refreshToken;
 
-      if (!refreshTokenDto.refreshToken) {
+      if (!refreshToken) {
         res.status(StatusCodes.UNAUTHORIZED).json(
           createResponse({
             success: false,
@@ -209,11 +212,11 @@ export class UserController {
       }
 
       const refreshResult = await this.authService.refreshAccessToken(
-        refreshTokenDto.refreshToken
+        refreshToken
       );
 
       if (!refreshResult.success) {
-        this._clearAuthCookies(res);
+        clearAuthCookies(res);
         res.status(StatusCodes.UNAUTHORIZED).json(
           createResponse({
             success: false,
@@ -223,7 +226,7 @@ export class UserController {
         return;
       }
 
-      this._setAuthCookies(
+      setAuthCookies(
         res,
         refreshResult.data.accessToken,
         refreshResult.data.refreshToken
@@ -233,6 +236,10 @@ export class UserController {
         createResponse({
           success: true,
           message: USER_MESSAGES.TOKEN_REFRESHED,
+          data: {
+            accessToken: refreshResult.data.accessToken,
+            refreshToken: refreshResult.data.refreshToken,
+          },
         })
       );
     } catch (error: unknown) {
@@ -763,6 +770,8 @@ export class UserController {
             role: "user",
             redirectTo: "/dashboard",
             isNewUser: true,
+            accessToken,
+            refreshToken,
           },
         })
       );
@@ -783,24 +792,11 @@ export class UserController {
     accessToken: string,
     refreshToken: string
   ): void {
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 15 * 60 * 1000,
-    });
-
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    setAuthCookies(res, accessToken, refreshToken);
   }
 
   private _clearAuthCookies(res: Response): void {
-    res.clearCookie("accessToken");
-    res.clearCookie("refreshToken");
+    clearAuthCookies(res);
   }
 
   private _handleControllerError(

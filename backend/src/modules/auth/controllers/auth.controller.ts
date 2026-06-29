@@ -12,6 +12,7 @@ import {
 } from "../dtos/dtos";
 import { StatusCodes } from "../../../utils/statuscodes";
 import { AUTH_MESSAGES } from "../../../utils/messages.constants";
+import { setAuthCookies, clearAuthCookies } from "../../../utils/authCookies";
 
 export class AuthController {
   constructor(private readonly _authService: IAuthService) {}
@@ -51,27 +52,13 @@ export class AuthController {
         );
       }
 
-      res.cookie("accessToken", result.data.accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 15 * 60 * 10000,
-      });
-
-      res.cookie("refreshToken", result.data.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
-
-      const { accessToken, refreshToken, ...restData } = result.data;
+      setAuthCookies(res, result.data.accessToken, result.data.refreshToken);
 
       return res.status(StatusCodes.OK).json(
         createResponse({
           success: true,
           message: result.message,
-          data: restData,
+          data: result.data,
         })
       );
     } catch (err) {
@@ -221,19 +208,7 @@ export class AuthController {
       }
       const result = await this._authService.googleAuth(requestData.credential);
       if (result.success) {
-        res.cookie("accessToken", result.data.accessToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "strict",
-          maxAge: 15 * 60 * 1000,
-        });
-
-        res.cookie("refreshToken", result.data.refreshToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "strict",
-          maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
+        setAuthCookies(res, result.data.accessToken, result.data.refreshToken);
        return res.status(StatusCodes.OK).json(
           createResponse({
             success: true,
@@ -243,6 +218,8 @@ export class AuthController {
               isNewUser: result.data.isNewUser,
               role: result.data.user.role || "user",
               redirectTo: "/dashboard",
+              accessToken: result.data.accessToken,
+              refreshToken: result.data.refreshToken,
             },
           })
         );
@@ -286,8 +263,7 @@ export class AuthController {
         );
       }
 
-      res.clearCookie("accessToken");
-      res.clearCookie("refreshToken");
+      clearAuthCookies(res);
 
       return res.status(StatusCodes.OK).json(
         createResponse({
@@ -298,8 +274,7 @@ export class AuthController {
     } catch (error) {
       console.error("Logout error:", error);
 
-      res.clearCookie("accessToken");
-      res.clearCookie("refreshToken");
+      clearAuthCookies(res);
 
       return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
         createResponse({

@@ -37,7 +37,12 @@ export const authenticateToken = async (
   next: NextFunction
 ) => {
   try {
-    const accessToken = req.cookies?.accessToken;
+    const authHeader = req.headers.authorization;
+    const accessToken =
+      req.cookies?.accessToken ||
+      (authHeader?.startsWith("Bearer ")
+        ? authHeader.slice(7)
+        : undefined);
     const refreshToken = req.cookies?.refreshToken;
 
     if (!accessToken) {

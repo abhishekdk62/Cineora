@@ -5,6 +5,7 @@ import { createResponse } from "../../../utils/createResponse";
 import { NOTIFICATION_MESSAGES, STAFF_MESSAGES } from "../../../utils/messages.constants";
 import { CreateStaffDTO, GetAllStaffsQueryDTO } from "../dtos/dtos";
 import { IStaffService } from "../interfaces/staff.services.interface";
+import { setAuthCookies } from "../../../utils/authCookies";
 
 export class StaffController {
   constructor(private readonly staffService: IStaffService) {}
@@ -133,18 +134,6 @@ export class StaffController {
   }
 
   private _setAuthCookies(res: Response, accessToken: string, refreshToken: string): void {
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 15 * 60 * 1000,
-    });
-
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    setAuthCookies(res, accessToken, refreshToken);
   }
 }
