@@ -6,7 +6,7 @@ import DynamicPrism from "@/app/others/components/ReactBits/DynamicPrism";
 import Staff from "../others/components/Staff/Staff";
 import StaffHeader from "../others/components/Staff/StaffHeader";
 
-const page = () => {
+const StaffPage = () => {
     const [activeTab, setActiveTab] = useState<'account' | 'scanner'>('account');
 
     return (
@@ -41,4 +41,4 @@ const page = () => {
     );
 };
 
-export default page;
+export default StaffPage;

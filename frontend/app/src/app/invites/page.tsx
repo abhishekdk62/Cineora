@@ -16,7 +16,7 @@ const GroupChatManager = lazyPanel(
 
 const lexendMedium = { className: "font-medium" };
 
-const page = () => {
+const InvitesPage = () => {
   const [activeTab, setActiveTab] = useState<"invites" | "chats">("invites");
 
   return (
@@ -79,4 +79,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default InvitesPage;
